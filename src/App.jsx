@@ -13,6 +13,7 @@ import OneOnOne from './components/admin/OneOnOne';
 import PlayGroup from './components/admin/PlayGroup';
 import EnrollChild from './components/admin/EnrollChild';
 import OtherServices from './components/admin/OtherServices';
+import ManageTeachers from './components/admin/ManageTeachers';
 
 // Teacher Components
 import TeacherDashboard from './components/teacher/TeacherDashboard';
@@ -105,6 +106,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
+      <Route path="/admin/manage-teachers" element={<ManageTeachers />} />
 
       {/* Default Route */}
       <Route

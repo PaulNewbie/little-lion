@@ -18,7 +18,8 @@ class ChildService {
         ...childData,
         parentIds: [parentId],
         createdAt: new Date().toISOString(),
-        active: true
+        active: true,
+        services: childData.services || [] // Ensure services array exists
       });
 
       const parentRef = doc(db, 'users', parentId);
@@ -32,10 +33,9 @@ class ChildService {
     }
   }
 
-  // 2. NEW: Get children for a specific parent
+  // 2. Get children for a specific parent
   async getChildrenByParentId(parentId) {
     try {
-      // Query the 'children' collection where the 'parentIds' array contains the parentId
       const q = query(
         collection(db, 'children'), 
         where('parentIds', 'array-contains', parentId)
@@ -49,6 +49,25 @@ class ChildService {
       }));
     } catch (error) {
       throw new Error('Failed to fetch children: ' + error.message);
+    }
+  }
+
+  // 3. NEW: Get children enrolled in a specific service (For Teachers)
+  async getChildrenByService(serviceType) {
+    try {
+      const q = query(
+        collection(db, 'children'), 
+        where('services', 'array-contains', serviceType)
+      );
+      
+      const querySnapshot = await getDocs(q);
+      
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      throw new Error('Failed to fetch assigned children: ' + error.message);
     }
   }
 }

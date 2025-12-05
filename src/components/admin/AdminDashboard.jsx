@@ -39,7 +39,12 @@ const AdminDashboard = () => {
       description: "Configure services and assign qualified teachers.",
       path: "/admin/services",
       color: "#1A535C" // Dark Blue/Green
-    }
+    },
+
+    { 
+      title: "Manage Teachers", 
+      path: "/admin/manage-teachers", 
+      color: "#95E1D3" }
   ];
 
   return (
