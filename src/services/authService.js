@@ -2,19 +2,21 @@ import {
   signInWithEmailAndPassword, 
   signOut, 
   createUserWithEmailAndPassword,
-  sendPasswordResetEmail 
+  sendPasswordResetEmail,
+  getAuth,
+  onAuthStateChanged 
 } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from './firebase';
+import { initializeApp } from 'firebase/app';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db, firebaseConfig } from './firebase';
 
 class AuthService {
-  // Sign in user
+  // 1. Sign in user
   async signIn(email, password) {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      // Fetch user data from Firestore
       const userData = await this.getUserData(user.uid);
       
       return {
@@ -27,22 +29,52 @@ class AuthService {
     }
   }
 
-  // Get user data from Firestore
+  // 2. Create Parent Account
+  async createParentAccount(email, password, parentData) {
+    let tempApp = null;
+    try {
+      // Create a secondary app instance so we don't log out the admin
+      tempApp = initializeApp(firebaseConfig, 'tempApp');
+      const tempAuth = getAuth(tempApp);
+
+      // Create the user in the secondary auth
+      const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
+      const user = userCredential.user;
+
+      // Save to Firestore using the MAIN db instance
+      await setDoc(doc(db, 'users', user.uid), {
+        ...parentData,
+        uid: user.uid,
+        role: 'parent',
+        createdAt: new Date().toISOString()
+      });
+
+      return user;
+    } catch (error) {
+      throw this.handleAuthError(error);
+    } finally {
+      // Clean up the temporary app instance
+      if (tempApp) {
+        const { deleteApp } = await import('firebase/app');
+        await deleteApp(tempApp);
+      }
+    }
+  }
+
+  // 3. Get user data
   async getUserData(uid) {
     try {
       const userDoc = await getDoc(doc(db, 'users', uid));
-      
       if (!userDoc.exists()) {
         throw new Error('User data not found');
       }
-      
       return userDoc.data();
     } catch (error) {
       throw new Error('Failed to fetch user data: ' + error.message);
     }
   }
 
-  // Sign out user
+  // 4. Sign out
   async signOut() {
     try {
       await signOut(auth);
@@ -51,17 +83,7 @@ class AuthService {
     }
   }
 
-  // Create new user account (Admin only)
-  async createUser(email, password, userData) {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      return userCredential.user;
-    } catch (error) {
-      throw this.handleAuthError(error);
-    }
-  }
-
-  // Send password reset email
+  // 5. Reset Password
   async resetPassword(email) {
     try {
       await sendPasswordResetEmail(auth, email);
@@ -70,34 +92,26 @@ class AuthService {
     }
   }
 
-  // Get current user
-  getCurrentUser() {
-    return auth.currentUser;
-  }
-
-  // Auth state observer
+  // 6. Auth State Observer (Fixed: Added this method back)
   onAuthStateChanged(callback) {
-    return auth.onAuthStateChanged(callback);
+    return onAuthStateChanged(auth, callback);
   }
 
-  // Handle Firebase auth errors
+  // 7. Error Handler
   handleAuthError(error) {
+    console.error("Auth Error:", error);
     switch (error.code) {
-      case 'auth/user-not-found':
-      case 'auth/wrong-password':
-        return new Error('Invalid email or password');
       case 'auth/email-already-in-use':
-        return new Error('Email already in use');
+        return new Error('This email is already registered.');
       case 'auth/weak-password':
-        return new Error('Password should be at least 6 characters');
+        return new Error('Password should be at least 6 characters.');
       case 'auth/invalid-email':
-        return new Error('Invalid email address');
-      case 'auth/too-many-requests':
-        return new Error('Too many attempts. Please try again later');
+        return new Error('Invalid email address.');
       default:
         return new Error(error.message || 'Authentication failed');
     }
   }
 }
 
-export default new AuthService();
+const authServiceInstance = new AuthService();
+export default authServiceInstance;
