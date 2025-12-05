@@ -7,13 +7,13 @@ import { useAuth } from './hooks/useAuth';
 import LoginPage from './components/auth/LoginPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
-// Admin Components (REMOVE curly braces here because they use 'export default')
+// Admin Components
 import AdminDashboard from './components/admin/AdminDashboard';
 import OneOnOne from './components/admin/OneOnOne';
 import PlayGroup from './components/admin/PlayGroup';
 import EnrollChild from './components/admin/EnrollChild';
-import OtherServices from './components/admin/OtherServices';
 import ManageTeachers from './components/admin/ManageTeachers';
+import OtherServices from './components/admin/OtherServices';
 
 // Teacher Components
 import TeacherDashboard from './components/teacher/TeacherDashboard';
@@ -79,6 +79,14 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/admin/manage-teachers"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <ManageTeachers />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/admin/services"
         element={
           <ProtectedRoute allowedRoles={['admin']}>
@@ -106,8 +114,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
-      <Route path="/admin/manage-teachers" element={<ManageTeachers />} />
 
       {/* Default Route */}
       <Route

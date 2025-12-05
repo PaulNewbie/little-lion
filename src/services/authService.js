@@ -34,7 +34,7 @@ class AuthService {
     let tempApp = null;
     try {
       // Create a secondary app instance so we don't log out the admin
-      tempApp = initializeApp(firebaseConfig, 'tempApp');
+      tempApp = initializeApp(firebaseConfig, 'tempApp-' + Date.now());
       const tempAuth = getAuth(tempApp);
 
       // Create the user in the secondary auth
@@ -46,6 +46,7 @@ class AuthService {
         ...parentData,
         uid: user.uid,
         role: 'parent',
+        childrenIds: [], // Initialize empty array
         createdAt: new Date().toISOString()
       });
 
@@ -61,7 +62,41 @@ class AuthService {
     }
   }
 
-  // 3. Get user data
+  // 3. Create Teacher Account
+  async createTeacherAccount(email, password, teacherData) {
+    let tempApp = null;
+    try {
+      // Create a secondary app instance so we don't log out the admin
+      tempApp = initializeApp(firebaseConfig, 'tempApp-' + Date.now());
+      const tempAuth = getAuth(tempApp);
+
+      // Create the user in the secondary auth
+      const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
+      const user = userCredential.user;
+
+      // Save to Firestore using the MAIN db instance
+      await setDoc(doc(db, 'users', user.uid), {
+        ...teacherData,
+        uid: user.uid,
+        role: 'teacher',
+        specializations: teacherData.specializations || [],
+        active: true,
+        createdAt: new Date().toISOString()
+      });
+
+      return user;
+    } catch (error) {
+      throw this.handleAuthError(error);
+    } finally {
+      // Clean up the temporary app instance
+      if (tempApp) {
+        const { deleteApp } = await import('firebase/app');
+        await deleteApp(tempApp);
+      }
+    }
+  }
+
+  // 4. Get user data
   async getUserData(uid) {
     try {
       const userDoc = await getDoc(doc(db, 'users', uid));
@@ -74,7 +109,7 @@ class AuthService {
     }
   }
 
-  // 4. Sign out
+  // 5. Sign out
   async signOut() {
     try {
       await signOut(auth);
@@ -83,7 +118,7 @@ class AuthService {
     }
   }
 
-  // 5. Reset Password
+  // 6. Reset Password
   async resetPassword(email) {
     try {
       await sendPasswordResetEmail(auth, email);
@@ -92,12 +127,12 @@ class AuthService {
     }
   }
 
-  // 6. Auth State Observer (Fixed: Added this method back)
+  // 7. Auth State Observer
   onAuthStateChanged(callback) {
     return onAuthStateChanged(auth, callback);
   }
 
-  // 7. Error Handler
+  // 8. Error Handler
   handleAuthError(error) {
     console.error("Auth Error:", error);
     switch (error.code) {
@@ -107,6 +142,12 @@ class AuthService {
         return new Error('Password should be at least 6 characters.');
       case 'auth/invalid-email':
         return new Error('Invalid email address.');
+      case 'auth/user-not-found':
+        return new Error('No account found with this email.');
+      case 'auth/wrong-password':
+        return new Error('Incorrect password.');
+      case 'auth/invalid-credential':
+        return new Error('Invalid email or password.');
       default:
         return new Error(error.message || 'Authentication failed');
     }

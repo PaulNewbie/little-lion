@@ -1,29 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import authService from '../../services/authService';
+import teacherService from '../../services/teacherService';
+import servicesService from '../../services/servicesService';
+import ErrorMessage from '../common/ErrorMessage';
+import Loading from '../common/Loading';
 
 const ManageTeachers = () => {
   const navigate = useNavigate();
   
-  // Mock data
-  const [teachers, setTeachers] = useState([
-    { 
-      id: '1', 
-      firstName: 'Sarah', 
-      lastName: 'Johnson', 
-      email: 'sarah@school.com',
-      phone: '555-0101',
-      specializations: ['Speech Therapy', 'Occupational Therapy'] 
-    },
-    { 
-      id: '2', 
-      firstName: 'Mike', 
-      lastName: 'Chen', 
-      email: 'mike@school.com',
-      phone: '555-0102',
-      specializations: ['Behavioral Therapy'] 
-    }
-  ]);
-
+  const [teachers, setTeachers] = useState([]);
+  const [availableServices, setAvailableServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTeacher, setNewTeacher] = useState({
     firstName: '',
@@ -34,47 +26,99 @@ const ManageTeachers = () => {
     specializations: []
   });
 
-  const availableServices = [
-    'Speech Therapy',
-    'Behavioral Therapy',
-    'Occupational Therapy',
-    'Art Class',
-    'Music Class',
-    'Physical Therapy'
-  ];
+  // Fetch teachers and services on component load
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  const toggleSpecialization = (service) => {
-    if (newTeacher.specializations.includes(service)) {
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [teachersData, servicesData] = await Promise.all([
+        teacherService.getAllTeachers(),
+        servicesService.getActiveServices()
+      ]);
+      setTeachers(teachersData);
+      setAvailableServices(servicesData);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleSpecialization = (serviceName) => {
+    if (newTeacher.specializations.includes(serviceName)) {
       setNewTeacher({
         ...newTeacher,
-        specializations: newTeacher.specializations.filter(s => s !== service)
+        specializations: newTeacher.specializations.filter(s => s !== serviceName)
       });
     } else {
       setNewTeacher({
         ...newTeacher,
-        specializations: [...newTeacher.specializations, service]
+        specializations: [...newTeacher.specializations, serviceName]
       });
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Creating teacher:', newTeacher);
-    
-    // TODO: Call Firebase service
-    setTeachers([...teachers, { ...newTeacher, id: Date.now().toString() }]);
-    
-    // Reset
-    setNewTeacher({
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      password: 'Welcome123!',
-      specializations: []
-    });
-    setShowAddForm(false);
+    setError('');
+    setSuccess('');
+    setSubmitting(true);
+
+    try {
+      await authService.createTeacherAccount(
+        newTeacher.email,
+        newTeacher.password,
+        {
+          firstName: newTeacher.firstName,
+          lastName: newTeacher.lastName,
+          phone: newTeacher.phone,
+          email: newTeacher.email,
+          specializations: newTeacher.specializations
+        }
+      );
+
+      setSuccess(`Successfully created teacher account for ${newTeacher.firstName} ${newTeacher.lastName}`);
+      
+      // Reset form
+      setNewTeacher({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        password: 'Welcome123!',
+        specializations: []
+      });
+      setShowAddForm(false);
+
+      // Refresh teachers list
+      const teachersData = await teacherService.getAllTeachers();
+      setTeachers(teachersData);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const handleDelete = async (teacherId, teacherName) => {
+    if (!window.confirm(`Are you sure you want to remove ${teacherName}?`)) {
+      return;
+    }
+
+    try {
+      await teacherService.deleteTeacher(teacherId);
+      setSuccess(`Successfully removed ${teacherName}`);
+      const teachersData = await teacherService.getAllTeachers();
+      setTeachers(teachersData);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  if (loading) return <Loading />;
 
   return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
@@ -111,6 +155,20 @@ const ManageTeachers = () => {
         </button>
       </div>
 
+      {success && (
+        <div style={{ 
+          padding: '15px', 
+          backgroundColor: '#d4edda', 
+          color: '#155724', 
+          marginBottom: '20px', 
+          borderRadius: '4px',
+          border: '1px solid #c3e6cb'
+        }}>
+          ✅ {success}
+        </div>
+      )}
+      <ErrorMessage message={error} />
+
       {/* Add Teacher Form */}
       {showAddForm && (
         <div style={{
@@ -122,6 +180,19 @@ const ManageTeachers = () => {
           boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
         }}>
           <h2 style={{ marginTop: 0, marginBottom: '20px' }}>Create New Teacher Account</h2>
+          
+          {availableServices.length === 0 && (
+            <div style={{
+              padding: '12px',
+              backgroundColor: '#fff3cd',
+              color: '#856404',
+              marginBottom: '20px',
+              borderRadius: '4px',
+              border: '1px solid #ffc107'
+            }}>
+              ⚠️ No services available. Please create services first in "Other Services" section.
+            </div>
+          )}
           
           <form onSubmit={handleSubmit}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
@@ -238,7 +309,7 @@ const ManageTeachers = () => {
               }}>
                 {availableServices.map(service => (
                   <label 
-                    key={service} 
+                    key={service.id} 
                     style={{ 
                       display: 'flex', 
                       alignItems: 'center', 
@@ -248,8 +319,8 @@ const ManageTeachers = () => {
                   >
                     <input
                       type="checkbox"
-                      checked={newTeacher.specializations.includes(service)}
-                      onChange={() => toggleSpecialization(service)}
+                      checked={newTeacher.specializations.includes(service.name)}
+                      onChange={() => toggleSpecialization(service.name)}
                       style={{ 
                         marginRight: '10px', 
                         cursor: 'pointer',
@@ -257,7 +328,7 @@ const ManageTeachers = () => {
                         height: '18px'
                       }}
                     />
-                    <span style={{ fontSize: '15px' }}>{service}</span>
+                    <span style={{ fontSize: '15px' }}>{service.name}</span>
                   </label>
                 ))}
               </div>
@@ -270,19 +341,19 @@ const ManageTeachers = () => {
 
             <button
               type="submit"
-              disabled={newTeacher.specializations.length === 0}
+              disabled={submitting || newTeacher.specializations.length === 0 || availableServices.length === 0}
               style={{
                 padding: '14px 32px',
-                backgroundColor: newTeacher.specializations.length === 0 ? '#ccc' : '#007bff',
+                backgroundColor: (submitting || newTeacher.specializations.length === 0 || availableServices.length === 0) ? '#ccc' : '#007bff',
                 color: 'white',
                 border: 'none',
                 borderRadius: '4px',
-                cursor: newTeacher.specializations.length === 0 ? 'not-allowed' : 'pointer',
+                cursor: (submitting || newTeacher.specializations.length === 0 || availableServices.length === 0) ? 'not-allowed' : 'pointer',
                 fontSize: '16px',
                 fontWeight: '500'
               }}
             >
-              Create Teacher Account
+              {submitting ? 'Creating...' : 'Create Teacher Account'}
             </button>
           </form>
         </div>
@@ -334,21 +405,27 @@ const ManageTeachers = () => {
                 <div style={{ marginTop: '12px' }}>
                   <strong style={{ fontSize: '13px', color: '#555' }}>Specializations:</strong>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
-                    {teacher.specializations.map(spec => (
-                      <span 
-                        key={spec}
-                        style={{
-                          backgroundColor: '#e3f2fd',
-                          color: '#1976d2',
-                          padding: '5px 12px',
-                          borderRadius: '14px',
-                          fontSize: '13px',
-                          fontWeight: '500'
-                        }}
-                      >
-                        {spec}
+                    {teacher.specializations && teacher.specializations.length > 0 ? (
+                      teacher.specializations.map(spec => (
+                        <span 
+                          key={spec}
+                          style={{
+                            backgroundColor: '#e3f2fd',
+                            color: '#1976d2',
+                            padding: '5px 12px',
+                            borderRadius: '14px',
+                            fontSize: '13px',
+                            fontWeight: '500'
+                          }}
+                        >
+                          {spec}
+                        </span>
+                      ))
+                    ) : (
+                      <span style={{ color: '#999', fontSize: '13px', fontStyle: 'italic' }}>
+                        No specializations assigned
                       </span>
-                    ))}
+                    )}
                   </div>
                 </div>
               </div>
@@ -368,6 +445,7 @@ const ManageTeachers = () => {
                   Edit
                 </button>
                 <button
+                  onClick={() => handleDelete(teacher.id, `${teacher.firstName} ${teacher.lastName}`)}
                   style={{
                     padding: '8px 16px',
                     backgroundColor: '#dc3545',
