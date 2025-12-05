@@ -3,23 +3,24 @@ import {
   addDoc, 
   doc, 
   updateDoc, 
-  arrayUnion 
+  arrayUnion,
+  query,
+  where,
+  getDocs
 } from 'firebase/firestore';
 import { db } from './firebase';
 
 class ChildService {
-  // Add a new child and link to parent
+  // 1. Enroll child (Admin feature)
   async enrollChild(childData, parentId) {
     try {
-      // 1. Add child to 'children' collection
       const childRef = await addDoc(collection(db, 'children'), {
         ...childData,
-        parentIds: [parentId], // Link to parent
+        parentIds: [parentId],
         createdAt: new Date().toISOString(),
         active: true
       });
 
-      // 2. Update parent's document to include this child's ID
       const parentRef = doc(db, 'users', parentId);
       await updateDoc(parentRef, {
         childrenIds: arrayUnion(childRef.id)
@@ -28,6 +29,26 @@ class ChildService {
       return childRef.id;
     } catch (error) {
       throw new Error('Failed to enroll child: ' + error.message);
+    }
+  }
+
+  // 2. NEW: Get children for a specific parent
+  async getChildrenByParentId(parentId) {
+    try {
+      // Query the 'children' collection where the 'parentIds' array contains the parentId
+      const q = query(
+        collection(db, 'children'), 
+        where('parentIds', 'array-contains', parentId)
+      );
+      
+      const querySnapshot = await getDocs(q);
+      
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      throw new Error('Failed to fetch children: ' + error.message);
     }
   }
 }
