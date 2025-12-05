@@ -7,7 +7,7 @@ import { useAuth } from './hooks/useAuth';
 import LoginPage from './components/auth/LoginPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
-// Admin Components
+// Admin Components (REMOVE curly braces here because they use 'export default')
 import AdminDashboard from './components/admin/AdminDashboard';
 import OneOnOne from './components/admin/OneOnOne';
 import PlayGroup from './components/admin/PlayGroup';
