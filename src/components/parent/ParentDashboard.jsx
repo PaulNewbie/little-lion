@@ -104,7 +104,7 @@ const ParentDashboard = () => {
       ) : (
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
           gap: '20px' 
         }}>
           {children.map(child => (
@@ -115,37 +115,74 @@ const ParentDashboard = () => {
               overflow: 'hidden',
               border: '1px solid #eaeaea'
             }}>
-              <div style={{ backgroundColor: '#4ECDC4', padding: '15px' }}>
-                <h3 style={{ margin: 0, color: 'white' }}>
+              {/* Header */}
+              <div style={{ backgroundColor: '#4ECDC4', padding: '20px' }}>
+                <h3 style={{ margin: 0, color: 'white', fontSize: '20px' }}>
                   {child.firstName} {child.lastName}
                 </h3>
+                <p style={{ margin: '5px 0 0', color: 'rgba(255,255,255,0.9)', fontSize: '14px' }}>
+                  {calculateAge(child.dateOfBirth)} years old • <span style={{ textTransform: 'capitalize' }}>{child.gender}</span>
+                </p>
               </div>
               
+              {/* Body */}
               <div style={{ padding: '20px' }}>
-                <div style={{ marginBottom: '10px' }}>
-                  <strong>Age:</strong> {calculateAge(child.dateOfBirth)} years old
-                </div>
-                <div style={{ marginBottom: '10px' }}>
-                  <strong>Gender:</strong> <span style={{ textTransform: 'capitalize' }}>{child.gender}</span>
-                </div>
+                
+                {/* Medical Info */}
                 {child.medicalInfo && (
-                  <div style={{ marginBottom: '15px' }}>
-                    <strong>Medical Info:</strong>
-                    <p style={{ margin: '5px 0 0', fontSize: '14px', color: '#666' }}>
+                  <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#fff3cd', borderRadius: '4px', border: '1px solid #ffc107' }}>
+                    <strong style={{ fontSize: '13px', color: '#856404' }}>⚠️ Medical Info:</strong>
+                    <p style={{ margin: '5px 0 0', fontSize: '13px', color: '#856404' }}>
                       {child.medicalInfo}
                     </p>
                   </div>
                 )}
+
+                {/* Enrolled Services */}
+                <div style={{ marginBottom: '20px' }}>
+                  <strong style={{ fontSize: '14px', color: '#333', display: 'block', marginBottom: '10px' }}>
+                    📚 Enrolled Services
+                  </strong>
+                  
+                  {child.services && child.services.length > 0 ? (
+                    <div style={{ display: 'grid', gap: '8px' }}>
+                      {child.services.map((service, index) => (
+                        <div 
+                          key={index}
+                          style={{
+                            padding: '10px',
+                            backgroundColor: '#f8f9fa',
+                            borderRadius: '6px',
+                            border: '1px solid #e0e0e0'
+                          }}
+                        >
+                          <div style={{ fontWeight: '500', fontSize: '14px', color: '#333', marginBottom: '4px' }}>
+                            {service.serviceName}
+                          </div>
+                          <div style={{ fontSize: '13px', color: '#666' }}>
+                            👨‍🏫 {service.teacherName}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ margin: 0, fontSize: '13px', color: '#999', fontStyle: 'italic' }}>
+                      No services enrolled yet
+                    </p>
+                  )}
+                </div>
                 
+                {/* View Activities Button */}
                 <button style={{
                   width: '100%',
-                  padding: '10px',
-                  backgroundColor: '#f8f9fa',
-                  border: '1px solid #ddd',
+                  padding: '12px',
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer',
-                  color: '#333',
-                  fontWeight: '500'
+                  fontWeight: '500',
+                  fontSize: '14px'
                 }}>
                   View Activities & Reports
                 </button>
