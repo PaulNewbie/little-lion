@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import authService from '../../services/authService';
 import teacherService from '../../services/teacherService';
 import servicesService from '../../services/servicesService';
-import ErrorMessage from '../common/ErrorMessage';
-import Loading from '../common/Loading';
+import Loading from '../../components/common/Loading';
+import ErrorMessage from '../../components/common/ErrorMessage';
 
 const ManageTeachers = () => {
   const navigate = useNavigate();

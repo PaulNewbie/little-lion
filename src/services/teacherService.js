@@ -9,7 +9,7 @@ import {
   query,
   where 
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { db } from '../config/firebase';
 
 class TeacherService {
   // 1. Get all teachers

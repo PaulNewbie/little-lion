@@ -8,7 +8,7 @@ import {
 } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db, firebaseConfig } from './firebase';
+import { auth, db, firebaseConfig } from '../config/firebase';
 
 class AuthService {
   // 1. Sign in user

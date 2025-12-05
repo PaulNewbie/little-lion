@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import ErrorMessage from '../common/ErrorMessage';
+import ErrorMessage from '../../components/common/ErrorMessage';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');

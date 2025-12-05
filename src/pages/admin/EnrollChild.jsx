@@ -4,8 +4,8 @@ import authService from '../../services/authService';
 import childService from '../../services/childService';
 import servicesService from '../../services/servicesService';
 import teacherService from '../../services/teacherService';
-import ErrorMessage from '../common/ErrorMessage';
-import Loading from '../common/Loading';
+import Loading from '../../components/common/Loading';
+import ErrorMessage from '../../components/common/ErrorMessage';
 
 const EnrollChild = () => {
   const navigate = useNavigate();

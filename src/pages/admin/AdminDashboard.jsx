@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import DashboardLayout from '../layout/DashboardLayout';
-import Card from '../common/Card';
+import DashboardLayout from '../../components/layout/DashboardLayout';
+import Card from '../../components/common/Card';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();

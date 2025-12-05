@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import childService from '../../services/childService';
-import Loading from '../common/Loading';
-import ErrorMessage from '../common/ErrorMessage';
+import Loading from '../../components/common/Loading';
+import ErrorMessage from '../../components/common/ErrorMessage';
 
 const TeacherDashboard = () => {
   const { currentUser, logout } = useAuth();

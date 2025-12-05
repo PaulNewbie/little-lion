@@ -8,7 +8,7 @@ import {
   where,
   getDocs
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { db } from '../config/firebase';
 
 class ChildService {
   // 1. Enroll child (Admin feature)

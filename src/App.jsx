@@ -4,22 +4,22 @@ import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
 
 // Auth Components
-import LoginPage from './components/auth/LoginPage';
-import ProtectedRoute from './components/auth/ProtectedRoute';
+import LoginPage from './pages/auth/LoginPage';
+import ProtectedRoute from './routes/ProtectedRoute';
 
 // Admin Components
-import AdminDashboard from './components/admin/AdminDashboard';
-import OneOnOne from './components/admin/OneOnOne';
-import PlayGroup from './components/admin/PlayGroup';
-import EnrollChild from './components/admin/EnrollChild';
-import ManageTeachers from './components/admin/ManageTeachers';
-import OtherServices from './components/admin/OtherServices';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import OneOnOne from './pages/admin/OneOnOne';
+import PlayGroup from './pages/admin/PlayGroup';
+import EnrollChild from './pages/admin/EnrollChild';
+import ManageTeachers from './pages/admin/ManageTeachers';
+import OtherServices from './pages/admin/OtherServices';
 
 // Teacher Components
-import TeacherDashboard from './components/teacher/TeacherDashboard';
+import TeacherDashboard from './pages/teacher/TeacherDashboard';
 
 // Parent Components
-import ParentDashboard from './components/parent/ParentDashboard';
+import ParentDashboard from './pages/parent/ParentDashboard';
 
 // Common Components
 import Loading from './components/common/Loading';

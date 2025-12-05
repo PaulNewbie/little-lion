@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import servicesService from '../../services/servicesService';
 import teacherService from '../../services/teacherService';
-import ErrorMessage from '../common/ErrorMessage';
-import Loading from '../common/Loading';
+import Loading from '../../components/common/Loading';
+import ErrorMessage from '../../components/common/ErrorMessage';
 
 const OtherServices = () => {
   const navigate = useNavigate();
