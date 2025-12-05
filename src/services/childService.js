@@ -19,7 +19,7 @@ class ChildService {
         parentIds: [parentId],
         createdAt: new Date().toISOString(),
         active: true,
-        services: childData.services || [] // Ensure services array exists
+        services: childData.services || [] 
       });
 
       const parentRef = doc(db, 'users', parentId);
@@ -52,24 +52,46 @@ class ChildService {
     }
   }
 
-  // 3. NEW: Get children enrolled in a specific service (For Teachers)
+  // 3. Get children enrolled in a specific service (For Teachers)
   async getChildrenByService(serviceType) {
     try {
-      const q = query(
-        collection(db, 'children'), 
-        where('services', 'array-contains', serviceType)
+      // NOTE: We fetch all and filter client-side because 'services' is an array of objects
+      const querySnapshot = await getDocs(collection(db, 'children'));
+      const allChildren = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      return allChildren.filter(child => 
+        child.services && child.services.some(s => s.serviceName === serviceType)
       );
-      
-      const querySnapshot = await getDocs(q);
-      
+    } catch (error) {
+      throw new Error('Failed to fetch assigned children: ' + error.message);
+    }
+  }
+
+  // 4. Get ALL children
+  async getAllChildren() {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'children'));
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
     } catch (error) {
-      throw new Error('Failed to fetch assigned children: ' + error.message);
+      throw new Error('Failed to fetch all children: ' + error.message);
+    }
+  }
+
+  // 5. Add a service to an existing child
+  async addServiceToChild(childId, serviceData) {
+    try {
+      const childRef = doc(db, 'children', childId);
+      await updateDoc(childRef, {
+        services: arrayUnion(serviceData)
+      });
+    } catch (error) {
+      throw new Error('Failed to assign service: ' + error.message);
     }
   }
 }
 
-export default new ChildService();
+const childServiceInstance = new ChildService();
+export default childServiceInstance;

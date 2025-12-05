@@ -131,4 +131,5 @@ class ServiceService {
   }
 }
 
-export default new ServiceService();
+const serviceServiceInstance = new ServiceService();
+export default serviceServiceInstance;
