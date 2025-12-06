@@ -8,17 +8,14 @@ import LoginPage from './pages/auth/LoginPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 
 // Admin Components
-import AdminDashboard from './pages/admin/AdminDashboard';
-import OneOnOne from './pages/admin/OneOnOne';
+import OneOnOne from './pages/admin/OneOnOne'; // NEW Main View
 import PlayGroup from './pages/admin/PlayGroup';
 import EnrollChild from './pages/admin/EnrollChild';
 import ManageTeachers from './pages/admin/ManageTeachers';
 import OtherServices from './pages/admin/OtherServices';
 
-// Teacher Components
+// Teacher & Parent Components
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
-
-// Parent Components
 import ParentDashboard from './pages/parent/ParentDashboard';
 
 // Common Components
@@ -27,33 +24,29 @@ import Loading from './components/common/Loading';
 const AppRoutes = () => {
   const { currentUser, loading } = useAuth();
 
-  if (loading) {
-    return <Loading />;
-  }
+  if (loading) return <Loading />;
 
   return (
     <Routes>
-      {/* Public Routes */}
+      {/* Public Route */}
       <Route 
         path="/login" 
         element={
           currentUser ? (
-            <Navigate to={`/${currentUser.role}/dashboard`} replace />
+            <Navigate to={
+              currentUser.role === 'admin' ? '/admin/one-on-one' :
+              currentUser.role === 'teacher' ? '/teacher/dashboard' :
+              '/parent/dashboard'
+            } replace />
           ) : (
             <LoginPage />
           )
         } 
       />
 
-      {/* Admin Routes */}
-      <Route
-        path="/admin/dashboard"
-        element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AdminDashboard />
-          </ProtectedRoute>
-        }
-      />
+      {/* --- ADMIN ROUTES --- */}
+      
+      {/* 1. Main 1:1 View */}
       <Route
         path="/admin/one-on-one"
         element={
@@ -62,6 +55,13 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
+      {/* 2. Redirect /dashboard to /one-on-one */}
+      <Route
+        path="/admin/dashboard"
+        element={<Navigate to="/admin/one-on-one" replace />}
+      />
+
       <Route
         path="/admin/play-group"
         element={
@@ -95,7 +95,7 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Teacher Routes */}
+      {/* --- OTHER ROLES --- */}
       <Route
         path="/teacher/dashboard"
         element={
@@ -104,8 +104,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
-      {/* Parent Routes */}
       <Route
         path="/parent/dashboard"
         element={
@@ -115,19 +113,22 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Default Route */}
+      {/* Default Fallback */}
       <Route
         path="/"
         element={
           currentUser ? (
-            <Navigate to={`/${currentUser.role}/dashboard`} replace />
+            <Navigate to={
+              currentUser.role === 'admin' ? '/admin/one-on-one' :
+              currentUser.role === 'teacher' ? '/teacher/dashboard' :
+              '/parent/dashboard'
+            } replace />
           ) : (
             <Navigate to="/login" replace />
           )
         }
       />
 
-      {/* 404 Route */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

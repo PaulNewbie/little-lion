@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import childService from '../../services/childService';
+import childService from '../../services/childService'; // Imported Service
 import Loading from '../../components/common/Loading';
 import ErrorMessage from '../../components/common/ErrorMessage';
 
@@ -16,16 +16,24 @@ const TeacherDashboard = () => {
   useEffect(() => {
     const fetchMyStudents = async () => {
       try {
-        // Check if the teacher has a specialization assigned
-        // Note: You need to ensure the teacher user doc has a 'specialization' field in Firestore
-        const teacherService = currentUser?.specialization;
+        // 1. Get the teacher's specializations (Array)
+        const teacherSpecs = currentUser?.specializations || [];
 
-        if (teacherService) {
-          const data = await childService.getChildrenByService(teacherService);
-          setStudents(data);
+        if (teacherSpecs.length > 0) {
+          // 2. Fetch all children
+          const allChildren = await childService.getAllChildren();
+          
+          // 3. Filter: Keep child if ANY of their services match ANY of the teacher's specializations
+          const myStudents = allChildren.filter(child => 
+            child.services?.some(s => // Renamed to 's' to avoid conflict with 'childService' import
+              teacherSpecs.includes(s.serviceName)
+            )
+          );
+
+          setStudents(myStudents);
         } else {
-          // Fallback or info if no specialization is set
-          console.log("No specialization assigned to this teacher account.");
+          console.log("No specializations assigned to this teacher.");
+          setStudents([]);
         }
       } catch (err) {
         setError('Failed to load assigned students.');
@@ -66,19 +74,27 @@ const TeacherDashboard = () => {
         <div>
           <h1 style={{ margin: 0, color: '#333' }}>Teacher Dashboard</h1>
           <p style={{ margin: '5px 0 0', color: '#666' }}>
-            {currentUser?.firstName} {currentUser?.lastName} — 
-            <span style={{ 
-              backgroundColor: '#e3f2fd', 
-              color: '#0d47a1', 
-              padding: '2px 8px', 
-              borderRadius: '12px', 
-              fontSize: '0.9em',
-              marginLeft: '8px',
-              fontWeight: 'bold'
-            }}>
-              {currentUser?.specialization || 'No Specialization Assigned'}
-            </span>
+            {currentUser?.firstName} {currentUser?.lastName}
           </p>
+          {/* Display Specializations Tags */}
+          <div style={{ marginTop: '8px', display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+            {currentUser?.specializations?.length > 0 ? (
+              currentUser.specializations.map((spec, index) => (
+                <span key={index} style={{ 
+                  backgroundColor: '#e3f2fd', 
+                  color: '#0d47a1', 
+                  padding: '2px 8px', 
+                  borderRadius: '12px', 
+                  fontSize: '0.8em',
+                  fontWeight: 'bold'
+                }}>
+                  {spec}
+                </span>
+              ))
+            ) : (
+              <span style={{ color: '#999', fontSize: '0.9em' }}>No Specialization Assigned</span>
+            )}
+          </div>
         </div>
         <button 
           onClick={handleLogout}
@@ -100,15 +116,15 @@ const TeacherDashboard = () => {
       {/* Content Area */}
       <h2 style={{ color: '#444', marginBottom: '20px' }}>My Assigned Students</h2>
 
-      {!currentUser?.specialization && (
+      {(!currentUser?.specializations || currentUser.specializations.length === 0) && (
         <div style={{ padding: '20px', backgroundColor: '#fff3cd', color: '#856404', borderRadius: '4px' }}>
-          ⚠️ Your account does not have a specialization assigned. Please contact the Administrator.
+          ⚠️ Your account does not have any specializations assigned. Please contact the Administrator.
         </div>
       )}
 
-      {students.length === 0 && currentUser?.specialization ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-          No students are currently enrolled in {currentUser.specialization}.
+      {students.length === 0 && currentUser?.specializations?.length > 0 ? (
+        <div style={{ textAlign: 'center', padding: '40px', color: '#666', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
+          No students are currently enrolled in your services.
         </div>
       ) : (
         <div style={{ 
@@ -135,27 +151,33 @@ const TeacherDashboard = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '24px',
-                  color: '#666'
+                  color: '#666',
+                  overflow: 'hidden'
                 }}>
                   {/* Photo Placeholder */}
                   {student.photoUrl ? (
-                    <img src={student.photoUrl} alt={student.firstName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                    <img src={student.photoUrl} alt={student.firstName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    student.firstName.charAt(0)
+                    <span>📷</span>
                   )}
                 </div>
                 <h3 style={{ margin: 0, color: '#333' }}>{student.firstName} {student.lastName}</h3>
               </div>
 
               <div style={{ padding: '15px' }}>
-                <div style={{ marginBottom: '10px', fontSize: '14px' }}>
-                  <strong>Service:</strong> <span style={{ color: '#007bff' }}>{currentUser.specialization}</span>
-                </div>
-                <div style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
-                  <strong>Last Activity:</strong> {student.lastActivityDate || 'No recent activity'}
+                <div style={{ marginBottom: '10px', fontSize: '13px' }}>
+                  <strong>Enrolled In:</strong>
+                  <ul style={{ margin: '5px 0 0 20px', padding: 0, color: '#007bff' }}>
+                    {student.services
+                      .filter(s => currentUser.specializations.includes(s.serviceName))
+                      .map((s, i) => (
+                        <li key={i}>{s.serviceName}</li>
+                      ))
+                    }
+                  </ul>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '15px' }}>
                   <button style={{
                     padding: '8px',
                     backgroundColor: '#fff',

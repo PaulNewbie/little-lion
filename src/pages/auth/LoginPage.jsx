@@ -164,7 +164,7 @@ const LoginPage = () => {
           <strong>Demo Accounts:</strong>
           <div style={{ marginTop: '10px', lineHeight: '1.6' }}>
             <div>Admin: admin@school.com</div>
-            <div>Teacher: teacher@school.com</div>
+            <div>Teacher: teacherr@school.com (Password: Welcome123!)</div>
             <div>Parent: parent@school.com</div>
             <div style={{ marginTop: '5px', color: '#666' }}>
               (Password: password123)
