@@ -3,9 +3,11 @@ import servicesService from '../services/servicesService';
 import teacherService from '../services/teacherService';
 import authService from '../services/authService';
 import childService from '../services/childService';
+import cloudinaryService from '../services/cloudinaryService'; // Import the new service
 
 const useEnrollChild = () => {
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false); // New state for upload status
   const [error, setError] = useState(null);
   const [services, setServices] = useState([]);
   const [teachers, setTeachers] = useState([]);
@@ -18,6 +20,10 @@ const useEnrollChild = () => {
     firstName: '', lastName: '', email: '', phone: '', password: 'Welcome123!'
   });
   const [selectedServices, setSelectedServices] = useState([]);
+  
+  // New state for the photo file
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
 
   useEffect(() => {
     const init = async () => {
@@ -40,11 +46,19 @@ const useEnrollChild = () => {
   const handleChildChange = (e) => setChildInfo({ ...childInfo, [e.target.name]: e.target.value });
   const handleParentChange = (e) => setParentInfo({ ...parentInfo, [e.target.name]: e.target.value });
 
+  // New handler for file selection
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPhotoFile(file);
+      setPhotoPreview(URL.createObjectURL(file)); // Create a local preview URL
+    }
+  };
+
   const toggleService = (serviceId, serviceName) => {
     if (selectedServices.find(s => s.serviceId === serviceId)) {
       setSelectedServices(selectedServices.filter(s => s.serviceId !== serviceId));
     } else {
-      // Auto-assign first available teacher for simplicity, or leave empty
       const qualified = teachers.find(t => t.specializations?.includes(serviceName));
       setSelectedServices([
         ...selectedServices,
@@ -63,33 +77,44 @@ const useEnrollChild = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setUploading(true); // Start loading spinner for upload
+
     try {
-      // 1. Create Parent Auth
+      // 1. Upload Photo to Cloudinary (if selected)
+      let photoUrl = '';
+      if (photoFile) {
+        photoUrl = await cloudinaryService.uploadImage(photoFile);
+      }
+
+      // 2. Create Parent Auth
       const parentUser = await authService.createParentAccount(parentInfo.email, parentInfo.password, parentInfo);
       
-      // 2. Create Child Doc
+      // 3. Create Child Doc (Include photoUrl)
       await childService.enrollChild({
         ...childInfo,
+        photoUrl: photoUrl, // Save the Cloudinary URL here
         services: selectedServices,
         teacherIds: [...new Set(selectedServices.map(s => s.teacherId))]
       }, parentUser.uid);
 
       alert('Enrollment Complete!');
-      // Reset logic could go here
+      // Optional: Reset form logic here
     } catch (err) {
       setError(err.message);
+    } finally {
+      setUploading(false); // Stop loading spinner
     }
   };
 
-  // Helper for UI
   const getQualifiedTeachers = (serviceName) => 
     teachers.filter(t => t.specializations?.includes(serviceName));
 
   return {
-    loading, error, services, 
+    loading, uploading, error, services, 
     childInfo, handleChildChange,
     parentInfo, handleParentChange,
     selectedServices, toggleService, updateServiceTeacher,
+    photoFile, photoPreview, handlePhotoChange, // Export new photo handlers
     getQualifiedTeachers, handleSubmit
   };
 };
