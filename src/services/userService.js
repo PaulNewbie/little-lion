@@ -82,6 +82,24 @@ class UserService {
   async getAllParents() {
     return this.getUsersByRole('parent');
   }
+
+  // Find a user by their email (for enroll multiple child in one parent account)
+  async getUserByEmail(email) {
+    try {
+      const q = query(collection(db, 'users'), where('email', '==', email));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        return null;
+      }
+      
+      // Return the first match (email should be unique)
+      const userDoc = querySnapshot.docs[0];
+      return { uid: userDoc.id, ...userDoc.data() };
+    } catch (error) {
+      throw new Error('Failed to find user by email: ' + error.message);
+    }
+  }
 }
 
 export default new UserService();
