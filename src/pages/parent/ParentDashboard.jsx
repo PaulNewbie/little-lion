@@ -172,17 +172,20 @@ const ParentDashboard = () => {
                 </div>
                 
                 {/* View Activities Button */}
-                <button style={{
-                  width: '100%',
-                  padding: '12px',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontWeight: '500',
-                  fontSize: '14px'
-                }}>
+                <button 
+                  onClick={() => navigate(`/parent/child/${child.id}`)} // Navigate to dynamic route
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: '500',
+                    fontSize: '14px'
+                  }}
+                >
                   View Activities & Reports
                 </button>
               </div>

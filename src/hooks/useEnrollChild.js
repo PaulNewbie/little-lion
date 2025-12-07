@@ -77,32 +77,32 @@ const useEnrollChild = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    setUploading(true); // Start loading spinner for upload
+    setUploading(true);
 
     try {
-      // 1. Upload Photo to Cloudinary (if selected)
+      // 1. Upload Photo to Cloudinary with SPECIFIC FOLDER
       let photoUrl = '';
       if (photoFile) {
-        photoUrl = await cloudinaryService.uploadImage(photoFile);
+        // CHANGED: Added specific folder for profiles
+        photoUrl = await cloudinaryService.uploadImage(photoFile, 'little-lions/child-images');
       }
 
-      // 2. Create Parent Auth
+      // ... rest of the auth and firestore logic (createParentAccount, enrollChild) ...
+      
       const parentUser = await authService.createParentAccount(parentInfo.email, parentInfo.password, parentInfo);
       
-      // 3. Create Child Doc (Include photoUrl)
       await childService.enrollChild({
         ...childInfo,
-        photoUrl: photoUrl, // Save the Cloudinary URL here
+        photoUrl: photoUrl, 
         services: selectedServices,
         teacherIds: [...new Set(selectedServices.map(s => s.teacherId))]
       }, parentUser.uid);
 
       alert('Enrollment Complete!');
-      // Optional: Reset form logic here
     } catch (err) {
       setError(err.message);
     } finally {
-      setUploading(false); // Stop loading spinner
+      setUploading(false);
     }
   };
 

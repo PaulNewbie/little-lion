@@ -16,7 +16,9 @@ import OtherServices from './pages/admin/OtherServices';
 
 // Teacher & Parent Components
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
+import PlayGroupActivity from './pages/teacher/PlayGroupActivity';
 import ParentDashboard from './pages/parent/ParentDashboard';
+import ChildActivities from './pages/parent/ChildActivities';
 
 // Common Components
 import Loading from './components/common/Loading';
@@ -109,6 +111,24 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={['parent']}>
             <ParentDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/parent/child/:childId"
+        element={
+          <ProtectedRoute allowedRoles={['parent']}>
+            <ChildActivities />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/teacher/play-group-upload"
+        element={
+          <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+            <PlayGroupActivity />
           </ProtectedRoute>
         }
       />

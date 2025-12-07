@@ -14,7 +14,7 @@ const firebaseConfig = {
 
 
 // const firebaseConfig = {
-//   apiKey: "AIzaSyBg7o5TWmKdELQq53Ji8cA5z9z6h_kbI7g",
+//   apiKey: "AIzaSyBg7o5TWmKdELQq53Ji8******",
 //   authDomain: "little-lions-2cae7.firebaseapp.com",
 //   projectId: "little-lions-2cae7",
 //   storageBucket: "little-lions-2cae7.firebasestorage.app",

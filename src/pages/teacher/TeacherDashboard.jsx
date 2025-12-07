@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import childService from '../../services/childService'; // Imported Service
+import childService from '../../services/childService'; 
 import Loading from '../../components/common/Loading';
 import ErrorMessage from '../../components/common/ErrorMessage';
 
@@ -16,23 +16,19 @@ const TeacherDashboard = () => {
   useEffect(() => {
     const fetchMyStudents = async () => {
       try {
-        // 1. Get the teacher's specializations (Array)
         const teacherSpecs = currentUser?.specializations || [];
 
         if (teacherSpecs.length > 0) {
-          // 2. Fetch all children
           const allChildren = await childService.getAllChildren();
           
-          // 3. Filter: Keep child if ANY of their services match ANY of the teacher's specializations
           const myStudents = allChildren.filter(child => 
-            child.services?.some(s => // Renamed to 's' to avoid conflict with 'childService' import
+            child.services?.some(s => 
               teacherSpecs.includes(s.serviceName)
             )
           );
 
           setStudents(myStudents);
         } else {
-          console.log("No specializations assigned to this teacher.");
           setStudents([]);
         }
       } catch (err) {
@@ -76,7 +72,6 @@ const TeacherDashboard = () => {
           <p style={{ margin: '5px 0 0', color: '#666' }}>
             {currentUser?.firstName} {currentUser?.lastName}
           </p>
-          {/* Display Specializations Tags */}
           <div style={{ marginTop: '8px', display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
             {currentUser?.specializations?.length > 0 ? (
               currentUser.specializations.map((spec, index) => (
@@ -96,19 +91,42 @@ const TeacherDashboard = () => {
             )}
           </div>
         </div>
-        <button 
-          onClick={handleLogout}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#dc3545',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
-          Logout
-        </button>
+
+        {/* ACTION BUTTONS */}
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {/* NEW: Link to Play Group Upload */}
+          <button 
+            onClick={() => navigate('/teacher/play-group-upload')}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#2ecc71', // Green to stand out
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px'
+            }}
+          >
+            <span>📸</span> Upload Play Group
+          </button>
+
+          <button 
+            onClick={handleLogout}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#dc3545',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       <ErrorMessage message={error} />
@@ -154,7 +172,6 @@ const TeacherDashboard = () => {
                   color: '#666',
                   overflow: 'hidden'
                 }}>
-                  {/* Photo Placeholder */}
                   {student.photoUrl ? (
                     <img src={student.photoUrl} alt={student.firstName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
