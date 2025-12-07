@@ -1,0 +1,132 @@
+/* src/pages/admin/PlayGroup.css */
+
+/* --- 1. Main Calendar Container --- */
+.react-calendar {
+  width: 100% !important;
+  max-width: none !important; /* Allow it to fill the container */
+  background-color: #C4C4C4; /* Design gray background */
+  border: none !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.125em;
+  padding: 20px; /* Reduced padding slightly */
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+
+/* --- 2. Navigation Header (DECEMBER > 2025 >) --- */
+.react-calendar__navigation {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-bottom: 15px !important;
+  height: 44px !important;
+}
+
+.react-calendar__navigation button {
+  min-width: 44px;
+  background: #333333 !important;
+  color: white !important;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  padding: 5px 15px; /* Wider buttons */
+}
+
+.react-calendar__navigation button:disabled {
+  background-color: #555 !important;
+}
+
+.react-calendar__navigation button:enabled:hover {
+  background-color: #444 !important;
+}
+
+/* --- 3. Weekday Headers (SUN, MON...) --- */
+.react-calendar__month-view__weekdays {
+  display: grid !important; /* Switch from Flex to Grid */
+  grid-template-columns: repeat(7, 1fr); /* Exactly 7 equal columns */
+  gap: 8px; /* EXACTLY match the gap of the days below */
+  
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 0.9em;
+  margin-bottom: 10px;
+}
+
+.react-calendar__month-view__weekdays__weekday {
+  /* Remove margins because 'gap' handles the spacing now */
+  margin: 0 !important; 
+  padding: 12px 0; /* Slightly taller for better look */
+  
+  background: #3E3B3B;
+  color: white;
+  border-radius: 4px;
+  text-decoration: none !important;
+  
+  /* Ensure text is perfectly centered */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Remove default underline on abbreviations */
+.react-calendar__month-view__weekdays__weekday abbr {
+  text-decoration: none;
+  cursor: default;
+  text-decoration: none !important;
+}
+
+/* --- 4. The Days (Grid) --- */
+.react-calendar__month-view__days {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr); /* 7 equal columns */
+  gap: 8px; /* Consistent gap between tiles */
+}
+
+.react-calendar__tile {
+  max-width: 100% !important;
+  height: 65px !important; /* Reduced height to fit screen better */
+  background: #E0E0E0 !important;
+  color: #333;
+  border-radius: 6px !important;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none !important;
+  transition: transform 0.1s ease;
+}
+
+/* Hover effects */
+.react-calendar__tile:enabled:hover {
+  background-color: #d0d0d0 !important;
+  transform: scale(1.02); /* Subtle pop effect */
+}
+
+/* --- 5. Active States --- */
+
+/* Today */
+.react-calendar__tile--now {
+  background: #ffd700 !important;
+  color: black !important;
+}
+
+/* Selected Date */
+.react-calendar__tile--active {
+  background: #333 !important;
+  color: white !important;
+}
+
+/* --- 6. Custom "Has Activity" State (Green) --- */
+.react-calendar__tile.has-activity {
+  background: #4ECDC4 !important;
+  color: white !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+/* Hide neighboring month days for a cleaner look (optional, matches design better) */
+.react-calendar__month-view__days__day--neighboringMonth {
+  visibility: hidden;
+}

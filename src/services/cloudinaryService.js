@@ -12,7 +12,7 @@ const uploadImage = async (file, folderPath = 'little-lions/uploads') => {
   formData.append('file', file);
   formData.append('upload_preset', uploadPreset);
   
-  // Dynamic folder path (e.g., "little-lions/group-images/2023-12-05")
+  // Dynamic folder path
   formData.append('folder', folderPath);
 
   try {
@@ -37,6 +37,8 @@ const uploadImage = async (file, folderPath = 'little-lions/uploads') => {
   }
 };
 
-export default {
+const cloudinaryService = {
   uploadImage
 };
+
+export default cloudinaryService;
