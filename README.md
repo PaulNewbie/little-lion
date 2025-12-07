@@ -87,17 +87,53 @@ The app will run on http://localhost:3000
 ## Project Structure
 
 ```
+Here is the corrected project structure
+
 src/
 ├── components/
-│   ├── auth/          # Login, ProtectedRoute
-│   ├── admin/         # Admin dashboard and features
-│   ├── teacher/       # Teacher dashboard
-│   ├── parent/        # Parent dashboard
-│   └── common/        # Shared components
-├── services/          # Firebase and API services
-├── context/           # React Context (Auth)
-├── hooks/             # Custom React hooks
-└── utils/             # Helper functions and constants
+│   ├── common/                # Reusable UI components
+│   │   ├── Card.jsx
+│   │   ├── ErrorMessage.jsx
+│   │   └── Loading.jsx
+│   └── sidebar/
+│       └── AdminSidebar.jsx   # Admin navigation sidebar
+├── config/
+│   └── firebase.js            # Firebase initialization
+├── context/
+│   └── AuthContext.jsx        # Authentication state management
+├── hooks/                     # Custom React hooks
+│   ├── useAuth.js
+│   ├── useEnrollChild.js      # Logic for student enrollment form
+│   ├── useManageTeachers.js   # Logic for teacher management
+│   └── useOtherServices.js    # Logic for service management
+├── pages/
+│   ├── admin/                 # Admin-specific pages
+│   │   ├── EnrollChild.jsx
+│   │   ├── ManageTeachers.jsx
+│   │   ├── OneOnOne.jsx       # 1:1 Services Grid View
+│   │   ├── OtherServices.jsx
+│   │   ├── PlayGroup.jsx      # Admin view for Play Group photos (Calendar View)
+│   │   └── PlayGroup.css      # Styles for the Calendar UI
+│   ├── auth/
+│   │   └── LoginPage.jsx
+│   ├── parent/                # Parent-specific pages
+│   │   ├── ChildActivities.jsx # Activity feed for a specific child
+│   │   └── ParentDashboard.jsx
+│   └── teacher/               # Teacher-specific pages
+│       ├── PlayGroupActivity.jsx # Upload form for Group Activities
+│       └── TeacherDashboard.jsx
+├── routes/
+│   └── ProtectedRoute.jsx     # Route guard for role-based access
+├── services/                  # Backend service layer
+│   ├── activityService.js     # Activity retrieval logic
+│   ├── authService.js         # Auth operations
+│   ├── childService.js        # Student/Child data operations
+│   ├── cloudinaryService.js   # Image upload logic
+│   ├── servicesService.js     # School service types operations
+│   ├── teacherService.js      # Teacher data operations
+│   └── userService.js         # General user operations
+└── utils/
+    └── constants.js           # App constants (Roles, etc.)
 ```
 
 ## User Roles
