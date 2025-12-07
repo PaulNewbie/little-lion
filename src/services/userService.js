@@ -83,7 +83,7 @@ class UserService {
     return this.getUsersByRole('parent');
   }
 
-  // Find a user by their email (for enroll multiple child in one parent account)
+  // NEW: Find a user by their email (Added from previous step)
   async getUserByEmail(email) {
     try {
       const q = query(collection(db, 'users'), where('email', '==', email));
@@ -93,7 +93,6 @@ class UserService {
         return null;
       }
       
-      // Return the first match (email should be unique)
       const userDoc = querySnapshot.docs[0];
       return { uid: userDoc.id, ...userDoc.data() };
     } catch (error) {
@@ -102,4 +101,6 @@ class UserService {
   }
 }
 
-export default new UserService();
+// FIX: Assign to variable before exporting
+const userService = new UserService();
+export default userService;
