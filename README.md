@@ -144,10 +144,10 @@ src/
 
 ## Demo Accounts
 
-- Admin: admin@school.com
-- Teacher: teacher@school.com
+- Admin: admin@school.com 
+- Teacher: teacherr@example.com (pass: Welcome123!)
 - Parent: parent@school.com
-- Password: password123
+-- Password: password123
 
 ## License
 
