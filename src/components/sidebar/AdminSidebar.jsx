@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import "./AdminSidebar.css";
@@ -9,6 +9,7 @@ const AdminSidebar = () => {
   const location = useLocation();
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
 
   const handleLogout = async () => {
     await logout();
@@ -17,10 +18,30 @@ const AdminSidebar = () => {
 
   const isActive = (path) => location.pathname === path;
 
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsDesktop(true);
+        setIsOpen(true); // always open on desktop
+      } else {
+        setIsDesktop(false);
+        setIsOpen(false); // default closed on mobile
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    // Initialize
+    handleResize();
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <>
       {/* Open Button for mobile */}
-      {!isOpen && (
+      {!isOpen && !isDesktop && (
         <button className="open-btn" onClick={() => setIsOpen(true)}>
           ☰
         </button>
@@ -28,10 +49,12 @@ const AdminSidebar = () => {
 
       {/* Sidebar */}
       <div className={`sidebar ${isOpen ? "open" : "closed"}`}>
-        {/* Close Button */}
-        <button className="close-btn" onClick={() => setIsOpen(false)}>
-          ✕
-        </button>
+        {/* Close Button only on mobile */}
+        {!isDesktop && (
+          <button className="close-btn" onClick={() => setIsOpen(false)}>
+            ✕
+          </button>
+        )}
 
         {/* Profile */}
         <div className="profile-section">
