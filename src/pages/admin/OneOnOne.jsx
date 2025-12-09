@@ -5,16 +5,14 @@ import './css/OneOnOne.css';
 
 const OneOnOne = () => {
 
-  // Navigation
+  // NEW: Navigation State
   const [currentLevel, setCurrentLevel] = useState('student-list');
   const [selectedStudent, setSelectedStudent] = useState(null);
 
-  // Data
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Load students from service
   useEffect(() => {
     const fetchStudents = async () => {
       try {
@@ -29,20 +27,19 @@ const OneOnOne = () => {
     fetchStudents();
   }, []);
 
-  // Search filter
   const filteredStudents = students.filter(student =>
     `${student.firstName} ${student.lastName}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
 
-  // When student is clicked
+  // NEW: When you click a profile
   const handleSelectStudent = (student) => {
     setSelectedStudent(student);
     setCurrentLevel('student-profile');
   };
 
-  // Back button
+  // NEW: Back Button
   const goBack = () => {
     setSelectedStudent(null);
     setCurrentLevel('student-list');
@@ -55,9 +52,9 @@ const OneOnOne = () => {
 
       <div className="oneonone-main">
 
-        {/* ----------------------------- */}
-        {/* PAGE 1 — STUDENT LIST         */}
-        {/* ----------------------------- */}
+        {/* ------------------------------ */}
+        {/* PAGE 1 — STUDENT LIST           */}
+        {/* ------------------------------ */}
         {currentLevel === 'student-list' && (
           <>
             <div className="oneonone-header">
@@ -78,14 +75,16 @@ const OneOnOne = () => {
               <div className="student-grid">
 
                 {filteredStudents.length === 0 && (
-                  <p className="no-students">No students found.</p>
+                  <p className="no-students">
+                    No students found.
+                  </p>
                 )}
 
                 {filteredStudents.map((student) => (
                   <div
                     key={student.id}
                     className="student-card"
-                    onClick={() => handleSelectStudent(student)}
+                    onClick={() => handleSelectStudent(student)}   // CLICK → GO TO PROFILE
                   >
                     <div className="student-image-area">
                       {student.photoUrl ? (
@@ -107,15 +106,14 @@ const OneOnOne = () => {
                     </div>
                   </div>
                 ))}
-
               </div>
             )}
           </>
         )}
 
-        {/* ----------------------------- */}
-        {/* PAGE 2 — STUDENT PROFILE      */}
-        {/* ----------------------------- */}
+        {/* ------------------------------ */}
+        {/* PAGE 2 — STUDENT PROFILE        */}
+        {/* ------------------------------ */}
         {currentLevel === 'student-profile' && selectedStudent && (
           <div className="profile-container">
 
@@ -125,10 +123,10 @@ const OneOnOne = () => {
 
             <h1>{selectedStudent.firstName} {selectedStudent.lastName}</h1>
 
-            <div className="profile-content profile-row">
+            <div className="profile-content">
 
-              {/* LEFT SIDE: PHOTO */}
-              <div className="profile-photo-section left-column">
+              {/* LEFT: PHOTO */}
+              <div className="profile-photo-section">
                 {selectedStudent.photoUrl ? (
                   <img
                     src={selectedStudent.photoUrl}
@@ -140,8 +138,8 @@ const OneOnOne = () => {
                 )}
               </div>
 
-              {/* RIGHT SIDE: INFO + SERVICES */}
-              <div className="profile-details right-column">
+              {/* RIGHT: INFO */}
+              <div className="profile-details">
 
                 <h2>Student Information</h2>
                 <p><strong>Name:</strong> {selectedStudent.firstName} {selectedStudent.lastName}</p>
@@ -150,20 +148,15 @@ const OneOnOne = () => {
                 <p><strong>Gender:</strong> {selectedStudent.gender || "N/A"}</p>
 
                 <h2 style={{ marginTop: '20px' }}>Services Availed</h2>
-
-                <ul className="services-list">
+                <ul>
                   {(selectedStudent.services && selectedStudent.services.length > 0)
                     ? selectedStudent.services.map((service, i) => (
-                        <li key={i} className="service-item">
-                          <strong>{service.serviceName}</strong><br />
-                          <span>Teacher: {service.teacherName}</span>
-                        </li>
+                        <li key={i}>{service}</li>
                       ))
                     : <p>No services recorded.</p>}
                 </ul>
 
               </div>
-
             </div>
           </div>
         )}
