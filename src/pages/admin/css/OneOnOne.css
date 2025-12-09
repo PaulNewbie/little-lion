@@ -101,3 +101,69 @@
   color: #555;
   text-decoration: underline;
 }
+
+/* Layout for profile screen */
+.profile-container {
+  padding: 20px;
+}
+
+.back-btn {
+  margin-bottom: 20px;
+  cursor: pointer;
+  background: none;
+  border: 1px solid #bbb;
+  padding: 8px 16px;
+  border-radius: 5px;
+}
+
+.profile-row {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+/* LEFT — Photo */
+.left-column {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+/* RIGHT — Info + Services */
+.right-column {
+  flex: 2;
+}
+
+/* Photo styling */
+.profile-photo {
+  width: 260px;
+  height: 260px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid #ddd;
+}
+
+.profile-photo.placeholder {
+  width: 260px;
+  height: 260px;
+  border-radius: 12px;
+  background: #eee;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Services list */
+.services-list {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 10px;
+}
+
+.service-item {
+  background: #f7f7f7;
+  border-radius: 8px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  margin-bottom: 10px;
+}
