@@ -1,207 +1,295 @@
-/* -----------------------------------------------------
-   GLOBAL STYLES
------------------------------------------------------ */
-body {
-  font-family: "Inter", Arial, sans-serif;
-  background: #f7f9fc;
-  margin: 0;
-  padding: 0;
-}
+/* OtherServices.css */
 
-h1 {
-  text-align: center;
-  background: #eb2825;
-  color: white;
-  padding: 15px 0;
-  margin-bottom: 25px;
-  border-radius: 8px;
-}
-
+/* Page Layout */
 .page-container {
-  padding: 20px;
-  max-width: 1100px;
-  margin: auto;
+  flex: 1;
+  padding: 2rem;
+  background-color: #f5f5f5;
+  overflow-y: auto;
+  height: 100vh;
 }
 
+/* Loading & Error States */
 .loading {
-  padding: 20px;
-  font-size: 18px;
-}
-
-.back-btn {
-  margin-bottom: 20px;
-  padding: 8px 15px;
-  background: #e5e7eb;
-  border: 1px solid #d1d5db;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: 0.2s;
-}
-
-.back-btn:hover {
-  background: #d1d5db;
-}
-
-.two-column {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-}
-
-/* -----------------------------------------------------
-   VIEW 2 – SELECTED SERVICE VIEW
------------------------------------------------------ */
-
-.enrolled-section ul {
-  list-style: none;
-  padding-left: 0;
-}
-
-.enrolled-list li {
-  margin-bottom: 8px;
-  line-height: 1.6;
-  padding: 10px;
-  border-radius: 6px;
-  background: #f1f5f9;
-}
-
-.teacher-label {
-  color: #6b7280;
-  font-size: 0.9em;
-  margin-left: 10px;
-}
-
-.enroll-box {
-  border: 1px solid #d1d5db;
-  padding: 20px;
-  border-radius: 8px;
-  background: white;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-}
-
-.enroll-form {
   display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.enroll-form select,
-.create-form select,
-.create-form input {
-  padding: 10px;
-  width: 100%;
-  margin-top: 5px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 1.5rem;
+  color: #666;
 }
 
 .error-text {
-  color: #dc2626;
-  margin-top: 5px;
+  color: #d32f2f;
+  background-color: #ffebee;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
 }
 
-/* -----------------------------------------------------
-   VIEW 1 – SERVICE LIST VIEW
------------------------------------------------------ */
+/* Back Button */
+.back-btn {
+  background-color: #757575;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
 
+.back-btn:hover {
+  background-color: #616161;
+}
+
+/* Headings */
+.page-container h1 {
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.page-container h3 {
+  color: #555;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Create Service Box */
 .service-create-box {
-  border: 1px solid #d1d5db;
-  padding: 15px;
-  margin-bottom: 30px;
+  background-color: white;
+  padding: 1.5rem;
   border-radius: 8px;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
 }
 
 .create-form {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 350px;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
+.create-form input,
+.create-form select {
+  flex: 1;
+  min-width: 150px;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.create-form button {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.create-form button:hover {
+  background-color: #1565c0;
+}
+
+/* Service Items */
 .service-item {
-  margin-bottom: 20px;
-  border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 20px;
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
 }
 
 .service-title-row {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  margin-bottom: 0.5rem;
 }
 
 .service-title {
   margin: 0;
   cursor: pointer;
-  text-decoration: underline;
-  font-size: 1.2em;
+  transition: color 0.2s;
+}
+
+.service-title:hover {
+  color: #1976d2;
 }
 
 .service-title.active {
-  color: #2563eb;
-  font-weight: 600;
+  color: #2e7d32;
 }
 
 .service-title.inactive {
-  color: #6b7280;
+  color: #d32f2f;
+  text-decoration: line-through;
 }
 
 .service-description {
-  font-size: 0.9em;
-  color: #6b7280;
-  margin-top: 5px;
+  color: #666;
+  margin-bottom: 1rem;
 }
 
+.danger-btn {
+  background-color: #d32f2f;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.danger-btn:hover {
+  background-color: #c62828;
+}
+
+/* Teacher Assignment Box */
 .teacher-assign-box {
-  margin-left: 20px;
-  padding: 10px 0;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
 }
 
 .teacher-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 8px;
+  gap: 1rem;
+  margin-top: 0.5rem;
 }
 
 .teacher-checkbox {
   display: flex;
   align-items: center;
-  gap: 5px;
-}
-
-/* -----------------------------------------------------
-   BUTTONS
------------------------------------------------------ */
-
-button,
-input[type="submit"] {
-  padding: 8px 15px;
-  border: none;
-  background: #2563eb;
-  color: white;
+  gap: 0.5rem;
   cursor: pointer;
-  border-radius: 6px;
-  transition: 0.2s;
 }
 
-button:hover,
-input[type="submit"]:hover {
-  background: #1d4ed8;
-}
-
-.danger-btn {
-  background: #dc2626;
-  color: white;
-  padding: 6px 12px;
-  border: none;
+.teacher-checkbox input[type="checkbox"] {
   cursor: pointer;
-  border-radius: 6px;
-  transition: 0.2s;
 }
 
-.danger-btn:hover {
-  background: #b91c1c;
+/* Two Column Layout for Service Details */
+.two-column {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+@media (max-width: 968px) {
+  .two-column {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Enrolled Section */
+.enrolled-section {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.enrolled-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.enrolled-list li {
+  padding: 0.75rem;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.enrolled-list li:last-child {
+  border-bottom: none;
+}
+
+.teacher-label {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Enroll Box */
+.enroll-box {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.enroll-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.enroll-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.enroll-form select {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.enroll-form small {
+  font-weight: normal;
+  font-size: 0.85rem;
+}
+
+.enroll-form button[type="submit"] {
+  background-color: #2e7d32;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+}
+
+.enroll-form button[type="submit"]:hover:not(:disabled) {
+  background-color: #1b5e20;
+}
+
+.enroll-form button[type="submit"]:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* New: Sidebar Toggle Button Styles */
+.sidebar-toggle-btn {
+  position: fixed; /* Fix button position */
+  top: 15px;
+  left: 15px;
+  z-index: 1000; /* Ensure it's above other content */
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  display: none; /* Hide by default */
+}
+
+.sidebar-toggle-btn:hover {
+  background-color: #1565c0;
 }

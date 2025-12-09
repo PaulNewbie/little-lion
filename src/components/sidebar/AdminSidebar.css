@@ -1,0 +1,144 @@
+/* Basic sidebar */
+.sidebar {
+  width: 280px;
+  background-color: #f0f0f0;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #ddd;
+  flex-shrink: 0;
+  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar.closed {
+  transform: translateX(-100%);
+}
+
+/* Close button inside sidebar */
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  align-self: flex-end;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+/* Open button outside sidebar */
+.open-btn {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  font-size: 24px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  background-color: #444;
+  color: white;
+  cursor: pointer;
+  z-index: 1100;
+}
+
+/* Profile */
+.profile-section {
+  margin-bottom: 40px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #ffd700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.role-label {
+  font-size: 12px;
+  color: #666;
+}
+
+.profile-name {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.menu-section {
+  margin-bottom: 30px;
+}
+
+.section-title {
+  font-size: 12px;
+  color: #888;
+  font-weight: bold;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  cursor: pointer;
+  color: #444;
+  font-weight: 500;
+  font-size: 16px;
+  border-radius: 8px;
+  margin-bottom: 5px;
+  transition: background-color 0.2s ease;
+}
+
+.menu-item:hover {
+  background-color: #eaeaea;
+}
+
+.menu-item.active {
+  background-color: #e0e0e0;
+  font-weight: bold;
+  color: #000;
+}
+
+.logout-btn {
+  margin-top: auto;
+  background-color: #ef4444;
+  color: white;
+  padding: 15px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+}
+
+.logout-btn:hover {
+  background-color: #dc2626;
+}
+
+/* Optional: hide open button on desktop */
+@media (min-width: 768px) {
+  .open-btn {
+    display: none;
+  }
+  .sidebar {
+    transform: translateX(0);
+    position: relative;
+  }
+  .close-btn {
+    display: none;
+  }
+}
