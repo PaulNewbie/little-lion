@@ -1,0 +1,207 @@
+/* -----------------------------------------------------
+   GLOBAL STYLES
+----------------------------------------------------- */
+body {
+  font-family: "Inter", Arial, sans-serif;
+  background: #f7f9fc;
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  text-align: center;
+  background: #eb2825;
+  color: white;
+  padding: 15px 0;
+  margin-bottom: 25px;
+  border-radius: 8px;
+}
+
+.page-container {
+  padding: 20px;
+  max-width: 1100px;
+  margin: auto;
+}
+
+.loading {
+  padding: 20px;
+  font-size: 18px;
+}
+
+.back-btn {
+  margin-bottom: 20px;
+  padding: 8px 15px;
+  background: #e5e7eb;
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: 0.2s;
+}
+
+.back-btn:hover {
+  background: #d1d5db;
+}
+
+.two-column {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+/* -----------------------------------------------------
+   VIEW 2 – SELECTED SERVICE VIEW
+----------------------------------------------------- */
+
+.enrolled-section ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.enrolled-list li {
+  margin-bottom: 8px;
+  line-height: 1.6;
+  padding: 10px;
+  border-radius: 6px;
+  background: #f1f5f9;
+}
+
+.teacher-label {
+  color: #6b7280;
+  font-size: 0.9em;
+  margin-left: 10px;
+}
+
+.enroll-box {
+  border: 1px solid #d1d5db;
+  padding: 20px;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.enroll-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.enroll-form select,
+.create-form select,
+.create-form input {
+  padding: 10px;
+  width: 100%;
+  margin-top: 5px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+}
+
+.error-text {
+  color: #dc2626;
+  margin-top: 5px;
+}
+
+/* -----------------------------------------------------
+   VIEW 1 – SERVICE LIST VIEW
+----------------------------------------------------- */
+
+.service-create-box {
+  border: 1px solid #d1d5db;
+  padding: 15px;
+  margin-bottom: 30px;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 350px;
+}
+
+.service-item {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 20px;
+}
+
+.service-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.service-title {
+  margin: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 1.2em;
+}
+
+.service-title.active {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.service-title.inactive {
+  color: #6b7280;
+}
+
+.service-description {
+  font-size: 0.9em;
+  color: #6b7280;
+  margin-top: 5px;
+}
+
+.teacher-assign-box {
+  margin-left: 20px;
+  padding: 10px 0;
+}
+
+.teacher-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.teacher-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* -----------------------------------------------------
+   BUTTONS
+----------------------------------------------------- */
+
+button,
+input[type="submit"] {
+  padding: 8px 15px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: 0.2s;
+}
+
+button:hover,
+input[type="submit"]:hover {
+  background: #1d4ed8;
+}
+
+.danger-btn {
+  background: #dc2626;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: 0.2s;
+}
+
+.danger-btn:hover {
+  background: #b91c1c;
+}
