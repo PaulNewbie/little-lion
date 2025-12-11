@@ -1,0 +1,102 @@
+/* ---------------------------------------- */
+/* SIDEBAR - Matches Screenshot Style       */
+/* ---------------------------------------- */
+
+.sidebar {
+  width: 280px;
+  background: #f3f3f3;
+  min-height: 100vh;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #ccc;
+}
+
+/* PROFILE HEADER */
+
+.sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 50px;
+}
+
+.sidebar-avatar {
+  width: 65px;
+  height: 65px;
+  background: #d9d9d9;
+  border-radius: 50%;
+}
+
+.sidebar-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-role {
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #777;
+}
+
+.sidebar-name {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+/* SECTION TITLE */
+
+.sidebar-section-title {
+  font-size: 12px;
+  color: #777;
+  margin: 20px 0 10px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+/* MENU ITEM */
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #444;
+  margin-bottom: 4px;
+  font-size: 15px;
+  transition: 0.2s;
+}
+
+.sidebar-item:hover {
+  background: #e2e2e2;
+}
+
+.sidebar-item.active {
+  background: #d6d6d6;
+  font-weight: bold;
+}
+
+.sidebar-icon {
+  font-size: 18px;
+}
+
+/* LOGOUT BUTTON */
+
+.sidebar-logout {
+  margin-top: auto;
+  background: #d9534f;
+  color: white;
+  padding: 14px;
+  width: 100%;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.sidebar-logout:hover {
+  background: #c0392b;
+}

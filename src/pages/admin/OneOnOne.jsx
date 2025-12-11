@@ -33,13 +33,11 @@ const OneOnOne = () => {
       .includes(searchTerm.toLowerCase())
   );
 
-  // NEW: When you click a profile
   const handleSelectStudent = (student) => {
     setSelectedStudent(student);
     setCurrentLevel('student-profile');
   };
 
-  // NEW: Back Button
   const goBack = () => {
     setSelectedStudent(null);
     setCurrentLevel('student-list');
@@ -84,7 +82,7 @@ const OneOnOne = () => {
                   <div
                     key={student.id}
                     className="student-card"
-                    onClick={() => handleSelectStudent(student)}   // CLICK → GO TO PROFILE
+                    onClick={() => handleSelectStudent(student)}
                   >
                     <div className="student-image-area">
                       {student.photoUrl ? (
@@ -114,52 +112,72 @@ const OneOnOne = () => {
         {/* ------------------------------ */}
         {/* PAGE 2 — STUDENT PROFILE        */}
         {/* ------------------------------ */}
-        {currentLevel === 'student-profile' && selectedStudent && (
-          <div className="profile-container">
+{currentLevel === 'student-profile' && selectedStudent && (
+  <div className="profile-container">
 
-            <button className="back-btn" onClick={goBack}>
-              ← Back
-            </button>
+    <button className="back-btn" onClick={goBack}>
+      ← Back
+    </button>
 
-            <h1>{selectedStudent.firstName} {selectedStudent.lastName}</h1>
+    <div className="profile-layout">
 
-            <div className="profile-content">
-
-              {/* LEFT: PHOTO */}
-              <div className="profile-photo-section">
-                {selectedStudent.photoUrl ? (
-                  <img
-                    src={selectedStudent.photoUrl}
-                    alt="Student"
-                    className="profile-photo"
-                  />
-                ) : (
-                  <div className="profile-photo placeholder">No Photo</div>
-                )}
-              </div>
-
-              {/* RIGHT: INFO */}
-              <div className="profile-details">
-
-                <h2>Student Information</h2>
-                <p><strong>Name:</strong> {selectedStudent.firstName} {selectedStudent.lastName}</p>
-                <p><strong>Birthday:</strong> {selectedStudent.birthDate || "N/A"}</p>
-                <p><strong>Age:</strong> {selectedStudent.age || "N/A"}</p>
-                <p><strong>Gender:</strong> {selectedStudent.gender || "N/A"}</p>
-
-                <h2 style={{ marginTop: '20px' }}>Services Availed</h2>
-                <ul>
-                  {(selectedStudent.services && selectedStudent.services.length > 0)
-                    ? selectedStudent.services.map((service, i) => (
-                        <li key={i}>{service}</li>
-                      ))
-                    : <p>No services recorded.</p>}
-                </ul>
-
-              </div>
-            </div>
-          </div>
+      {/* LEFT — STUDENT PHOTO */}
+      <div className="photo-box">
+        {selectedStudent.photoUrl ? (
+          <img
+            src={selectedStudent.photoUrl}
+            alt="Student"
+            className="photo-img"
+          />
+        ) : (
+          <span>No Photo</span>
         )}
+      </div>
+
+      {/* RIGHT SIDE CONTENT */}
+      <div className="right-side">
+
+        {/* PROFILE BOX */}
+        <div className="profile-box">
+          <h2>PROFILE</h2>
+
+          <div className="profile-card">
+            <h3 className="profile-name">
+              {selectedStudent.lastName}, {selectedStudent.firstName}
+            </h3>
+
+            <p>📞 {selectedStudent.phone || "N/A"}</p>
+            <p>👩 {selectedStudent.motherName || "N/A"}</p>
+            <p>✉️ {selectedStudent.motherEmail || "N/A"}</p>
+            <p>📍 {selectedStudent.address || "N/A"}</p>
+          </div>
+        </div>
+
+        {/* SERVICES AVAILED BOX */}
+        <div className="services-box">
+          <h2>SERVICES AVAILED</h2>
+
+          <div className="services-card">
+            {selectedStudent.services && selectedStudent.services.length > 0 ? (
+              <ul className="services-list">
+                {selectedStudent.services.map((service, i) => (
+                  <li key={i} className="service-item">
+                    <span className="service-icon">🟦</span>
+                    <span>{service.serviceName}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No services recorded.</p>
+            )}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+)}
+
 
       </div>
     </div>
