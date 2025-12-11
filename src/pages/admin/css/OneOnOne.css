@@ -10,7 +10,6 @@
 
 .ooo-main {
   flex: 1;
-  padding: 25px 40px;
 }
 
 /* ============================================================
@@ -21,6 +20,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 25px;
+  padding-left: 50px;
 }
 
 .ooo-header h1 {
@@ -43,6 +43,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: 25px;
+  padding-left: 40px;
+  padding-right: 40px;
 }
 
 .ooo-card {
@@ -100,6 +102,7 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 25px;
+  padding-left: 50px;
 }
 
 .left-group {
@@ -123,6 +126,7 @@
 
 /* 3 COLUMN LAYOUT */
 .profile-3col {
+  padding-left: 40px;
   display: grid;
   grid-template-columns: 500px 1fr; /* updated width to match larger photo frame */
   align-items: flex-start;
@@ -224,7 +228,7 @@
 }
 
 .Profile-Footer {
-  border: 50px solid #666;
-  margin-top: 110px;
+  border: 50px solid #bbb;
+  margin-top: 12%;
 
 }

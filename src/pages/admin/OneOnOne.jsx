@@ -180,21 +180,22 @@ const OneOnOne = () => {
                       </div>
                       <span className="arrow">›</span>
                     </div>
+                    
                   ))}
                 </div>
 
               </div>
 
             </div>
-            <div className="Profile-Footer">
-
-            </div>
           </div>
+          
+          
         )}
-
+        <div className="Profile-Footer"></div>
       </div>
     </div>
+
+    
   );
 };
-
 export default OneOnOne;
