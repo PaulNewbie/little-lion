@@ -12,14 +12,16 @@ import { getStorage } from "firebase/storage";
 //   appId: process.env.REACT_APP_FIREBASE_APP_ID
 // };
 
+
 const firebaseConfig = {
   apiKey: "AIzaSyBg7o5TWmKdELQq53Ji8cA5z9z6h_kbI7g",
   authDomain: "little-lions-2cae7.firebaseapp.com",
   projectId: "little-lions-2cae7",
   storageBucket: "little-lions-2cae7.firebasestorage.app",
   messagingSenderId: "1033644878508",
-  appId: "1:1033644878508:web:448b1c68247e9136410d09",
+  appId: "1:1033644878508:web:448b1c68247e9136410d09"
 };
+
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);

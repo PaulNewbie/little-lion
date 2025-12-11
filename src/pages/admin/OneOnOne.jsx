@@ -1,13 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import AdminSidebar from '../../components/sidebar/AdminSidebar';
-import childService from '../../services/childService';
+import React, { useState, useEffect } from "react";
+import AdminSidebar from "../../components/sidebar/AdminSidebar";
+import childService from "../../services/childService";
+import "./css/OneOnOne.css";
 
 const OneOnOne = () => {
+  const [currentLevel, setCurrentLevel] = useState("student-list");
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  
+
   const [students, setStudents] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // Fetch real students from Firebase
+  const [selectedService, setSelectedService] = useState("");
+
+  // ---------------------------
+  // FETCH STUDENTS
+  // ---------------------------
   useEffect(() => {
     const fetchStudents = async () => {
       try {
@@ -22,93 +31,189 @@ const OneOnOne = () => {
     fetchStudents();
   }, []);
 
-  const filteredStudents = students.filter(student => 
-    `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredStudents = students.filter((student) =>
+    `${student.firstName} ${student.lastName}`
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
   );
+
+  const handleSelectStudent = (student) => {
+    setSelectedStudent(student);
+    setCurrentLevel("student-profile");
+  };
+
+  const goBack = () => {
+    setSelectedStudent(null);
+    setCurrentLevel("student-list");
+  };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#fff', fontFamily: 'sans-serif' }}>
-      
-      {/* 1. Reusable Sidebar */}
+    <div className="ooo-container">
       <AdminSidebar />
 
-      {/* 2. Main Content Area: 1:1 Services Grid */}
-      <div style={{ flex: 1, padding: '40px', backgroundColor: '#ffffff', overflowY: 'auto' }}>
-        
-        {/* Header & Search */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-          <h1 style={{ margin: 0, fontSize: '24px', color: '#333' }}>1 : 1 SERVICES</h1>
-          
-          <input 
-            type="text" 
-            placeholder="SEARCH" 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              width: '300px',
-              padding: '10px 15px',
-              borderRadius: '4px',
-              border: '1px solid #ccc',
-              backgroundColor: '#e0e0e0'
-            }}
-          />
-        </div>
+      <div className="ooo-main">
+        {/* =========================================================
+            PAGE 1 — STUDENT LIST
+        ========================================================== */}
+        {currentLevel === "student-list" && (
+          <>
+            <div className="ooo-header">
+              <h1>1 : 1 SERVICES</h1>
 
-        {/* Student Grid */}
-        {loading ? (
-          <p>Loading students...</p>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }}>
-            {filteredStudents.length === 0 && (
-              <p style={{ color: '#888' }}>No students found. Use "Add Student" to enroll someone.</p>
-            )}
+              <input
+                type="text"
+                className="ooo-search"
+                placeholder="SEARCH"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
 
-            {filteredStudents.map((student) => (
-              <div key={student.id} style={{
-                backgroundColor: '#e0e0e0',
-                borderRadius: '4px',
-                overflow: 'hidden',
-                textAlign: 'center',
-                cursor: 'pointer',
-                transition: 'transform 0.2s',
-                boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
-              }}
-              onMouseOver={e => e.currentTarget.style.transform = 'translateY(-3px)'}
-              onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
-              >
-                {/* Image Area */}
-                <div style={{
-                  width: '100%',
-                  height: '180px',
-                  backgroundColor: '#bdbdbd',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden'
-                }}>
-                  {student.photoUrl ? (
-                    <img src={student.photoUrl} alt={student.firstName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <span style={{ fontSize: '40px', color: 'white' }}>📷</span>
-                  )}
-                </div>
+            {loading ? (
+              <p>Loading students...</p>
+            ) : (
+              <div className="ooo-grid">
+                {filteredStudents.length === 0 && (
+                  <p>No students found.</p>
+                )}
 
-                {/* Name Area */}
-                <div style={{ padding: '15px' }}>
-                  <p style={{ fontWeight: 'bold', margin: '0 0 5px 0', color: '#333' }}>
-                    {student.lastName}, {student.firstName}
-                  </p>
-                  <span style={{ fontSize: '12px', color: '#555', textDecoration: 'underline' }}>
-                    See More ›
-                  </span>
-                </div>
+                {filteredStudents.map((student) => (
+                  <div
+                    key={student.id}
+                    className="ooo-card"
+                    onClick={() => handleSelectStudent(student)}
+                  >
+                    <div className="ooo-photo-area">
+                      {student.photoUrl ? (
+                        <img
+                          src={student.photoUrl}
+                          alt=""
+                          className="ooo-photo"
+                        />
+                      ) : (
+                        <span>📷</span>
+                      )}
+                    </div>
+
+                    <div className="ooo-card-info">
+                      <p className="ooo-name">
+                        {student.lastName}, {student.firstName}
+                      </p>
+                      <span className="ooo-see">See More ›</span>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
+
+        {/* =========================================================
+            PAGE 2 — STUDENT PROFILE (Matches Screenshot Exactly)
+        ========================================================== */}
+        {currentLevel === "student-profile" && selectedStudent && (
+          <div className="profile-wrapper">
+
+            {/* TOP BAR */}
+            <div className="profile-top">
+              <div className="left-group">
+                <span className="back-arrow" onClick={goBack}>←</span>
+                <h2>STUDENT PROFILES</h2>
+              </div>
+              <input
+                type="text"
+                placeholder="SEARCH"
+                className="profile-search"
+              />
+            </div>
+
+            <div className="profile-3col">
+
+              {/* COLUMN 1 — PHOTO */}
+              <div className="profile-photo-frame">
+                {selectedStudent.photoUrl ? (
+                  <img
+                    src={selectedStudent.photoUrl}
+                    alt=""
+                    className="profile-photo"
+                  />
+                ) : (
+                  <span>No Photo</span>
+                )}
+              </div>
+
+              {/* COLUMN 2 — NAME + DETAILS */}
+              <div className="profile-info">
+
+                <h1 className="profile-fullname">
+                  {selectedStudent.lastName}, {selectedStudent.firstName}
+                </h1>
+
+                <div className="profile-details">
+
+                  <div className="profile-left">
+                    <p><span className="icon">📞</span> {selectedStudent.phone|| "John Patrick J. Ignacio"}</p>
+                    <p><span className="icon">👩</span> {selectedStudent.motherName || "ana liza J. Ignacio"}</p>
+                    <p><span className="icon">✉️</span> {selectedStudent.motherEmail || "Analiza@gmail.com"}</p>
+                    <p><span className="icon">📍</span> {selectedStudent.address || "maligaya st. patubig marilao bulacan"}</p>
+                  </div>
+
+                  <div className="profile-center">
+
+                  </div>
+
+                  <div className="profile-right">
+                    <p><b>Age:</b> {selectedStudent.age || "21"}</p>
+                    <p><b>Gender:</b> {selectedStudent.gender || "N/A"}</p>
+                    <p><b>Birthday:</b> {selectedStudent.birthday || "12-21-2003"}</p>
+                    <p><b>Address:</b> {selectedStudent.address || "maligaya st. patubig marilao bulacan"}</p>
+                  </div>
+                </div>
+
+                {/* SERVICES HEADER */}
+                <h2 className="services-header">SERVICES AVAILED</h2>
+
+                {/* SERVICES LIST */}
+                <div className="services-list">
+                  {selectedStudent.services?.map((service, i) => (
+                    <div key={i} className="service-row">
+                      <div className="service-left">
+                        <span className="service-icon">🟡</span>
+                        {service.serviceName}
+                      </div>
+                      <span className="arrow">›</span>
+                    </div>
+                    
+                  ))}
+                </div>
+                <div className="select-service">
+                  <p>Select a service to view records: </p>
+                  <select
+                    value={selectedService}
+                    onChange={(e) => setSelectedService(e.target.value)}
+                  >
+                    <option value="">--Select a service--</option>
+                    {selectedStudent.services?.map((service, i) => (
+                      <option key={i} value={service.serviceName}>
+                        {service.serviceName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+
+              </div>
+
+            </div>
+          </div>
+          
+          
+        )}
+        <div className="Profile-Footer"></div>
       </div>
     </div>
+
+    
   );
 };
-
 export default OneOnOne;

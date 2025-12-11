@@ -1,0 +1,249 @@
+/* ============================================================
+   GLOBAL LAYOUT
+============================================================ */
+.ooo-container {
+  display: flex;
+  background: #e5ebd5;
+  min-height: 100vh;
+  font-family: "Inter", sans-serif;
+}
+
+.ooo-main {
+  flex: 1;
+}
+
+/* ============================================================
+   HEADER + SEARCH (LIST PAGE)
+============================================================ */
+.ooo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-left: 50px;
+}
+
+.ooo-header h1 {
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.ooo-search {
+  width: 240px;
+  padding: 10px;
+  border-radius: 6px;
+  background: #e6e6e6;
+  border: 1px solid #bbb;
+}
+
+/* ============================================================
+   STUDENT GRID
+============================================================ */
+.ooo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 25px;
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+.ooo-card {
+  background: #e4e4e4;
+  border-radius: 10px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: 0.2s;
+}
+
+.ooo-card:hover {
+  transform: translateY(-4px);
+}
+
+.ooo-photo-area {
+  height: 210px; /* increased from 170px */
+  background: #cfcfcf;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ooo-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ooo-card-info {
+  text-align: center;
+  padding: 10px 0;
+}
+
+.ooo-name {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.ooo-see {
+  font-size: 12px;
+  text-decoration: underline;
+  color: #444;
+}
+
+/* ============================================================
+   PROFILE PAGE — EXACTLY LIKE SCREENSHOT
+============================================================ */
+.profile-wrapper {
+  width: 100%;
+}
+
+/* TOP NAV */
+.profile-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+  padding-left: 50px;
+}
+
+.left-group {
+  display: flex;
+  align-items: center;
+}
+
+.back-arrow {
+  font-size: 28px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.profile-search {
+  width: 200px;
+  padding: 10px;
+  border-radius: 6px;
+  background: #e6e6e6;
+  border: 1px solid #bbb;
+}
+
+/* 3 COLUMN LAYOUT */
+.profile-3col {
+  padding-left: 40px;
+  display: grid;
+  grid-template-columns: 500px 1fr; /* updated width to match larger photo frame */
+  align-items: flex-start;
+  gap: 35px;
+}
+
+/* PHOTO FRAME */
+.profile-photo-frame {
+  width: 500px;     /* increased from 360px */
+  height: 585px;    /* increased from 430px */
+  background: #ffffff;
+  border: 5px solid #6b6b6b;
+  border-radius: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile-photo {
+  width: 100%;      /* auto-scale */
+  height: 100%;     /* auto-scale */
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* NAME + DETAILS */
+.profile-fullname {
+  font-size: 32px;
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 18px;
+}
+
+.profile-details {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 30px;
+  padding-left: 50px;
+}
+
+.profile-center {
+  border-left: 5px solid #ccc;
+}
+
+.profile-left p,
+.profile-right p {
+  margin: 6px 0;
+  font-size: 16px;
+}
+
+.icon {
+  margin-right: 10px;
+  color: #c9b200;
+  font-size: 18px;
+}
+
+/* SERVICES HEADER */
+.services-header {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 900;
+  margin: 20px 0 15px;
+}
+
+/* SERVICES LIST */
+.services-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.service-row {
+  background: #ededed;
+  padding: 14px 18px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.service-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.service-icon {
+  background: #f6f2ad;
+  padding: 10px;
+  border-radius: 50%;
+  font-size: 18px;
+}
+
+.arrow {
+  font-size: 22px;
+  color: #666;
+}
+
+.select-service {
+  padding: 20px;
+  display: flex;
+  align-items: center; /* vertically centers items */
+  gap: 10px; /* space between elements */ 
+}
+.select-service select {
+  width: 200px;   /* set the width you want */
+  height: 35px;   /* set the height you want */
+  font-size: 16px; /* optional: increase the text size */
+  padding: 5px;   /* optional: add some padding inside */
+}
+
+
+
+.Profile-Footer {
+  border: 50px solid #bbb;
+  margin-top: 12%;
+
+}
