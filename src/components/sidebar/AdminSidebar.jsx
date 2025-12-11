@@ -20,12 +20,14 @@ const AdminSidebar = () => {
 
       {/* Profile Section */}
       <div className="sidebar-profile">
-        <div className="sidebar-avatar"></div>
+        <div className="sidebar-avatar">
+          <img src="" alt="" />
+        </div>
 
         <div className="sidebar-info">
-          <p className="sidebar-role">ADMIN</p>
+          <p className="sidebar-role">SUPER ADMIN</p>
           <p className="sidebar-name">
-            {currentUser?.firstName || "ANDREW"} {currentUser?.lastName || "E"}
+            {currentUser?.firstName || "PHOEBE,"} {currentUser?.lastName || "DL"}
           </p>
         </div>
       </div>
@@ -75,9 +77,6 @@ const AdminSidebar = () => {
         <span className="sidebar-icon">➕</span> ADD TEACHER
       </div>
 
-      <div className="sidebar-item">
-        <span className="sidebar-icon">➕</span> ADD PARENT
-      </div>
 
       {/* Logout */}
       <button className="sidebar-logout" onClick={handleLogout}>

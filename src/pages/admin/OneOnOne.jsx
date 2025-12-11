@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import AdminSidebar from '../../components/sidebar/AdminSidebar';
-import childService from '../../services/childService';
-import './css/OneOnOne.css';
+import React, { useState, useEffect } from "react";
+import AdminSidebar from "../../components/sidebar/AdminSidebar";
+import childService from "../../services/childService";
+import "./css/OneOnOne.css";
 
 const OneOnOne = () => {
-
-  // NEW: Navigation State
-  const [currentLevel, setCurrentLevel] = useState('student-list');
+  const [currentLevel, setCurrentLevel] = useState("student-list");
   const [selectedStudent, setSelectedStudent] = useState(null);
 
   const [students, setStudents] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // ---------------------------
+  // FETCH STUDENTS
+  // ---------------------------
   useEffect(() => {
     const fetchStudents = async () => {
       try {
@@ -27,7 +28,7 @@ const OneOnOne = () => {
     fetchStudents();
   }, []);
 
-  const filteredStudents = students.filter(student =>
+  const filteredStudents = students.filter((student) =>
     `${student.firstName} ${student.lastName}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
@@ -35,72 +36,67 @@ const OneOnOne = () => {
 
   const handleSelectStudent = (student) => {
     setSelectedStudent(student);
-    setCurrentLevel('student-profile');
+    setCurrentLevel("student-profile");
   };
 
   const goBack = () => {
     setSelectedStudent(null);
-    setCurrentLevel('student-list');
+    setCurrentLevel("student-list");
   };
 
   return (
-    <div className="oneonone-container">
-
+    <div className="ooo-container">
       <AdminSidebar />
 
-      <div className="oneonone-main">
-
-        {/* ------------------------------ */}
-        {/* PAGE 1 — STUDENT LIST           */}
-        {/* ------------------------------ */}
-        {currentLevel === 'student-list' && (
+      <div className="ooo-main">
+        {/* =========================================================
+            PAGE 1 — STUDENT LIST
+        ========================================================== */}
+        {currentLevel === "student-list" && (
           <>
-            <div className="oneonone-header">
+            <div className="ooo-header">
               <h1>1 : 1 SERVICES</h1>
 
               <input
                 type="text"
+                className="ooo-search"
                 placeholder="SEARCH"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="oneonone-search"
               />
             </div>
 
             {loading ? (
               <p>Loading students...</p>
             ) : (
-              <div className="student-grid">
-
+              <div className="ooo-grid">
                 {filteredStudents.length === 0 && (
-                  <p className="no-students">
-                    No students found.
-                  </p>
+                  <p>No students found.</p>
                 )}
 
                 {filteredStudents.map((student) => (
                   <div
                     key={student.id}
-                    className="student-card"
+                    className="ooo-card"
                     onClick={() => handleSelectStudent(student)}
                   >
-                    <div className="student-image-area">
+                    <div className="ooo-photo-area">
                       {student.photoUrl ? (
                         <img
                           src={student.photoUrl}
-                          alt={student.firstName}
-                          className="student-image"
+                          alt=""
+                          className="ooo-photo"
                         />
                       ) : (
-                        <span className="no-image-icon">📷</span>
+                        <span>📷</span>
                       )}
                     </div>
 
-                    <div className="student-info">
-                      <p className="student-name">
+                    <div className="ooo-card-info">
+                      <p className="ooo-name">
                         {student.lastName}, {student.firstName}
                       </p>
-                      <span className="see-more">See More ›</span>
+                      <span className="ooo-see">See More ›</span>
                     </div>
                   </div>
                 ))}
@@ -109,75 +105,88 @@ const OneOnOne = () => {
           </>
         )}
 
-        {/* ------------------------------ */}
-        {/* PAGE 2 — STUDENT PROFILE        */}
-        {/* ------------------------------ */}
-{currentLevel === 'student-profile' && selectedStudent && (
-  <div className="profile-container">
+        {/* =========================================================
+            PAGE 2 — STUDENT PROFILE (Matches Screenshot Exactly)
+        ========================================================== */}
+        {currentLevel === "student-profile" && selectedStudent && (
+          <div className="profile-wrapper">
 
-    <button className="back-btn" onClick={goBack}>
-      ← Back
-    </button>
+            {/* TOP BAR */}
+            <div className="profile-top">
+              <span className="back-arrow" onClick={goBack}>←</span>
+              <h2>STUDENT PROFILES</h2>
 
-    <div className="profile-layout">
+              <input
+                type="text"
+                placeholder="SEARCH"
+                className="profile-search"
+              />
+            </div>
 
-      {/* LEFT — STUDENT PHOTO */}
-      <div className="photo-box">
-        {selectedStudent.photoUrl ? (
-          <img
-            src={selectedStudent.photoUrl}
-            alt="Student"
-            className="photo-img"
-          />
-        ) : (
-          <span>No Photo</span>
+            <div className="profile-3col">
+
+              {/* COLUMN 1 — PHOTO */}
+              <div className="profile-photo-frame">
+                {selectedStudent.photoUrl ? (
+                  <img
+                    src={selectedStudent.photoUrl}
+                    alt=""
+                    className="profile-photo"
+                  />
+                ) : (
+                  <span>No Photo</span>
+                )}
+              </div>
+
+              {/* COLUMN 2 — NAME + DETAILS */}
+              <div className="profile-info">
+
+                <h1 className="profile-fullname">
+                  {selectedStudent.lastName}, {selectedStudent.firstName}
+                </h1>
+
+                <div className="profile-details">
+
+                  <div className="profile-left">
+                    <p><span className="icon">📞</span> {selectedStudent.phone|| "N/A"}</p>
+                    <p><span className="icon">👩</span> {selectedStudent.motherName || "N/A"}</p>
+                    <p><span className="icon">✉️</span> {selectedStudent.motherEmail || "N/A"}</p>
+                    <p><span className="icon">📍</span> {selectedStudent.address || "N/A"}</p>
+                  </div>
+
+                  <div className="profile-center">
+
+                  </div>
+
+                  <div className="profile-right">
+                    <p><b>Age:</b> {selectedStudent.age|| "N/A"}</p>
+                    <p><b>Gender:</b> {selectedStudent.gender || "N/A"}</p>
+                    <p><b>Birthday:</b> {selectedStudent.birthday || "N/A"}</p>
+                    <p><b>Address:</b> {selectedStudent.address || "N/A"}</p>
+                  </div>
+                </div>
+
+                {/* SERVICES HEADER */}
+                <h2 className="services-header">AVAILED SERVICES</h2>
+
+                {/* SERVICES LIST */}
+                <div className="services-list">
+                  {selectedStudent.services?.map((service, i) => (
+                    <div key={i} className="service-row">
+                      <div className="service-left">
+                        <span className="service-icon">🟡</span>
+                        {service.serviceName}
+                      </div>
+                      <span className="arrow">›</span>
+                    </div>
+                  ))}
+                </div>
+
+              </div>
+
+            </div>
+          </div>
         )}
-      </div>
-
-      {/* RIGHT SIDE CONTENT */}
-      <div className="right-side">
-
-        {/* PROFILE BOX */}
-        <div className="profile-box">
-          <h2>PROFILE</h2>
-
-          <div className="profile-card">
-            <h3 className="profile-name">
-              {selectedStudent.lastName}, {selectedStudent.firstName}
-            </h3>
-
-            <p>📞 {selectedStudent.phone || "N/A"}</p>
-            <p>👩 {selectedStudent.motherName || "N/A"}</p>
-            <p>✉️ {selectedStudent.motherEmail || "N/A"}</p>
-            <p>📍 {selectedStudent.address || "N/A"}</p>
-          </div>
-        </div>
-
-        {/* SERVICES AVAILED BOX */}
-        <div className="services-box">
-          <h2>SERVICES AVAILED</h2>
-
-          <div className="services-card">
-            {selectedStudent.services && selectedStudent.services.length > 0 ? (
-              <ul className="services-list">
-                {selectedStudent.services.map((service, i) => (
-                  <li key={i} className="service-item">
-                    <span className="service-icon">🟦</span>
-                    <span>{service.serviceName}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No services recorded.</p>
-            )}
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-)}
-
 
       </div>
     </div>
