@@ -227,6 +227,21 @@
   color: #666;
 }
 
+.select-service {
+  padding: 20px;
+  display: flex;
+  align-items: center; /* vertically centers items */
+  gap: 10px; /* space between elements */ 
+}
+.select-service select {
+  width: 200px;   /* set the width you want */
+  height: 35px;   /* set the height you want */
+  font-size: 16px; /* optional: increase the text size */
+  padding: 5px;   /* optional: add some padding inside */
+}
+
+
+
 .Profile-Footer {
   border: 50px solid #bbb;
   margin-top: 12%;

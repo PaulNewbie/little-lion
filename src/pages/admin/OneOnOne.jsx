@@ -6,10 +6,13 @@ import "./css/OneOnOne.css";
 const OneOnOne = () => {
   const [currentLevel, setCurrentLevel] = useState("student-list");
   const [selectedStudent, setSelectedStudent] = useState(null);
+  
 
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+
+  const [selectedService, setSelectedService] = useState("");
 
   // ---------------------------
   // FETCH STUDENTS
@@ -183,6 +186,21 @@ const OneOnOne = () => {
                     
                   ))}
                 </div>
+                <div className="select-service">
+                  <p>Select a service to view records: </p>
+                  <select
+                    value={selectedService}
+                    onChange={(e) => setSelectedService(e.target.value)}
+                  >
+                    <option value="">--Select a service--</option>
+                    {selectedStudent.services?.map((service, i) => (
+                      <option key={i} value={service.serviceName}>
+                        {service.serviceName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
 
               </div>
 
