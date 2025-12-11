@@ -4,6 +4,7 @@ import teacherService from '../services/teacherService';
 import authService from '../services/authService';
 import childService from '../services/childService';
 import cloudinaryService from '../services/cloudinaryService'; // Import the new service
+import userService from '../services/userService';
 
 const useEnrollChild = () => {
   const [loading, setLoading] = useState(true);
@@ -80,26 +81,44 @@ const useEnrollChild = () => {
     setUploading(true);
 
     try {
-      // 1. Upload Photo to Cloudinary with SPECIFIC FOLDER
+      // 1. Upload Photo (Existing logic)
       let photoUrl = '';
       if (photoFile) {
-        // CHANGED: Added specific folder for profiles
         photoUrl = await cloudinaryService.uploadImage(photoFile, 'little-lions/child-images');
       }
 
-      // ... rest of the auth and firestore logic (createParentAccount, enrollChild) ...
+      // 2. CHECK IF PARENT EXISTS (New Logic)
+      let parentUid;
       
-      const parentUser = await authService.createParentAccount(parentInfo.email, parentInfo.password, parentInfo);
+      // Try to find the parent in Firestore first
+      const existingParent = await userService.getUserByEmail(parentInfo.email);
+
+      if (existingParent) {
+        // CASE A: Parent already exists - Use their existing UID
+        console.log("Parent exists, linking new child to:", existingParent.uid);
+        parentUid = existingParent.uid;
+      } else {
+        // CASE B: New Parent - Create Auth Account
+        const parentUser = await authService.createParentAccount(
+          parentInfo.email, 
+          parentInfo.password, 
+          parentInfo
+        );
+        parentUid = parentUser.uid;
+      }
       
+      // 3. Enroll Child using the determined parentUid
       await childService.enrollChild({
         ...childInfo,
         photoUrl: photoUrl, 
         services: selectedServices,
         teacherIds: [...new Set(selectedServices.map(s => s.teacherId))]
-      }, parentUser.uid);
+      }, parentUid); // Use the variable parentUid here
 
       alert('Enrollment Complete!');
+      // Optional: Reset form here
     } catch (err) {
+      console.error(err);
       setError(err.message);
     } finally {
       setUploading(false);
