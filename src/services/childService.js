@@ -67,7 +67,26 @@ class ChildService {
     }
   }
 
-  // 4. Get ALL children
+  // 4.  Gel specific who enroll for = Teacher Dashboard
+  async getChildrenByTeacherId(teacherId) {
+    try {
+      const q = query(
+        collection(db, 'children'), 
+        where('teacherIds', 'array-contains', teacherId) // This is the magic query
+      );
+      
+      const querySnapshot = await getDocs(q);
+      
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      throw new Error('Failed to fetch your students: ' + error.message);
+    }
+  }
+
+  // 5. Get ALL children
   async getAllChildren() {
     try {
       const querySnapshot = await getDocs(collection(db, 'children'));
@@ -80,7 +99,7 @@ class ChildService {
     }
   }
 
-  // 5. Add a service to an existing child
+  // 6. Add a service to an existing child
   async addServiceToChild(childId, serviceData) {
     try {
       const childRef = doc(db, 'children', childId);

@@ -16,18 +16,31 @@ const PlayGroupActivity = () => {
   // Form Data
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]); // Default today
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]); 
   
   // Selection Data
-  const [selectedImages, setSelectedImages] = useState([]); // File objects
-  const [previews, setPreviews] = useState([]); // URL strings for preview
-  const [taggedStudentIds, setTaggedStudentIds] = useState([]); // Array of IDs
+  const [selectedImages, setSelectedImages] = useState([]); 
+  const [previews, setPreviews] = useState([]); 
+  const [taggedStudentIds, setTaggedStudentIds] = useState([]); 
 
-  // --- 1. FETCH ALL STUDENTS (Attendance List) ---
+  // --- 1. FETCH STUDENTS (OPTIMIZED) ---
   useEffect(() => {
     const fetchStudents = async () => {
+      // Safety Check
+      if (!currentUser) return;
+
+      setLoadingStudents(true);
       try {
-        const data = await childService.getAllChildren();
+        let data = [];
+
+        // LOGIC: If Admin -> Fetch All. If Teacher -> Fetch Assigned Only.
+        if (currentUser.role === 'admin') {
+          data = await childService.getAllChildren();
+        } else {
+          // Uses the optimized query we added to childService
+          data = await childService.getChildrenByTeacherId(currentUser.uid);
+        }
+        
         setStudents(data);
       } catch (error) {
         console.error("Error fetching students:", error);
@@ -36,17 +49,16 @@ const PlayGroupActivity = () => {
         setLoadingStudents(false);
       }
     };
+
     fetchStudents();
-  }, []);
+  }, [currentUser]); // Re-run if user changes
 
   // --- 2. IMAGE HANDLING ---
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
-    // Create local previews
     const newPreviews = files.map(file => URL.createObjectURL(file));
-    
     setSelectedImages(prev => [...prev, ...files]);
     setPreviews(prev => [...prev, ...newPreviews]);
   };
@@ -56,19 +68,19 @@ const PlayGroupActivity = () => {
     setPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
-  // --- 3. TAGGING LOGIC (Attendance) ---
+  // --- 3. TAGGING LOGIC ---
   const toggleStudent = (studentId) => {
     setTaggedStudentIds(prev => {
       if (prev.includes(studentId)) {
-        return prev.filter(id => id !== studentId); // Unselect
+        return prev.filter(id => id !== studentId);
       } else {
-        return [...prev, studentId]; // Select
+        return [...prev, studentId];
       }
     });
   };
 
-  // --- 4. UPLOAD & SAVE LOGIC ---
-    const handleSubmit = async (e) => {
+  // --- 4. UPLOAD & SAVE ---
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (selectedImages.length === 0) return alert("Please select at least one photo.");
@@ -77,18 +89,15 @@ const PlayGroupActivity = () => {
     setUploading(true);
 
     try {
-      // CHANGED: Folder structure to 'little-lions/group-images/DATE'
       const folderPath = `little-lions/group-images/${date}`;
 
-      // Step B: Upload Images
+      // Upload Images
       const uploadPromises = selectedImages.map(file => 
         cloudinaryService.uploadImage(file, folderPath)
       );
-      
       const uploadedUrls = await Promise.all(uploadPromises);
 
-      // ... Firestore saving logic remains the same ...
-      
+      // Save to Firestore
       const activityData = {
         type: 'play_group',
         title,
@@ -103,7 +112,7 @@ const PlayGroupActivity = () => {
 
       await addDoc(collection(db, 'activities'), activityData);
 
-      // Reset Form
+      // Reset
       alert('Activity Uploaded Successfully!');
       setTitle('');
       setDescription('');
@@ -113,19 +122,19 @@ const PlayGroupActivity = () => {
 
     } catch (error) {
       console.error("Upload failed:", error);
-      alert("Failed to upload activity. Check console for details.");
+      alert("Failed to upload activity.");
     } finally {
       setUploading(false);
     }
   };
 
-  // --- SIMPLE STYLES ---
+  // --- STYLES ---
   const styles = {
     container: { padding: '20px', maxWidth: '1000px', margin: '0 auto' },
     section: { marginBottom: '30px', padding: '20px', border: '1px solid #ddd', borderRadius: '8px' },
     label: { display: 'block', marginBottom: '5px', fontWeight: 'bold' },
     input: { width: '100%', padding: '10px', marginBottom: '15px', borderRadius: '4px', border: '1px solid #ccc' },
-    grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '15px' },
+    grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '15px' },
     card: (isSelected) => ({
       border: isSelected ? '3px solid #4ECDC4' : '1px solid #ddd',
       backgroundColor: isSelected ? '#e6fffa' : '#fff',
@@ -133,10 +142,11 @@ const PlayGroupActivity = () => {
       padding: '10px',
       textAlign: 'center',
       cursor: 'pointer',
-      opacity: isSelected ? 1 : 0.8
+      opacity: isSelected ? 1 : 0.7,
+      transition: 'all 0.2s'
     }),
     previewImg: { width: '100px', height: '100px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #ddd' },
-    removeBtn: { background: 'red', color: 'white', border: 'none', cursor: 'pointer', padding: '2px 5px', fontSize: '10px' }
+    removeBtn: { background: 'red', color: 'white', border: 'none', cursor: 'pointer', padding: '2px 5px', fontSize: '10px', position: 'absolute', top: 0, right: 0 }
   };
 
   return (
@@ -145,7 +155,7 @@ const PlayGroupActivity = () => {
       
       <form onSubmit={handleSubmit}>
         
-        {/* 1. Metadata Section */}
+        {/* 1. Metadata */}
         <div style={styles.section}>
           <h3>1. Activity Details</h3>
           <label style={styles.label}>Activity Title</label>
@@ -157,7 +167,7 @@ const PlayGroupActivity = () => {
             required 
           />
           
-          <label style={styles.label}>Date (Creates Folder)</label>
+          <label style={styles.label}>Date</label>
           <input 
             style={styles.input} 
             type="date" 
@@ -174,7 +184,7 @@ const PlayGroupActivity = () => {
           />
         </div>
 
-        {/* 2. Photo Upload Section */}
+        {/* 2. Photos */}
         <div style={styles.section}>
           <h3>2. Select Photos</h3>
           <input 
@@ -184,61 +194,54 @@ const PlayGroupActivity = () => {
             onChange={handleImageSelect} 
             style={{ marginBottom: '20px' }}
           />
-          
-          {/* Previews */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
             {previews.map((src, idx) => (
               <div key={idx} style={{ position: 'relative' }}>
                 <img src={src} alt="Preview" style={styles.previewImg} />
-                <button 
-                  type="button" 
-                  onClick={() => removeImage(idx)}
-                  style={{ position: 'absolute', top: 0, right: 0, ...styles.removeBtn }}
-                >
-                  X
-                </button>
+                <button type="button" onClick={() => removeImage(idx)} style={styles.removeBtn}>X</button>
               </div>
             ))}
           </div>
         </div>
 
-        {/* 3. Student Tagging Section */}
+        {/* 3. Student Selection */}
         <div style={styles.section}>
-          <h3>3. Who was present? ({taggedStudentIds.length} selected)</h3>
-          <p style={{ color: '#666', fontSize: '14px', marginBottom: '15px' }}>
-            Parents will ONLY see this activity if their child is selected below.
-          </p>
+          <h3>3. Who was present? ({taggedStudentIds.length})</h3>
           
-          {loadingStudents ? <p>Loading students...</p> : (
-            <div style={styles.grid}>
-              {students.map(student => {
-                const isSelected = taggedStudentIds.includes(student.id);
-                return (
-                  <div 
-                    key={student.id} 
-                    style={styles.card(isSelected)}
-                    onClick={() => toggleStudent(student.id)}
-                  >
-                    <div style={{ fontSize: '24px' }}>
-                      {student.photoUrl ? (
-                        <img 
-                          src={student.photoUrl} 
-                          alt="child" 
-                          style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }}
-                        />
-                      ) : '👤'}
-                    </div>
-                    <div style={{ fontWeight: 'bold', marginTop: '5px' }}>{student.firstName}</div>
-                    <div style={{ fontSize: '12px' }}>{student.lastName}</div>
-                    {isSelected && <div style={{ color: '#4ECDC4', fontWeight: 'bold' }}>✓ Present</div>}
-                  </div>
-                );
-              })}
-            </div>
+          {loadingStudents ? <p>Loading your class list...</p> : (
+            <>
+              {students.length === 0 ? (
+                <p style={{color: 'red'}}>No students found assigned to you.</p>
+              ) : (
+                <div style={styles.grid}>
+                  {students.map(student => {
+                    const isSelected = taggedStudentIds.includes(student.id);
+                    return (
+                      <div 
+                        key={student.id} 
+                        style={styles.card(isSelected)}
+                        onClick={() => toggleStudent(student.id)}
+                      >
+                        <div style={{ fontSize: '24px' }}>
+                          {student.photoUrl ? (
+                            <img 
+                              src={student.photoUrl} 
+                              alt="child" 
+                              style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }}
+                            />
+                          ) : '👤'}
+                        </div>
+                        <div style={{ fontWeight: 'bold', marginTop: '5px', fontSize: '13px' }}>{student.firstName}</div>
+                        {isSelected && <div style={{ color: '#4ECDC4', fontWeight: 'bold', fontSize: '12px' }}>✓ Here</div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
           )}
         </div>
 
-        {/* Submit Button */}
         <button 
           type="submit" 
           disabled={uploading}
@@ -254,7 +257,7 @@ const PlayGroupActivity = () => {
             fontWeight: 'bold'
           }}
         >
-          {uploading ? `Uploading ${selectedImages.length} Photos...` : '🚀 Upload Activity'}
+          {uploading ? 'Uploading...' : '🚀 Upload Activity'}
         </button>
 
       </form>

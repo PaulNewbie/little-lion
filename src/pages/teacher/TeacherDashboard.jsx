@@ -15,22 +15,18 @@ const TeacherDashboard = () => {
 
   useEffect(() => {
     const fetchMyStudents = async () => {
+      // 1. Safety check
+      if (!currentUser?.uid) return;
+
       try {
-        const teacherSpecs = currentUser?.specializations || [];
+        setLoading(true);
 
-        if (teacherSpecs.length > 0) {
-          const allChildren = await childService.getAllChildren();
-          
-          const myStudents = allChildren.filter(child => 
-            child.services?.some(s => 
-              teacherSpecs.includes(s.serviceName)
-            )
-          );
+        // 2. OPTIMIZED FETCH: 
+        // This relies on the new `getChildrenByTeacherId` function in childService.
+        // It only downloads children where this teacher's ID exists in the 'teacherIds' array.
+        const myStudents = await childService.getChildrenByTeacherId(currentUser.uid);
 
-          setStudents(myStudents);
-        } else {
-          setStudents([]);
-        }
+        setStudents(myStudents);
       } catch (err) {
         setError('Failed to load assigned students.');
         console.error(err);
@@ -39,9 +35,7 @@ const TeacherDashboard = () => {
       }
     };
 
-    if (currentUser) {
-      fetchMyStudents();
-    }
+    fetchMyStudents();
   }, [currentUser]);
 
   const handleLogout = async () => {
@@ -94,12 +88,11 @@ const TeacherDashboard = () => {
 
         {/* ACTION BUTTONS */}
         <div style={{ display: 'flex', gap: '10px' }}>
-          {/* NEW: Link to Play Group Upload */}
           <button 
             onClick={() => navigate('/teacher/play-group-upload')}
             style={{
               padding: '8px 16px',
-              backgroundColor: '#2ecc71', // Green to stand out
+              backgroundColor: '#2ecc71',
               color: 'white',
               border: 'none',
               borderRadius: '4px',
@@ -134,15 +127,9 @@ const TeacherDashboard = () => {
       {/* Content Area */}
       <h2 style={{ color: '#444', marginBottom: '20px' }}>My Assigned Students</h2>
 
-      {(!currentUser?.specializations || currentUser.specializations.length === 0) && (
-        <div style={{ padding: '20px', backgroundColor: '#fff3cd', color: '#856404', borderRadius: '4px' }}>
-          ⚠️ Your account does not have any specializations assigned. Please contact the Administrator.
-        </div>
-      )}
-
-      {students.length === 0 && currentUser?.specializations?.length > 0 ? (
+      {students.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#666', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
-          No students are currently enrolled in your services.
+          No students are currently assigned to you.
         </div>
       ) : (
         <div style={{ 
@@ -183,10 +170,14 @@ const TeacherDashboard = () => {
 
               <div style={{ padding: '15px' }}>
                 <div style={{ marginBottom: '10px', fontSize: '13px' }}>
-                  <strong>Enrolled In:</strong>
+                  <strong>Enrolled In (With Me):</strong>
                   <ul style={{ margin: '5px 0 0 20px', padding: 0, color: '#007bff' }}>
+                    {/* CRITICAL FIX: 
+                       Only show services where this specific teacher ID matches.
+                       This handles the "Teacher A offers Math but Child takes Math from Teacher B" scenario.
+                    */}
                     {student.services
-                      .filter(s => currentUser.specializations.includes(s.serviceName))
+                      .filter(s => s.teacherId === currentUser.uid)
                       .map((s, i) => (
                         <li key={i}>{s.serviceName}</li>
                       ))
