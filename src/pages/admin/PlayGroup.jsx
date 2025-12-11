@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import Calendar from 'react-calendar'; // Import Calendar
-import 'react-calendar/dist/Calendar.css'; // Import default styles
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
 import childService from '../../services/childService';
 import activityService from '../../services/activityService';
 import AdminSidebar from '../../components/sidebar/AdminSidebar';
-import './css/PlayGroup.css'; // You'll need to create this for custom highlights
+import './css/PlayGroup.css';
+import './css/OneOnOne.css'; // Imported to use 1:1 profile card styles
 
 const PlayGroup = () => {
   // Navigation State
@@ -17,7 +18,7 @@ const PlayGroup = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // 1. Load Children on Mount (Same as before)
+  // 1. Load Children on Mount
   useEffect(() => {
     const fetchChildren = async () => {
       setLoading(true);
@@ -33,7 +34,7 @@ const PlayGroup = () => {
     fetchChildren();
   }, []);
 
-  // 2. Handle Child Select (Same as before)
+  // 2. Handle Child Select
   const handleChildSelect = async (child) => {
     setSelectedChild(child);
     setLoading(true);
@@ -50,13 +51,10 @@ const PlayGroup = () => {
 
   // 3. CALENDAR HANDLER
   const handleCalendarClick = (dateObj) => {
-    // Convert the calendar date object to YYYY-MM-DD string to match Firestore
-    // Note: This handles timezone offset to ensure correct date string
     const offset = dateObj.getTimezoneOffset();
     const localDate = new Date(dateObj.getTime() - (offset * 60 * 1000));
     const dateString = localDate.toISOString().split('T')[0];
 
-    // Check if we actually have photos for this date
     const hasPhotos = childActivities.some(a => a.date === dateString);
 
     if (hasPhotos) {
@@ -67,7 +65,7 @@ const PlayGroup = () => {
     }
   };
 
-  // 4. Back Navigation (Same as before)
+  // 4. Back Navigation
   const goBackToChildren = () => {
     setSelectedChild(null);
     setChildActivities([]);
@@ -92,32 +90,51 @@ const PlayGroup = () => {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="ooo-container">
       <AdminSidebar />
-      <div style={{ flex: 1, padding: '20px' }}>
+      <div className="ooo-main">
         
-        {/* --- LEVEL 1: CHILD LIST (Unchanged) --- */}
+        {/* --- LEVEL 1: CHILD LIST (UPDATED UI) --- */}
         {currentLevel === 'child-list' && (
-          <div>
-            <h1>Play Group - Select Child</h1>
+          <>
+            <div className="ooo-header">
+              <h1>Play Group - Select Child</h1>
+            </div>
+
             {loading ? <p>Loading...</p> : (
-              <div style={styles.grid}>
+              <div className="ooo-grid">
                 {children.map(child => (
-                  <div key={child.id} style={styles.card} onClick={() => handleChildSelect(child)}>
-                    {child.photoUrl ? (
-                      <img src={child.photoUrl} alt="" style={styles.avatar} />
-                    ) : (
-                      <div style={styles.avatarPlaceholder}>👤</div>
-                    )}
-                    <h3>{child.firstName} {child.lastName}</h3>
+                  <div 
+                    key={child.id} 
+                    className="ooo-card" 
+                    onClick={() => handleChildSelect(child)}
+                  >
+                    <div className="ooo-photo-area">
+                      {child.photoUrl ? (
+                        <img 
+                          src={child.photoUrl} 
+                          alt="" 
+                          className="ooo-photo" 
+                        />
+                      ) : (
+                        <span>📷</span>
+                      )}
+                    </div>
+
+                    <div className="ooo-card-info">
+                      <p className="ooo-name">
+                        {child.lastName}, {child.firstName}
+                      </p>
+                      {/* <span className="ooo-see">See More ›</span> */}
+                    </div>
                   </div>
                 ))}
               </div>
             )}
-          </div>
+          </>
         )}
 
-        {/* --- LEVEL 2: CALENDAR VIEW (REPLACED FOLDERS) --- */}
+        {/* --- LEVEL 2: CALENDAR VIEW --- */}
         {currentLevel === 'date-list' && selectedChild && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{ width: '100%', maxWidth: '800px', marginBottom: '20px' }}>
@@ -125,25 +142,18 @@ const PlayGroup = () => {
               <h1>{selectedChild.firstName}'s Activity Calendar</h1>
             </div>
             
-            {/* THE CALENDAR COMPONENT */}
             <div style={styles.calendarContainer}>
                 <Calendar 
                 onClickDay={handleCalendarClick}
-                
-                // 1. Force the Headers to be SUN, MON, TUE...
                 formatShortWeekday={(locale, date) => 
                     date.toLocaleDateString(locale, { weekday: 'short' }).toUpperCase().replace('.', '')
                 }
-
-                // 2. Highlight days that have activities
                 tileClassName={({ date, view }) => {
                     if (view === 'month') {
-                    // Adjust for timezone to match your Firestore "YYYY-MM-DD" strings
                     const offset = date.getTimezoneOffset();
                     const localDate = new Date(date.getTime() - (offset * 60 * 1000));
                     const dStr = localDate.toISOString().split('T')[0];
                     
-                    // Check if this date exists in your activity list
                     if (getUniqueDates().includes(dStr)) {
                         return 'has-activity'; 
                     }
@@ -154,7 +164,7 @@ const PlayGroup = () => {
           </div>
         )}
 
-        {/* --- LEVEL 3: PHOTO VIEW (Unchanged) --- */}
+        {/* --- LEVEL 3: PHOTO VIEW --- */}
         {currentLevel === 'photo-view' && (
           <div>
             <button onClick={goBackToDates} style={styles.backBtn}>← Back to Calendar</button>
@@ -185,11 +195,8 @@ const styles = {
     background: '#fff', 
     borderRadius: '15px', 
   },
-  card: { padding: '20px', border: '1px solid #ddd', borderRadius: '8px', textAlign: 'center', cursor: 'pointer', background: '#f9f9f9' },
   photoCard: { border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden', height: '200px' },
   fullPhoto: { width: '100%', height: '100%', objectFit: 'cover' },
-  avatar: { width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', marginBottom: '10px' },
-  avatarPlaceholder: { width: '80px', height: '80px', borderRadius: '50%', backgroundColor: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '30px', margin: '0 auto 10px' },
   backBtn: { marginBottom: '20px', padding: '8px 16px', cursor: 'pointer', background: 'none', border: '1px solid #ccc', borderRadius: '4px' }
 };
 

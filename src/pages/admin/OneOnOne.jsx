@@ -99,7 +99,7 @@ const OneOnOne = () => {
                       <p className="ooo-name">
                         {student.lastName}, {student.firstName}
                       </p>
-                      <span className="ooo-see">See More ›</span>
+                      {/* <span className="ooo-see">See More ›</span> */}
                     </div>
                   </div>
                 ))}
