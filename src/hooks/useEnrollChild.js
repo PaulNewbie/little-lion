@@ -1,14 +1,15 @@
+/* src/hooks/useEnrollChild.js */
 import { useState, useEffect } from 'react';
 import servicesService from '../services/servicesService';
 import teacherService from '../services/teacherService';
 import authService from '../services/authService';
 import childService from '../services/childService';
-import cloudinaryService from '../services/cloudinaryService'; // Import the new service
+import cloudinaryService from '../services/cloudinaryService';
 import userService from '../services/userService';
 
 const useEnrollChild = () => {
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false); // New state for upload status
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const [services, setServices] = useState([]);
   const [teachers, setTeachers] = useState([]);
@@ -17,12 +18,14 @@ const useEnrollChild = () => {
   const [childInfo, setChildInfo] = useState({
     firstName: '', lastName: '', dateOfBirth: '', gender: 'select', medicalInfo: ''
   });
+  
+  // Parent Data
   const [parentInfo, setParentInfo] = useState({
     firstName: '', lastName: '', email: '', phone: '', password: 'Welcome123!'
   });
+  const [parentExists, setParentExists] = useState(false); // NEW STATE
+
   const [selectedServices, setSelectedServices] = useState([]);
-  
-  // New state for the photo file
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
 
@@ -45,14 +48,42 @@ const useEnrollChild = () => {
   }, []);
 
   const handleChildChange = (e) => setChildInfo({ ...childInfo, [e.target.name]: e.target.value });
-  const handleParentChange = (e) => setParentInfo({ ...parentInfo, [e.target.name]: e.target.value });
+  
+  const handleParentChange = (e) => {
+    setParentInfo({ ...parentInfo, [e.target.name]: e.target.value });
+    // Reset exists flag if they change email, until blur happens
+    if (e.target.name === 'email') setParentExists(false); 
+  };
 
-  // New handler for file selection
+  // --- NEW: Check if parent exists when email field loses focus ---
+  const checkParentEmail = async () => {
+    if (!parentInfo.email) return;
+    
+    try {
+      const existingUser = await userService.getUserByEmail(parentInfo.email);
+      if (existingUser) {
+        setParentExists(true);
+        // Auto-fill details
+        setParentInfo(prev => ({
+          ...prev,
+          firstName: existingUser.firstName,
+          lastName: existingUser.lastName,
+          phone: existingUser.phone || '',
+          password: '' // Clear password as it's not needed
+        }));
+      } else {
+        setParentExists(false);
+      }
+    } catch (err) {
+      console.error("Error checking parent:", err);
+    }
+  };
+
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setPhotoFile(file);
-      setPhotoPreview(URL.createObjectURL(file)); // Create a local preview URL
+      setPhotoPreview(URL.createObjectURL(file));
     }
   };
 
@@ -81,24 +112,19 @@ const useEnrollChild = () => {
     setUploading(true);
 
     try {
-      // 1. Upload Photo (Existing logic)
       let photoUrl = '';
       if (photoFile) {
         photoUrl = await cloudinaryService.uploadImage(photoFile, 'little-lions/child-images');
       }
 
-      // 2. CHECK IF PARENT EXISTS (New Logic)
       let parentUid;
-      
-      // Try to find the parent in Firestore first
       const existingParent = await userService.getUserByEmail(parentInfo.email);
 
       if (existingParent) {
-        // CASE A: Parent already exists - Use their existing UID
-        console.log("Parent exists, linking new child to:", existingParent.uid);
+        // CASE A: Existing Parent
         parentUid = existingParent.uid;
       } else {
-        // CASE B: New Parent - Create Auth Account
+        // CASE B: New Parent
         const parentUser = await authService.createParentAccount(
           parentInfo.email, 
           parentInfo.password, 
@@ -107,16 +133,15 @@ const useEnrollChild = () => {
         parentUid = parentUser.uid;
       }
       
-      // 3. Enroll Child using the determined parentUid
       await childService.enrollChild({
         ...childInfo,
         photoUrl: photoUrl, 
         services: selectedServices,
         teacherIds: [...new Set(selectedServices.map(s => s.teacherId))]
-      }, parentUid); // Use the variable parentUid here
+      }, parentUid);
 
       alert('Enrollment Complete!');
-      // Optional: Reset form here
+      // Reset could go here
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -132,8 +157,9 @@ const useEnrollChild = () => {
     loading, uploading, error, services, 
     childInfo, handleChildChange,
     parentInfo, handleParentChange,
+    parentExists, checkParentEmail, // EXPORTED NEW HANDLERS
     selectedServices, toggleService, updateServiceTeacher,
-    photoFile, photoPreview, handlePhotoChange, // Export new photo handlers
+    photoFile, photoPreview, handlePhotoChange,
     getQualifiedTeachers, handleSubmit
   };
 };

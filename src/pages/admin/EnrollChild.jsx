@@ -1,5 +1,6 @@
 import React from "react";
 import useEnrollChild from "../../hooks/useEnrollChild";
+import "./css/EnrollChild.css"; // Import the CSS file
 
 const EnrollChild = () => {
   const {
@@ -9,9 +10,11 @@ const EnrollChild = () => {
     services,
     handleChildChange,
     handlePhotoChange,
-    photoPreview, // New props
+    photoPreview,
     parentInfo,
     handleParentChange,
+    parentExists,
+    checkParentEmail,
     selectedServices,
     toggleService,
     updateServiceTeacher,
@@ -22,201 +25,165 @@ const EnrollChild = () => {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}>
-      <h1>Enroll New Child</h1>
+    <div className="enroll-container">
+      <h1 className="enroll-title">Enroll New Child</h1>
+      
       {error && (
-        <div style={{ color: "red", marginBottom: "10px" }}>{error}</div>
+        <div className="error-message">{error}</div>
       )}
 
       <form onSubmit={handleSubmit}>
-        {/* Child Section */}
-        <fieldset
-          style={{
-            marginBottom: "20px",
-            padding: "15px",
-            border: "1px solid #ddd",
-            borderRadius: "8px",
-          }}
-        >
-          <legend style={{ fontWeight: "bold" }}>Child Information</legend>
+        {/* --- Child Section --- */}
+        <fieldset className="enroll-section">
+          <legend className="enroll-legend">Child Information</legend>
 
           {/* Photo Upload Area */}
-          <div
-            style={{
-              marginBottom: "20px",
-              display: "flex",
-              alignItems: "center",
-              gap: "20px",
-            }}
-          >
-            <div
-              style={{
-                width: "100px",
-                height: "100px",
-                backgroundColor: "#eee",
-                borderRadius: "50%",
-                overflow: "hidden",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                border: "1px solid #ccc",
-              }}
-            >
+          <div className="photo-upload-area">
+            <div className="photo-preview">
               {photoPreview ? (
-                <img
-                  src={photoPreview}
-                  alt="Preview"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
+                <img src={photoPreview} alt="Preview" />
               ) : (
-                <span style={{ fontSize: "30px" }}>📷</span>
+                <span className="photo-placeholder">📷</span>
               )}
             </div>
             <div>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "5px",
-                  fontSize: "14px",
-                }}
-              >
-                Profile Photo
-              </label>
+              <label className="photo-label">Profile Photo</label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handlePhotoChange}
-                style={{ fontSize: "14px" }}
+                className="photo-input"
               />
             </div>
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "15px",
-            }}
-          >
-            <input
-              name="firstName"
-              placeholder="First Name"
-              onChange={handleChildChange}
-              required
-              style={inputStyle}
-            />
-            <input
-              name="lastName"
-              placeholder="Last Name"
-              onChange={handleChildChange}
-              required
-              style={inputStyle}
-            />
-            <input
-              name="dateOfBirth"
-              type="date"
-              onChange={handleChildChange}
-              required
-              style={inputStyle}
-            />
-            <select
-              name="gender"
-              onChange={handleChildChange}
-              style={inputStyle}
-            >
-              <option value="select">Select Gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-            </select>
+          <div className="form-grid">
+            <div className="form-group">
+              <input
+                name="firstName"
+                placeholder="First Name"
+                onChange={handleChildChange}
+                required
+                className="form-input"
+              />
+            </div>
+            <div className="form-group">
+              <input
+                name="lastName"
+                placeholder="Last Name"
+                onChange={handleChildChange}
+                required
+                className="form-input"
+              />
+            </div>
+            <div className="form-group">
+              <input
+                name="dateOfBirth"
+                type="date"
+                onChange={handleChildChange}
+                required
+                className="form-input"
+              />
+            </div>
+            <div className="form-group">
+              <select
+                name="gender"
+                onChange={handleChildChange}
+                className="form-select"
+              >
+                <option value="select">Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
           </div>
+          
           <textarea
             name="medicalInfo"
             placeholder="Medical Info (Allergies, conditions, etc.)"
             onChange={handleChildChange}
-            style={{
-              ...inputStyle,
-              width: "100%",
-              marginTop: "15px",
-              height: "80px",
-            }}
+            className="form-textarea"
           />
         </fieldset>
 
-        {/* Parent Section */}
-        <fieldset
-          style={{
-            marginBottom: "20px",
-            padding: "15px",
-            border: "1px solid #ddd",
-            borderRadius: "8px",
-          }}
-        >
-          <legend style={{ fontWeight: "bold" }}>Parent Account</legend>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "15px",
-            }}
-          >
-            <input
-              name="firstName"
-              placeholder="Parent First Name"
-              onChange={handleParentChange}
-              required
-              style={inputStyle}
-            />
-            <input
-              name="lastName"
-              placeholder="Parent Last Name"
-              onChange={handleParentChange}
-              required
-              style={inputStyle}
-            />
+        {/* --- Parent Section --- */}
+        <fieldset className={`enroll-section ${parentExists ? "existing-parent" : ""}`}>
+          <legend className="enroll-legend">
+            Parent Account 
+            {parentExists && (
+              <span className="existing-badge">
+                ✓ Existing Account Found
+              </span>
+            )}
+          </legend>
+          
+          <div className="form-group">
+            <label className="input-label">Email Address</label>
             <input
               name="email"
               type="email"
-              placeholder="Parent Email (Login)"
+              placeholder="Enter Parent Email"
               onChange={handleParentChange}
+              onBlur={checkParentEmail}
               required
-              style={inputStyle}
-            />
-            <input
-              name="phone"
-              placeholder="Phone Number"
-              onChange={handleParentChange}
-              required
-              style={inputStyle}
+              className="form-input"
             />
           </div>
-          <div style={{ marginTop: "10px" }}>
-            <label style={{ fontSize: "12px", color: "#666" }}>
-              Default Password:
-            </label>
-            <input
-              name="password"
-              value={parentInfo.password}
-              readOnly
-              style={{
-                ...inputStyle,
-                backgroundColor: "#f5f5f5",
-                border: "none",
-                marginLeft: "10px",
-              }}
-            />
+
+          <div className="form-grid">
+            <div className="form-group">
+              <input
+                name="firstName"
+                placeholder="Parent First Name"
+                value={parentInfo.firstName}
+                onChange={handleParentChange}
+                required
+                disabled={parentExists}
+                className="form-input"
+              />
+            </div>
+            <div className="form-group">
+              <input
+                name="lastName"
+                placeholder="Parent Last Name"
+                value={parentInfo.lastName}
+                onChange={handleParentChange}
+                required
+                disabled={parentExists}
+                className="form-input"
+              />
+            </div>
+            <div className="form-group">
+              <input
+                name="phone"
+                placeholder="Phone Number"
+                value={parentInfo.phone}
+                onChange={handleParentChange}
+                required
+                disabled={parentExists}
+                className="form-input"
+              />
+            </div>
           </div>
+          
+          {!parentExists && (
+            <div className="form-group" style={{ marginTop: '10px' }}>
+              <label className="input-label" style={{ color: '#666' }}>Default Password:</label>
+              <input
+                name="password"
+                value={parentInfo.password}
+                readOnly
+                className="form-input"
+                style={{ backgroundColor: '#f5f5f5', border: 'none' }}
+              />
+            </div>
+          )}
         </fieldset>
 
-        {/* Services Section */}
-        <fieldset
-          style={{
-            marginBottom: "20px",
-            padding: "15px",
-            border: "1px solid #ddd",
-            borderRadius: "8px",
-          }}
-        >
-          <legend style={{ fontWeight: "bold" }}>Assign Services</legend>
+        {/* --- Services Section --- */}
+        <fieldset className="enroll-section">
+          <legend className="enroll-legend">Assign Services</legend>
+          
           {services.map((service) => {
             const isSelected = selectedServices.find(
               (s) => s.serviceId === service.id
@@ -224,32 +191,20 @@ const EnrollChild = () => {
             const qualified = getQualifiedTeachers(service.name);
 
             return (
-              <div
-                key={service.id}
-                style={{
-                  marginBottom: "10px",
-                  padding: "10px",
-                  border: "1px solid #eee",
-                  borderRadius: "4px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <label
-                  style={{ display: "flex", alignItems: "center", gap: "10px" }}
-                >
+              <div key={service.id} className="service-item">
+                <label className="service-label">
                   <input
                     type="checkbox"
                     checked={!!isSelected}
                     onChange={() => toggleService(service.id, service.name)}
+                    className="service-checkbox"
                   />
                   <strong>{service.name}</strong>
                 </label>
 
                 {isSelected && (
                   <select
-                    style={inputStyle}
+                    className="teacher-select"
                     value={isSelected.teacherId}
                     onChange={(e) =>
                       updateServiceTeacher(service.id, e.target.value)
@@ -271,29 +226,13 @@ const EnrollChild = () => {
         <button
           type="submit"
           disabled={uploading}
-          style={{
-            padding: "12px 24px",
-            fontSize: "16px",
-            backgroundColor: uploading ? "#ccc" : "#4ECDC4",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: uploading ? "not-allowed" : "pointer",
-            width: "100%",
-          }}
+          className="submit-btn"
         >
           {uploading ? "Uploading Photo & Enrolling..." : "Complete Enrollment"}
         </button>
       </form>
     </div>
   );
-};
-
-const inputStyle = {
-  padding: "8px",
-  borderRadius: "4px",
-  border: "1px solid #ccc",
-  fontSize: "14px",
 };
 
 export default EnrollChild;

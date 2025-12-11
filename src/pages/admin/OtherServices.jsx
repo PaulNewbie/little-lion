@@ -203,14 +203,14 @@ const OtherServices = () => {
                     {service.name} ({service.enrolledCount} students)
                   </h4>
 
-                  {service.active && (
+                  {/* {service.active && (
                     <button
                       className="danger-btn"
                       onClick={() => deactivateService(service.id)}
                     >
                       Deactivate
                     </button>
-                  )}
+                  )} */}
                 </div>
 
                 <p className="service-description">{service.description}</p>

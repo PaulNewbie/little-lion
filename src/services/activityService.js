@@ -31,8 +31,6 @@ class ActivityService {
   }
 
   // 2. Get activities for a specific child on a specific date
-  // This is useful if we want to separate the calls, 
-  // but usually, we can just filter the results from getActivitiesByChild client-side for simplicity.
   async getChildActivitiesByDate(childId, date) {
     try {
       const q = query(
@@ -47,6 +45,28 @@ class ActivityService {
       }));
     } catch (error) {
       throw new Error('Failed to fetch activities by date: ' + error.message);
+    }
+  }
+
+  // 3. NEW: Get ALL Play Group activities (For Admin Calendar Landing Page)
+  async getAllPlayGroupActivities() {
+    try {
+      const q = query(
+        collection(db, 'activities'),
+        where('type', '==', 'play_group')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      const activities = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      // Sort client-side to avoid index issues
+      return activities.sort((a, b) => new Date(b.date) - new Date(a.date));
+    } catch (error) {
+      console.error("Error fetching all playgroup activities:", error);
+      throw new Error('Failed to fetch group activities: ' + error.message);
     }
   }
 }
