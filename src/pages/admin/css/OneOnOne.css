@@ -3,7 +3,7 @@
 ============================================================ */
 .ooo-container {
   display: flex;
-  background: #fff;
+  background: #e5ebd5;
   min-height: 100vh;
   font-family: "Inter", sans-serif;
 }
@@ -58,7 +58,7 @@
 }
 
 .ooo-photo-area {
-  height: 170px;
+  height: 210px; /* increased from 170px */
   background: #cfcfcf;
   display: flex;
   justify-content: center;
@@ -97,15 +97,20 @@
 /* TOP NAV */
 .profile-top {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 25px;
+}
+
+.left-group {
+  display: flex;
+  align-items: center;
 }
 
 .back-arrow {
   font-size: 28px;
   cursor: pointer;
-  padding-right: 10px;
+  margin-right: 10px;
 }
 
 .profile-search {
@@ -119,17 +124,17 @@
 /* 3 COLUMN LAYOUT */
 .profile-3col {
   display: grid;
-  grid-template-columns: 360px 1fr;
+  grid-template-columns: 500px 1fr; /* updated width to match larger photo frame */
   align-items: flex-start;
   gap: 35px;
 }
 
 /* PHOTO FRAME */
 .profile-photo-frame {
-  width: 360px;
-  height: 430px;
+  width: 500px;     /* increased from 360px */
+  height: 585px;    /* increased from 430px */
   background: #ffffff;
-  border: 5px solid #2f83ff;
+  border: 5px solid #6b6b6b;
   border-radius: 16px;
   display: flex;
   justify-content: center;
@@ -137,8 +142,8 @@
 }
 
 .profile-photo {
-  width: 330px;
-  height: 400px;
+  width: 100%;      /* auto-scale */
+  height: 100%;     /* auto-scale */
   object-fit: cover;
   border-radius: 12px;
 }
@@ -153,13 +158,13 @@
 
 .profile-details {
   display: flex;
-  gap:40px;
-  margin-bottom: 25px;
-  padding-left: 18px;
+  gap: 40px;
+  margin-bottom: 30px;
+  padding-left: 50px;
 }
 
-.profile-center{
-  border-left: 5px solid #ccc;;
+.profile-center {
+  border-left: 5px solid #ccc;
 }
 
 .profile-left p,
@@ -216,4 +221,10 @@
 .arrow {
   font-size: 22px;
   color: #666;
+}
+
+.Profile-Footer {
+  border: 50px solid #666;
+  margin-top: 110px;
+
 }

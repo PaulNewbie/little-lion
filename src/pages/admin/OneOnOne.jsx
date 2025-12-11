@@ -113,9 +113,10 @@ const OneOnOne = () => {
 
             {/* TOP BAR */}
             <div className="profile-top">
-              <span className="back-arrow" onClick={goBack}>←</span>
-              <h2>STUDENT PROFILES</h2>
-
+              <div className="left-group">
+                <span className="back-arrow" onClick={goBack}>←</span>
+                <h2>STUDENT PROFILES</h2>
+              </div>
               <input
                 type="text"
                 placeholder="SEARCH"
@@ -148,10 +149,10 @@ const OneOnOne = () => {
                 <div className="profile-details">
 
                   <div className="profile-left">
-                    <p><span className="icon">📞</span> {selectedStudent.phone|| "N/A"}</p>
-                    <p><span className="icon">👩</span> {selectedStudent.motherName || "N/A"}</p>
-                    <p><span className="icon">✉️</span> {selectedStudent.motherEmail || "N/A"}</p>
-                    <p><span className="icon">📍</span> {selectedStudent.address || "N/A"}</p>
+                    <p><span className="icon">📞</span> {selectedStudent.phone|| "John Patrick J. Ignacio"}</p>
+                    <p><span className="icon">👩</span> {selectedStudent.motherName || "ana liza J. Ignacio"}</p>
+                    <p><span className="icon">✉️</span> {selectedStudent.motherEmail || "Analiza@gmail.com"}</p>
+                    <p><span className="icon">📍</span> {selectedStudent.address || "maligaya st. patubig marilao bulacan"}</p>
                   </div>
 
                   <div className="profile-center">
@@ -159,15 +160,15 @@ const OneOnOne = () => {
                   </div>
 
                   <div className="profile-right">
-                    <p><b>Age:</b> {selectedStudent.age|| "N/A"}</p>
+                    <p><b>Age:</b> {selectedStudent.age || "21"}</p>
                     <p><b>Gender:</b> {selectedStudent.gender || "N/A"}</p>
-                    <p><b>Birthday:</b> {selectedStudent.birthday || "N/A"}</p>
-                    <p><b>Address:</b> {selectedStudent.address || "N/A"}</p>
+                    <p><b>Birthday:</b> {selectedStudent.birthday || "12-21-2003"}</p>
+                    <p><b>Address:</b> {selectedStudent.address || "maligaya st. patubig marilao bulacan"}</p>
                   </div>
                 </div>
 
                 {/* SERVICES HEADER */}
-                <h2 className="services-header">AVAILED SERVICES</h2>
+                <h2 className="services-header">SERVICES AVAILED</h2>
 
                 {/* SERVICES LIST */}
                 <div className="services-list">
@@ -183,6 +184,9 @@ const OneOnOne = () => {
                 </div>
 
               </div>
+
+            </div>
+            <div className="Profile-Footer">
 
             </div>
           </div>
