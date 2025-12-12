@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import childService from '../../services/childService';
-import Loading from '../common/Loading';
-import ErrorMessage from '../common/ErrorMessage';
-
+import Loading from '../../components/common/Loading';
+import ErrorMessage from '../../components/common/ErrorMessage';
 const ParentDashboard = () => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
@@ -173,17 +172,20 @@ const ParentDashboard = () => {
                 </div>
                 
                 {/* View Activities Button */}
-                <button style={{
-                  width: '100%',
-                  padding: '12px',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontWeight: '500',
-                  fontSize: '14px'
-                }}>
+                <button 
+                  onClick={() => navigate(`/parent/child/${child.id}`)} // Navigate to dynamic route
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: '500',
+                    fontSize: '14px'
+                  }}
+                >
                   View Activities & Reports
                 </button>
               </div>

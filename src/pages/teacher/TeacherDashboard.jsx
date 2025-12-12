@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import childService from '../../services/childService';
-import Loading from '../common/Loading';
-import ErrorMessage from '../common/ErrorMessage';
+import childService from '../../services/childService'; 
+import Loading from '../../components/common/Loading';
+import ErrorMessage from '../../components/common/ErrorMessage';
 
 const TeacherDashboard = () => {
   const { currentUser, logout } = useAuth();
@@ -15,18 +15,18 @@ const TeacherDashboard = () => {
 
   useEffect(() => {
     const fetchMyStudents = async () => {
-      try {
-        // Check if the teacher has a specialization assigned
-        // Note: You need to ensure the teacher user doc has a 'specialization' field in Firestore
-        const teacherService = currentUser?.specialization;
+      // 1. Safety check
+      if (!currentUser?.uid) return;
 
-        if (teacherService) {
-          const data = await childService.getChildrenByService(teacherService);
-          setStudents(data);
-        } else {
-          // Fallback or info if no specialization is set
-          console.log("No specialization assigned to this teacher account.");
-        }
+      try {
+        setLoading(true);
+
+        // 2. OPTIMIZED FETCH: 
+        // This relies on the new `getChildrenByTeacherId` function in childService.
+        // It only downloads children where this teacher's ID exists in the 'teacherIds' array.
+        const myStudents = await childService.getChildrenByTeacherId(currentUser.uid);
+
+        setStudents(myStudents);
       } catch (err) {
         setError('Failed to load assigned students.');
         console.error(err);
@@ -35,9 +35,7 @@ const TeacherDashboard = () => {
       }
     };
 
-    if (currentUser) {
-      fetchMyStudents();
-    }
+    fetchMyStudents();
   }, [currentUser]);
 
   const handleLogout = async () => {
@@ -66,33 +64,62 @@ const TeacherDashboard = () => {
         <div>
           <h1 style={{ margin: 0, color: '#333' }}>Teacher Dashboard</h1>
           <p style={{ margin: '5px 0 0', color: '#666' }}>
-            {currentUser?.firstName} {currentUser?.lastName} — 
-            <span style={{ 
-              backgroundColor: '#e3f2fd', 
-              color: '#0d47a1', 
-              padding: '2px 8px', 
-              borderRadius: '12px', 
-              fontSize: '0.9em',
-              marginLeft: '8px',
-              fontWeight: 'bold'
-            }}>
-              {currentUser?.specialization || 'No Specialization Assigned'}
-            </span>
+            {currentUser?.firstName} {currentUser?.lastName}
           </p>
+          <div style={{ marginTop: '8px', display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+            {currentUser?.specializations?.length > 0 ? (
+              currentUser.specializations.map((spec, index) => (
+                <span key={index} style={{ 
+                  backgroundColor: '#e3f2fd', 
+                  color: '#0d47a1', 
+                  padding: '2px 8px', 
+                  borderRadius: '12px', 
+                  fontSize: '0.8em',
+                  fontWeight: 'bold'
+                }}>
+                  {spec}
+                </span>
+              ))
+            ) : (
+              <span style={{ color: '#999', fontSize: '0.9em' }}>No Specialization Assigned</span>
+            )}
+          </div>
         </div>
-        <button 
-          onClick={handleLogout}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#dc3545',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
-          Logout
-        </button>
+
+        {/* ACTION BUTTONS */}
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button 
+            onClick={() => navigate('/teacher/play-group-upload')}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#2ecc71',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px'
+            }}
+          >
+            <span>📸</span> Upload Play Group
+          </button>
+
+          <button 
+            onClick={handleLogout}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#dc3545',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       <ErrorMessage message={error} />
@@ -100,15 +127,9 @@ const TeacherDashboard = () => {
       {/* Content Area */}
       <h2 style={{ color: '#444', marginBottom: '20px' }}>My Assigned Students</h2>
 
-      {!currentUser?.specialization && (
-        <div style={{ padding: '20px', backgroundColor: '#fff3cd', color: '#856404', borderRadius: '4px' }}>
-          ⚠️ Your account does not have a specialization assigned. Please contact the Administrator.
-        </div>
-      )}
-
-      {students.length === 0 && currentUser?.specialization ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-          No students are currently enrolled in {currentUser.specialization}.
+      {students.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '40px', color: '#666', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
+          No students are currently assigned to you.
         </div>
       ) : (
         <div style={{ 
@@ -135,27 +156,36 @@ const TeacherDashboard = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '24px',
-                  color: '#666'
+                  color: '#666',
+                  overflow: 'hidden'
                 }}>
-                  {/* Photo Placeholder */}
                   {student.photoUrl ? (
-                    <img src={student.photoUrl} alt={student.firstName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                    <img src={student.photoUrl} alt={student.firstName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    student.firstName.charAt(0)
+                    <span>📷</span>
                   )}
                 </div>
                 <h3 style={{ margin: 0, color: '#333' }}>{student.firstName} {student.lastName}</h3>
               </div>
 
               <div style={{ padding: '15px' }}>
-                <div style={{ marginBottom: '10px', fontSize: '14px' }}>
-                  <strong>Service:</strong> <span style={{ color: '#007bff' }}>{currentUser.specialization}</span>
-                </div>
-                <div style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
-                  <strong>Last Activity:</strong> {student.lastActivityDate || 'No recent activity'}
+                <div style={{ marginBottom: '10px', fontSize: '13px' }}>
+                  <strong>Enrolled In (With Me):</strong>
+                  <ul style={{ margin: '5px 0 0 20px', padding: 0, color: '#007bff' }}>
+                    {/* CRITICAL FIX: 
+                       Only show services where this specific teacher ID matches.
+                       This handles the "Teacher A offers Math but Child takes Math from Teacher B" scenario.
+                    */}
+                    {student.services
+                      .filter(s => s.teacherId === currentUser.uid)
+                      .map((s, i) => (
+                        <li key={i}>{s.serviceName}</li>
+                      ))
+                    }
+                  </ul>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '15px' }}>
                   <button style={{
                     padding: '8px',
                     backgroundColor: '#fff',

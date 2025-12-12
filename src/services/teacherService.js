@@ -1,15 +1,13 @@
 import { 
   collection, 
-  addDoc, 
   doc, 
   getDoc,
   getDocs, 
   updateDoc, 
-  deleteDoc,
   query,
   where 
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { db } from '../config/firebase';
 
 class TeacherService {
   // 1. Get all teachers
@@ -71,17 +69,14 @@ class TeacherService {
     }
   }
 
-  // 5. Delete teacher (soft delete by changing role or hard delete)
+  // 5. Delete teacher (soft delete by changing role)
   async deleteTeacher(teacherId) {
     try {
-      // Option 1: Soft delete (change status)
+      // Soft delete (change status)
       await updateDoc(doc(db, 'users', teacherId), {
         active: false,
         deletedAt: new Date().toISOString()
       });
-
-      // Option 2: Hard delete (uncomment if needed)
-      // await deleteDoc(doc(db, 'users', teacherId));
     } catch (error) {
       throw new Error('Failed to delete teacher: ' + error.message);
     }
@@ -100,4 +95,5 @@ class TeacherService {
   }
 }
 
-export default new TeacherService();
+const teacherServiceInstance = new TeacherService();
+export default teacherServiceInstance;

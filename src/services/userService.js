@@ -9,7 +9,7 @@ import {
   query,
   where 
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { db } from '../config/firebase';
 
 class UserService {
   // Create new user in Firestore
@@ -82,6 +82,25 @@ class UserService {
   async getAllParents() {
     return this.getUsersByRole('parent');
   }
+
+  // NEW: Find a user by their email (Added from previous step)
+  async getUserByEmail(email) {
+    try {
+      const q = query(collection(db, 'users'), where('email', '==', email));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        return null;
+      }
+      
+      const userDoc = querySnapshot.docs[0];
+      return { uid: userDoc.id, ...userDoc.data() };
+    } catch (error) {
+      throw new Error('Failed to find user by email: ' + error.message);
+    }
+  }
 }
 
-export default new UserService();
+// FIX: Assign to variable before exporting
+const userService = new UserService();
+export default userService;

@@ -9,7 +9,7 @@ import {
   query,
   where 
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { db } from '../config/firebase';
 
 class ServiceService {
   // 1. Create new service
@@ -131,4 +131,5 @@ class ServiceService {
   }
 }
 
-export default new ServiceService();
+const serviceServiceInstance = new ServiceService();
+export default serviceServiceInstance;
