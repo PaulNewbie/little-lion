@@ -33,10 +33,12 @@ const SelectedServiceInfo = ({ records, teachers }) => {
           {/* COLLAPSIBLE CARD */}
           {openIndex === i && (
             <div className="service-info-card">
-              <p><span className="label">Title:</span> {rec.title || "—"}</p>
               <p><span className="label">Teacher:</span> {rec.teacherId ? getTeacherName(rec.teacherId) : "—"}</p>
-              <p><span className="label">Activities:</span> {rec.activities || rec.description || "—"}</p>
+              <p><span className="label">Activity:</span> {rec.title || "—"}: {rec.activities || rec.description || "—"} </p>
               <p><span className="label">Participating Students:</span> {rec.participatingStudentsNames?.join(", ") || "—"}</p>
+              <p><span className="label">Observations:</span> {rec.participatingStudentsNames?.join(", ") || "—"}</p>
+              <p><span className="label">Follow up:</span> {rec.participatingStudentsNames?.join(", ") || "—"}</p>
+              <p><span className="label">Other concerns:</span> {rec.participatingStudentsNames?.join(", ") || "—"}</p>
             </div>
           )}
 
@@ -274,6 +276,7 @@ const OneOnOne = () => {
             </div>
           </div>
         )}
+        <div className="Profile-Footer"></div>
       </div>
     </div>
   );
