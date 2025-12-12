@@ -367,3 +367,68 @@
     padding: 20px 0;
   }
 }
+
+.service-info-wrapper {
+  margin-top: 20px;
+}
+
+.service-date-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+  color: #3b3b3b;
+  margin-bottom: 8px;
+  margin-left: 5px;
+  padding: 0 2px;
+}
+
+.arrow-icon {
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.service-info-card {
+  background: #f3f3f3;
+  border-radius: 12px;
+  padding: 20px;
+  width: 100%;
+  margin-top: 5px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  font-family: "Inter", sans-serif;
+}
+
+.service-info-card p {
+  margin: 6px 0;
+  font-size: 14px;
+  color: #505050;
+}
+
+.label {
+  font-weight: 600;
+  color: #2f2f2f;
+}
+
+.other-concerns {
+  margin-top: 18px;
+  padding-top: 10px;
+  border-top: 1px solid #dcdcdc;
+}
+
+.selected-service-info {
+  border-left: 5px solid #bbb;
+  border-radius: 5px;
+  align-items: center;
+}
+
+
+.Profile-Footer {
+  border: 50px solid #bbb;
+  margin-top: 1%;
+
+}
+
+
+
+
+

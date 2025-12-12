@@ -1,12 +1,63 @@
 import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
 import childService from "../../services/childService";
+import useManageTeachers from "../../hooks/useManageTeachers";
 import "./css/OneOnOne.css";
 
+/* ================================================================
+   SELECTED SERVICE INFO (MULTIPLE DATES + COLLAPSIBLE)
+================================================================ */
+const SelectedServiceInfo = ({ records, teachers }) => {
+  const [openIndex, setOpenIndex] = useState(null);
+
+  const toggleIndex = (i) => {
+    setOpenIndex(openIndex === i ? null : i);
+  };
+
+  const getTeacherName = (teacherId) => {
+    const teacher = teachers.find(t => t.id === teacherId);
+    return teacher ? `${teacher.firstName} ${teacher.lastName}` : "—";
+  };
+
+  return (
+    <div className="service-date-list">
+      {records.map((rec, i) => (
+        <div key={i} className="service-date-block">
+
+          {/* DATE HEADER */}
+          <div className="service-date-header" onClick={() => toggleIndex(i)}>
+            <span>{rec.date || "No Date"}</span>
+            <span className="arrow-icon">{openIndex === i ? "▲" : "▼"}</span>
+          </div>
+
+          {/* COLLAPSIBLE CARD */}
+          {openIndex === i && (
+            <div className="service-info-card">
+              <p>
+                <span className="label">Teacher:</span>{" "}
+                {rec.teacherId ? getTeacherName(rec.teacherId) : "—"}
+              </p>
+              <p><span className="label">Activities:</span> {rec.activities || "—"}</p>
+              <p><span className="label">Observations:</span> {rec.observations || "—"}</p>
+              <p><span className="label">Follow Up:</span> {rec.followUp || "—"}</p>
+              <p className="other-concerns">
+                <span className="label">Other Concerns:</span> {rec.otherConcerns || "—"}
+              </p>
+            </div>
+          )}
+
+        </div>
+      ))}
+    </div>
+  );
+};
+
+/* ================================================================
+   MAIN COMPONENT
+================================================================ */
 const OneOnOne = () => {
   const [currentLevel, setCurrentLevel] = useState("student-list");
   const [selectedStudent, setSelectedStudent] = useState(null);
-  
 
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -14,9 +65,12 @@ const OneOnOne = () => {
 
   const [selectedService, setSelectedService] = useState("");
 
-  // ---------------------------
-  // FETCH STUDENTS
-  // ---------------------------
+  // ------------------------------
+  // TEACHER DATA FROM useManageTeachers
+  // ------------------------------
+  const { teachers, loading: loadingTeachers } = useManageTeachers();
+
+  /* FETCH STUDENTS */
   useEffect(() => {
     const fetchStudents = async () => {
       try {
@@ -43,15 +97,19 @@ const OneOnOne = () => {
   };
 
   const goBack = () => {
+    setSelectedService("");
     setSelectedStudent(null);
     setCurrentLevel("student-list");
   };
+
+  if (loading || loadingTeachers) return <div>Loading...</div>;
 
   return (
     <div className="ooo-container">
       <AdminSidebar />
 
       <div className="ooo-main">
+
         {/* =========================================================
             PAGE 1 — STUDENT LIST
         ========================================================== */}
@@ -69,14 +127,10 @@ const OneOnOne = () => {
               />
             </div>
 
-            {loading ? (
-              <p>Loading students...</p>
+            {filteredStudents.length === 0 ? (
+              <p>No students found.</p>
             ) : (
               <div className="ooo-grid">
-                {filteredStudents.length === 0 && (
-                  <p>No students found.</p>
-                )}
-
                 {filteredStudents.map((student) => (
                   <div
                     key={student.id}
@@ -99,7 +153,6 @@ const OneOnOne = () => {
                       <p className="ooo-name">
                         {student.lastName}, {student.firstName}
                       </p>
-                      {/* <span className="ooo-see">See More ›</span> */}
                     </div>
                   </div>
                 ))}
@@ -109,7 +162,7 @@ const OneOnOne = () => {
         )}
 
         {/* =========================================================
-            PAGE 2 — STUDENT PROFILE (Matches Screenshot Exactly)
+            PAGE 2 — STUDENT PROFILE
         ========================================================== */}
         {currentLevel === "student-profile" && selectedStudent && (
           <div className="profile-wrapper">
@@ -120,6 +173,7 @@ const OneOnOne = () => {
                 <span className="back-arrow" onClick={goBack}>←</span>
                 <h2>STUDENT PROFILES</h2>
               </div>
+
               <input
                 type="text"
                 placeholder="SEARCH"
@@ -144,29 +198,23 @@ const OneOnOne = () => {
 
               {/* COLUMN 2 — NAME + DETAILS */}
               <div className="profile-info">
-
                 <h1 className="profile-fullname">
                   {selectedStudent.lastName}, {selectedStudent.firstName}
                 </h1>
 
                 <div className="profile-details">
-
                   <div className="profile-left">
-                    <p><span className="icon">📞</span> {selectedStudent.phone|| "John Patrick J. Ignacio"}</p>
-                    <p><span className="icon">👩</span> {selectedStudent.motherName || "ana liza J. Ignacio"}</p>
-                    <p><span className="icon">✉️</span> {selectedStudent.motherEmail || "Analiza@gmail.com"}</p>
-                    <p><span className="icon">📍</span> {selectedStudent.address || "maligaya st. patubig marilao bulacan"}</p>
-                  </div>
-
-                  <div className="profile-center">
-
+                    <p><span className="icon">📞</span> {selectedStudent.phone || "N/A"}</p>
+                    <p><span className="icon">👩</span> {selectedStudent.motherName || "N/A"}</p>
+                    <p><span className="icon">✉️</span> {selectedStudent.motherEmail || "N/A"}</p>
+                    <p><span className="icon">📍</span> {selectedStudent.address || "N/A"}</p>
                   </div>
 
                   <div className="profile-right">
-                    <p><b>Age:</b> {selectedStudent.age || "21"}</p>
+                    <p><b>Age:</b> {selectedStudent.age || "N/A"}</p>
                     <p><b>Gender:</b> {selectedStudent.gender || "N/A"}</p>
-                    <p><b>Birthday:</b> {selectedStudent.birthday || "12-21-2003"}</p>
-                    <p><b>Address:</b> {selectedStudent.address || "maligaya st. patubig marilao bulacan"}</p>
+                    <p><b>Birthday:</b> {selectedStudent.birthday || "N/A"}</p>
+                    <p><b>Address:</b> {selectedStudent.address || "N/A"}</p>
                   </div>
                 </div>
 
@@ -182,9 +230,10 @@ const OneOnOne = () => {
                         {service.serviceName}
                       </div>
                     </div>
-                    
                   ))}
                 </div>
+
+                {/* SERVICE DROPDOWN */}
                 <div className="select-service">
                   <p>Select a service to view records: </p>
                   <select
@@ -192,27 +241,32 @@ const OneOnOne = () => {
                     onChange={(e) => setSelectedService(e.target.value)}
                   >
                     <option value="">--Select a service--</option>
-                    {selectedStudent.services?.map((service, i) => (
-                      <option key={i} value={service.serviceName}>
-                        {service.serviceName}
-                      </option>
+                    {[...new Set(selectedStudent.services?.map(s => s.serviceName))].map((name, i) => (
+                      <option key={i} value={name}>{name}</option>
                     ))}
                   </select>
                 </div>
 
+                {/* SELECTED SERVICE — MULTIPLE DATES */}
+                <div className="selected-service-info">
+                  {selectedService &&
+                    (() => {
+                      const records = selectedStudent.services.filter(
+                        (s) => s.serviceName === selectedService
+                      );
+                      return <SelectedServiceInfo records={records} teachers={teachers} />;
+                    })()}
+                </div>
 
               </div>
-
             </div>
           </div>
-          
-          
         )}
+
         <div className="Profile-Footer"></div>
       </div>
     </div>
-
-    
   );
 };
+
 export default OneOnOne;
