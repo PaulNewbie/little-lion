@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
 import childService from "../../services/childService";
+import { db } from "../../config/firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import useManageTeachers from "../../hooks/useManageTeachers";
 import "./css/OneOnOne.css";
 
@@ -10,9 +12,7 @@ import "./css/OneOnOne.css";
 const SelectedServiceInfo = ({ records, teachers }) => {
   const [openIndex, setOpenIndex] = useState(null);
 
-  const toggleIndex = (i) => {
-    setOpenIndex(openIndex === i ? null : i);
-  };
+  const toggleIndex = (i) => setOpenIndex(openIndex === i ? null : i);
 
   const getTeacherName = (teacherId) => {
     const teacher = teachers.find(t => t.id === teacherId);
@@ -33,16 +33,10 @@ const SelectedServiceInfo = ({ records, teachers }) => {
           {/* COLLAPSIBLE CARD */}
           {openIndex === i && (
             <div className="service-info-card">
-              <p>
-                <span className="label">Teacher:</span>{" "}
-                {rec.teacherId ? getTeacherName(rec.teacherId) : "—"}
-              </p>
-              <p><span className="label">Activities:</span> {rec.activities || "—"}</p>
-              <p><span className="label">Observations:</span> {rec.observations || "—"}</p>
-              <p><span className="label">Follow Up:</span> {rec.followUp || "—"}</p>
-              <p className="other-concerns">
-                <span className="label">Other Concerns:</span> {rec.otherConcerns || "—"}
-              </p>
+              <p><span className="label">Title:</span> {rec.title || "—"}</p>
+              <p><span className="label">Teacher:</span> {rec.teacherId ? getTeacherName(rec.teacherId) : "—"}</p>
+              <p><span className="label">Activities:</span> {rec.activities || rec.description || "—"}</p>
+              <p><span className="label">Participating Students:</span> {rec.participatingStudentsNames?.join(", ") || "—"}</p>
             </div>
           )}
 
@@ -64,13 +58,12 @@ const OneOnOne = () => {
   const [loading, setLoading] = useState(true);
 
   const [selectedService, setSelectedService] = useState("");
+  const [studentActivities, setStudentActivities] = useState([]);
 
-  // ------------------------------
-  // TEACHER DATA FROM useManageTeachers
-  // ------------------------------
+  // TEACHER DATA
   const { teachers, loading: loadingTeachers } = useManageTeachers();
 
-  /* FETCH STUDENTS */
+  // FETCH STUDENTS
   useEffect(() => {
     const fetchStudents = async () => {
       try {
@@ -85,21 +78,53 @@ const OneOnOne = () => {
     fetchStudents();
   }, []);
 
+  // FETCH ACTIVITIES FOR SELECTED STUDENT
+  const fetchStudentActivities = async (studentId) => {
+    try {
+      const q = query(
+        collection(db, "activities"),
+        where("participatingStudentIds", "array-contains", studentId)
+      );
+      const querySnapshot = await getDocs(q);
+      const activities = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        participatingStudentsNames: doc.data().participatingStudentIds.map(id => {
+          const student = students.find(s => s.id === id);
+          return student ? `${student.firstName} ${student.lastName}` : id;
+        })
+      }));
+      setStudentActivities(activities);
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+      setStudentActivities([]);
+    }
+  };
+
+  // GET TEACHER ID FOR SELECTED SERVICE
+  const getTeacherIdForService = (serviceName) => {
+    const service = selectedStudent.services?.find(
+      (s) => s.serviceName === serviceName
+    );
+    return service ? service.teacherId : null;
+  };
+
   const filteredStudents = students.filter((student) =>
-    `${student.firstName} ${student.lastName}`
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
+    `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSelectStudent = (student) => {
     setSelectedStudent(student);
     setCurrentLevel("student-profile");
+    fetchStudentActivities(student.id);
+    setSelectedService(""); // reset service selection
   };
 
   const goBack = () => {
     setSelectedService("");
     setSelectedStudent(null);
     setCurrentLevel("student-list");
+    setStudentActivities([]);
   };
 
   if (loading || loadingTeachers) return <div>Loading...</div>;
@@ -110,21 +135,21 @@ const OneOnOne = () => {
 
       <div className="ooo-main">
 
-        {/* =========================================================
-            PAGE 1 — STUDENT LIST
-        ========================================================== */}
+        {/* STUDENT LIST */}
         {currentLevel === "student-list" && (
           <>
             <div className="ooo-header">
               <h1>1 : 1 SERVICES</h1>
-
-              <input
-                type="text"
-                className="ooo-search"
-                placeholder="SEARCH"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              <div className="search-wrapper">
+                <input
+                  type="text"
+                  className="ooo-search"
+                  placeholder="SEARCH"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <span className="search-icon">🔍</span>
+              </div>
             </div>
 
             {filteredStudents.length === 0 ? (
@@ -139,20 +164,13 @@ const OneOnOne = () => {
                   >
                     <div className="ooo-photo-area">
                       {student.photoUrl ? (
-                        <img
-                          src={student.photoUrl}
-                          alt=""
-                          className="ooo-photo"
-                        />
+                        <img src={student.photoUrl} alt="" className="ooo-photo" />
                       ) : (
                         <span>📷</span>
                       )}
                     </div>
-
                     <div className="ooo-card-info">
-                      <p className="ooo-name">
-                        {student.lastName}, {student.firstName}
-                      </p>
+                      <p className="ooo-name">{student.lastName}, {student.firstName}</p>
                     </div>
                   </div>
                 ))}
@@ -161,9 +179,7 @@ const OneOnOne = () => {
           </>
         )}
 
-        {/* =========================================================
-            PAGE 2 — STUDENT PROFILE
-        ========================================================== */}
+        {/* STUDENT PROFILE */}
         {currentLevel === "student-profile" && selectedStudent && (
           <div className="profile-wrapper">
 
@@ -173,12 +189,6 @@ const OneOnOne = () => {
                 <span className="back-arrow" onClick={goBack}>←</span>
                 <h2>STUDENT PROFILES</h2>
               </div>
-
-              <input
-                type="text"
-                placeholder="SEARCH"
-                className="profile-search"
-              />
             </div>
 
             <div className="profile-3col">
@@ -186,11 +196,7 @@ const OneOnOne = () => {
               {/* COLUMN 1 — PHOTO */}
               <div className="profile-photo-frame">
                 {selectedStudent.photoUrl ? (
-                  <img
-                    src={selectedStudent.photoUrl}
-                    alt=""
-                    className="profile-photo"
-                  />
+                  <img src={selectedStudent.photoUrl} alt="" className="profile-photo" />
                 ) : (
                   <span>No Photo</span>
                 )}
@@ -209,19 +215,16 @@ const OneOnOne = () => {
                     <p><span className="icon">✉️</span> {selectedStudent.motherEmail || "N/A"}</p>
                     <p><span className="icon">📍</span> {selectedStudent.address || "N/A"}</p>
                   </div>
-
                   <div className="profile-right">
                     <p><b>Age:</b> {selectedStudent.age || "N/A"}</p>
                     <p><b>Gender:</b> {selectedStudent.gender || "N/A"}</p>
                     <p><b>Birthday:</b> {selectedStudent.birthday || "N/A"}</p>
-                    <p><b>Address:</b> {selectedStudent.address || "N/A"}</p>
                   </div>
                 </div>
 
                 {/* SERVICES HEADER */}
                 <h2 className="services-header">SERVICES AVAILED</h2>
 
-                {/* SERVICES LIST */}
                 <div className="services-list">
                   {selectedStudent.services?.map((service, i) => (
                     <div key={i} className="service-row">
@@ -233,37 +236,44 @@ const OneOnOne = () => {
                   ))}
                 </div>
 
-                {/* SERVICE DROPDOWN */}
-                <div className="select-service">
-                  <p>Select a service to view records: </p>
-                  <select
+                {/* SELECT SERVICE */}
+                <div className="service-selector">
+                  <label className="service-selector-header">Select a Service to view records: </label>
+                  <select className="service-selector-choices"
                     value={selectedService}
                     onChange={(e) => setSelectedService(e.target.value)}
-                  >
-                    <option value="">--Select a service--</option>
-                    {[...new Set(selectedStudent.services?.map(s => s.serviceName))].map((name, i) => (
-                      <option key={i} value={name}>{name}</option>
-                    ))}
-                  </select>
+                   >
+                      <option value="">-- Choose a service --</option>
+                      {selectedStudent.services?.map((service, i) => (
+                        <option key={i} value={service.serviceName}>
+                          {service.serviceName}
+                        </option>
+                      ))}
+                   </select>
                 </div>
 
-                {/* SELECTED SERVICE — MULTIPLE DATES */}
+                {/* SELECTED SERVICE — MULTIPLE DATES BASED ON TEACHER */}
                 <div className="selected-service-info">
-                  {selectedService &&
+                  {selectedService ? (
                     (() => {
-                      const records = selectedStudent.services.filter(
-                        (s) => s.serviceName === selectedService
+                      const teacherIdForService = getTeacherIdForService(selectedService);
+                      const filteredActivities = studentActivities.filter(
+                        (act) => act.teacherId === teacherIdForService
                       );
-                      return <SelectedServiceInfo records={records} teachers={teachers} />;
-                    })()}
+                      return filteredActivities.length > 0 ? (
+                        <SelectedServiceInfo records={filteredActivities} teachers={teachers} />
+                      ) : (
+                        <p>No activities found for this teacher.</p>
+                      );
+                    })()
+                  ) : (
+                    <p>Please select a service to view activities.</p>
+                  )}
                 </div>
-
               </div>
             </div>
           </div>
         )}
-
-        <div className="Profile-Footer"></div>
       </div>
     </div>
   );

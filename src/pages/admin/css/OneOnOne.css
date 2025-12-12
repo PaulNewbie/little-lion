@@ -10,7 +10,6 @@
 
 .ooo-main {
   flex: 1;
-  padding: 40px;
 }
 
 /* ============================================================
@@ -20,9 +19,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
   padding-bottom: 20px;
   border-bottom: 2px solid #e0e0e0;
+  padding: 40px;
 }
 
 .ooo-header h1 {
@@ -55,10 +55,10 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 30px;
-  padding: 10px;
+  padding: 20px;
 }
 
-.ooo-card {
+.ooo-card { 
   background: white;
   border-radius: 12px;
   cursor: pointer;
@@ -112,6 +112,39 @@
   margin: 0 auto;
 }
 
+.search-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.search-wrapper .search-icon {
+  position: absolute;
+  left: 260px;
+  top: 45%;
+  transform: translateY(-50%);
+  pointer-events: none; /* icon won’t block input clicks */
+  font-size: 25px;
+  color: #888;
+}
+
+.search-wrapper .profile-search-icon {
+  position: absolute;
+  left: 242px;
+  top: 43%;
+  transform: translateY(-50%);
+  pointer-events: none; /* icon won’t block input clicks */
+  font-size: 25px;
+  color: #888;
+}
+
+
+.ooo-search,
+.profile-search {
+  padding-right: 100px; /* space for the icon */
+}
+
+
+
 /* TOP NAV */
 .profile-top {
   display: flex;
@@ -120,6 +153,7 @@
   margin-bottom: 30px;
   padding-bottom: 20px;
   border-bottom: 2px solid #e0e0e0;
+  padding-top: 20px;
 }
 
 .left-group {
@@ -242,6 +276,7 @@
   font-size: 18px;
 }
 
+
 /* SERVICES HEADER */
 .services-header {
   font-size: 20px;
@@ -336,6 +371,26 @@
   box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
 }
 
+.service-selector-header{
+  font-size: 16px;
+  color: #888;
+  font-weight: bold;
+  margin-bottom: 15px;
+  margin-left: 30%;
+  text-transform: uppercase;
+}
+
+.service-selector-choices {
+  margin-top: 10px;
+  margin-left: 22%;
+  padding: 10px 100px;        /* Size (height/width) */
+  border-radius: 15px;        /* Roundness */
+  background-color:#999;
+  font-size: 16px;
+  text-align: center;       /* Centers the text in most browsers */
+  position: relative;
+}
+
 .Profile-Footer {
   height: 20px;
   margin-top: 40px;
@@ -374,8 +429,8 @@
 
 .service-date-header {
   display: flex;
-  justify-content: space-between;
-  font-size: 14px;
+  gap: 10px;
+  font-size: 20px;
   font-weight: 600;
   color: #3b3b3b;
   margin-bottom: 8px;
@@ -384,7 +439,7 @@
 }
 
 .arrow-icon {
-  font-size: 14px;
+  font-size: 20px;
   cursor: pointer;
 }
 
@@ -424,7 +479,7 @@
 
 .Profile-Footer {
   border: 50px solid #bbb;
-  margin-top: 1%;
+  margin-top: 5%;
 
 }
 
