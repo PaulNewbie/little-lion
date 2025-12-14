@@ -85,6 +85,25 @@ const TeacherDashboard = () => {
           </button>
 
           <button 
+            onClick={() => navigate('/staff/inquiries')}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#f1c40f', // Yellow for visibility
+              color: '#333',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '15px'
+            }}
+          >
+            <span>📬</span> Inbox
+          </button>
+
+          <button 
             onClick={handleLogout}
             style={{
               padding: '8px 16px',
@@ -176,6 +195,8 @@ const TeacherDashboard = () => {
           ))}
         </div>
       )}
+
+      
     </div>
   );
 };

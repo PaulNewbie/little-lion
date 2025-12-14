@@ -26,6 +26,8 @@ import TherapySessionForm from './pages/therapist/TherapySessionForm';
 // Parent Components
 import ParentDashboard from './pages/parent/ParentDashboard';
 import ChildActivities from './pages/parent/ChildActivities';
+import NewInquiry from './pages/parent/NewInquiry';
+import ParentInquiries from './pages/parent/ParentInquiries';
 
 // Common Components
 import Loading from './components/common/Loading';
@@ -73,6 +75,8 @@ const AppRoutes = () => {
       {/* PARENT ROUTES */}
       <Route path="/parent/dashboard" element={<ProtectedRoute allowedRoles={['parent']}><ParentDashboard /></ProtectedRoute>} />
       <Route path="/parent/child/:childId" element={<ProtectedRoute allowedRoles={['parent']}><ChildActivities /></ProtectedRoute>} />
+      <Route path="/parent/inquiries" element={<ProtectedRoute allowedRoles={['parent']}><ParentInquiries /></ProtectedRoute>} />
+      <Route path="/parent/inquiries/new" element={<ProtectedRoute allowedRoles={['parent']}><NewInquiry /></ProtectedRoute>} />
 
       {/* Default Fallback */}
       <Route

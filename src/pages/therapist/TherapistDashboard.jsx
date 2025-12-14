@@ -59,6 +59,21 @@ const TherapistDashboard = () => {
             {currentUser?.firstName} {currentUser?.lastName} • {currentUser?.specializations?.join(', ')}
           </p>
         </div>
+        <button 
+            onClick={() => navigate('/staff/inquiries')}
+            style={{ 
+            padding: '8px 16px', 
+            backgroundColor: '#f1c40f', 
+            color: '#333', 
+            border: 'none', 
+            borderRadius: '4px', 
+            cursor: 'pointer',
+            fontWeight: 'bold'
+            }}
+        >
+            📬 Inbox
+        </button>
+
         <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
       </div>
 
