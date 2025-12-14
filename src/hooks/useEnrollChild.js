@@ -6,6 +6,7 @@ import authService from '../services/authService';
 import childService from '../services/childService';
 import cloudinaryService from '../services/cloudinaryService';
 import userService from '../services/userService';
+import therapistService from '../services/therapistService';
 
 const useEnrollChild = () => {
   const [loading, setLoading] = useState(true);
@@ -29,15 +30,18 @@ const useEnrollChild = () => {
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
 
-  useEffect(() => {
+useEffect(() => {
     const init = async () => {
       try {
-        const [sData, tData] = await Promise.all([
+        // Fetch Teachers AND Therapists
+        const [sData, tData, thData] = await Promise.all([
           servicesService.getActiveServices(),
-          teacherService.getAllTeachers()
+          teacherService.getAllTeachers(),
+          therapistService.getAllTherapists() // Fetch Therapists
         ]);
         setServices(sData);
-        setTeachers(tData);
+        // Combine them into one list for the dropdowns
+        setTeachers([...tData, ...thData]); 
       } catch (err) {
         setError(err.message);
       } finally {

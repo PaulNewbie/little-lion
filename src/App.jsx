@@ -8,10 +8,11 @@ import LoginPage from './pages/auth/LoginPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 
 // Admin Components
-import OneOnOne from './pages/admin/OneOnOne'; // NEW Main View
+import OneOnOne from './pages/admin/OneOnOne';
 import PlayGroup from './pages/admin/PlayGroup';
 import EnrollChild from './pages/admin/EnrollChild';
 import ManageTeachers from './pages/admin/ManageTeachers';
+import ManageTherapists from './pages/admin/ManageTherapists'; // Import New Component
 import OtherServices from './pages/admin/OtherServices';
 
 // Teacher & Parent Components
@@ -30,7 +31,6 @@ const AppRoutes = () => {
 
   return (
     <Routes>
-      {/* Public Route */}
       <Route 
         path="/login" 
         element={
@@ -38,6 +38,7 @@ const AppRoutes = () => {
             <Navigate to={
               currentUser.role === 'admin' ? '/admin/one-on-one' :
               currentUser.role === 'teacher' ? '/teacher/dashboard' :
+              currentUser.role === 'therapist' ? '/therapist/dashboard' : // Redirect therapist
               '/parent/dashboard'
             } replace />
           ) : (
@@ -46,92 +47,37 @@ const AppRoutes = () => {
         } 
       />
 
-      {/* --- ADMIN ROUTES --- */}
+      {/* ADMIN ROUTES */}
+      <Route path="/admin/one-on-one" element={<ProtectedRoute allowedRoles={['admin']}><OneOnOne /></ProtectedRoute>} />
+      <Route path="/admin/dashboard" element={<Navigate to="/admin/one-on-one" replace />} />
+      <Route path="/admin/play-group" element={<ProtectedRoute allowedRoles={['admin']}><PlayGroup /></ProtectedRoute>} />
+      <Route path="/admin/enroll-child" element={<ProtectedRoute allowedRoles={['admin']}><EnrollChild /></ProtectedRoute>} />
+      <Route path="/admin/manage-teachers" element={<ProtectedRoute allowedRoles={['admin']}><ManageTeachers /></ProtectedRoute>} />
       
-      {/* 1. Main 1:1 View */}
-      <Route
-        path="/admin/one-on-one"
-        element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <OneOnOne />
-          </ProtectedRoute>
-        }
-      />
+      {/* NEW: Manage Therapists Route */}
+      <Route path="/admin/manage-therapists" element={<ProtectedRoute allowedRoles={['admin']}><ManageTherapists /></ProtectedRoute>} />
+      
+      <Route path="/admin/services" element={<ProtectedRoute allowedRoles={['admin']}><OtherServices /></ProtectedRoute>} />
 
-      {/* 2. Redirect /dashboard to /one-on-one */}
-      <Route
-        path="/admin/dashboard"
-        element={<Navigate to="/admin/one-on-one" replace />}
-      />
+      {/* TEACHER ROUTE */}
+      <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherDashboard /></ProtectedRoute>} />
 
-      <Route
-        path="/admin/play-group"
-        element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <PlayGroup />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/enroll-child"
-        element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <EnrollChild />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/manage-teachers"
-        element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <ManageTeachers />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/services"
-        element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <OtherServices />
-          </ProtectedRoute>
-        }
-      />
+      {/* NEW: THERAPIST ROUTE - Reuses Teacher Dashboard */}
+      <Route path="/therapist/dashboard" element={<ProtectedRoute allowedRoles={['therapist']}><TeacherDashboard /></ProtectedRoute>} />
 
-      {/* --- OTHER ROLES --- */}
-      <Route
-        path="/teacher/dashboard"
-        element={
-          <ProtectedRoute allowedRoles={['teacher']}>
-            <TeacherDashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/parent/dashboard"
-        element={
-          <ProtectedRoute allowedRoles={['parent']}>
-            <ParentDashboard />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/parent/child/:childId"
-        element={
-          <ProtectedRoute allowedRoles={['parent']}>
-            <ChildActivities />
-          </ProtectedRoute>
-        }
-      />
-
+      {/* SHARED: Play Group Upload (Allowed for Teacher, Admin, and Therapist) */}
       <Route
         path="/teacher/play-group-upload"
         element={
-          <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+          <ProtectedRoute allowedRoles={['teacher', 'admin', 'therapist']}>
             <PlayGroupActivity />
           </ProtectedRoute>
         }
       />
+
+      {/* PARENT ROUTES */}
+      <Route path="/parent/dashboard" element={<ProtectedRoute allowedRoles={['parent']}><ParentDashboard /></ProtectedRoute>} />
+      <Route path="/parent/child/:childId" element={<ProtectedRoute allowedRoles={['parent']}><ChildActivities /></ProtectedRoute>} />
 
       {/* Default Fallback */}
       <Route
@@ -141,6 +87,7 @@ const AppRoutes = () => {
             <Navigate to={
               currentUser.role === 'admin' ? '/admin/one-on-one' :
               currentUser.role === 'teacher' ? '/teacher/dashboard' :
+              currentUser.role === 'therapist' ? '/therapist/dashboard' :
               '/parent/dashboard'
             } replace />
           ) : (
@@ -148,7 +95,6 @@ const AppRoutes = () => {
           )
         }
       />
-
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

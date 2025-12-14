@@ -62,7 +62,38 @@ class AuthService {
     }
   }
 
-  // 3. Create Teacher Account
+  // 3. Create Therapist Account
+  async createTherapistAccount(email, password, therapistData) {
+    let tempApp = null;
+    try {
+      // Create secondary app instance to avoid logging out admin
+      tempApp = initializeApp(firebaseConfig, 'tempApp-Therapist-' + Date.now());
+      const tempAuth = getAuth(tempApp);
+
+      const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
+      const user = userCredential.user;
+
+      await setDoc(doc(db, 'users', user.uid), {
+        ...therapistData,
+        uid: user.uid,
+        role: 'therapist', // Set role to therapist
+        specializations: therapistData.specializations || [],
+        active: true,
+        createdAt: new Date().toISOString()
+      });
+
+      return user;
+    } catch (error) {
+      throw this.handleAuthError(error);
+    } finally {
+      if (tempApp) {
+        const { deleteApp } = await import('firebase/app');
+        await deleteApp(tempApp);
+      }
+    }
+  }
+
+  // 4. Create Teacher Account
   async createTeacherAccount(email, password, teacherData) {
     let tempApp = null;
     try {
