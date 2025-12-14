@@ -15,8 +15,13 @@ class ServiceService {
   // 1. Create new service
   async createService(serviceData) {
     try {
+      // Ensure type is enforced
+      const validTypes = ['Therapy', 'Class'];
+      const type = validTypes.includes(serviceData.type) ? serviceData.type : 'Therapy';
+
       const serviceRef = await addDoc(collection(db, 'services'), {
         ...serviceData,
+        type, // 'Therapy' or 'Class'
         createdAt: new Date().toISOString(),
         active: true
       });
@@ -30,7 +35,6 @@ class ServiceService {
   async getAllServices() {
     try {
       const querySnapshot = await getDocs(collection(db, 'services'));
-      
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -43,12 +47,8 @@ class ServiceService {
   // 3. Get active services only
   async getActiveServices() {
     try {
-      const q = query(
-        collection(db, 'services'), 
-        where('active', '==', true)
-      );
+      const q = query(collection(db, 'services'), where('active', '==', true));
       const querySnapshot = await getDocs(q);
-      
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -58,7 +58,25 @@ class ServiceService {
     }
   }
 
-  // 4. Get single service by ID
+  // 4. Get services by Type (Therapy vs Class)
+  async getServicesByType(type) {
+    try {
+      const q = query(
+        collection(db, 'services'), 
+        where('active', '==', true),
+        where('type', '==', type)
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      throw new Error(`Failed to fetch ${type} services: ` + error.message);
+    }
+  }
+
+  // 5. Get single service by ID
   async getServiceById(serviceId) {
     try {
       const serviceDoc = await getDoc(doc(db, 'services', serviceId));
@@ -71,7 +89,7 @@ class ServiceService {
     }
   }
 
-  // 5. Update service
+  // 6. Update service
   async updateService(serviceId, updates) {
     try {
       await updateDoc(doc(db, 'services', serviceId), {
@@ -83,7 +101,7 @@ class ServiceService {
     }
   }
 
-  // 6. Deactivate service
+  // 7. Deactivate service
   async deactivateService(serviceId) {
     try {
       await updateDoc(doc(db, 'services', serviceId), {
@@ -95,7 +113,7 @@ class ServiceService {
     }
   }
 
-  // 7. Delete service
+  // 8. Delete service
   async deleteService(serviceId) {
     try {
       await deleteDoc(doc(db, 'services', serviceId));
@@ -104,7 +122,7 @@ class ServiceService {
     }
   }
 
-  // 8. Get services with enrolled children count
+  // 9. Get services with enrolled children count
   async getServicesWithStats() {
     try {
       const services = await this.getAllServices();

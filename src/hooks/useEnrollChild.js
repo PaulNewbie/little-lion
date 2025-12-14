@@ -1,18 +1,21 @@
-/* src/hooks/useEnrollChild.js */
 import { useState, useEffect } from 'react';
 import servicesService from '../services/servicesService';
 import teacherService from '../services/teacherService';
+import therapistService from '../services/therapistService';
 import authService from '../services/authService';
 import childService from '../services/childService';
-import cloudinaryService from '../services/cloudinaryService';
 import userService from '../services/userService';
-import therapistService from '../services/therapistService';
+import cloudinaryService from '../services/cloudinaryService';
 
 const useEnrollChild = () => {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
-  const [services, setServices] = useState([]);
+
+  // Data Options
+  const [therapyOptions, setTherapyOptions] = useState([]);
+  const [classOptions, setClassOptions] = useState([]);
+  const [therapists, setTherapists] = useState([]);
   const [teachers, setTeachers] = useState([]);
 
   // Form Data
@@ -20,28 +23,34 @@ const useEnrollChild = () => {
     firstName: '', lastName: '', dateOfBirth: '', gender: 'select', medicalInfo: ''
   });
   
-  // Parent Data
   const [parentInfo, setParentInfo] = useState({
     firstName: '', lastName: '', email: '', phone: '', password: 'Welcome123!'
   });
-  const [parentExists, setParentExists] = useState(false); // NEW STATE
+  const [parentExists, setParentExists] = useState(false);
 
-  const [selectedServices, setSelectedServices] = useState([]);
+  // Selection State (Separated)
+  const [selectedTherapies, setSelectedTherapies] = useState([]); // [{ serviceId, name, therapistId, therapistName }]
+  const [selectedClasses, setSelectedClasses] = useState([]);     // [{ serviceId, name, teacherId, teacherName }]
+
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
 
-useEffect(() => {
+  // 1. Initial Data Fetch
+  useEffect(() => {
     const init = async () => {
       try {
-        // Fetch Teachers AND Therapists
-        const [sData, tData, thData] = await Promise.all([
+        const [allServices, allTeachers, allTherapists] = await Promise.all([
           servicesService.getActiveServices(),
           teacherService.getAllTeachers(),
-          therapistService.getAllTherapists() // Fetch Therapists
+          therapistService.getAllTherapists()
         ]);
-        setServices(sData);
-        // Combine them into one list for the dropdowns
-        setTeachers([...tData, ...thData]); 
+
+        // Separate Services by Type
+        setTherapyOptions(allServices.filter(s => s.type === 'Therapy'));
+        setClassOptions(allServices.filter(s => s.type === 'Class'));
+
+        setTeachers(allTeachers);
+        setTherapists(allTherapists);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -51,35 +60,32 @@ useEffect(() => {
     init();
   }, []);
 
+  // 2. Input Handlers
   const handleChildChange = (e) => setChildInfo({ ...childInfo, [e.target.name]: e.target.value });
   
   const handleParentChange = (e) => {
     setParentInfo({ ...parentInfo, [e.target.name]: e.target.value });
-    // Reset exists flag if they change email, until blur happens
     if (e.target.name === 'email') setParentExists(false); 
   };
 
-  // --- NEW: Check if parent exists when email field loses focus ---
   const checkParentEmail = async () => {
     if (!parentInfo.email) return;
-    
     try {
       const existingUser = await userService.getUserByEmail(parentInfo.email);
       if (existingUser) {
         setParentExists(true);
-        // Auto-fill details
         setParentInfo(prev => ({
           ...prev,
           firstName: existingUser.firstName,
           lastName: existingUser.lastName,
           phone: existingUser.phone || '',
-          password: '' // Clear password as it's not needed
+          password: '' 
         }));
       } else {
         setParentExists(false);
       }
     } catch (err) {
-      console.error("Error checking parent:", err);
+      console.error(err);
     }
   };
 
@@ -91,25 +97,61 @@ useEffect(() => {
     }
   };
 
-  const toggleService = (serviceId, serviceName) => {
-    if (selectedServices.find(s => s.serviceId === serviceId)) {
-      setSelectedServices(selectedServices.filter(s => s.serviceId !== serviceId));
+  // 3. Selection Handlers (THERAPY)
+  const toggleTherapy = (serviceId, serviceName) => {
+    if (selectedTherapies.find(s => s.serviceId === serviceId)) {
+      setSelectedTherapies(selectedTherapies.filter(s => s.serviceId !== serviceId));
     } else {
-      const qualified = teachers.find(t => t.specializations?.includes(serviceName));
-      setSelectedServices([
-        ...selectedServices,
-        { serviceId, serviceName, teacherId: qualified ? qualified.id : '', teacherName: qualified ? qualified.firstName : '' }
+      // Find therapists who specialize in this service
+      const qualified = therapists.find(t => t.specializations?.includes(serviceName));
+      setSelectedTherapies([
+        ...selectedTherapies,
+        { 
+          serviceId, 
+          serviceName, 
+          therapistId: qualified ? qualified.id : '', // Default to first match or empty
+          therapistName: qualified ? `${qualified.firstName} ${qualified.lastName}` : '' 
+        }
       ]);
     }
   };
 
-  const updateServiceTeacher = (serviceId, teacherId) => {
-    const teacher = teachers.find(t => t.id === teacherId);
-    setSelectedServices(selectedServices.map(s => 
-      s.serviceId === serviceId ? { ...s, teacherId, teacherName: teacher.firstName } : s
+  const updateTherapyAssignee = (serviceId, therapistId) => {
+    const person = therapists.find(t => t.id === therapistId);
+    setSelectedTherapies(selectedTherapies.map(s => 
+      s.serviceId === serviceId ? { ...s, therapistId, therapistName: `${person.firstName} ${person.lastName}` } : s
     ));
   };
 
+  // 4. Selection Handlers (CLASSES)
+  const toggleClass = (serviceId, serviceName) => {
+    if (selectedClasses.find(s => s.serviceId === serviceId)) {
+      setSelectedClasses(selectedClasses.filter(s => s.serviceId !== serviceId));
+    } else {
+      // Find teachers who teach this class
+      // Note: 'classesTeaching' isn't in your user model yet, using 'specializations' for now based on your old code
+      // or we just filter all teachers. Let's assume teachers use 'specializations' for classes too as per current TeacherService
+      const qualified = teachers.find(t => t.specializations?.includes(serviceName));
+      setSelectedClasses([
+        ...selectedClasses,
+        { 
+          serviceId, 
+          serviceName, 
+          teacherId: qualified ? qualified.id : '', 
+          teacherName: qualified ? `${qualified.firstName} ${qualified.lastName}` : '' 
+        }
+      ]);
+    }
+  };
+
+  const updateClassAssignee = (serviceId, teacherId) => {
+    const person = teachers.find(t => t.id === teacherId);
+    setSelectedClasses(selectedClasses.map(s => 
+      s.serviceId === serviceId ? { ...s, teacherId, teacherName: `${person.firstName} ${person.lastName}` } : s
+    ));
+  };
+
+  // 5. Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -121,14 +163,12 @@ useEffect(() => {
         photoUrl = await cloudinaryService.uploadImage(photoFile, 'little-lions/child-images');
       }
 
+      // Handle Parent Account
       let parentUid;
-      const existingParent = await userService.getUserByEmail(parentInfo.email);
-
-      if (existingParent) {
-        // CASE A: Existing Parent
+      if (parentExists) {
+        const existingParent = await userService.getUserByEmail(parentInfo.email);
         parentUid = existingParent.uid;
       } else {
-        // CASE B: New Parent
         const parentUser = await authService.createParentAccount(
           parentInfo.email, 
           parentInfo.password, 
@@ -137,15 +177,16 @@ useEffect(() => {
         parentUid = parentUser.uid;
       }
       
+      // Save Child Data with separated arrays
       await childService.enrollChild({
         ...childInfo,
-        photoUrl: photoUrl, 
-        services: selectedServices,
-        teacherIds: [...new Set(selectedServices.map(s => s.teacherId))]
+        photoUrl: photoUrl,
+        therapyServices: selectedTherapies, // Saved separately
+        groupClasses: selectedClasses       // Saved separately
       }, parentUid);
 
-      alert('Enrollment Complete!');
-      // Reset could go here
+      alert('Child Enrolled Successfully!');
+      // Optional: Reset form state here or navigate away
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -154,17 +195,38 @@ useEffect(() => {
     }
   };
 
+  // Helpers for Dropdowns
+  const getQualifiedTherapists = (serviceName) => 
+    therapists.filter(t => t.specializations?.includes(serviceName));
+
   const getQualifiedTeachers = (serviceName) => 
     teachers.filter(t => t.specializations?.includes(serviceName));
 
   return {
-    loading, uploading, error, services, 
+    loading, uploading, error,
     childInfo, handleChildChange,
-    parentInfo, handleParentChange,
-    parentExists, checkParentEmail, // EXPORTED NEW HANDLERS
-    selectedServices, toggleService, updateServiceTeacher,
+    parentInfo, handleParentChange, parentExists, checkParentEmail,
     photoFile, photoPreview, handlePhotoChange,
-    getQualifiedTeachers, handleSubmit
+    
+    // Arrays for UI
+    therapyOptions,
+    classOptions,
+    
+    // Selection State
+    selectedTherapies,
+    selectedClasses,
+    
+    // Handlers
+    toggleTherapy,
+    updateTherapyAssignee,
+    toggleClass,
+    updateClassAssignee,
+    
+    // Filtering
+    getQualifiedTherapists,
+    getQualifiedTeachers,
+    
+    handleSubmit
   };
 };
 
