@@ -19,15 +19,18 @@ import OtherServices from './pages/admin/OtherServices';
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import PlayGroupActivity from './pages/teacher/PlayGroupActivity';
 
-// Therapist Components (NEW)
+// Therapist Components
 import TherapistDashboard from './pages/therapist/TherapistDashboard';
-import TherapySessionForm from './pages/therapist/TherapySessionForm';
+import TherapySessionForm from './pages/therapist/TherapySessionForm'; // Make sure this file exists
 
 // Parent Components
 import ParentDashboard from './pages/parent/ParentDashboard';
 import ChildActivities from './pages/parent/ChildActivities';
-import NewInquiry from './pages/parent/NewInquiry';
-import ParentInquiries from './pages/parent/ParentInquiries';
+import ParentInquiries from './pages/parent/ParentInquiries'; // IMPORTED
+import NewInquiry from './pages/parent/NewInquiry';           // IMPORTED
+
+// Staff Shared Components
+import StaffInquiries from './components/common/StaffInquiries'; // IMPORTED
 
 // Common Components
 import Loading from './components/common/Loading';
@@ -68,7 +71,7 @@ const AppRoutes = () => {
       <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherDashboard /></ProtectedRoute>} />
       <Route path="/teacher/play-group-upload" element={<ProtectedRoute allowedRoles={['teacher', 'admin']}><PlayGroupActivity /></ProtectedRoute>} />
 
-      {/* THERAPIST ROUTES (NEW) */}
+      {/* THERAPIST ROUTES */}
       <Route path="/therapist/dashboard" element={<ProtectedRoute allowedRoles={['therapist']}><TherapistDashboard /></ProtectedRoute>} />
       <Route path="/therapist/session/:studentId" element={<ProtectedRoute allowedRoles={['therapist']}><TherapySessionForm /></ProtectedRoute>} />
 
@@ -77,6 +80,9 @@ const AppRoutes = () => {
       <Route path="/parent/child/:childId" element={<ProtectedRoute allowedRoles={['parent']}><ChildActivities /></ProtectedRoute>} />
       <Route path="/parent/inquiries" element={<ProtectedRoute allowedRoles={['parent']}><ParentInquiries /></ProtectedRoute>} />
       <Route path="/parent/inquiries/new" element={<ProtectedRoute allowedRoles={['parent']}><NewInquiry /></ProtectedRoute>} />
+
+      {/* SHARED STAFF ROUTES (Inbox) */}
+      <Route path="/staff/inquiries" element={<ProtectedRoute allowedRoles={['teacher', 'therapist']}><StaffInquiries /></ProtectedRoute>} />
 
       {/* Default Fallback */}
       <Route

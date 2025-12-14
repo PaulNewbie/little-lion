@@ -5,8 +5,8 @@ import {
   where, 
   getDocs, 
   updateDoc, 
-  doc, 
-  orderBy 
+  doc
+  // orderBy is removed to prevent index errors
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
@@ -18,7 +18,7 @@ class InquiryService {
         ...inquiryData,
         status: 'pending',
         createdAt: new Date().toISOString(),
-        reply: null // No reply yet
+        reply: null 
       });
       return docRef.id;
     } catch (error) {
@@ -26,32 +26,40 @@ class InquiryService {
     }
   }
 
-  // 2. Get Inquiries for a Parent (To view sent messages)
+  // 2. Get Inquiries for a Parent (Sorted Client-Side)
   async getInquiriesByParent(parentId) {
     try {
+      // FIX: Removed orderBy('createdAt', 'desc') to avoid missing index error
       const q = query(
         collection(db, 'inquiries'),
-        where('parentId', '==', parentId),
-        orderBy('createdAt', 'desc')
+        where('parentId', '==', parentId)
       );
+      
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      // Sort in JavaScript instead
+      return data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     } catch (error) {
       console.error("Error fetching parent inquiries:", error);
       throw new Error('Failed to fetch inquiries.');
     }
   }
 
-  // 3. Get Inquiries for Staff (Teacher/Therapist Inbox)
+  // 3. Get Inquiries for Staff (Sorted Client-Side)
   async getInquiriesByStaff(staffId) {
     try {
+      // FIX: Removed orderBy('createdAt', 'desc') to avoid missing index error
       const q = query(
         collection(db, 'inquiries'),
-        where('targetId', '==', staffId),
-        orderBy('createdAt', 'desc')
+        where('targetId', '==', staffId)
       );
+      
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      // Sort in JavaScript instead
+      return data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     } catch (error) {
       console.error("Error fetching staff inquiries:", error);
       throw new Error('Failed to fetch inquiries.');
