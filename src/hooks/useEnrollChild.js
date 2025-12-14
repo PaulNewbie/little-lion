@@ -152,9 +152,31 @@ const useEnrollChild = () => {
   };
 
   // 5. Submit
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+
+    // --- NEW VALIDATION START ---
+    // 1. Check if any therapies are selected but have no therapist assigned
+    const missingTherapist = selectedTherapies.find(s => !s.therapistId);
+    if (missingTherapist) {
+      setError(`Please select a therapist for ${missingTherapist.serviceName}`);
+      return;
+    }
+
+    // 2. Check if any classes are selected but have no teacher assigned
+    const missingTeacher = selectedClasses.find(s => !s.teacherId);
+    if (missingTeacher) {
+      setError(`Please select a teacher for ${missingTeacher.serviceName}`);
+      return;
+    }
+
+    // 3. Ensure at least one service is selected (Optional, but good practice)
+    if (selectedTherapies.length === 0 && selectedClasses.length === 0) {
+      if (!window.confirm("No services or classes selected. Continue enrollment?")) return;
+    }
+    // --- NEW VALIDATION END ---
+
     setUploading(true);
 
     try {
@@ -177,16 +199,17 @@ const useEnrollChild = () => {
         parentUid = parentUser.uid;
       }
       
-      // Save Child Data with separated arrays
+      // Save Child Data
       await childService.enrollChild({
         ...childInfo,
         photoUrl: photoUrl,
-        therapyServices: selectedTherapies, // Saved separately
-        groupClasses: selectedClasses       // Saved separately
+        therapyServices: selectedTherapies, 
+        groupClasses: selectedClasses       
       }, parentUid);
 
       alert('Child Enrolled Successfully!');
-      // Optional: Reset form state here or navigate away
+      // Optional: Navigate to dashboard or reset form
+      
     } catch (err) {
       console.error(err);
       setError(err.message);

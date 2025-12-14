@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import childService from '../../services/childService';
+import activityService from '../../services/activityService';
 import cloudinaryService from '../../services/cloudinaryService';
-import { db } from '../../config/firebase';
-import { collection, addDoc } from 'firebase/firestore';
 
 const PlayGroupActivity = () => {
   const { currentUser } = useAuth();
@@ -16,6 +15,7 @@ const PlayGroupActivity = () => {
   // Form Data
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [className, setClassName] = useState(''); // e.g., Art Class
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]); 
   
   // Selection Data
@@ -23,24 +23,19 @@ const PlayGroupActivity = () => {
   const [previews, setPreviews] = useState([]); 
   const [taggedStudentIds, setTaggedStudentIds] = useState([]); 
 
-  // --- 1. FETCH STUDENTS (OPTIMIZED) ---
+  // --- 1. FETCH STUDENTS ---
   useEffect(() => {
     const fetchStudents = async () => {
-      // Safety Check
       if (!currentUser) return;
-
       setLoadingStudents(true);
       try {
         let data = [];
-
-        // LOGIC: If Admin -> Fetch All. If Teacher -> Fetch Assigned Only.
         if (currentUser.role === 'admin') {
           data = await childService.getAllChildren();
         } else {
-          // Uses the optimized query we added to childService
+          // Fetch only my class students
           data = await childService.getChildrenByTeacherId(currentUser.uid);
         }
-        
         setStudents(data);
       } catch (error) {
         console.error("Error fetching students:", error);
@@ -49,9 +44,8 @@ const PlayGroupActivity = () => {
         setLoadingStudents(false);
       }
     };
-
     fetchStudents();
-  }, [currentUser]); // Re-run if user changes
+  }, [currentUser]);
 
   // --- 2. IMAGE HANDLING ---
   const handleImageSelect = (e) => {
@@ -71,12 +65,17 @@ const PlayGroupActivity = () => {
   // --- 3. TAGGING LOGIC ---
   const toggleStudent = (studentId) => {
     setTaggedStudentIds(prev => {
-      if (prev.includes(studentId)) {
-        return prev.filter(id => id !== studentId);
-      } else {
-        return [...prev, studentId];
-      }
+      if (prev.includes(studentId)) return prev.filter(id => id !== studentId);
+      return [...prev, studentId];
     });
+  };
+
+  const selectAll = () => {
+    if (taggedStudentIds.length === students.length) {
+      setTaggedStudentIds([]);
+    } else {
+      setTaggedStudentIds(students.map(s => s.id));
+    }
   };
 
   // --- 4. UPLOAD & SAVE ---
@@ -97,25 +96,28 @@ const PlayGroupActivity = () => {
       );
       const uploadedUrls = await Promise.all(uploadPromises);
 
-      // Save to Firestore
+      // Prepare Data
       const activityData = {
-        type: 'play_group',
         title,
         description,
         date,
+        className, // "Art Class" etc.
         photoUrls: uploadedUrls,
         participatingStudentIds: taggedStudentIds,
+        
         teacherId: currentUser.uid,
         teacherName: `${currentUser.firstName} ${currentUser.lastName}`,
-        createdAt: new Date().toISOString()
+        authorRole: 'teacher'
       };
 
-      await addDoc(collection(db, 'activities'), activityData);
+      // Save using Activity Service (type: group_activity)
+      await activityService.createGroupActivity(activityData);
 
       // Reset
       alert('Activity Uploaded Successfully!');
       setTitle('');
       setDescription('');
+      setClassName('');
       setSelectedImages([]);
       setPreviews([]);
       setTaggedStudentIds([]);
@@ -131,9 +133,9 @@ const PlayGroupActivity = () => {
   // --- STYLES ---
   const styles = {
     container: { padding: '20px', maxWidth: '1000px', margin: '0 auto' },
-    section: { marginBottom: '30px', padding: '20px', border: '1px solid #ddd', borderRadius: '8px' },
+    section: { marginBottom: '30px', padding: '20px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: 'white' },
     label: { display: 'block', marginBottom: '5px', fontWeight: 'bold' },
-    input: { width: '100%', padding: '10px', marginBottom: '15px', borderRadius: '4px', border: '1px solid #ccc' },
+    input: { width: '100%', padding: '10px', marginBottom: '15px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' },
     grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '15px' },
     card: (isSelected) => ({
       border: isSelected ? '3px solid #4ECDC4' : '1px solid #ddd',
@@ -151,13 +153,22 @@ const PlayGroupActivity = () => {
 
   return (
     <div style={styles.container}>
-      <h1>📸 New Play Group Activity</h1>
+      <h1>📸 New Group Activity</h1>
       
       <form onSubmit={handleSubmit}>
         
         {/* 1. Metadata */}
         <div style={styles.section}>
           <h3>1. Activity Details</h3>
+          
+          <label style={styles.label}>Class Name</label>
+          <input 
+            style={styles.input} 
+            placeholder="e.g. Art Class"
+            value={className} 
+            onChange={e => setClassName(e.target.value)} 
+          />
+
           <label style={styles.label}>Activity Title</label>
           <input 
             style={styles.input} 
@@ -206,7 +217,12 @@ const PlayGroupActivity = () => {
 
         {/* 3. Student Selection */}
         <div style={styles.section}>
-          <h3>3. Who was present? ({taggedStudentIds.length})</h3>
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
+            <h3>3. Who was present? ({taggedStudentIds.length})</h3>
+            <button type="button" onClick={selectAll} style={{padding: '5px 10px', cursor: 'pointer'}}>
+              {taggedStudentIds.length === students.length ? 'Deselect All' : 'Select All'}
+            </button>
+          </div>
           
           {loadingStudents ? <p>Loading your class list...</p> : (
             <>
@@ -257,7 +273,7 @@ const PlayGroupActivity = () => {
             fontWeight: 'bold'
           }}
         >
-          {uploading ? 'Uploading...' : '🚀 Upload Activity'}
+          {uploading ? 'Uploading...' : '🚀 Upload Group Activity'}
         </button>
 
       </form>

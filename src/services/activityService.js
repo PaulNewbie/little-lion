@@ -3,22 +3,20 @@ import {
   query, 
   where, 
   getDocs, 
-  orderBy,
+//  orderBy,
   addDoc 
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 class ActivityService {
 
-// 1. Create a 1:1 Therapy Session
+// 1. Create a 1:1 Therapy Session (Phase 3)
   async createTherapySession(sessionData) {
     try {
-      // Ensure strict type and fields
       const docRef = await addDoc(collection(db, 'activities'), {
         ...sessionData,
-        type: 'therapy_session', // Strict Type
-        createdAt: new Date().toISOString(),
-        // adminFeedback: null (Initialized empty)
+        type: 'therapy_session', 
+        createdAt: new Date().toISOString()
       });
       return docRef.id;
     } catch (error) {
@@ -26,76 +24,87 @@ class ActivityService {
     }
   }
 
-  // 2. Get activities for a specific child (General View)
+  // 2. NEW: Create a Group Class Activity (Phase 4)
+  async createGroupActivity(activityData) {
+    try {
+      const docRef = await addDoc(collection(db, 'activities'), {
+        ...activityData,
+        type: 'group_activity', // Strict Type
+        createdAt: new Date().toISOString()
+      });
+      return docRef.id;
+    } catch (error) {
+      throw new Error('Failed to save group activity: ' + error.message);
+    }
+  }
+
+  // 3. Get activities for a specific child (Unified View for Parents)
   async getActivitiesByChild(childId) {
     try {
       const activitiesRef = collection(db, 'activities');
-      // This query handles both therapy sessions (studentId) AND group activities (participatingStudentIds)
-      // Note: Firestore allows basic OR queries or client-side merging. 
-      // For simplicity, we might need two queries or rely on a "taggedStudents" array if we unified them.
-      // OPTIMIZATION: We will handle the merging in the Component or use a compound index.
+      // Fetches both 1:1 sessions AND group activities where child was tagged
+      // Note: Firestore doesn't support logical OR across different fields easily.
+      // We perform two queries and merge/sort client-side for the Parent View.
       
-      // Let's assume for now we fetch types separately or use a unified 'studentIds' field for querying.
-      // Ideally: 
-      // Therapy Session -> studentId: "123"
-      // Group Activity -> participatingStudentIds: ["123", "456"]
-      // To query both, we can search where 'studentId' == ID OR 'participatingStudentIds' contains ID.
-      // Since Firestore doesn't do logical OR easily across fields, we will filter in client for Phase 5.
+      const q1 = query(activitiesRef, where('studentId', '==', childId));
+      const q2 = query(activitiesRef, where('participatingStudentIds', 'array-contains', childId));
+
+      const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
       
-      const q = query(
-        activitiesRef,
-        where('studentId', '==', childId), // Fetch 1:1 sessions
-        orderBy('date', 'desc')
-      );
-      
-      // We will add the Group Activity fetch in the Parent Component later.
-      
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const results = [];
+      snap1.forEach(doc => results.push({ id: doc.id, ...doc.data() }));
+      snap2.forEach(doc => {
+        // Avoid duplicates if any
+        if (!results.find(r => r.id === doc.id)) {
+          results.push({ id: doc.id, ...doc.data() });
+        }
+      });
+
+      return results.sort((a, b) => new Date(b.date) - new Date(a.date));
     } catch (error) {
       console.error("Error fetching activities:", error);
       throw new Error('Failed to fetch activities: ' + error.message);
     }
   }
 
-  // 2. Get activities for a specific child on a specific date
-  async getChildActivitiesByDate(childId, date) {
+  // 4. Get All Group Activities (Admin Calendar)
+  async getAllPlayGroupActivities() {
     try {
       const q = query(
         collection(db, 'activities'),
-        where('participatingStudentIds', 'array-contains', childId),
-        where('date', '==', date)
+        where('type', '==', 'group_activity')
       );
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-    } catch (error) {
-      throw new Error('Failed to fetch activities by date: ' + error.message);
-    }
-  }
-
-  // 3. NEW: Get ALL Play Group activities (For Admin Calendar Landing Page)
-async getAllPlayGroupActivities() {
-    try {
-      const q = query(
-        collection(db, 'activities'),
-        where('type', '==', 'group_activity') // Updated string to match plan
-      );
+      
       const querySnapshot = await getDocs(q);
       const activities = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
+
       return activities.sort((a, b) => new Date(b.date) - new Date(a.date));
     } catch (error) {
       throw new Error('Failed to fetch group activities: ' + error.message);
     }
   }
+
+  // // 5. Get activities for a specific child on a specific date
+  // async getChildActivitiesByDate(childId, date) {
+  //   try {
+  //     const q = query(
+  //       collection(db, 'activities'),
+  //       where('participatingStudentIds', 'array-contains', childId),
+  //       where('date', '==', date)
+  //     );
+  //     const querySnapshot = await getDocs(q);
+  //     return querySnapshot.docs.map(doc => ({
+  //       id: doc.id,
+  //       ...doc.data()
+  //     }));
+  //   } catch (error) {
+  //     throw new Error('Failed to fetch activities by date: ' + error.message);
+  //   }
+  // }
+
 }
 
 const activityServiceInstance = new ActivityService();

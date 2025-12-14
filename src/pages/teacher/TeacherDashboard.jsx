@@ -15,17 +15,12 @@ const TeacherDashboard = () => {
 
   useEffect(() => {
     const fetchMyStudents = async () => {
-      // 1. Safety check
       if (!currentUser?.uid) return;
 
       try {
         setLoading(true);
-
-        // 2. OPTIMIZED FETCH: 
-        // This relies on the new `getChildrenByTeacherId` function in childService.
-        // It only downloads children where this teacher's ID exists in the 'teacherIds' array.
+        // FETCH ONLY STUDENTS ASSIGNED TO THIS TEACHER
         const myStudents = await childService.getChildrenByTeacherId(currentUser.uid);
-
         setStudents(myStudents);
       } catch (err) {
         setError('Failed to load assigned students.');
@@ -62,28 +57,10 @@ const TeacherDashboard = () => {
         paddingBottom: '20px'
       }}>
         <div>
-          <h1 style={{ margin: 0, color: '#333' }}>Teacher Dashboard</h1>
+          <h1 style={{ margin: 0, color: '#333' }}>Teacher Dashboard 🍎</h1>
           <p style={{ margin: '5px 0 0', color: '#666' }}>
             {currentUser?.firstName} {currentUser?.lastName}
           </p>
-          <div style={{ marginTop: '8px', display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-            {currentUser?.specializations?.length > 0 ? (
-              currentUser.specializations.map((spec, index) => (
-                <span key={index} style={{ 
-                  backgroundColor: '#e3f2fd', 
-                  color: '#0d47a1', 
-                  padding: '2px 8px', 
-                  borderRadius: '12px', 
-                  fontSize: '0.8em',
-                  fontWeight: 'bold'
-                }}>
-                  {spec}
-                </span>
-              ))
-            ) : (
-              <span style={{ color: '#999', fontSize: '0.9em' }}>No Specialization Assigned</span>
-            )}
-          </div>
         </div>
 
         {/* ACTION BUTTONS */}
@@ -91,19 +68,20 @@ const TeacherDashboard = () => {
           <button 
             onClick={() => navigate('/teacher/play-group-upload')}
             style={{
-              padding: '8px 16px',
+              padding: '10px 20px',
               backgroundColor: '#2ecc71',
               color: 'white',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: '6px',
               cursor: 'pointer',
               fontWeight: 'bold',
               display: 'flex',
               alignItems: 'center',
-              gap: '5px'
+              gap: '8px',
+              fontSize: '15px'
             }}
           >
-            <span>📸</span> Upload Play Group
+            <span>📸</span> Upload Group Activity
           </button>
 
           <button 
@@ -125,11 +103,11 @@ const TeacherDashboard = () => {
       <ErrorMessage message={error} />
 
       {/* Content Area */}
-      <h2 style={{ color: '#444', marginBottom: '20px' }}>My Assigned Students</h2>
+      <h2 style={{ color: '#444', marginBottom: '20px' }}>My Class Roster</h2>
 
       {students.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#666', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
-          No students are currently assigned to you.
+          No students are currently assigned to your classes.
         </div>
       ) : (
         <div style={{ 
@@ -140,8 +118,8 @@ const TeacherDashboard = () => {
           {students.map(student => (
             <div key={student.id} style={{
               backgroundColor: 'white',
-              borderRadius: '8px',
-              boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+              borderRadius: '10px',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
               overflow: 'hidden',
               border: '1px solid #eee'
             }}>
@@ -149,20 +127,18 @@ const TeacherDashboard = () => {
                 <div style={{ 
                   width: '80px', 
                   height: '80px', 
-                  backgroundColor: '#ddd', 
+                  backgroundColor: '#f0f0f0', 
                   borderRadius: '50%', 
                   margin: '0 auto 15px',
-                  display: 'flex',
-                  alignItems: 'center',
+                  display: 'flex', 
+                  alignItems: 'center', 
                   justifyContent: 'center',
-                  fontSize: '24px',
-                  color: '#666',
                   overflow: 'hidden'
                 }}>
                   {student.photoUrl ? (
                     <img src={student.photoUrl} alt={student.firstName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    <span>📷</span>
+                    <span style={{ fontSize: '24px' }}>🧒</span>
                   )}
                 </div>
                 <h3 style={{ margin: 0, color: '#333' }}>{student.firstName} {student.lastName}</h3>
@@ -170,43 +146,29 @@ const TeacherDashboard = () => {
 
               <div style={{ padding: '15px' }}>
                 <div style={{ marginBottom: '10px', fontSize: '13px' }}>
-                  <strong>Enrolled In (With Me):</strong>
-                  <ul style={{ margin: '5px 0 0 20px', padding: 0, color: '#007bff' }}>
-                    {/* CRITICAL FIX: 
-                       Only show services where this specific teacher ID matches.
-                       This handles the "Teacher A offers Math but Child takes Math from Teacher B" scenario.
-                    */}
-                    {student.services
+                  <strong>Enrolled In (My Classes):</strong>
+                  <ul style={{ margin: '5px 0 0 20px', padding: 0, color: '#27ae60' }}>
+                    {/* UPDATED: Look at groupClasses instead of services */}
+                    {student.groupClasses && student.groupClasses
                       .filter(s => s.teacherId === currentUser.uid)
                       .map((s, i) => (
-                        <li key={i}>{s.serviceName}</li>
+                        <li key={i}>{s.serviceName}</li> // 'serviceName' holds the class name (e.g. Art Class)
                       ))
                     }
                   </ul>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '15px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px', marginTop: '15px' }}>
                   <button style={{
                     padding: '8px',
                     backgroundColor: '#fff',
-                    border: '1px solid #007bff',
-                    color: '#007bff',
+                    border: '1px solid #27ae60',
+                    color: '#27ae60',
                     borderRadius: '4px',
                     cursor: 'pointer',
                     fontSize: '13px'
                   }}>
-                    View Details
-                  </button>
-                  <button style={{
-                    padding: '8px',
-                    backgroundColor: '#007bff',
-                    border: 'none',
-                    color: 'white',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '13px'
-                  }}>
-                    + Activity
+                    View Profile
                   </button>
                 </div>
               </div>
