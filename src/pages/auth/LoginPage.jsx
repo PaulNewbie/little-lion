@@ -100,6 +100,7 @@ const LoginPage = () => {
             <div style={{ marginTop: "10px" }}>
               <div>Admin: admin@school.com (Password: password123)</div>
               <div>Teacher: ana@school.com(Password: Welcome123!)</div>
+              <div>Therapist: therapist@school.com" (Password: Welcome123!)</div>
               <div>Parent: joy@schoo.com" (Password: Welcome123!)</div>
             </div>
           </div>

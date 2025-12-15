@@ -116,8 +116,16 @@ const AdminSidebar = () => {
           >
             ➕ ADD TEACHER
           </div>
-        </div>
+          <div
+              className={`menu-item ${
+                isActive("/admin/manage-therapists") ? "active" : ""
+              }`}
+              onClick={() => navigate("/admin/manage-therapists")}
+            >
+              ➕ ADD THERAPIST
+          </div>
 
+        </div>
         <button className="logout-btn" onClick={handleLogout}>
           LOG OUT
         </button>

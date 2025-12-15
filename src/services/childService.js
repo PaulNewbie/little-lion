@@ -12,14 +12,66 @@ import { db } from '../config/firebase';
 
 class ChildService {
   // 1. Enroll child (Admin feature)
+// async enrollChild(childData, parentId) {
+//     try {
+//       // 1. Extract assignments
+//       const therapyServices = childData.therapyServices || [];
+//       const groupClasses = childData.groupClasses || [];
+
+//       // 2. Build Quick Access Arrays (For Security Rules & Queries)
+//       // These arrays only contain UIDs for fast "array-contains" queries
+//       const therapistIds = therapyServices.map(s => s.therapistId).filter(Boolean);
+//       const teacherIds = groupClasses.map(s => s.teacherId).filter(Boolean);
+
+//       // 3. Save to Firestore
+//       const childRef = await addDoc(collection(db, 'children'), {
+//         firstName: childData.firstName,
+//         lastName: childData.lastName,
+//         dateOfBirth: childData.dateOfBirth,
+//         gender: childData.gender,
+//         medicalInfo: childData.medicalInfo,
+//         photoUrl: childData.photoUrl || '',
+        
+//         // Linking
+//         parentIds: [parentId],
+        
+//         // REVISED: Specific Arrays
+//         therapyServices: therapyServices, // Array of objects: { serviceId, serviceName, therapistId, therapistName }
+//         groupClasses: groupClasses,       // Array of objects: { classId, className, teacherId, teacherName }
+        
+//         // REVISED: Permission Arrays
+//         therapistIds: therapistIds,       // Array of strings: ['uid1', 'uid2']
+//         teacherIds: teacherIds,           // Array of strings: ['uid3']
+        
+//         createdAt: new Date().toISOString(),
+//         active: true
+//       });
+
+//       // 4. Update Parent
+//       const parentRef = doc(db, 'users', parentId);
+//       await updateDoc(parentRef, {
+//         childrenIds: arrayUnion(childRef.id)
+//       });
+
+//       return childRef.id;
+//     } catch (error) {
+//       console.error("Enrollment Error:", error);
+//       throw new Error('Failed to enroll child: ' + error.message);
+//     }
+//   }
+
   async enrollChild(childData, parentId) {
     try {
+      const therapistIds = childData.therapyServices?.map(s => s.therapistId).filter(Boolean) || [];
+      const teacherIds = childData.groupClasses?.map(s => s.teacherId).filter(Boolean) || [];
+
       const childRef = await addDoc(collection(db, 'children'), {
         ...childData,
         parentIds: [parentId],
+        therapistIds,
+        teacherIds,
         createdAt: new Date().toISOString(),
-        active: true,
-        services: childData.services || [] 
+        active: true
       });
 
       const parentRef = doc(db, 'users', parentId);
@@ -40,13 +92,8 @@ class ChildService {
         collection(db, 'children'), 
         where('parentIds', 'array-contains', parentId)
       );
-      
       const querySnapshot = await getDocs(q);
-      
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
       throw new Error('Failed to fetch children: ' + error.message);
     }
@@ -67,26 +114,45 @@ class ChildService {
     }
   }
 
-  // 4.  Get specific who enroll for = Teacher Dashboard
-  async getChildrenByTeacherId(teacherId) {
+  // 4.  Gel specific who enroll for = Teacher Dashboard
+async getChildrenByTeacherId(teacherId) {
     try {
       const q = query(
         collection(db, 'children'), 
-        where('teacherIds', 'array-contains', teacherId) // This is the magic query
+        where('teacherIds', 'array-contains', teacherId),
+        where('active', '==', true)
       );
       
       const querySnapshot = await getDocs(q);
-      
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
     } catch (error) {
-      throw new Error('Failed to fetch your students: ' + error.message);
+      throw new Error('Failed to fetch your class students: ' + error.message);
     }
   }
 
-  // 5. Get ALL children
+  // 5. Get children assigned to a specific THERAPIST
+  async getChildrenByTherapistId(therapistId) {
+    try {
+      const q = query(
+        collection(db, 'children'), 
+        where('therapistIds', 'array-contains', therapistId),
+        where('active', '==', true)
+      );
+      
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      throw new Error('Failed to fetch your therapy students: ' + error.message);
+    }
+  }
+
+  // 6. Get ALL children
   async getAllChildren() {
     try {
       const querySnapshot = await getDocs(collection(db, 'children'));
@@ -99,7 +165,7 @@ class ChildService {
     }
   }
 
-  // 6. Add a service to an existing child
+  // 7. Add a service to an existing child
   async addServiceToChild(childId, serviceData) {
     try {
       const childRef = doc(db, 'children', childId);
@@ -110,6 +176,7 @@ class ChildService {
       throw new Error('Failed to assign service: ' + error.message);
     }
   }
+
 }
 
 const childServiceInstance = new ChildService();

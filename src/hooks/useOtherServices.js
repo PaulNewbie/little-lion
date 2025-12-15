@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import servicesService from '../services/servicesService';
 import teacherService from '../services/teacherService';
 import childService from '../services/childService';
+import therapistService from '../services/therapistService';
 
 const useOtherServices = () => {
   const [services, setServices] = useState([]);
@@ -32,12 +33,14 @@ const useOtherServices = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [sData, tData] = await Promise.all([
+      // Fetch both groups
+      const [sData, tData, thData] = await Promise.all([
         servicesService.getServicesWithStats(),
-        teacherService.getAllTeachers()
+        teacherService.getAllTeachers(),
+        therapistService.getAllTherapists()
       ]);
       setServices(sData);
-      setTeachers(tData);
+      setTeachers([...tData, ...thData]); // Combine them
     } catch (err) {
       setError(err.message);
     } finally {

@@ -1,7 +1,8 @@
 export const USER_ROLES = {
   ADMIN: 'admin',
   TEACHER: 'teacher',
-  PARENT: 'parent'
+  PARENT: 'parent',
+  THERAPIST: 'therapist' // Added
 };
 
 export const SERVICE_TYPES = {
