@@ -51,18 +51,11 @@ const OtherServices = () => {
       }}
     >
       {/* Sidebar */}
-      {/* {isSidebarVisible && (
-        <div className="admin-sidebar-container">
-          <AdminSidebar />
-        </div>
-      )} */}
+
       <AdminSidebar />
 
       {/* Main Content */}
       <div className="page-container">
-        {/* <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
-          {isSidebarVisible ? "Hide Menu ←" : "Show Menu →"}
-        </button> */}
         {/* Conditional Rendering: Service Details OR Service List */}
         {selectedService ? (
           // ---------------- VIEW: SERVICE DETAILS & ENROLLMENT ----------------
