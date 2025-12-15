@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+// import React, { useState } from "react";
 import useOtherServices from "../../hooks/useOtherServices";
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
 import "./css/OtherServices.css";
@@ -14,7 +14,7 @@ const OtherServices = () => {
     handleInputChange,
     createService,
     toggleTeacherAssignment,
-    deactivateService,
+    // deactivateService,
     selectedService,
     selectService,
     clearSelection,

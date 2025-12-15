@@ -1,0 +1,71 @@
+/* Ensure the page scrolls if content overflows */
+.manageParentsPage {
+  flex: 1; /* take remaining space beside sidebar */
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* scroll vertically if needed */
+  background-color: #fafafa;
+}
+
+/* Header stays on top, cards scroll */
+.manageParentsPage header {
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+/* Grid of student cards */
+.studentsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px;
+  justify-content: flex-start; /* align cards to start */
+}
+
+/* Individual student card */
+.studentCard {
+  flex: 0 0 150px; /* fixed width, don't stretch */
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.studentCard:hover {
+  transform: scale(1.05);
+  cursor: pointer;
+}
+
+/* Photo / emoji area */
+.photoArea {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 10px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px; /* emoji size */
+  background-color: #ddd; /* optional background circle */
+  border-radius: 50%;
+}
+
+/* Image overlays emoji if present */
+.photoArea img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.studentName {
+  font-weight: bold;
+  font-size: 14px;
+}
