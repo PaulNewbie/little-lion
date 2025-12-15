@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import servicesService from '../services/servicesService';
-import teacherService from '../services/teacherService';
-import therapistService from '../services/therapistService';
 import authService from '../services/authService';
 import childService from '../services/childService';
-import userService from '../services/userService';
 import cloudinaryService from '../services/cloudinaryService';
+import userService from '../services/userService';
 
 const useEnrollChild = () => {
   const [loading, setLoading] = useState(true);
@@ -41,8 +39,8 @@ const useEnrollChild = () => {
       try {
         const [allServices, allTeachers, allTherapists] = await Promise.all([
           servicesService.getActiveServices(),
-          teacherService.getAllTeachers(),
-          therapistService.getAllTherapists()
+          userService.getAllTeachers(),
+          userService.getAllTherapists()
         ]);
 
         // Separate Services by Type

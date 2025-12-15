@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react';
 import servicesService from '../services/servicesService';
-import teacherService from '../services/teacherService';
+import userService from '../services/userService'; // Changed from teacher/therapist services
 import childService from '../services/childService';
-import therapistService from '../services/therapistService';
 
 const useOtherServices = () => {
   const [services, setServices] = useState([]);
-  const [teachers, setTeachers] = useState([]);
+  const [teachers, setTeachers] = useState([]); // This variable name is kept for compatibility, but now includes Therapists too
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // New State for Details View
+  // State for Details View
   const [selectedService, setSelectedService] = useState(null);
   const [enrolledStudents, setEnrolledStudents] = useState([]);
   const [allStudents, setAllStudents] = useState([]);
@@ -33,14 +32,21 @@ const useOtherServices = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      // Fetch both groups
-      const [sData, tData, thData] = await Promise.all([
+      // 1. Fetch Services and All Staff (Teachers + Therapists) in parallel
+      const [sData, staffData] = await Promise.all([
         servicesService.getServicesWithStats(),
-        teacherService.getAllTeachers(),
-        therapistService.getAllTherapists()
+        userService.getAllStaff() 
       ]);
+      
       setServices(sData);
-      setTeachers([...tData, ...thData]); // Combine them
+      
+      // 2. Normalize ID fields if necessary (ensure they have an 'id' property for the UI)
+      const normalizedStaff = staffData.map(s => ({
+        ...s,
+        id: s.id || s.uid // Handle case where userService returns 'uid'
+      }));
+      setTeachers(normalizedStaff);
+
     } catch (err) {
       setError(err.message);
     } finally {
@@ -64,7 +70,7 @@ const useOtherServices = () => {
     }
   };
 
-  // --- NEW LOGIC ---
+  // --- SELECTION & ENROLLMENT LOGIC ---
 
   const selectService = async (service) => {
     setSelectedService(service);
@@ -99,6 +105,7 @@ const useOtherServices = () => {
 
     try {
       const teacher = teachers.find(t => t.id === enrollmentData.teacherId);
+      
       const serviceData = {
         serviceId: selectedService.id,
         serviceName: selectedService.name,
@@ -118,15 +125,19 @@ const useOtherServices = () => {
     }
   };
 
+  // --- UPDATED: Uses userService instead of teacherService ---
   const toggleTeacherAssignment = async (teacherId, serviceName) => {
-    /* ... (Keep existing logic) ... */
     try {
       const teacher = teachers.find(t => t.id === teacherId);
       const currentSpecs = teacher.specializations || [];
+      
       let newSpecs = currentSpecs.includes(serviceName)
         ? currentSpecs.filter(s => s !== serviceName)
         : [...currentSpecs, serviceName];
-      await teacherService.updateSpecializations(teacherId, newSpecs);
+      
+      // REPLACEMENT: Use generic updateUser
+      await userService.updateUser(teacherId, { specializations: newSpecs });
+      
       fetchData(); 
     } catch (err) {
       setError(err.message);
@@ -134,7 +145,6 @@ const useOtherServices = () => {
   };
 
   const deactivateService = async (id) => {
-    /* ... (Keep existing logic) ... */
     if (!window.confirm('Deactivate service?')) return;
     try {
       await servicesService.deactivateService(id);
@@ -148,7 +158,6 @@ const useOtherServices = () => {
     services, teachers, loading, error,
     newService, handleInputChange, createService,
     toggleTeacherAssignment, deactivateService,
-    // New exports
     selectedService, selectService, clearSelection,
     enrolledStudents, allStudents,
     enrollmentData, handleEnrollmentChange, enrollStudent

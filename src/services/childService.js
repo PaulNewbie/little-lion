@@ -10,58 +10,38 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
+/**
+ * @typedef {Object} ServiceAssignment
+ * @property {string} serviceId - The ID of the service from the 'services' collection
+ * @property {string} serviceName - The name of the service (e.g., 'Speech Therapy')
+ * @property {string} [therapistId] - UID of the therapist (for 1:1)
+ * @property {string} [therapistName] - Name of the therapist
+ * @property {string} [teacherId] - UID of the teacher (for classes)
+ * @property {string} [teacherName] - Name of the teacher
+ */
+
+/**
+ * @typedef {Object} ChildData
+ * @property {string} firstName
+ * @property {string} lastName
+ * @property {string} dateOfBirth - ISO Date string (YYYY-MM-DD)
+ * @property {string} gender - 'male' | 'female' | 'select'
+ * @property {string} [medicalInfo] - Optional medical notes
+ * @property {string} [photoUrl] - URL to profile image
+ * @property {ServiceAssignment[]} [therapyServices] - List of 1:1 therapies
+ * @property {ServiceAssignment[]} [groupClasses] - List of group classes
+ */
+
 class ChildService {
-  // 1. Enroll child (Admin feature)
-// async enrollChild(childData, parentId) {
-//     try {
-//       // 1. Extract assignments
-//       const therapyServices = childData.therapyServices || [];
-//       const groupClasses = childData.groupClasses || [];
-
-//       // 2. Build Quick Access Arrays (For Security Rules & Queries)
-//       // These arrays only contain UIDs for fast "array-contains" queries
-//       const therapistIds = therapyServices.map(s => s.therapistId).filter(Boolean);
-//       const teacherIds = groupClasses.map(s => s.teacherId).filter(Boolean);
-
-//       // 3. Save to Firestore
-//       const childRef = await addDoc(collection(db, 'children'), {
-//         firstName: childData.firstName,
-//         lastName: childData.lastName,
-//         dateOfBirth: childData.dateOfBirth,
-//         gender: childData.gender,
-//         medicalInfo: childData.medicalInfo,
-//         photoUrl: childData.photoUrl || '',
-        
-//         // Linking
-//         parentIds: [parentId],
-        
-//         // REVISED: Specific Arrays
-//         therapyServices: therapyServices, // Array of objects: { serviceId, serviceName, therapistId, therapistName }
-//         groupClasses: groupClasses,       // Array of objects: { classId, className, teacherId, teacherName }
-        
-//         // REVISED: Permission Arrays
-//         therapistIds: therapistIds,       // Array of strings: ['uid1', 'uid2']
-//         teacherIds: teacherIds,           // Array of strings: ['uid3']
-        
-//         createdAt: new Date().toISOString(),
-//         active: true
-//       });
-
-//       // 4. Update Parent
-//       const parentRef = doc(db, 'users', parentId);
-//       await updateDoc(parentRef, {
-//         childrenIds: arrayUnion(childRef.id)
-//       });
-
-//       return childRef.id;
-//     } catch (error) {
-//       console.error("Enrollment Error:", error);
-//       throw new Error('Failed to enroll child: ' + error.message);
-//     }
-//   }
-
+  /**
+   * Enrolls a new child and links them to a parent.
+   * @param {ChildData} childData - The full child profile object
+   * @param {string} parentId - The UID of the parent user
+   * @returns {Promise<string>} The ID of the newly created child document
+   */
   async enrollChild(childData, parentId) {
     try {
+      // Logic for Quick Access Arrays
       const therapistIds = childData.therapyServices?.map(s => s.therapistId).filter(Boolean) || [];
       const teacherIds = childData.groupClasses?.map(s => s.teacherId).filter(Boolean) || [];
 
@@ -166,6 +146,11 @@ async getChildrenByTeacherId(teacherId) {
   }
 
   // 7. Add a service to an existing child
+  /**
+   * Adds a specific service to an existing child.
+   * @param {string} childId 
+   * @param {ServiceAssignment} serviceData 
+   */
   async addServiceToChild(childId, serviceData) {
     try {
       const childRef = doc(db, 'children', childId);
@@ -176,7 +161,6 @@ async getChildrenByTeacherId(teacherId) {
       throw new Error('Failed to assign service: ' + error.message);
     }
   }
-
 }
 
 const childServiceInstance = new ChildService();

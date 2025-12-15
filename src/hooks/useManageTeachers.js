@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import teacherService from '../services/teacherService';
+import userService from '../services/userService';
 import authService from '../services/authService';
 import servicesService from '../services/servicesService';
 
@@ -27,7 +27,7 @@ const useManageTeachers = () => {
     try {
       setLoading(true);
       const [tData, sData] = await Promise.all([
-        teacherService.getAllTeachers(),
+        userService.getAllTeachers(),
         servicesService.getActiveServices()
       ]);
       setTeachers(tData);
@@ -73,7 +73,7 @@ const useManageTeachers = () => {
   const deleteTeacher = async (id) => {
     if (!window.confirm('Are you sure?')) return;
     try {
-      await teacherService.deleteTeacher(id);
+      await userService.deleteTeacher(id);
       fetchData();
     } catch (err) {
       setError(err.message);
