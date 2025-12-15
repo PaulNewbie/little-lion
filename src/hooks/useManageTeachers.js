@@ -27,7 +27,8 @@ const useManageTeachers = () => {
     try {
       setLoading(true);
       const [tData, sData] = await Promise.all([
-        userService.getAllTeachers(),
+        // FIXED: Changed getAllTeachers() to getUsersByRole('teacher')
+        userService.getUsersByRole('teacher'),
         servicesService.getActiveServices()
       ]);
       setTeachers(tData);
@@ -73,7 +74,8 @@ const useManageTeachers = () => {
   const deleteTeacher = async (id) => {
     if (!window.confirm('Are you sure?')) return;
     try {
-      await userService.deleteTeacher(id);
+      // FIXED: Changed deleteTeacher(id) to deleteUser(id)
+      await userService.deleteUser(id);
       fetchData();
     } catch (err) {
       setError(err.message);

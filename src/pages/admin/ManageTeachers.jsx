@@ -93,12 +93,14 @@ const ManageTeachers = () => {
         </thead>
         <tbody>
           {teachers.map(t => (
-            <tr key={t.id}>
+            /* FIXED: Changed t.id to t.uid */
+            <tr key={t.uid}>
               <td>{t.firstName} {t.lastName}</td>
               <td>{t.email}</td>
               <td>{t.specializations?.join(', ')}</td>
               <td>
-                <button onClick={() => deleteTeacher(t.id)}>Delete</button>
+                {/* FIXED: Changed t.id to t.uid */}
+                <button onClick={() => deleteTeacher(t.uid)}>Delete</button>
               </td>
             </tr>
           ))}

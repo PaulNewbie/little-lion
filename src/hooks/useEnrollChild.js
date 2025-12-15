@@ -34,15 +34,13 @@ const useEnrollChild = () => {
   const [photoPreview, setPhotoPreview] = useState(null);
 
   // 1. Initial Data Fetch
-// 1. Initial Data Fetch
   useEffect(() => {
     const init = async () => {
       try {
         const [allServices, allTeachers, allTherapists] = await Promise.all([
           servicesService.getActiveServices(),
-          // CHANGE THESE TWO LINES:
-          userService.getUsersByRole('teacher'),   // Was userService.getAllTeachers()
-          userService.getUsersByRole('therapist')  // Was userService.getAllTherapists()
+          userService.getUsersByRole('teacher'),
+          userService.getUsersByRole('therapist')
         ]);
 
         // Separate Services by Type
@@ -59,6 +57,7 @@ const useEnrollChild = () => {
     };
     init();
   }, []);
+
   // 2. Input Handlers
   const handleChildChange = (e) => setChildInfo({ ...childInfo, [e.target.name]: e.target.value });
   
@@ -108,17 +107,21 @@ const useEnrollChild = () => {
         { 
           serviceId, 
           serviceName, 
-          therapistId: qualified ? qualified.id : '', // Default to first match or empty
+          therapistId: qualified ? qualified.id : '',
           therapistName: qualified ? `${qualified.firstName} ${qualified.lastName}` : '' 
         }
       ]);
     }
   };
 
+  // --- FIXED: Added check for undefined person ---
   const updateTherapyAssignee = (serviceId, therapistId) => {
     const person = therapists.find(t => t.id === therapistId);
+    // If no therapist is selected (empty string), set name to empty
+    const therapistName = person ? `${person.firstName} ${person.lastName}` : '';
+
     setSelectedTherapies(selectedTherapies.map(s => 
-      s.serviceId === serviceId ? { ...s, therapistId, therapistName: `${person.firstName} ${person.lastName}` } : s
+      s.serviceId === serviceId ? { ...s, therapistId, therapistName } : s
     ));
   };
 
@@ -128,8 +131,6 @@ const useEnrollChild = () => {
       setSelectedClasses(selectedClasses.filter(s => s.serviceId !== serviceId));
     } else {
       // Find teachers who teach this class
-      // Note: 'classesTeaching' isn't in your user model yet, using 'specializations' for now based on your old code
-      // or we just filter all teachers. Let's assume teachers use 'specializations' for classes too as per current TeacherService
       const qualified = teachers.find(t => t.specializations?.includes(serviceName));
       setSelectedClasses([
         ...selectedClasses,
@@ -143,38 +144,38 @@ const useEnrollChild = () => {
     }
   };
 
+  // --- FIXED: Added check for undefined person ---
   const updateClassAssignee = (serviceId, teacherId) => {
     const person = teachers.find(t => t.id === teacherId);
+    // If no teacher is selected, set name to empty
+    const teacherName = person ? `${person.firstName} ${person.lastName}` : '';
+
     setSelectedClasses(selectedClasses.map(s => 
-      s.serviceId === serviceId ? { ...s, teacherId, teacherName: `${person.firstName} ${person.lastName}` } : s
+      s.serviceId === serviceId ? { ...s, teacherId, teacherName } : s
     ));
   };
 
   // 5. Submit
-const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
-    // --- NEW VALIDATION START ---
-    // 1. Check if any therapies are selected but have no therapist assigned
+    // Validation
     const missingTherapist = selectedTherapies.find(s => !s.therapistId);
     if (missingTherapist) {
       setError(`Please select a therapist for ${missingTherapist.serviceName}`);
       return;
     }
 
-    // 2. Check if any classes are selected but have no teacher assigned
     const missingTeacher = selectedClasses.find(s => !s.teacherId);
     if (missingTeacher) {
       setError(`Please select a teacher for ${missingTeacher.serviceName}`);
       return;
     }
 
-    // 3. Ensure at least one service is selected (Optional, but good practice)
     if (selectedTherapies.length === 0 && selectedClasses.length === 0) {
       if (!window.confirm("No services or classes selected. Continue enrollment?")) return;
     }
-    // --- NEW VALIDATION END ---
 
     setUploading(true);
 
@@ -207,7 +208,6 @@ const handleSubmit = async (e) => {
       }, parentUid);
 
       alert('Child Enrolled Successfully!');
-      // Optional: Navigate to dashboard or reset form
       
     } catch (err) {
       console.error(err);

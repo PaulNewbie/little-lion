@@ -91,12 +91,13 @@ const ManageTherapists = () => {
         </thead>
         <tbody>
           {therapists.map(t => (
-            <tr key={t.id}>
+            /* FIXED: Changed t.id to t.uid here and in the delete button */
+            <tr key={t.uid}>
               <td>{t.firstName} {t.lastName}</td>
               <td>{t.email}</td>
               <td>{t.specializations?.join(', ')}</td>
               <td>
-                <button onClick={() => deleteTherapist(t.id)}>Delete</button>
+                <button onClick={() => deleteTherapist(t.uid)}>Delete</button>
               </td>
             </tr>
           ))}

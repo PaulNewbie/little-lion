@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import authService from "../../services/authService"; // Import authService for password reset
 import ErrorMessage from "../../components/common/ErrorMessage";
 import "./LoginPage.css";
 
@@ -25,8 +26,15 @@ const LoginPage = () => {
     try {
       const user = await login(email, password);
 
+      // --- 1. CHECK FOR FORCED PASSWORD CHANGE ---
+      if (user.mustChangePassword) {
+        navigate("/change-password");
+        return; // Stop execution so they don't get to the dashboard
+      }
+
+      // --- 2. REGULAR NAVIGATION ---
       switch (user.role) {
-        case "super_admin": // Added case
+        case "super_admin":
         case "admin":
           navigate("/admin/dashboard");
           break;
@@ -52,6 +60,19 @@ const LoginPage = () => {
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !loading) {
       handleLogin();
+    }
+  };
+
+  // --- 3. FORGOT PASSWORD HANDLER ---
+  const handleForgotPassword = async () => {
+    const emailInput = prompt("Please enter your email address to reset your password:");
+    if (emailInput) {
+      try {
+        await authService.resetPassword(emailInput);
+        alert("Password reset email sent! Please check your inbox.");
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
     }
   };
 
@@ -97,15 +118,31 @@ const LoginPage = () => {
             >
               {loading ? "Logging in..." : "Login"}
             </button>
+
+            {/* --- FORGOT PASSWORD LINK --- */}
+            <div style={{ textAlign: "right", marginTop: "15px" }}>
+              <span 
+                onClick={handleForgotPassword}
+                style={{ 
+                  color: "#007bff", 
+                  cursor: "pointer", 
+                  fontSize: "14px", 
+                  textDecoration: "underline" 
+                }}
+              >
+                Forgot Password?
+              </span>
+            </div>
+
           </div>
 
           <div className="demo-box">
             <strong>Demo Accounts:</strong>
             <div style={{ marginTop: "10px" }}>
               <div>Admin: admin@school.com (Password: password123)</div>
-              <div>Teacher: ana@school.com(Password: Welcome123!)</div>
-              <div>Therapist: therapist@school.com" (Password: Welcome123!)</div>
-              <div>Parent: joy@schoo.com" (Password: Welcome123!)</div>
+              <div>Teacher: ana@school.com (Password: Welcome123!)</div>
+              <div>Therapist: therapist@school.com (Password: Welcome123!)</div>
+              <div>Parent: joy@school.com (Password: Welcome123!)</div>
             </div>
           </div>
         </div>

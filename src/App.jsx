@@ -6,6 +6,7 @@ import { useAuth } from './hooks/useAuth';
 // Auth Components
 import LoginPage from './pages/auth/LoginPage';
 import ProtectedRoute from './routes/ProtectedRoute';
+import ChangePassword from './pages/auth/ChangePassword';
 
 // Admin Components
 import OneOnOne from './pages/admin/OneOnOne';
@@ -59,6 +60,7 @@ const AppRoutes = () => {
 
   return (
     <Routes>
+      <Route path="/change-password" element={<ChangePassword />} />
       <Route 
         path="/login" 
         element={
