@@ -47,7 +47,8 @@ const AppRoutes = () => {
         element={
           currentUser ? (
             <Navigate to={
-              currentUser.role === 'admin' ? '/admin/one-on-one' :
+              // Update redirect logic for super_admin
+              (currentUser.role === 'admin' || currentUser.role === 'super_admin') ? '/admin/one-on-one' :
               currentUser.role === 'teacher' ? '/teacher/dashboard' :
               currentUser.role === 'therapist' ? '/therapist/dashboard' : 
               '/parent/dashboard'
@@ -59,14 +60,17 @@ const AppRoutes = () => {
       />
 
       {/* ADMIN ROUTES */}
-      <Route path="/admin/one-on-one" element={<ProtectedRoute allowedRoles={['admin']}><OneOnOne /></ProtectedRoute>} />
+      {/* 1. Shared Admin Routes (Accessible by admin AND super_admin) */}
+      <Route path="/admin/one-on-one" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><OneOnOne /></ProtectedRoute>} />
       <Route path="/admin/dashboard" element={<Navigate to="/admin/one-on-one" replace />} />
-      <Route path="/admin/play-group" element={<ProtectedRoute allowedRoles={['admin']}><PlayGroup /></ProtectedRoute>} />
-      <Route path="/admin/enroll-child" element={<ProtectedRoute allowedRoles={['admin']}><EnrollChild /></ProtectedRoute>} />
-      <Route path="/admin/manage-teachers" element={<ProtectedRoute allowedRoles={['admin']}><ManageTeachers /></ProtectedRoute>} />
-      <Route path="/admin/manage-therapists" element={<ProtectedRoute allowedRoles={['admin']}><ManageTherapists /></ProtectedRoute>} />
-      <Route path="/admin/services" element={<ProtectedRoute allowedRoles={['admin']}><OtherServices /></ProtectedRoute>} />
-
+      <Route path="/admin/play-group" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><PlayGroup /></ProtectedRoute>} />
+      <Route path="/admin/enroll-child" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><EnrollChild /></ProtectedRoute>} />
+      <Route path="/admin/manage-teachers" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><ManageTeachers /></ProtectedRoute>} />
+      <Route path="/admin/manage-therapists" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><ManageTherapists /></ProtectedRoute>} />
+      
+      {/* 2. SUPER ADMIN ONLY ROUTES */}
+      <Route path="/admin/services" element={<ProtectedRoute allowedRoles={['super_admin']}><OtherServices /></ProtectedRoute>} />
+      
       {/* TEACHER ROUTES */}
       <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherDashboard /></ProtectedRoute>} />
       <Route path="/teacher/play-group-upload" element={<ProtectedRoute allowedRoles={['teacher', 'admin']}><PlayGroupActivity /></ProtectedRoute>} />

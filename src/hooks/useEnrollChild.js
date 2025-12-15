@@ -34,13 +34,15 @@ const useEnrollChild = () => {
   const [photoPreview, setPhotoPreview] = useState(null);
 
   // 1. Initial Data Fetch
+// 1. Initial Data Fetch
   useEffect(() => {
     const init = async () => {
       try {
         const [allServices, allTeachers, allTherapists] = await Promise.all([
           servicesService.getActiveServices(),
-          userService.getAllTeachers(),
-          userService.getAllTherapists()
+          // CHANGE THESE TWO LINES:
+          userService.getUsersByRole('teacher'),   // Was userService.getAllTeachers()
+          userService.getUsersByRole('therapist')  // Was userService.getAllTherapists()
         ]);
 
         // Separate Services by Type
@@ -57,7 +59,6 @@ const useEnrollChild = () => {
     };
     init();
   }, []);
-
   // 2. Input Handlers
   const handleChildChange = (e) => setChildInfo({ ...childInfo, [e.target.name]: e.target.value });
   

@@ -26,6 +26,7 @@ const LoginPage = () => {
       const user = await login(email, password);
 
       switch (user.role) {
+        case "super_admin": // Added case
         case "admin":
           navigate("/admin/dashboard");
           break;
@@ -35,6 +36,9 @@ const LoginPage = () => {
         case "parent":
           navigate("/parent/dashboard");
           break;
+        case "therapist":
+           navigate("/therapist/dashboard");
+           break;
         default:
           navigate("/");
       }

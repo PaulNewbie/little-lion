@@ -17,39 +17,36 @@ const AdminSidebar = () => {
   };
 
   const isActive = (path) => location.pathname === path;
+  
+  // Helper to check for super admin
+  const isSuperAdmin = currentUser?.role === 'super_admin';
 
   // Handle window resize
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 768) {
         setIsDesktop(true);
-        setIsOpen(true); // always open on desktop
+        setIsOpen(true);
       } else {
         setIsDesktop(false);
-        setIsOpen(false); // default closed on mobile
+        setIsOpen(false);
       }
     };
 
     window.addEventListener("resize", handleResize);
-
-    // Initialize
     handleResize();
-
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return (
     <>
-      {/* Open Button for mobile */}
       {!isOpen && !isDesktop && (
         <button className="open-btn" onClick={() => setIsOpen(true)}>
           ☰
         </button>
       )}
 
-      {/* Sidebar */}
       <div className={`sidebar ${isOpen ? "open" : "closed"}`}>
-        {/* Close Button only on mobile */}
         {!isDesktop && (
           <button className="close-btn" onClick={() => setIsOpen(false)}>
             ✕
@@ -60,7 +57,10 @@ const AdminSidebar = () => {
         <div className="profile-section">
           <div className="avatar">🦁</div>
           <div>
-            <div className="role-label">SUPER ADMIN</div>
+            {/* Dynamic Role Label */}
+            <div className="role-label">
+              {isSuperAdmin ? "SUPER ADMIN" : "ADMINISTRATOR"}
+            </div>
             <div className="profile-name">
               {currentUser?.firstName || "Admin"}
             </div>
@@ -86,14 +86,18 @@ const AdminSidebar = () => {
           >
             👥 PLAY GROUP
           </div>
-          <div
-            className={`menu-item ${
-              isActive("/admin/services") ? "active" : ""
-            }`}
-            onClick={() => navigate("/admin/services")}
-          >
-            ➕ ADD SERVICES
-          </div>
+          
+          {/* RESTRICTED: Add Services */}
+          {isSuperAdmin && (
+            <div
+              className={`menu-item ${
+                isActive("/admin/services") ? "active" : ""
+              }`}
+              onClick={() => navigate("/admin/services")}
+            >
+              ➕ ADD SERVICES
+            </div>
+          )}
         </div>
 
         {/* User Management */}
@@ -107,7 +111,12 @@ const AdminSidebar = () => {
           >
             ➕ ADD PARENT
           </div>
-          <div className="menu-item">➕ ADD ADMIN</div>
+          
+          {/* RESTRICTED: Add Admin */}
+          {isSuperAdmin && (
+            <div className="menu-item">➕ ADD ADMIN</div>
+          )}
+
           <div
             className={`menu-item ${
               isActive("/admin/manage-teachers") ? "active" : ""
