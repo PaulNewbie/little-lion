@@ -112,9 +112,16 @@ const AdminSidebar = () => {
             ➕ ADD PARENT
           </div>
           
-          {/* RESTRICTED: Add Admin */}
+          {/* RESTRICTED: Add Admin (Only for Super Admin) */}
           {isSuperAdmin && (
-            <div className="menu-item">➕ ADD ADMIN</div>
+            <div
+              className={`menu-item ${
+                isActive("/admin/manage-admins") ? "active" : ""
+              }`}
+              onClick={() => navigate("/admin/manage-admins")}
+            >
+              ➕ ADD ADMIN
+            </div>
           )}
 
           <div

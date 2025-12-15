@@ -118,7 +118,37 @@ async createTeacherAccount(email, password, teacherData) {
     }
   }
 
-  // 4. Get user data
+  // 5. Create Admin Account (Super Admin Only)
+async createAdminAccount(email, password, adminData) {
+    let tempApp = null;
+    try {
+      // Use a temporary app instance to create the user without logging out the current super_admin
+      tempApp = initializeApp(firebaseConfig, 'tempApp-Admin-' + Date.now());
+      const tempAuth = getAuth(tempApp);
+      const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
+      const user = userCredential.user;
+
+      await setDoc(doc(db, 'users', user.uid), {
+        ...adminData,
+        uid: user.uid,
+        role: 'admin', // Explicitly set role to admin
+        active: true,
+        mustChangePassword: true,
+        createdAt: new Date().toISOString()
+      });
+
+      return user;
+    } catch (error) {
+      throw this.handleAuthError(error);
+    } finally {
+      if (tempApp) {
+        const { deleteApp } = await import('firebase/app');
+        await deleteApp(tempApp);
+      }
+    }
+  }
+
+  // 6. Get user data
   async getUserData(uid) {
     try {
       const userDoc = await getDoc(doc(db, 'users', uid));
@@ -131,7 +161,7 @@ async createTeacherAccount(email, password, teacherData) {
     }
   }
 
-  // 5. Sign out
+  // 7. Sign out
   async signOut() {
     try {
       await signOut(auth);
@@ -140,7 +170,7 @@ async createTeacherAccount(email, password, teacherData) {
     }
   }
 
-  // 6. Reset Password
+  // 8. Reset Password
   async resetPassword(email) {
     try {
       await sendPasswordResetEmail(auth, email);
@@ -149,12 +179,12 @@ async createTeacherAccount(email, password, teacherData) {
     }
   }
 
-  // 7. Auth State Observer
+  // 9. Auth State Observer
   onAuthStateChanged(callback) {
     return onAuthStateChanged(auth, callback);
   }
 
-  // 8. Error Handler
+  // 10. Error Handler
   handleAuthError(error) {
     console.error("Auth Error:", error);
     switch (error.code) {

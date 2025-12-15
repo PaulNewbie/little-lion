@@ -1,6 +1,6 @@
 // src/pages/auth/ChangePassword.jsx
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import { getAuth, updatePassword } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
@@ -13,7 +13,7 @@ const ChangePassword = () => {
   const [error, setError] = useState('');
   
   const { currentUser } = useAuth();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const auth = getAuth();
 
   const handleSubmit = async (e) => {

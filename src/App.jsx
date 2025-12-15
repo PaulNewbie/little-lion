@@ -15,6 +15,7 @@ import EnrollChild from './pages/admin/EnrollChild';
 import ManageTeachers from './pages/admin/ManageTeachers';
 import ManageTherapists from './pages/admin/ManageTherapists';
 import OtherServices from './pages/admin/OtherServices';
+import ManageAdmins from './pages/admin/ManageAdmins';
 
 // Teacher Components
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
@@ -83,7 +84,8 @@ const AppRoutes = () => {
       
       {/* 2. SUPER ADMIN ONLY ROUTES */}
       <Route path="/admin/services" element={<ProtectedRoute allowedRoles={['super_admin']}><OtherServices /></ProtectedRoute>} />
-      
+      <Route path="/admin/manage-admins" element={<ProtectedRoute allowedRoles={['super_admin']}><ManageAdmins /></ProtectedRoute>} />
+
       {/* TEACHER ROUTES */}
       <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherDashboard /></ProtectedRoute>} />
       <Route path="/teacher/play-group-upload" element={<ProtectedRoute allowedRoles={['teacher', 'admin', 'super_admin']}><PlayGroupActivity /></ProtectedRoute>} />
