@@ -67,7 +67,7 @@ class ChildService {
     }
   }
 
-  // 4.  Gel specific who enroll for = Teacher Dashboard
+  // 4.  Get specific who enroll for = Teacher Dashboard
   async getChildrenByTeacherId(teacherId) {
     try {
       const q = query(
