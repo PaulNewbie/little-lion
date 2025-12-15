@@ -21,16 +21,16 @@ import PlayGroupActivity from './pages/teacher/PlayGroupActivity';
 
 // Therapist Components
 import TherapistDashboard from './pages/therapist/TherapistDashboard';
-import TherapySessionForm from './pages/therapist/TherapySessionForm'; // Make sure this file exists
+import TherapySessionForm from './pages/therapist/TherapySessionForm'; 
 
 // Parent Components
 import ParentDashboard from './pages/parent/ParentDashboard';
 import ChildActivities from './pages/parent/ChildActivities';
-import ParentInquiries from './pages/parent/ParentInquiries'; // IMPORTED
-import NewInquiry from './pages/parent/NewInquiry';           // IMPORTED
+import ParentInquiries from './pages/parent/ParentInquiries'; 
+import NewInquiry from './pages/parent/NewInquiry';           
 
 // Staff Shared Components
-import StaffInquiries from './components/common/StaffInquiries'; // IMPORTED
+import StaffInquiries from './components/common/StaffInquiries'; 
 
 // Common Components
 import Loading from './components/common/Loading';
@@ -40,19 +40,30 @@ const AppRoutes = () => {
 
   if (loading) return <Loading />;
 
+  // --- FIX: Helper to determine home page based on role ---
+  const getHomeRoute = (role) => {
+    switch (role) {
+      case 'super_admin': // Explicitly handle super_admin
+      case 'admin':
+        return '/admin/one-on-one';
+      case 'teacher':
+        return '/teacher/dashboard';
+      case 'therapist':
+        return '/therapist/dashboard';
+      case 'parent':
+        return '/parent/dashboard';
+      default:
+        return '/login';
+    }
+  };
+
   return (
     <Routes>
       <Route 
         path="/login" 
         element={
           currentUser ? (
-            <Navigate to={
-              // Update redirect logic for super_admin
-              (currentUser.role === 'admin' || currentUser.role === 'super_admin') ? '/admin/one-on-one' :
-              currentUser.role === 'teacher' ? '/teacher/dashboard' :
-              currentUser.role === 'therapist' ? '/therapist/dashboard' : 
-              '/parent/dashboard'
-            } replace />
+            <Navigate to={getHomeRoute(currentUser.role)} replace />
           ) : (
             <LoginPage />
           )
@@ -73,7 +84,7 @@ const AppRoutes = () => {
       
       {/* TEACHER ROUTES */}
       <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherDashboard /></ProtectedRoute>} />
-      <Route path="/teacher/play-group-upload" element={<ProtectedRoute allowedRoles={['teacher', 'admin']}><PlayGroupActivity /></ProtectedRoute>} />
+      <Route path="/teacher/play-group-upload" element={<ProtectedRoute allowedRoles={['teacher', 'admin', 'super_admin']}><PlayGroupActivity /></ProtectedRoute>} />
 
       {/* THERAPIST ROUTES */}
       <Route path="/therapist/dashboard" element={<ProtectedRoute allowedRoles={['therapist']}><TherapistDashboard /></ProtectedRoute>} />
@@ -88,17 +99,20 @@ const AppRoutes = () => {
       {/* SHARED STAFF ROUTES (Inbox) */}
       <Route path="/staff/inquiries" element={<ProtectedRoute allowedRoles={['teacher', 'therapist']}><StaffInquiries /></ProtectedRoute>} />
 
+      {/* --- FIX: ADD UNAUTHORIZED ROUTE TO STOP LOOPS --- */}
+      <Route path="/unauthorized" element={
+        <div style={{ padding: '50px', textAlign: 'center', color: '#d32f2f' }}>
+          <h1>⛔ Access Denied</h1>
+          <p>You do not have permission to view this page.</p>
+        </div>
+      } />
+
       {/* Default Fallback */}
       <Route
         path="/"
         element={
           currentUser ? (
-            <Navigate to={
-              currentUser.role === 'admin' ? '/admin/one-on-one' :
-              currentUser.role === 'teacher' ? '/teacher/dashboard' :
-              currentUser.role === 'therapist' ? '/therapist/dashboard' :
-              '/parent/dashboard'
-            } replace />
+            <Navigate to={getHomeRoute(currentUser.role)} replace />
           ) : (
             <Navigate to="/login" replace />
           )
