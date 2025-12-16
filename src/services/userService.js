@@ -5,54 +5,40 @@ import {
   getDocs, 
   setDoc, 
   updateDoc, 
-  deleteDoc,
-  query,
+  deleteDoc, 
+  query, 
   where 
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 class UserService {
-  // Create new user in Firestore
+  // --- BASIC CRUD ---
+
+  // Create or Overwrite User (Used by Auth Services)
   async createUser(uid, userData) {
     try {
       await setDoc(doc(db, 'users', uid), {
         ...userData,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        active: true // Default to active
       });
     } catch (error) {
       throw new Error('Failed to create user: ' + error.message);
     }
   }
 
-  // Get user by ID
+  // Get User by ID
   async getUserById(uid) {
     try {
       const userDoc = await getDoc(doc(db, 'users', uid));
-      if (!userDoc.exists()) {
-        throw new Error('User not found');
-      }
+      if (!userDoc.exists()) throw new Error('User not found');
       return { uid: userDoc.id, ...userDoc.data() };
     } catch (error) {
       throw new Error('Failed to fetch user: ' + error.message);
     }
   }
 
-  // Get all users by role
-  async getUsersByRole(role) {
-    try {
-      const q = query(collection(db, 'users'), where('role', '==', role));
-      const querySnapshot = await getDocs(q);
-      
-      return querySnapshot.docs.map(doc => ({
-        uid: doc.id,
-        ...doc.data()
-      }));
-    } catch (error) {
-      throw new Error('Failed to fetch users: ' + error.message);
-    }
-  }
-
-  // Update user
+  // Update User (Generic)
   async updateUser(uid, updates) {
     try {
       await updateDoc(doc(db, 'users', uid), {
@@ -64,7 +50,7 @@ class UserService {
     }
   }
 
-  // Delete user
+  // Hard Delete (Permanent)
   async deleteUser(uid) {
     try {
       await deleteDoc(doc(db, 'users', uid));
@@ -73,34 +59,69 @@ class UserService {
     }
   }
 
-  // Get all teachers
-  async getAllTeachers() {
-    return this.getUsersByRole('teacher');
+  // Soft Delete (Mark as inactive - Used by Teachers/Therapists)
+  async softDeleteUser(uid) {
+    try {
+      await this.updateUser(uid, {
+        active: false,
+        deletedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      throw new Error('Failed to deactivate user: ' + error.message);
+    }
   }
 
-  // Get all parents
-  async getAllParents() {
-    return this.getUsersByRole('parent');
+  // --- QUERIES ---
+
+  // Get Users by Role (Replaces getAllTeachers, getAllTherapists, getAllParents)
+  async getUsersByRole(role) {
+    try {
+      const q = query(collection(db, 'users'), where('role', '==', role));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+    } catch (error) {
+      throw new Error(`Failed to fetch ${role}s: ` + error.message);
+    }
   }
 
-  // NEW: Find a user by their email (Added from previous step)
+  // Get Users by Specialization (Replaces teacherService specific logic)
+  async getUsersBySpecialization(role, specialization) {
+    try {
+      const q = query(
+        collection(db, 'users'),
+        where('role', '==', role),
+        where('specializations', 'array-contains', specialization)
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+    } catch (error) {
+      throw new Error('Failed to search users by specialization: ' + error.message);
+    }
+  }
+
+  // Get All Active Staff (Combined Teachers & Therapists)
+  async getAllStaff() {
+    try {
+      const q = query(collection(db, 'users'), where('role', 'in', ['teacher', 'therapist']));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+    } catch (error) {
+      throw new Error('Failed to fetch staff: ' + error.message);
+    }
+  }
+
+  // Find by Email (Helper for Auth)
   async getUserByEmail(email) {
     try {
       const q = query(collection(db, 'users'), where('email', '==', email));
       const querySnapshot = await getDocs(q);
-      
-      if (querySnapshot.empty) {
-        return null;
-      }
-      
-      const userDoc = querySnapshot.docs[0];
-      return { uid: userDoc.id, ...userDoc.data() };
+      if (querySnapshot.empty) return null;
+      return { uid: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
     } catch (error) {
       throw new Error('Failed to find user by email: ' + error.message);
     }
   }
 }
 
-// FIX: Assign to variable before exporting
-const userService = new UserService();
-export default userService;
+const userServiceInstance = new UserService();
+export default userServiceInstance;

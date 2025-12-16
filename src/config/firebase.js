@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+=======
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
+>>>>>>> second-merge
 
 // const firebaseConfig = {
 //   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -34,4 +41,3 @@ export const storage = getStorage(app);
 export default app;
 
 export { firebaseConfig };
-

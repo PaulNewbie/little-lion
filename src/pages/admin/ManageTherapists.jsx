@@ -1,42 +1,41 @@
 import React from 'react';
-import useManageTeachers from '../../hooks/useManageTeachers';
+import useManageTherapists from '../../hooks/useManageTherapists';
 
-const ManageTeachers = () => {
+const ManageTherapists = () => {
   const {
-    teachers,
+    therapists,
     services,
     loading,
     error,
-    newTeacher,
+    newTherapist,
     handleInputChange,
     toggleSpecialization,
-    createTeacher,
-    deleteTeacher
-  } = useManageTeachers();
+    createTherapist,
+    deleteTherapist
+  } = useManageTherapists();
 
-  if (loading) return <div>Loading teachers...</div>;
+  if (loading) return <div>Loading therapists...</div>;
 
   return (
     <div style={{ padding: '20px' }}>
-      <h1>Manage Teachers</h1>
+      <h1>Manage Therapists</h1>
       {error && <div style={{ color: 'red' }}>Error: {error}</div>}
 
-      {/* Simplified Creation Form */}
       <div style={{ border: '1px solid #ccc', padding: '20px', marginBottom: '20px' }}>
-        <h3>Add New Teacher</h3>
-        <form onSubmit={createTeacher}>
+        <h3>Add New Therapist</h3>
+        <form onSubmit={createTherapist}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '300px' }}>
             <input 
               name="firstName" 
               placeholder="First Name" 
-              value={newTeacher.firstName} 
+              value={newTherapist.firstName} 
               onChange={handleInputChange} 
               required 
             />
             <input 
               name="lastName" 
               placeholder="Last Name" 
-              value={newTeacher.lastName} 
+              value={newTherapist.lastName} 
               onChange={handleInputChange} 
               required 
             />
@@ -44,19 +43,19 @@ const ManageTeachers = () => {
               name="email" 
               type="email" 
               placeholder="Email" 
-              value={newTeacher.email} 
+              value={newTherapist.email} 
               onChange={handleInputChange} 
               required 
             />
             <input 
               name="phone" 
               placeholder="Phone" 
-              value={newTeacher.phone} 
+              value={newTherapist.phone} 
               onChange={handleInputChange} 
             />
             <input 
               name="password" 
-              value={newTeacher.password} 
+              value={newTherapist.password} 
               readOnly 
               style={{ background: '#eee' }} 
             />
@@ -67,7 +66,7 @@ const ManageTeachers = () => {
                 <label key={s.id} style={{ display: 'block' }}>
                   <input 
                     type="checkbox" 
-                    checked={newTeacher.specializations.includes(s.name)}
+                    checked={newTherapist.specializations.includes(s.name)}
                     onChange={() => toggleSpecialization(s.name)}
                   />
                   {s.name}
@@ -80,8 +79,7 @@ const ManageTeachers = () => {
         </form>
       </div>
 
-      {/* Raw List of Teachers */}
-      <h3>Teacher List ({teachers.length})</h3>
+      <h3>Therapist List ({therapists.length})</h3>
       <table border="1" cellPadding="5" style={{ borderCollapse: 'collapse', width: '100%' }}>
         <thead>
           <tr>
@@ -92,15 +90,14 @@ const ManageTeachers = () => {
           </tr>
         </thead>
         <tbody>
-          {teachers.map(t => (
-            /* FIXED: Changed t.id to t.uid */
+          {therapists.map(t => (
+            /* FIXED: Changed t.id to t.uid here and in the delete button */
             <tr key={t.uid}>
               <td>{t.firstName} {t.lastName}</td>
               <td>{t.email}</td>
               <td>{t.specializations?.join(', ')}</td>
               <td>
-                {/* FIXED: Changed t.id to t.uid */}
-                <button onClick={() => deleteTeacher(t.uid)}>Delete</button>
+                <button onClick={() => deleteTherapist(t.uid)}>Delete</button>
               </td>
             </tr>
           ))}
@@ -110,4 +107,4 @@ const ManageTeachers = () => {
   );
 };
 
-export default ManageTeachers;
+export default ManageTherapists;

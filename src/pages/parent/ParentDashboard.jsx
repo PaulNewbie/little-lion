@@ -69,6 +69,22 @@ const ParentDashboard = () => {
             Welcome back, {currentUser?.firstName || 'Parent'}
           </p>
         </div>
+
+        <button 
+          onClick={() => navigate('/parent/inquiries')}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#6c757d', // Different color
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            marginRight: '10px'
+          }}
+        >
+          ✉️ My Inquiries
+        </button>
+
         <button 
           onClick={handleLogout}
           style={{

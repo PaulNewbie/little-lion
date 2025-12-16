@@ -3,14 +3,13 @@ import userService from '../services/userService';
 import authService from '../services/authService';
 import servicesService from '../services/servicesService';
 
-const useManageTeachers = () => {
-  const [teachers, setTeachers] = useState([]);
+const useManageTherapists = () => {
+  const [therapists, setTherapists] = useState([]);
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Form State
-  const [newTeacher, setNewTeacher] = useState({
+  const [newTherapist, setNewTherapist] = useState({
     firstName: '',
     lastName: '',
     email: '',
@@ -27,11 +26,11 @@ const useManageTeachers = () => {
     try {
       setLoading(true);
       const [tData, sData] = await Promise.all([
-        // FIXED: Changed getAllTeachers() to getUsersByRole('teacher')
-        userService.getUsersByRole('teacher'),
+        // FIXED: Changed getAllTherapists() to getUsersByRole('therapist')
+        userService.getUsersByRole('therapist'),
         servicesService.getActiveServices()
       ]);
-      setTeachers(tData);
+      setTherapists(tData);
       setServices(sData);
     } catch (err) {
       setError(err.message);
@@ -42,11 +41,11 @@ const useManageTeachers = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewTeacher(prev => ({ ...prev, [name]: value }));
+    setNewTherapist(prev => ({ ...prev, [name]: value }));
   };
 
   const toggleSpecialization = (serviceName) => {
-    setNewTeacher(prev => {
+    setNewTherapist(prev => {
       const specs = prev.specializations.includes(serviceName)
         ? prev.specializations.filter(s => s !== serviceName)
         : [...prev.specializations, serviceName];
@@ -54,28 +53,29 @@ const useManageTeachers = () => {
     });
   };
 
-  const createTeacher = async (e) => {
+  const createTherapist = async (e) => {
     e.preventDefault();
     setError(null);
     try {
-      await authService.createTeacherAccount(newTeacher.email, newTeacher.password, newTeacher);
-      // Reset form
-      setNewTeacher({ 
+      await authService.createTherapistAccount(newTherapist.email, newTherapist.password, newTherapist);
+      setNewTherapist({ 
         firstName: '', lastName: '', email: '', phone: '', 
         password: 'Welcome123!', specializations: [] 
       });
-      fetchData(); // Refresh list
-      alert('Teacher created successfully');
+      fetchData(); 
+      alert('Therapist created successfully');
     } catch (err) {
       setError(err.message);
     }
   };
 
-  const deleteTeacher = async (id) => {
+  const deleteTherapist = async (id) => {
     if (!window.confirm('Are you sure?')) return;
     try {
-      // FIXED: Changed deleteTeacher(id) to deleteUser(id)
-      await userService.deleteUser(id);
+      // FIXED: Ensure deleteUser is used if deleteTherapist doesn't exist, 
+      // or ensure deleteTherapist maps to deleteUser in userService.
+      // Based on your userService, you have deleteUser but not deleteTherapist.
+      await userService.deleteUser(id); 
       fetchData();
     } catch (err) {
       setError(err.message);
@@ -83,16 +83,16 @@ const useManageTeachers = () => {
   };
 
   return {
-    teachers,
+    therapists,
     services,
     loading,
     error,
-    newTeacher,
+    newTherapist,
     handleInputChange,
     toggleSpecialization,
-    createTeacher,
-    deleteTeacher
+    createTherapist,
+    deleteTherapist
   };
 };
 
-export default useManageTeachers;
+export default useManageTherapists;

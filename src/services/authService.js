@@ -30,23 +30,20 @@ class AuthService {
   }
 
   // 2. Create Parent Account
-  async createParentAccount(email, password, parentData) {
+async createParentAccount(email, password, parentData) {
     let tempApp = null;
     try {
-      // Create a secondary app instance so we don't log out the admin
       tempApp = initializeApp(firebaseConfig, 'tempApp-' + Date.now());
       const tempAuth = getAuth(tempApp);
-
-      // Create the user in the secondary auth
       const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
       const user = userCredential.user;
 
-      // Save to Firestore using the MAIN db instance
       await setDoc(doc(db, 'users', user.uid), {
         ...parentData,
         uid: user.uid,
         role: 'parent',
-        childrenIds: [], // Initialize empty array
+        childrenIds: [],
+        mustChangePassword: true, // <--- ADD THIS LINE
         createdAt: new Date().toISOString()
       });
 
@@ -54,7 +51,6 @@ class AuthService {
     } catch (error) {
       throw this.handleAuthError(error);
     } finally {
-      // Clean up the temporary app instance
       if (tempApp) {
         const { deleteApp } = await import('firebase/app');
         await deleteApp(tempApp);
@@ -62,25 +58,52 @@ class AuthService {
     }
   }
 
-  // 3. Create Teacher Account
-  async createTeacherAccount(email, password, teacherData) {
+  // 3. Create Therapist Account
+async createTherapistAccount(email, password, therapistData) {
     let tempApp = null;
     try {
-      // Create a secondary app instance so we don't log out the admin
-      tempApp = initializeApp(firebaseConfig, 'tempApp-' + Date.now());
+      tempApp = initializeApp(firebaseConfig, 'tempApp-Therapist-' + Date.now());
       const tempAuth = getAuth(tempApp);
-
-      // Create the user in the secondary auth
       const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
       const user = userCredential.user;
 
-      // Save to Firestore using the MAIN db instance
+      await setDoc(doc(db, 'users', user.uid), {
+        ...therapistData,
+        uid: user.uid,
+        role: 'therapist',
+        specializations: therapistData.specializations || [],
+        active: true,
+        mustChangePassword: true, // <--- ADD THIS LINE
+        createdAt: new Date().toISOString()
+      });
+
+      return user;
+    } catch (error) {
+      throw this.handleAuthError(error);
+    } finally {
+      if (tempApp) {
+        const { deleteApp } = await import('firebase/app');
+        await deleteApp(tempApp);
+      }
+    }
+  }
+
+  // 4. Create Teacher Account
+async createTeacherAccount(email, password, teacherData) {
+    let tempApp = null;
+    try {
+      tempApp = initializeApp(firebaseConfig, 'tempApp-' + Date.now());
+      const tempAuth = getAuth(tempApp);
+      const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
+      const user = userCredential.user;
+
       await setDoc(doc(db, 'users', user.uid), {
         ...teacherData,
         uid: user.uid,
         role: 'teacher',
         specializations: teacherData.specializations || [],
         active: true,
+        mustChangePassword: true, // <--- ADD THIS LINE
         createdAt: new Date().toISOString()
       });
 
@@ -88,7 +111,6 @@ class AuthService {
     } catch (error) {
       throw this.handleAuthError(error);
     } finally {
-      // Clean up the temporary app instance
       if (tempApp) {
         const { deleteApp } = await import('firebase/app');
         await deleteApp(tempApp);
@@ -96,7 +118,37 @@ class AuthService {
     }
   }
 
-  // 4. Get user data
+  // 5. Create Admin Account (Super Admin Only)
+async createAdminAccount(email, password, adminData) {
+    let tempApp = null;
+    try {
+      // Use a temporary app instance to create the user without logging out the current super_admin
+      tempApp = initializeApp(firebaseConfig, 'tempApp-Admin-' + Date.now());
+      const tempAuth = getAuth(tempApp);
+      const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
+      const user = userCredential.user;
+
+      await setDoc(doc(db, 'users', user.uid), {
+        ...adminData,
+        uid: user.uid,
+        role: 'admin', // Explicitly set role to admin
+        active: true,
+        mustChangePassword: true,
+        createdAt: new Date().toISOString()
+      });
+
+      return user;
+    } catch (error) {
+      throw this.handleAuthError(error);
+    } finally {
+      if (tempApp) {
+        const { deleteApp } = await import('firebase/app');
+        await deleteApp(tempApp);
+      }
+    }
+  }
+
+  // 6. Get user data
   async getUserData(uid) {
     try {
       const userDoc = await getDoc(doc(db, 'users', uid));
@@ -109,7 +161,7 @@ class AuthService {
     }
   }
 
-  // 5. Sign out
+  // 7. Sign out
   async signOut() {
     try {
       await signOut(auth);
@@ -118,7 +170,7 @@ class AuthService {
     }
   }
 
-  // 6. Reset Password
+  // 8. Reset Password
   async resetPassword(email) {
     try {
       await sendPasswordResetEmail(auth, email);
@@ -127,12 +179,12 @@ class AuthService {
     }
   }
 
-  // 7. Auth State Observer
+  // 9. Auth State Observer
   onAuthStateChanged(callback) {
     return onAuthStateChanged(auth, callback);
   }
 
-  // 8. Error Handler
+  // 10. Error Handler
   handleAuthError(error) {
     console.error("Auth Error:", error);
     switch (error.code) {

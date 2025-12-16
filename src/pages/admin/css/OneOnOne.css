@@ -1,0 +1,294 @@
+/* ================================================================
+   GLOBAL CONTAINER
+================================================================ */
+.ooo-container {
+  display: flex;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+}
+
+.ooo-main {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+/* ================================================================
+   HEADER
+================================================================ */
+.ooo-header {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* centers content horizontally */
+  position: relative; /* allows absolute positioning of back arrow */
+  padding: 10px 20px;
+}
+
+
+.ooo-header .back-arrow {
+  position: absolute; /* keeps back arrow on the left */
+  left: 20px;
+  cursor: pointer;
+}
+
+.ooo-header .service-name {
+  margin: 0;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 3rem;
+}
+
+
+/* ================================================================
+   CARDS / GRID
+================================================================ */
+.ooo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.ooo-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ooo-card:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.ooo-card-info {
+  text-align: center;
+}
+
+.ooo-card-info h3 {
+  margin: 0.5rem 0;
+  font-size: 1.2rem;
+}
+
+.ooo-card-info p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.ooo-photo-area {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 0.5rem;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ooo-photo-area img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ================================================================
+   STUDENT PROFILE
+================================================================ */
+.profile-wrapper {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+}
+
+.profile-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.profile-3col {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.profile-photo-frame {
+  flex: 0 0 200px;
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-photo-frame img.profile-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-fullname {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.profile-details {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.profile-left p,
+.profile-right p {
+  margin: 0.2rem 0;
+}
+
+.profile-left .icon {
+  margin-right: 0.5rem;
+}
+
+/* ================================================================
+   SERVICES & ACTIVITIES
+================================================================ */
+.services-header {
+  font-size: 1.2rem;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.services-list .service-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.service-left {
+  display: flex;
+  align-items: center;
+}
+
+.service-icon {
+  margin-right: 0.5rem;
+}
+
+/* ================================================================
+   SELECTED SERVICE INFO (COLLAPSIBLE)
+================================================================ */
+.service-date-list {
+  margin-top: 1rem;
+}
+
+.service-date-block {
+  margin-bottom: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #fafafa;
+}
+
+.service-date-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.service-date-header:hover {
+  background-color: #eee;
+}
+
+.arrow-icon {
+  font-size: 0.8rem;
+}
+
+.service-info-card {
+  padding: 0.5rem 1rem;
+  border-top: 1px solid #ddd;
+  background-color: #fff;
+}
+
+.service-info-card .label {
+  font-weight: bold;
+  margin-right: 0.5rem;
+}
+
+/* Highlight the current service in Services Availed */
+.services-list .service-row.highlight {
+  background-color: #fffae6; /* light yellow */
+  border-left: 4px solid #ffc107; /* yellow accent */
+  padding-left: 0.5rem;
+  border-radius: 4px;
+}
+
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal-box {
+  background: #ffffff;
+  width: 420px;
+  max-width: 90%;
+  padding: 24px 28px;
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  animation: modalPop 0.2s ease-out;
+}
+
+@keyframes modalPop {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.modal-form input,
+.modal-form textarea,
+.modal-form select {
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.modal-form textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.modal-actions button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}

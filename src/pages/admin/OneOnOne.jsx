@@ -1,111 +1,332 @@
-import React, { useState, useEffect } from 'react';
-import AdminSidebar from '../../components/sidebar/AdminSidebar';
-import childService from '../../services/childService';
+import React, { useEffect, useState } from "react";
+import AdminSidebar from "../../components/sidebar/AdminSidebar";
+import childService from "../../services/childService";
+import { db } from "../../config/firebase";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  addDoc
+} from "firebase/firestore";
+import useManageTeachers from "../../hooks/useManageTeachers";
+import "./css/OneOnOne.css";
 
+/* ================================================================
+   SELECTED SERVICE INFO (MULTIPLE DATES + COLLAPSIBLE)
+================================================================ */
+const SelectedServiceInfo = ({ records, teachers }) => {
+  const [openIndex, setOpenIndex] = useState(null);
+
+  const toggleIndex = (i) => setOpenIndex(openIndex === i ? null : i);
+
+  const getTeacherName = (teacherId) => {
+    const teacher = teachers.find(t => t.id === teacherId);
+    return teacher ? `${teacher.firstName} ${teacher.lastName}` : "—";
+  };
+
+  return (
+    <div className="service-date-list">
+      {records.map((rec, i) => (
+        <div key={i} className="service-date-block">
+          <div className="service-date-header" onClick={() => toggleIndex(i)}>
+            <span>{rec.date || "No Date"}</span>
+            <span className="arrow-icon">{openIndex === i ? "▲" : "▼"}</span>
+          </div>
+          {openIndex === i && (
+            <div className="service-info-card">
+              <p><span className="label">Teacher:</span> {rec.teacherId ? getTeacherName(rec.teacherId) : "—"}</p>
+              <p><span className="label">Activity:</span> {rec.title || "—"}: {rec.activities || rec.description || "—"}</p>
+              <p><span className="label">Participating Students:</span> {rec.participatingStudentsNames?.join(", ") || "—"}</p>
+              <p><span className="label">Observations:</span> {rec.observations || "—"}</p>
+              <p><span className="label">Follow up:</span> {rec.followUp || "—"}</p>
+              <p><span className="label">Other concerns:</span> {rec.otherConcerns || "—"}</p>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+/* ================================================================
+   MAIN COMPONENT
+================================================================ */
 const OneOnOne = () => {
+  const [level, setLevel] = useState("services");
+  const [services, setServices] = useState([]);
   const [students, setStudents] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedService, setSelectedService] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [studentActivities, setStudentActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch real students from Firebase
+  /* ADD SERVICE STATE */
+  const [showAddServiceModal, setShowAddServiceModal] = useState(false);
+  const [newService, setNewService] = useState({
+    name: "",
+    description: ""
+  });
+
+  const { teachers } = useManageTeachers();
+
+  /* ===============================
+     FETCH SERVICES + STUDENTS
+  =============================== */
   useEffect(() => {
-    const fetchStudents = async () => {
+    const fetchData = async () => {
       try {
-        const data = await childService.getAllChildren();
-        setStudents(data);
-      } catch (error) {
-        console.error("Error fetching students:", error);
+        const serviceSnap = await getDocs(collection(db, "services"));
+        const serviceList = serviceSnap.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        const studentList = await childService.getAllChildren();
+
+        setServices(serviceList);
+        setStudents(studentList);
+      } catch (err) {
+        console.error("Error loading services:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchStudents();
+
+    fetchData();
   }, []);
 
-  const filteredStudents = students.filter(student => 
-    `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  /* ===============================
+     HELPERS
+  =============================== */
+  const getTeacherName = (teacherId) => {
+    const t = teachers.find(t => t.id === teacherId);
+    return t ? `${t.firstName} ${t.lastName}` : "—";
+  };
+
+  const enrolledStudents = selectedService
+    ? students.filter(s =>
+        s.services?.some(srv => srv.serviceId === selectedService.id)
+      )
+    : [];
+
+  const handleSelectService = (service) => {
+    setSelectedService(service);
+    setLevel("students");
+  };
+
+  const handleSelectStudent = async (student) => {
+    setSelectedStudent(student);
+    setLevel("student-profile");
+
+    try {
+      const q = query(
+        collection(db, "activities"),
+        where("participatingStudentIds", "array-contains", student.id)
+      );
+      const snap = await getDocs(q);
+      const activities = snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        participatingStudentsNames: doc.data().participatingStudentIds.map(id => {
+          const s = students.find(st => st.id === id);
+          return s ? `${s.firstName} ${s.lastName}` : id;
+        })
+      }));
+      setStudentActivities(activities);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const goBack = () => {
+    if (level === "student-profile") {
+      setSelectedStudent(null);
+      setStudentActivities([]);
+      setLevel("students");
+    } else if (level === "students") {
+      setSelectedService(null);
+      setLevel("services");
+    }
+  };
+
+  /* ===============================
+     ADD SERVICE LOGIC
+  =============================== */
+  const handleServiceInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewService(prev => ({ ...prev, [name]: value }));
+  };
+
+  const createService = async (e) => {
+    e.preventDefault();
+    try {
+      const docRef = await addDoc(collection(db, "services"), {
+        ...newService,
+        createdAt: new Date()
+      });
+
+      setServices(prev => [
+        ...prev,
+        { id: docRef.id, ...newService }
+      ]);
+
+      setShowAddServiceModal(false);
+      setNewService({ name: "", description: "" });
+    } catch (err) {
+      console.error("Error creating service:", err);
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#fff', fontFamily: 'sans-serif' }}>
-      
-      {/* 1. Reusable Sidebar */}
+    <div className="ooo-container">
       <AdminSidebar />
+      <div className="ooo-main">
 
-      {/* 2. Main Content Area: 1:1 Services Grid */}
-      <div style={{ flex: 1, padding: '40px', backgroundColor: '#ffffff', overflowY: 'auto' }}>
-        
-        {/* Header & Search */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-          <h1 style={{ margin: 0, fontSize: '24px', color: '#333' }}>1 : 1 SERVICES</h1>
-          
-          <input 
-            type="text" 
-            placeholder="SEARCH" 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              width: '300px',
-              padding: '10px 15px',
-              borderRadius: '4px',
-              border: '1px solid #ccc',
-              backgroundColor: '#e0e0e0'
-            }}
-          />
-        </div>
+        {/* ===============================
+            SERVICES LANDING PAGE
+        =============================== */}
+        {level === "services" && (
+          <>
+            <div className="ooo-header">
+              <h1>1 : 1 SERVICES</h1>
+            </div>
 
-        {/* Student Grid */}
-        {loading ? (
-          <p>Loading students...</p>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }}>
-            {filteredStudents.length === 0 && (
-              <p style={{ color: '#888' }}>No students found. Use "Add Student" to enroll someone.</p>
-            )}
+            <div className="ooo-grid">
 
-            {filteredStudents.map((student) => (
-              <div key={student.id} style={{
-                backgroundColor: '#e0e0e0',
-                borderRadius: '4px',
-                overflow: 'hidden',
-                textAlign: 'center',
-                cursor: 'pointer',
-                transition: 'transform 0.2s',
-                boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
-              }}
-              onMouseOver={e => e.currentTarget.style.transform = 'translateY(-3px)'}
-              onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
+              {/* ADD SERVICE CARD */}
+              <div
+                className="ooo-card add-service-card"
+                onClick={() => setShowAddServiceModal(true)}
               >
-                {/* Image Area */}
-                <div style={{
-                  width: '100%',
-                  height: '180px',
-                  backgroundColor: '#bdbdbd',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden'
-                }}>
-                  {student.photoUrl ? (
-                    <img src={student.photoUrl} alt={student.firstName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <span style={{ fontSize: '40px', color: 'white' }}>📷</span>
-                  )}
-                </div>
-
-                {/* Name Area */}
-                <div style={{ padding: '15px' }}>
-                  <p style={{ fontWeight: 'bold', margin: '0 0 5px 0', color: '#333' }}>
-                    {student.lastName}, {student.firstName}
-                  </p>
-                  <span style={{ fontSize: '12px', color: '#555', textDecoration: 'underline' }}>
-                    See More ›
-                  </span>
+                <div className="ooo-card-info add-card">
+                  <h3>＋ Add Service</h3>
+                  <p>Create new service</p>
                 </div>
               </div>
-            ))}
+
+              {services.map(service => (
+                <div
+                  key={service.id}
+                  className="ooo-card"
+                  onClick={() => handleSelectService(service)}
+                >
+                  <div className="ooo-card-info">
+                    <h3>{service.name}</h3>
+                    <p>
+                      {
+                        students.filter(s =>
+                          s.services?.some(sr => sr.serviceId === service.id)
+                        ).length
+                      } enrolled students
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* ===============================
+            STUDENTS PER SERVICE
+        =============================== */}
+        {level === "students" && selectedService && (
+          <>
+            <div className="ooo-header">
+              <span className="back-arrow" onClick={goBack}>←</span>
+              <h1 className="service-name">{selectedService.name}</h1>
+            </div>
+
+            {enrolledStudents.length === 0 ? (
+              <p>No students enrolled in this service.</p>
+            ) : (
+              <div className="ooo-grid">
+                {enrolledStudents.map(student => {
+                  const serviceInfo = student.services.find(
+                    s => s.serviceId === selectedService.id
+                  );
+                  return (
+                    <div
+                      key={student.id}
+                      className="ooo-card"
+                      onClick={() => handleSelectStudent(student)}
+                    >
+                      <div className="ooo-photo-area">
+                        {student.photoUrl ? <img src={student.photoUrl} alt="" /> : <span>📷</span>}
+                      </div>
+                      <div className="ooo-card-info">
+                        <p className="ooo-name">{student.lastName}, {student.firstName}</p>
+                        <p className="ooo-sub">Teacher: {getTeacherName(serviceInfo?.teacherId)}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ===============================
+            STUDENT PROFILE
+        =============================== */}
+        {level === "student-profile" && selectedStudent && (
+          <div className="profile-wrapper">
+            <span className="back-arrow" onClick={goBack}>←</span>
+            <h2>{selectedStudent.lastName}, {selectedStudent.firstName}</h2>
+
+            <SelectedServiceInfo
+              records={studentActivities}
+              teachers={teachers}
+            />
           </div>
         )}
+
+        {/* ===============================
+            ADD SERVICE MODAL (SIMPLIFIED)
+        =============================== */}
+        {showAddServiceModal && (
+          <div
+            className="modal-overlay"
+            onClick={() => setShowAddServiceModal(false)}
+          >
+            <div
+              className="modal-box"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2>Add New 1:1 Service</h2>
+
+              <form onSubmit={createService} className="modal-form">
+                <input
+                  name="name"
+                  placeholder="Service Name"
+                  value={newService.name}
+                  onChange={handleServiceInputChange}
+                  required
+                />
+
+                <textarea
+                  name="description"
+                  placeholder="Description"
+                  value={newService.description}
+                  onChange={handleServiceInputChange}
+                />
+
+                <div className="modal-actions">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddServiceModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit">Add Service</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
