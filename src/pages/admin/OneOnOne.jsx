@@ -65,7 +65,8 @@ const OneOnOne = () => {
   const [showAddServiceModal, setShowAddServiceModal] = useState(false);
   const [newService, setNewService] = useState({
     name: "",
-    description: ""
+    description: "",
+    type: "Therapy" // Default type
   });
 
   const { teachers } = useManageTeachers();
@@ -163,6 +164,7 @@ const OneOnOne = () => {
     try {
       const docRef = await addDoc(collection(db, "services"), {
         ...newService,
+        active: true, // Defaulting to active
         createdAt: new Date()
       });
 
@@ -172,7 +174,7 @@ const OneOnOne = () => {
       ]);
 
       setShowAddServiceModal(false);
-      setNewService({ name: "", description: "" });
+      setNewService({ name: "", description: "", type: "Therapy" });
     } catch (err) {
       console.error("Error creating service:", err);
     }
@@ -222,6 +224,8 @@ const OneOnOne = () => {
                         ).length
                       } enrolled students
                     </p>
+                    {/* Optional: Show type if useful */}
+                    {service.type && <small style={{color:'#888'}}>({service.type})</small>}
                   </div>
                 </div>
               ))}
@@ -284,7 +288,7 @@ const OneOnOne = () => {
         )}
 
         {/* ===============================
-            ADD SERVICE MODAL (SIMPLIFIED)
+            ADD SERVICE MODAL (UPDATED)
         =============================== */}
         {showAddServiceModal && (
           <div
@@ -295,7 +299,7 @@ const OneOnOne = () => {
               className="modal-box"
               onClick={(e) => e.stopPropagation()}
             >
-              <h2>Add New 1:1 Service</h2>
+              <h2>Add New Service</h2>
 
               <form onSubmit={createService} className="modal-form">
                 <input
@@ -305,6 +309,18 @@ const OneOnOne = () => {
                   onChange={handleServiceInputChange}
                   required
                 />
+
+                <select
+                  name="type"
+                  value={newService.type}
+                  onChange={handleServiceInputChange}
+                  style={{marginBottom: '10px', padding: '10px', width: '100%', borderRadius: '4px', border: '1px solid #ddd'}}
+                >
+                  <option value="Therapy">Therapy</option>
+                  <option value="Class">Class</option>
+                  <option value="Assessment">Assessment</option>
+                  <option value="Other">Other</option>
+                </select>
 
                 <textarea
                   name="description"

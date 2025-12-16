@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
 import childService from "../../services/childService";
 import { db } from "../../config/firebase";
@@ -7,64 +9,99 @@ import useManageTeachers from "../../hooks/useManageTeachers";
 import "./css/StudentProfile.css";
 
 /* ================================================================
-   SELECTED SERVICE INFO (MULTIPLE DATES + COLLAPSIBLE)
+   CALENDAR & ACTIVITY VIEW COMPONENT
 ================================================================ */
-const SelectedServiceInfo = ({ records, teachers }) => {
-  const [openIndex, setOpenIndex] = useState(null);
+const ActivityCalendarView = ({ activities, teachers, selectedServiceName }) => {
+  const [date, setDate] = useState(new Date());
 
-  const toggleIndex = (i) => setOpenIndex(openIndex === i ? null : i);
+  // Reset date when switching services
+  useEffect(() => {
+    setDate(new Date());
+  }, [selectedServiceName]);
+  
+  // Helper: Get activities for the selected date
+  const getActivitiesForDate = (selectedDate) => {
+    return activities.filter(act => {
+      const actDate = new Date(act.date);
+      return (
+        actDate.getDate() === selectedDate.getDate() &&
+        actDate.getMonth() === selectedDate.getMonth() &&
+        actDate.getFullYear() === selectedDate.getFullYear()
+      );
+    });
+  };
+
+  const selectedActivities = getActivitiesForDate(date);
+
+  // Helper: Add dots to calendar tiles that have activities
+  const tileContent = ({ date, view }) => {
+    if (view === "month") {
+      const hasActivity = getActivitiesForDate(date).length > 0;
+      return hasActivity ? <div className="calendar-dot"></div> : null;
+    }
+    return null;
+  };
 
   const getTeacherName = (id) => {
-    // Try to find in the passed teachers/staff list
     const staff = teachers.find(t => t.id === id || t.uid === id);
     return staff ? `${staff.firstName} ${staff.lastName}` : "—";
   };
 
   return (
-    <div className="service-date-list">
-      {records.map((rec, i) => (
-        <div key={i} className="service-date-block">
+    <div className="calendar-view-container">
+      {/* LEFT: CALENDAR */}
+      <div className="calendar-section">
+        <Calendar 
+          onChange={setDate} 
+          value={date} 
+          tileContent={tileContent}
+          className="custom-calendar"
+        />
+      </div>
 
-          {/* DATE HEADER */}
-          <div className="service-date-header" onClick={() => toggleIndex(i)}>
-            <span>{rec.date || "No Date"}</span>
-            <span className="arrow-icon">{openIndex === i ? "▲" : "▼"}</span>
+      {/* RIGHT: ACTIVITY DETAILS */}
+      <div className="day-details-section">
+        <h3 className="date-heading">
+          {date.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric' })}
+        </h3>
+
+        {selectedActivities.length === 0 ? (
+          <div className="no-activity-msg">
+            <p>No activities recorded for this date.</p>
           </div>
-
-          {/* COLLAPSIBLE CARD */}
-          {openIndex === i && (
-            <div className="service-info-card">
-              <p>
-                <span className="label">Staff:</span>{" "}
-                {rec.authorName || rec.teacherName || getTeacherName(rec.teacherId || rec.authorId)}
-              </p>
-              
-              <p>
-                <span className="label">Title:</span> {rec.title || "—"}
-              </p>
-              
-              {/* Description / Progress Notes */}
-              <p>
-                <span className="label">Notes/Activity:</span>{" "}
-                {rec.progressNotes || rec.description || "—"}
-              </p>
-
-              {/* Goals (if Therapy) */}
-              {rec.goalsAddressed && (
+        ) : (
+          <div className="daily-records-list">
+            {selectedActivities.map((rec, i) => (
+              <div key={i} className="record-card">
+                <div className="record-header">
+                  <span className="record-type">{rec.serviceType || "Activity"}</span>
+                </div>
+                
                 <p>
-                  <span className="label">Goals:</span> {rec.goalsAddressed.join(", ")}
+                  <span className="label">Staff:</span>{" "}
+                  {rec.authorName || rec.teacherName || getTeacherName(rec.teacherId || rec.authorId)}
                 </p>
-              )}
-
-              <p>
-                <span className="label">Participating Students:</span>{" "}
-                {rec.participatingStudentsNames?.join(", ") || "—"}
-              </p>
-            </div>
-          )}
-
-        </div>
-      ))}
+                <p>
+                  <span className="label">Title:</span> {rec.title || "—"}
+                </p>
+                <p>
+                  <span className="label">Notes:</span>{" "}
+                  {rec.progressNotes || rec.description || "—"}
+                </p>
+                
+                {rec.goalsAddressed && (
+                  <p><span className="label">Goals:</span> {rec.goalsAddressed.join(", ")}</p>
+                )}
+                
+                <p>
+                  <span className="label">Students:</span>{" "}
+                  {rec.participatingStudentsNames?.join(", ") || "—"}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -75,15 +112,14 @@ const SelectedServiceInfo = ({ records, teachers }) => {
 const StudentProfile = () => {
   const [currentLevel, setCurrentLevel] = useState("student-list");
   const [selectedStudent, setSelectedStudent] = useState(null);
-
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
-
+  
+  // Track selected service by name for filtering
   const [selectedService, setSelectedService] = useState("");
   const [studentActivities, setStudentActivities] = useState([]);
 
-  // TEACHER/STAFF DATA
   const { teachers, loading: loadingTeachers } = useManageTeachers();
 
   // 1. FETCH STUDENTS
@@ -101,24 +137,14 @@ const StudentProfile = () => {
     fetchStudents();
   }, []);
 
-  // 2. FETCH ACTIVITIES FOR SELECTED STUDENT
+  // 2. FETCH ACTIVITIES
   const fetchStudentActivities = async (studentId) => {
     try {
-      // Query 1: Where student is the main 'studentId' (e.g. 1:1 therapy)
-      const q1 = query(
-        collection(db, "activities"),
-        where("studentId", "==", studentId)
-      );
-      
-      // Query 2: Where student is in 'participatingStudentIds' (e.g. Group)
-      const q2 = query(
-        collection(db, "activities"),
-        where("participatingStudentIds", "array-contains", studentId)
-      );
+      const q1 = query(collection(db, "activities"), where("studentId", "==", studentId));
+      const q2 = query(collection(db, "activities"), where("participatingStudentIds", "array-contains", studentId));
 
       const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
       
-      // Merge and deduplicate
       const mergedDocs = new Map();
       [...snap1.docs, ...snap2.docs].forEach(doc => {
         mergedDocs.set(doc.id, { id: doc.id, ...doc.data() });
@@ -126,7 +152,6 @@ const StudentProfile = () => {
 
       const activities = Array.from(mergedDocs.values()).map(act => ({
         ...act,
-        // Resolve student names for group activities
         participatingStudentsNames: act.participatingStudentIds 
           ? act.participatingStudentIds.map(id => {
               const s = students.find(st => st.id === id);
@@ -135,9 +160,8 @@ const StudentProfile = () => {
           : [act.studentName]
       }));
 
-      // Sort by date descending
+      // Sort recent first
       activities.sort((a, b) => new Date(b.date) - new Date(a.date));
-
       setStudentActivities(activities);
     } catch (error) {
       console.error("Error fetching activities:", error);
@@ -145,24 +169,12 @@ const StudentProfile = () => {
     }
   };
 
-  // Helper: Calculate Age
   const calculateAge = (dob) => {
     if (!dob) return "N/A";
     const birthDate = new Date(dob);
     const ageDifMs = Date.now() - birthDate.getTime();
     const ageDate = new Date(ageDifMs);
     return Math.abs(ageDate.getUTCFullYear() - 1970);
-  };
-
-  // Helper: Get Unified Services List (Therapy + Group + Legacy)
-  const getStudentServices = (student) => {
-    if (!student) return [];
-    const therapy = student.therapyServices || [];
-    const group = student.groupClasses || [];
-    const legacy = student.services || []; // Fallback for older data
-    
-    // Combine arrays
-    return [...therapy, ...group, ...legacy];
   };
 
   const filteredStudents = students.filter((student) =>
@@ -173,7 +185,7 @@ const StudentProfile = () => {
     setSelectedStudent(student);
     setCurrentLevel("student-profile");
     fetchStudentActivities(student.id);
-    setSelectedService(""); // reset service selection
+    setSelectedService(""); 
   };
 
   const goBack = () => {
@@ -185,7 +197,12 @@ const StudentProfile = () => {
 
   if (loading || loadingTeachers) return <div>Loading...</div>;
 
-  const currentStudentServices = getStudentServices(selectedStudent);
+  // Split services for display
+  const therapyServices = selectedStudent?.therapyServices || [];
+  const groupServices = selectedStudent?.groupClasses || [];
+  
+  // Legacy services fallback (optional, if you want to show them)
+  const legacyServices = selectedStudent?.services || [];
 
   return (
     <div className="ooo-container">
@@ -193,7 +210,7 @@ const StudentProfile = () => {
 
       <div className="ooo-main">
 
-        {/* STUDENT LIST */}
+        {/* --- VIEW 1: STUDENT LIST --- */}
         {currentLevel === "student-list" && (
           <>
             <div className="ooo-header">
@@ -237,11 +254,11 @@ const StudentProfile = () => {
           </>
         )}
 
-        {/* STUDENT PROFILE */}
+        {/* --- VIEW 2: INDIVIDUAL PROFILE --- */}
         {currentLevel === "student-profile" && selectedStudent && (
           <div className="profile-wrapper">
-
-            {/* TOP BAR */}
+            
+            {/* 1. TOP NAV */}
             <div className="profile-top">
               <div className="left-group">
                 <span className="back-arrow" onClick={goBack}>←</span>
@@ -249,9 +266,8 @@ const StudentProfile = () => {
               </div>
             </div>
 
+            {/* 2. PROFILE INFO CARD */}
             <div className="profile-3col">
-
-              {/* COLUMN 1 — PHOTO */}
               <div className="profile-photo-frame">
                 {selectedStudent.photoUrl ? (
                   <img src={selectedStudent.photoUrl} alt="" className="profile-photo" />
@@ -260,16 +276,12 @@ const StudentProfile = () => {
                 )}
               </div>
 
-              {/* COLUMN 2 — NAME + DETAILS */}
               <div className="profile-info">
                 <h1 className="profile-fullname">
                   {selectedStudent.lastName}, {selectedStudent.firstName}
                 </h1>
-
                 <div className="profile-details">
                   <div className="profile-left">
-                    {/* Note: Parent info isn't stored on child doc by default, 
-                        would need to fetch parent user separately if needed. */}
                     <p><span className="icon">🏥</span> <b>Medical:</b> {selectedStudent.medicalInfo || "None"}</p>
                   </div>
                   <div className="profile-right">
@@ -278,66 +290,114 @@ const StudentProfile = () => {
                     <p><b>Birthday:</b> {selectedStudent.dateOfBirth || "N/A"}</p>
                   </div>
                 </div>
+              </div>
+            </div>
 
-                {/* SERVICES HEADER */}
-                <h2 className="services-header">SERVICES AVAILED</h2>
-
+            {/* 3. SCROLLABLE SECTIONS */}
+            <div className="profile-content-scroll">
+              
+              {/* --- SECTION A: THERAPY SERVICES --- */}
+              <div className="content-section">
+                <h2 className="services-header">THERAPY SERVICES</h2>
                 <div className="services-list">
-                  {currentStudentServices.length === 0 && <p>No services enrolled.</p>}
-                  {currentStudentServices.map((service, i) => (
-                    <div key={i} className="service-row">
-                      <div className="service-left">
-                        <span className="service-icon">🟡</span>
-                        {service.serviceName}
+                  {therapyServices.length === 0 && legacyServices.length === 0 && (
+                    <p style={{color:'#888', fontStyle:'italic'}}>No therapy services enrolled.</p>
+                  )}
+                  {[...therapyServices, ...legacyServices].map((service, i) => {
+                    const sName = service.serviceName;
+                    const isSelected = selectedService === sName;
+                    
+                    return (
+                      <div 
+                        key={i} 
+                        className={`service-row clickable ${isSelected ? "active" : ""}`}
+                        onClick={() => setSelectedService(sName)}
+                      >
+                        <div className="service-left">
+                          <span className="service-icon">🧠</span>
+                          {sName}
+                        </div>
+                        <div>
+                          <span className="teacher-name">
+                            {service.therapistName || service.teacherName || "—"}
+                          </span>
+                          {isSelected && <span className="selected-check">✔</span>}
+                        </div>
                       </div>
-                      <div>
-                        {service.therapistName || service.teacherName || "—"}
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* --- SECTION B: GROUP CLASSES --- */}
+              <div className="content-section">
+                <h2 className="services-header">GROUP CLASS SERVICES</h2>
+                <div className="services-list">
+                  {groupServices.length === 0 && (
+                    <p style={{color:'#888', fontStyle:'italic'}}>No group classes enrolled.</p>
+                  )}
+                  {groupServices.map((service, i) => {
+                    // Sometimes group classes use 'className' or 'serviceName'
+                    const sName = service.className || service.serviceName;
+                    const isSelected = selectedService === sName;
+
+                    return (
+                      <div 
+                        key={i} 
+                        className={`service-row clickable ${isSelected ? "active" : ""}`}
+                        onClick={() => setSelectedService(sName)}
+                      >
+                        <div className="service-left">
+                          <span className="service-icon">🎨</span>
+                          {sName}
+                        </div>
+                        <div>
+                          <span className="teacher-name">
+                            {service.teacherName || "—"}
+                          </span>
+                          {isSelected && <span className="selected-check">✔</span>}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
+              </div>
 
-                {/* SELECT SERVICE TO VIEW RECORDS */}
-                <div className="service-selector">
-                  <label className="service-selector-header">Select a Service to view records: </label>
-                  <select className="service-selector-choices"
-                    value={selectedService}
-                    onChange={(e) => setSelectedService(e.target.value)}
-                   >
-                      <option value="">-- Choose a service --</option>
-                      {currentStudentServices.map((service, i) => (
-                        <option key={i} value={service.serviceName}>
-                          {service.serviceName}
-                        </option>
-                      ))}
-                   </select>
-                </div>
+              {/* --- SECTION C: ACTIVITY TRACKER (CALENDAR) --- */}
+              <div className="content-section" style={{marginTop: '40px'}}>
+                <h2 className="services-header">
+                  ACTIVITY TRACKER 
+                  {selectedService && <span className="tracker-subtitle"> — {selectedService}</span>}
+                </h2>
 
-                {/* SELECTED SERVICE — DYNAMIC FILTERING */}
                 <div className="selected-service-info">
                   {selectedService ? (
                     (() => {
-                      // Filter activities by Service Name (works for both Therapy and Group)
+                      // Filter activities by the clicked service
                       const filteredActivities = studentActivities.filter(
                         (act) => 
                           (act.serviceType === selectedService) || 
-                          (act.className === selectedService)
+                          (act.className === selectedService) ||
+                          (act.title === selectedService)
                       );
 
-                      return filteredActivities.length > 0 ? (
-                        <SelectedServiceInfo records={filteredActivities} teachers={teachers} />
-                      ) : (
-                        <p style={{marginTop: '15px', color: '#666'}}>No records found for {selectedService}.</p>
+                      return (
+                        <ActivityCalendarView 
+                          activities={filteredActivities} 
+                          teachers={teachers} 
+                          selectedServiceName={selectedService}
+                        />
                       );
                     })()
                   ) : (
-                    <p style={{marginTop: '15px', fontStyle: 'italic', color: '#888'}}>
-                      Select a service above to view past sessions and activities.
-                    </p>
+                    <div className="empty-calendar-placeholder">
+                      <p>Select a service from the lists above to view its activity calendar.</p>
+                    </div>
                   )}
                 </div>
               </div>
             </div>
+
           </div>
         )}
         <div className="Profile-Footer"></div>
