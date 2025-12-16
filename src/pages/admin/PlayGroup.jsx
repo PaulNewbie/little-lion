@@ -1,228 +1,388 @@
 import React, { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+
+// Services
 import childService from '../../services/childService';
 import activityService from '../../services/activityService';
+import servicesService from '../../services/servicesService';
+import cloudinaryService from '../../services/cloudinaryService'; // Added Cloudinary
+
+// Components & Styles
 import AdminSidebar from '../../components/sidebar/AdminSidebar';
 import './css/PlayGroup.css';
-import './css/StudentProfile.css'; // Reusing card styles
+import './css/StudentProfile.css'; 
 
 const PlayGroup = () => {
-  // Navigation State: 'calendar-view' | 'child-list' | 'photo-view'
-  const [currentLevel, setCurrentLevel] = useState('calendar-view');
+  // Navigation: 'service-list' | 'service-dashboard'
+  const [currentView, setCurrentView] = useState('service-list');
   
   // Data State
-  const [allChildren, setAllChildren] = useState([]); 
+  const [services, setServices] = useState([]);
   const [allActivities, setAllActivities] = useState([]); 
-  const [loading, setLoading] = useState(true);
+  const [allChildren, setAllChildren] = useState([]);
+  
+  // Loading States
+  const [loadingServices, setLoadingServices] = useState(true);
+  const [loadingDashboard, setLoadingDashboard] = useState(false);
+  const [uploading, setUploading] = useState(false); // New uploading state
 
   // Selection State
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedChild, setSelectedChild] = useState(null);
+  const [selectedService, setSelectedService] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  
+  // Left Panel View State
+  const [selectedStudentForPhotos, setSelectedStudentForPhotos] = useState(null);
 
-  // --- 1. INITIAL LOAD ---
+  // --- Add Service Modal State ---
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newServiceData, setNewServiceData] = useState({ name: '', description: '' });
+  const [serviceImage, setServiceImage] = useState(null); // New image state
+
+  // --- 1. INITIAL LOAD (Only Services) ---
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
+    const fetchServices = async () => {
       try {
-        const [childrenData, activitiesData] = await Promise.all([
-          childService.getAllChildren(),
-          activityService.getAllPlayGroupActivities()
-        ]);
-        setAllChildren(childrenData);
-        setAllActivities(activitiesData);
+        const servicesData = await servicesService.getServicesByType('Class');
+        setServices(servicesData);
       } catch (err) {
-        console.error(err);
+        console.error("Error loading services:", err);
       } finally {
-        setLoading(false);
+        setLoadingServices(false);
       }
     };
-    fetchData();
+    fetchServices();
   }, []);
 
-  // --- HELPER: Get Dates with Activities ---
-  const getActivityDates = () => {
-    return allActivities.map(a => a.date);
-  };
+  // --- 2. LAZY LOAD DASHBOARD DATA ---
+  const handleServiceSelect = async (service) => {
+    setSelectedService(service);
+    setCurrentView('service-dashboard');
+    setSelectedDate(new Date()); 
+    setSelectedStudentForPhotos(null);
 
-  // --- LEVEL 1 -> 2: CALENDAR CLICK ---
-  const handleCalendarClick = (dateObj) => {
-    // Adjust for timezone offset to get YYYY-MM-DD
-    const offset = dateObj.getTimezoneOffset();
-    const localDate = new Date(dateObj.getTime() - (offset * 60 * 1000));
-    const dateString = localDate.toISOString().split('T')[0];
-
-    // Check if any activity exists on this date
-    const activitiesOnDate = allActivities.filter(a => a.date === dateString);
-
-    if (activitiesOnDate.length > 0) {
-      setSelectedDate(dateString);
-      setCurrentLevel('child-list');
-    } else {
-      alert("No playgroup activities recorded for this date.");
+    if (allChildren.length === 0 || allActivities.length === 0) {
+      setLoadingDashboard(true);
+      try {
+        const [activitiesData, childrenData] = await Promise.all([
+          activityService.getAllPlayGroupActivities(),
+          childService.getAllChildren() 
+        ]);
+        setAllActivities(activitiesData);
+        setAllChildren(childrenData);
+      } catch (err) {
+        console.error("Error loading dashboard data:", err);
+      } finally {
+        setLoadingDashboard(false);
+      }
     }
   };
 
-  // --- LEVEL 2 -> 3: CHILD SELECT ---
-  const handleChildSelect = (child) => {
-    setSelectedChild(child);
-    setCurrentLevel('photo-view');
+  // --- HELPERS ---
+  const getServiceActivities = () => {
+    if (!selectedService) return [];
+    return allActivities.filter(act => 
+      act.serviceType === selectedService.name || 
+      act.className === selectedService.name ||
+      act.type === 'group_activity'
+    ).filter(act => {
+      return act.serviceType ? act.serviceType === selectedService.name : true;
+    });
   };
 
-  // --- NAVIGATION ---
-  const goBackToCalendar = () => {
-    setSelectedDate(null);
-    setCurrentLevel('calendar-view');
+  const getActivityDates = () => {
+    const serviceActs = getServiceActivities();
+    return serviceActs.map(a => a.date);
   };
 
-  const goBackToChildList = () => {
-    setSelectedChild(null);
-    setCurrentLevel('child-list');
-  };
-
-  // --- DATA DERIVATION ---
-  
-  // For Level 2: Get children present on selectedDate
   const getPresentChildren = () => {
-    if (!selectedDate) return [];
-    
-    // 1. Find all activities for this date
-    const activities = allActivities.filter(a => a.date === selectedDate);
-    
-    // 2. Collect all student IDs tagged in these activities
+    const offset = selectedDate.getTimezoneOffset();
+    const localDate = new Date(selectedDate.getTime() - (offset * 60 * 1000));
+    const dateString = localDate.toISOString().split('T')[0];
+
+    const acts = getServiceActivities().filter(a => a.date === dateString);
     const presentIds = new Set();
-    activities.forEach(a => {
+    acts.forEach(a => {
       if (a.participatingStudentIds) {
         a.participatingStudentIds.forEach(id => presentIds.add(id));
       }
     });
-
-    // 3. Filter the master children list
     return allChildren.filter(c => presentIds.has(c.id));
   };
 
-  // For Level 3: Get photos for specific child on specific date
-  const getChildPhotos = () => {
-    if (!selectedDate || !selectedChild) return [];
-
-    // Find activities on this date where this child was present
-    const relevantActivities = allActivities.filter(a => 
-      a.date === selectedDate && 
-      a.participatingStudentIds?.includes(selectedChild.id)
+  const getStudentPhotos = () => {
+    if (!selectedStudentForPhotos) return [];
+    const offset = selectedDate.getTimezoneOffset();
+    const localDate = new Date(selectedDate.getTime() - (offset * 60 * 1000));
+    const dateString = localDate.toISOString().split('T')[0];
+    const acts = getServiceActivities().filter(a => 
+      a.date === dateString && 
+      a.participatingStudentIds?.includes(selectedStudentForPhotos.id)
     );
-
-    // Extract all photo URLs
-    return relevantActivities.flatMap(a => a.photoUrls || []);
+    return acts.flatMap(a => a.photoUrls || []);
   };
+
+  // --- HANDLERS ---
+
+  const handleCreateService = async (e) => {
+    e.preventDefault();
+    if(!newServiceData.name) return;
+    
+    setUploading(true);
+
+    try {
+      // 1. Upload Image (if selected)
+      let imageUrl = "";
+      if (serviceImage) {
+        imageUrl = await cloudinaryService.uploadImage(serviceImage, 'little-lions/services');
+      }
+
+      // 2. Create Service Document
+      await servicesService.createService({ 
+        name: newServiceData.name, 
+        description: newServiceData.description,
+        type: 'Class',
+        imageUrl: imageUrl // Save the URL
+      });
+      
+      // 3. Refresh List
+      const updated = await servicesService.getServicesByType('Class');
+      setServices(updated);
+      
+      // 4. Reset & Close
+      setNewServiceData({ name: '', description: '' });
+      setServiceImage(null);
+      setShowAddModal(false);
+    } catch(err) {
+      alert("Failed to create service: " + err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const goBackToServices = () => {
+    setSelectedService(null);
+    setCurrentView('service-list');
+    setSelectedStudentForPhotos(null);
+  };
+
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+    setSelectedStudentForPhotos(null); 
+  };
+
+  if (loadingServices) return <div className="pg-loading">Loading Play Group Services...</div>;
 
   return (
     <div className="ooo-container">
       <AdminSidebar />
       <div className="ooo-main">
         
-        {/* --- LEVEL 1: CALENDAR LANDING --- */}
-        {currentLevel === 'calendar-view' && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div className="ooo-header" style={{ width: '100%', marginBottom: '20px' }}>
-              <h1>Play Group Calendar</h1>
-            </div>
-            
-            {loading ? <p>Loading Calendar...</p> : (
-              <div style={styles.calendarContainer}>
-                <Calendar 
-                  onClickDay={handleCalendarClick}
-                  formatShortWeekday={(locale, date) => 
-                    date.toLocaleDateString(locale, { weekday: 'short' }).toUpperCase().replace('.', '')
-                  }
-                  tileClassName={({ date, view }) => {
-                    if (view === 'month') {
-                      const offset = date.getTimezoneOffset();
-                      const localDate = new Date(date.getTime() - (offset * 60 * 1000));
-                      const dStr = localDate.toISOString().split('T')[0];
+        {/* === VIEW 1: SERVICE SELECTION === */}
+        {currentView === 'service-list' && (
+          <div className="pg-service-list-view">
+             <div className="ooo-header">
+                <div className="header-title">
+                  <h1>Play Group Services</h1>
+                  <p className="header-subtitle">Select a class to view calendar and students</p>
+                </div>
+             </div>
+
+             <div className="ooo-content-area">
+                <div className="pg-services-grid">
+                  {services.map(service => (
+                    <div 
+                      key={service.id} 
+                      className="pg-service-card"
+                      onClick={() => handleServiceSelect(service)}
+                    >
+                      {/* Check if image exists, otherwise show emoji */}
+                      {service.imageUrl ? (
+                        <div className="pg-card-image-box">
+                          <img src={service.imageUrl} alt={service.name} className="pg-card-image" />
+                        </div>
+                      ) : (
+                        <div className="pg-card-icon">🎨</div>
+                      )}
                       
-                      if (getActivityDates().includes(dStr)) {
-                        return 'has-activity'; 
-                      }
-                    }
-                  }}
-                />
-                <p style={{ marginTop: '15px', color: '#666', textAlign: 'center' }}>
-                  * Green tiles indicate playgroup sessions. Click to view present students.
-                </p>
+                      <h3>{service.name}</h3>
+                      <p>{service.description || "No description provided."}</p>
+                    </div>
+                  ))}
+                  {services.length === 0 && (
+                    <p className="pg-empty">No Play Group services found. Add one to get started!</p>
+                  )}
+                </div>
+             </div>
+
+             {/* FLOATING ACTION BUTTON */}
+             <button 
+               className="pg-fab" 
+               onClick={() => setShowAddModal(true)}
+             >
+               <span className="pg-fab-icon">+</span>
+               <span className="pg-fab-text">Add Play Group Service</span>
+             </button>
+          </div>
+        )}
+
+        {/* === VIEW 2: SERVICE DASHBOARD (SPLIT VIEW) === */}
+        {currentView === 'service-dashboard' && selectedService && (
+          <div className="pg-dashboard-view">
+            <div className="ooo-header">
+              <div style={{display:'flex', alignItems:'center', gap:'15px'}}>
+                <button onClick={goBackToServices} className="pg-back-btn">← Back</button>
+                <div className="header-title">
+                  <h1>{selectedService.name}</h1>
+                  <p className="header-subtitle">Manage attendance and activities</p>
+                </div>
+              </div>
+            </div>
+
+            {loadingDashboard ? (
+              <div className="pg-loading"><p>Loading Class Data...</p></div>
+            ) : (
+              <div className="pg-split-layout">
+                {/* LEFT SIDE */}
+                <div className="pg-left-panel">
+                  {selectedStudentForPhotos ? (
+                    <>
+                      <div className="pg-panel-header">
+                        <div className="pg-panel-header-left">
+                          <button className="pg-mini-back-btn" onClick={() => setSelectedStudentForPhotos(null)}>←</button>
+                          <div style={{display:'flex', flexDirection:'column'}}>
+                             <h2>{selectedStudentForPhotos.firstName}'s Photos</h2>
+                             <span className="pg-subtitle-date">{selectedDate.toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="pg-inner-scroll">
+                        <div className="pg-photo-grid">
+                          {getStudentPhotos().map((url, idx) => (
+                            <div key={idx} className="pg-photo-card" onClick={() => window.open(url, '_blank')}>
+                               <img src={url} alt="Activity" />
+                            </div>
+                          ))}
+                          {getStudentPhotos().length === 0 && <p className="pg-no-data">No photos found.</p>}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="pg-panel-header">
+                        <h2>Students Present</h2>
+                        <span className="pg-date-label">
+                          {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                        </span>
+                      </div>
+                      <div className="pg-students-list">
+                        {getPresentChildren().length > 0 ? (
+                          getPresentChildren().map(child => (
+                            <div key={child.id} className="pg-student-row" onClick={() => setSelectedStudentForPhotos(child)}>
+                              <img src={child.photoUrl || "https://via.placeholder.com/40"} alt="child" className="pg-student-thumb" />
+                              <div className="pg-student-info">
+                                <span className="pg-student-name">{child.firstName} {child.lastName}</span>
+                                <span className="pg-status-badge">Present</span>
+                              </div>
+                              <span className="pg-arrow">›</span>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="pg-no-data">
+                            <p>No students recorded for this date.</p>
+                            <small>Select a date with a green dot on the calendar.</small>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* RIGHT SIDE: Calendar */}
+                <div className="pg-right-panel">
+                   <div className="pg-panel-header"><h2>Schedule</h2></div>
+                   <div className="pg-calendar-wrapper">
+                      <Calendar 
+                        onChange={handleDateChange} 
+                        value={selectedDate}
+                        tileClassName={({ date, view }) => {
+                          if (view === 'month') {
+                            const offset = date.getTimezoneOffset();
+                            const localDate = new Date(date.getTime() - (offset * 60 * 1000));
+                            const dStr = localDate.toISOString().split('T')[0];
+                            if (getActivityDates().includes(dStr)) return 'has-activity-dot'; 
+                          }
+                        }}
+                      />
+                      <div className="pg-calendar-legend">
+                        <span className="dot-legend"></span> Activities Recorded
+                      </div>
+                   </div>
+                </div>
               </div>
             )}
           </div>
         )}
 
-        {/* --- LEVEL 2: PRESENT CHILDREN LIST --- */}
-        {currentLevel === 'child-list' && (
-          <>
-            <div className="ooo-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <button onClick={goBackToCalendar} style={styles.backBtn}>← Back</button>
-                <h1>Children Present on {selectedDate}</h1>
-              </div>
-            </div>
-
-            <div className="ooo-grid">
-              {getPresentChildren().map(child => (
-                <div 
-                  key={child.id} 
-                  className="ooo-card" 
-                  onClick={() => handleChildSelect(child)}
-                >
-                  <div className="ooo-photo-area">
-                    {child.photoUrl ? (
-                      <img src={child.photoUrl} alt="" className="ooo-photo" />
-                    ) : (
-                      <span>📷</span>
-                    )}
-                  </div>
-                  <div className="ooo-card-info">
-                    <p className="ooo-name">
-                      {child.lastName}, {child.firstName}
-                    </p>
-                    <span style={{ fontSize: '12px', color: '#2ecc71', fontWeight: 'bold' }}>
-                      ✓ Present
-                    </span>
-                  </div>
-                </div>
-              ))}
-              
-              {getPresentChildren().length === 0 && (
-                <p>No children were tagged in the activity for this date.</p>
-              )}
-            </div>
-          </>
-        )}
-
-        {/* --- LEVEL 3: PHOTO GALLERY --- */}
-        {currentLevel === 'photo-view' && selectedChild && (
-          <div>
-            <div className="ooo-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <button onClick={goBackToChildList} style={styles.backBtn}>← Back</button>
-                <div>
-                  <h1 style={{ margin: 0 }}>{selectedChild.firstName}'s Photos</h1>
-                  <span style={{ fontSize: '14px', color: '#666' }}>Date: {selectedDate}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div style={styles.grid}>
-              {getChildPhotos().map((url, idx) => (
-                <div key={idx} style={styles.photoCard}>
-                  <img 
-                    src={url} 
-                    alt="Activity" 
-                    style={styles.fullPhoto} 
-                    onClick={() => window.open(url, '_blank')}
+        {/* === ADD SERVICE MODAL === */}
+        {showAddModal && (
+          <div className="pg-modal-overlay" onClick={() => !uploading && setShowAddModal(false)}>
+            <div className="pg-modal-form-card" onClick={e => e.stopPropagation()}>
+              <h2>Create New Class</h2>
+              <form onSubmit={handleCreateService}>
+                <div className="pg-form-group">
+                  <label>Class Name</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Morning Playgroup" 
+                    value={newServiceData.name}
+                    onChange={(e) => setNewServiceData({...newServiceData, name: e.target.value})}
+                    required
+                    autoFocus
+                    disabled={uploading}
                   />
                 </div>
-              ))}
-              {getChildPhotos().length === 0 && (
-                <p>No photos found for this child on this date.</p>
-              )}
+                <div className="pg-form-group">
+                  <label>Description</label>
+                  <textarea 
+                    placeholder="Short description of the class..." 
+                    value={newServiceData.description}
+                    onChange={(e) => setNewServiceData({...newServiceData, description: e.target.value})}
+                    disabled={uploading}
+                  />
+                </div>
+                
+                {/* --- IMAGE UPLOAD INPUT --- */}
+                <div className="pg-form-group">
+                  <label>Service Image (Optional)</label>
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={(e) => setServiceImage(e.target.files[0])}
+                    disabled={uploading}
+                    className="pg-file-input"
+                  />
+                  {serviceImage && <span className="pg-file-name">Selected: {serviceImage.name}</span>}
+                </div>
+
+                <div className="pg-form-actions">
+                  <button 
+                    type="button" 
+                    className="pg-cancel-btn" 
+                    onClick={() => setShowAddModal(false)}
+                    disabled={uploading}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="pg-submit-btn" 
+                    disabled={uploading}
+                  >
+                    {uploading ? 'Uploading...' : 'Create Class'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}
@@ -230,36 +390,6 @@ const PlayGroup = () => {
       </div>
     </div>
   );
-};
-
-const styles = {
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px', marginTop: '20px' },
-  calendarContainer: { 
-    width: '100%', 
-    maxWidth: '1000px',
-    padding: '30px', 
-    background: '#fff', 
-    borderRadius: '15px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
-  },
-  photoCard: { 
-    border: '1px solid #ddd', 
-    borderRadius: '8px', 
-    overflow: 'hidden', 
-    height: '250px',
-    cursor: 'pointer',
-    boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-  },
-  fullPhoto: { width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.2s' },
-  backBtn: { 
-    padding: '8px 16px', 
-    cursor: 'pointer', 
-    background: '#fff', 
-    border: '1px solid #ccc', 
-    borderRadius: '6px',
-    fontWeight: 'bold',
-    color: '#555'
-  }
 };
 
 export default PlayGroup;
