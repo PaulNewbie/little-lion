@@ -45,19 +45,11 @@ const ActivityCalendarView = ({ activities, teachers, selectedServiceName }) => 
   };
 
   return (
-    <div className="calendar-view-container">
-      {/* LEFT: CALENDAR */}
-      <div className="calendar-section">
-        <Calendar 
-          onChange={setDate} 
-          value={date} 
-          tileContent={tileContent}
-          className="custom-calendar"
-        />
-      </div>
-
-      {/* RIGHT: ACTIVITY DETAILS */}
-      <div className="day-details-section">
+    // Added display: flex to ensure side-by-side layout works with sizing logic
+    <div className="calendar-view-container" style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
+      
+      {/* LEFT: ACTIVITY DETAILS (Expanded Space) */}
+      <div className="day-details-section" style={{ flex: 1 }}> 
         <h3 className="date-heading">
           {date.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric' })}
         </h3>
@@ -98,6 +90,17 @@ const ActivityCalendarView = ({ activities, teachers, selectedServiceName }) => 
             ))}
           </div>
         )}
+      </div>
+
+      {/* RIGHT: CALENDAR (Fixed Compact Width) */}
+      {/* We use flexShrink: 0 and width: 350px to keep it from stretching */}
+      <div className="calendar-section" style={{ width: "350px", flexShrink: 0 }}>
+        <Calendar 
+          onChange={setDate} 
+          value={date} 
+          tileContent={tileContent}
+          className="custom-calendar"
+        />
       </div>
     </div>
   );
