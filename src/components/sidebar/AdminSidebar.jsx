@@ -17,9 +17,9 @@ const AdminSidebar = () => {
   };
 
   const isActive = (path) => location.pathname === path;
-  
+
   // Helper to check for super admin
-  const isSuperAdmin = currentUser?.role === 'super_admin';
+  const isSuperAdmin = currentUser?.role === "super_admin";
 
   // Handle window resize
   useEffect(() => {
@@ -80,7 +80,7 @@ const AdminSidebar = () => {
           </div>
           <div
             className={`menu-item ${
-              isActive("/admin/one-on-one") ? "active" : "" 
+              isActive("/admin/one-on-one") ? "active" : ""
             }`}
             onClick={() => navigate("/admin/one-on-one")}
           >
@@ -94,7 +94,7 @@ const AdminSidebar = () => {
           >
             👥 PLAY GROUP
           </div>
-          
+
           {/* RESTRICTED: Add Services */}
           {isSuperAdmin && (
             <div
@@ -104,6 +104,18 @@ const AdminSidebar = () => {
               onClick={() => navigate("/admin/services")}
             >
               ➕ ADD SERVICES
+            </div>
+          )}
+
+          {/* RESTRICTED: Enroll Students*/}
+          {isSuperAdmin && (
+            <div
+              className={`menu-item ${
+                isActive("/admin/enrollment") ? "active" : ""
+              }`}
+              onClick={() => navigate("/admin/enrollment")}
+            >
+              ➕ ENROLL STUDENT
             </div>
           )}
         </div>
@@ -119,7 +131,7 @@ const AdminSidebar = () => {
           >
             ➕ ADD PARENT
           </div>
-          
+
           {/* RESTRICTED: Add Admin (Only for Super Admin) */}
           {isSuperAdmin && (
             <div

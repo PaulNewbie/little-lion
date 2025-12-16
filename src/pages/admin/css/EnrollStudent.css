@@ -1,0 +1,110 @@
+/* ============================================================
+   HEADER + SEARCH (LIST PAGE)
+============================================================ */
+.ooo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+  padding: 40px;
+}
+
+.ooo-header h1 {
+  font-size: 32px;
+  font-weight: 600;
+  color: #2c3e50;
+  letter-spacing: -0.5px;
+}
+
+.ooo-search {
+  width: 300px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  background: white;
+  border: 2px solid #e0e0e0;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.ooo-search:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+/* ============================================================
+   PARENT CARDS CONTAINER
+============================================================ */
+
+/* Ensure the page scrolls if content overflows */
+.manageParentsPage {
+  flex: 1; /* take remaining space beside sidebar */
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* scroll vertically if needed */
+  background-color: #fafafa;
+}
+
+/* Header stays on top, cards scroll */
+.manageParentsPage header {
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+/* Grid of parent cards */
+.parentsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.parentCard {
+  background-color: #fbf5f5;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.2s;
+  align-items: center; /* centers children horizontally */
+  height: 256px; /* total card height */
+}
+
+.photoArea {
+  position: relative;
+  border-radius: 10px 10px 0 0;
+  width: 100%;
+  height: 200px; /* keep photo height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  background-color: #ddd;
+}
+
+.photoArea img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.parentCardInfoCon {
+  flex: 1; /* fills remaining height */
+  display: flex;
+  align-items: center; /* vertical center */
+  justify-content: center; /* horizontal center */
+  background-color: #fbf5f5; /* optional, match card bg */
+}
+
+.parentName {
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+}
