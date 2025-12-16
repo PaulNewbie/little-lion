@@ -119,3 +119,17 @@
   font-size: 14px;
   text-align: center;
 }
+
+/* ADD BUTTON */
+.addParentAccBtn {
+  background-color: rgb(157, 255, 0);
+  width: 70px;
+  height: 70px;
+  position: absolute;
+  bottom: 2.5rem;
+  right: 2.5rem;
+  font-size: 4rem;
+  border: none;
+  border-radius: 50%;
+  color: rgb(204, 41, 41);
+}

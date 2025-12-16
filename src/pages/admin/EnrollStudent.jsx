@@ -55,6 +55,7 @@ export default function EnrollStudent() {
         </div>
 
         <main>
+          <h2>Parents</h2>
           {!selectedParent ? (
             <div className="parentsGrid">
               {parents.map((parent) => (
@@ -98,7 +99,7 @@ export default function EnrollStudent() {
           )}
         </main>
 
-        <button></button>
+        <button className="addParentAccBtn">+</button>
       </div>
     </div>
   );
