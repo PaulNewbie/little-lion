@@ -8,8 +8,9 @@ import LoginPage from './pages/auth/LoginPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 
 // Admin Components
-import OneOnOne from './pages/admin/OneOnOne'; // NEW Main View
+import StudentProfile from './pages/admin/StudentProfile'; // NEW Main View
 import PlayGroup from './pages/admin/PlayGroup';
+import OneOnOne from './pages/admin/OneOnOne';
 import EnrollChild from './pages/admin/EnrollChild';
 import ManageTeachers from './pages/admin/ManageTeachers';
 import OtherServices from './pages/admin/OtherServices';
@@ -36,7 +37,7 @@ const AppRoutes = () => {
         element={
           currentUser ? (
             <Navigate to={
-              currentUser.role === 'admin' ? '/admin/one-on-one' :
+              currentUser.role === 'admin' ? '/admin/StudentProfile' :
               currentUser.role === 'teacher' ? '/teacher/dashboard' :
               '/parent/dashboard'
             } replace />
@@ -50,18 +51,26 @@ const AppRoutes = () => {
       
       {/* 1. Main 1:1 View */}
       <Route
-        path="/admin/one-on-one"
+        path="/admin/StudentProfile"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <StudentProfile />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 2. Redirect /dashboard to /StudentProfile */}
+      <Route
+        path="/admin/dashboard"
+        element={<Navigate to="/admin/StudentProfile" replace />}
+      />
+      <Route
+        path="/admin/OneOnOne"
         element={
           <ProtectedRoute allowedRoles={['admin']}>
             <OneOnOne />
           </ProtectedRoute>
         }
-      />
-
-      {/* 2. Redirect /dashboard to /one-on-one */}
-      <Route
-        path="/admin/dashboard"
-        element={<Navigate to="/admin/one-on-one" replace />}
       />
 
       <Route
@@ -139,7 +148,7 @@ const AppRoutes = () => {
         element={
           currentUser ? (
             <Navigate to={
-              currentUser.role === 'admin' ? '/admin/one-on-one' :
+              currentUser.role === 'admin' ? '/admin/StudentProfile' :
               currentUser.role === 'teacher' ? '/teacher/dashboard' :
               '/parent/dashboard'
             } replace />

@@ -5,7 +5,7 @@ import childService from '../../services/childService';
 import activityService from '../../services/activityService';
 import AdminSidebar from '../../components/sidebar/AdminSidebar';
 import './css/PlayGroup.css';
-import './css/OneOnOne.css'; // Reusing card styles
+import './css/StudentProfile.css'; // Reusing card styles
 
 const PlayGroup = () => {
   // Navigation State: 'calendar-view' | 'child-list' | 'photo-view'
