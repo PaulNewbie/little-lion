@@ -50,12 +50,12 @@ const AppRoutes = () => {
 
   if (loading) return <Loading />;
 
-  // --- FIX: Helper to determine home page based on role ---
+  // --- Helper to determine home page based on role ---
   const getHomeRoute = (role) => {
     switch (role) {
-      case 'super_admin': // Explicitly handle super_admin
+      case 'super_admin': 
       case 'admin':
-        return '/admin/one-on-one';
+        return '/admin/StudentProfile'; // Consistent with login redirect
       case 'teacher':
         return '/teacher/dashboard';
       case 'therapist':
@@ -76,15 +76,14 @@ const AppRoutes = () => {
           currentUser ? (
             <Navigate
               to={
-          
-                currentUser.role === "admin"
+                // FIX 1: Add check for super_admin here
+                (currentUser.role === "admin" || currentUser.role === "super_admin")
                   ? "/admin/StudentProfile"
                   : currentUser.role === "teacher"
                   ? "/teacher/dashboard"
                   : currentUser.role === "therapist"
-                  ? "/therapist/dashboard" // Redirect therapist
+                  ? "/therapist/dashboard"
                   : "/parent/dashboard"
-                  
               }
               replace
             />
@@ -96,15 +95,19 @@ const AppRoutes = () => {
 
       {/* ADMIN ROUTES */}
       {/* 1. Shared Admin Routes (Accessible by admin AND super_admin) */}
-            {/* 1. Main 1:1 View */}
-      <Route path="/admin/StudentProfile" element={ <ProtectedRoute allowedRoles={['admin']}><StudentProfile /></ProtectedRoute>}/>
+      
+      {/* FIX 2: Added 'super_admin' to allowedRoles for StudentProfile */}
+      <Route path="/admin/StudentProfile" element={ <ProtectedRoute allowedRoles={['admin', 'super_admin']}><StudentProfile /></ProtectedRoute>}/>
+      
       <Route path="/admin/one-on-one" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><OneOnOne /></ProtectedRoute>} />
       <Route path="/admin/dashboard" element={<Navigate to="/admin/StudentProfile" replace />} />
       <Route path="/admin/play-group" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><PlayGroup /></ProtectedRoute>} />
       <Route path="/admin/enroll-child" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><EnrollChild /></ProtectedRoute>} />
       <Route path="/admin/manage-teachers" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><ManageTeachers /></ProtectedRoute>} />
       <Route path="/admin/manage-therapists" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><ManageTherapists /></ProtectedRoute>} />
-      <Route path="/admin/manage-parents" element={ <ProtectedRoute allowedRoles={["admin"]}><ManageParents /></ProtectedRoute>}/>
+      
+      {/* Note: Check if you want super_admin to access ManageParents as well. Assuming yes, added it here. */}
+      <Route path="/admin/manage-parents" element={ <ProtectedRoute allowedRoles={["admin", "super_admin"]}><ManageParents /></ProtectedRoute>}/>
 
       {/* 2. SUPER ADMIN ONLY ROUTES */}
       <Route path="/admin/services" element={<ProtectedRoute allowedRoles={['super_admin']}><OtherServices /></ProtectedRoute>} />
@@ -127,7 +130,7 @@ const AppRoutes = () => {
       {/* SHARED STAFF ROUTES (Inbox) */}
       <Route path="/staff/inquiries" element={<ProtectedRoute allowedRoles={['teacher', 'therapist']}><StaffInquiries /></ProtectedRoute>} />
 
-      {/* --- FIX: ADD UNAUTHORIZED ROUTE TO STOP LOOPS --- */}
+      {/* UNAUTHORIZED ROUTE */}
       <Route path="/unauthorized" element={
         <div style={{ padding: '50px', textAlign: 'center', color: '#d32f2f' }}>
           <h1>⛔ Access Denied</h1>
