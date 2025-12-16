@@ -94,18 +94,6 @@ const AdminSidebar = () => {
           >
             👥 PLAY GROUP
           </div>
-          
-          {/* RESTRICTED: Add Services */}
-          {isSuperAdmin && (
-            <div
-              className={`menu-item ${
-                isActive("/admin/services") ? "active" : ""
-              }`}
-              onClick={() => navigate("/admin/services")}
-            >
-              ➕ ADD SERVICES
-            </div>
-          )}
         </div>
 
         {/* User Management */}
