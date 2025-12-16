@@ -27,8 +27,35 @@ const students = [
 
 export default function EnrollStudent() {
   const [selectedParent, setSelectedParent] = useState(null);
-
+  const [showParentForm, setShowParentForm] = useState(false);
+  const [parentForm, setParentForm] = useState({
+    email: "",
+    password: "",
+  });
   const handleBack = () => setSelectedParent(null);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setParentForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleCreateParent = (e) => {
+    e.preventDefault();
+    console.log("New Parent Account:", parentForm);
+
+    // reset & close
+    setParentForm({ email: "", password: "" });
+    setShowParentForm(false);
+  };
+
+  //just to know how many child has
+  const selectedParentChildren = selectedParent
+    ? students.filter((s) => s.parentId === selectedParent.id)
+    : [];
+
   return (
     <div
       style={{
@@ -55,7 +82,14 @@ export default function EnrollStudent() {
         </div>
 
         <main>
-          <h2>Parents</h2>
+          <h2>
+            {" "}
+            {!selectedParent
+              ? "Parents Accounts"
+              : selectedParentChildren > 1
+              ? "Parent's Children"
+              : "Parent's Child"}
+          </h2>
           {!selectedParent ? (
             <div className="parentsGrid">
               {parents.map((parent) => (
@@ -99,7 +133,53 @@ export default function EnrollStudent() {
           )}
         </main>
 
-        <button className="addParentAccBtn">+</button>
+        <button
+          className="addParentAccBtn"
+          onClick={() => {
+            setShowParentForm(true);
+          }}
+        >
+          +
+        </button>
+
+        {/* Create Parent Modal */}
+        {showParentForm && (
+          <div className="modalOverlay">
+            <div className="modal">
+              <h2>Create Parent Account</h2>
+
+              <form onSubmit={handleCreateParent}>
+                <label>Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={parentForm.email}
+                  onChange={handleInputChange}
+                  required
+                />
+
+                <label>Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={parentForm.password}
+                  onChange={handleInputChange}
+                  required
+                />
+
+                <div className="modalActions">
+                  <button
+                    type="button"
+                    onClick={() => setShowParentForm(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit">Create</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
