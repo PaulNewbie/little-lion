@@ -80,9 +80,9 @@ const AdminSidebar = () => {
           </div>
           <div
             className={`menu-item ${
-              isActive("/admin/OneOnOne") ? "active" : ""
+              isActive("/admin/one-on-one") ? "active" : "" 
             }`}
-            onClick={() => navigate("/admin/OneOnOne")}
+            onClick={() => navigate("/admin/one-on-one")}
           >
             👥 1 : 1 SERVICES
           </div>
