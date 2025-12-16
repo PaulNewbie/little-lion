@@ -33,7 +33,7 @@
 
 .ooo-search {
   width: 300px;
-  padding: 12px 20px 12px 40px; 
+  padding: 12px 20px 12px 40px;
   border-radius: 8px;
   background: white;
   border: 2px solid #e0e0e0;
@@ -72,7 +72,7 @@
   padding: 40px;
 }
 
-.ooo-card { 
+.ooo-card {
   background: white;
   border-radius: 12px;
   cursor: pointer;
@@ -89,6 +89,7 @@
 
 .ooo-photo-area {
   height: 220px;
+  width: 220px;
   background: linear-gradient(135deg, #eedcc3 0%, #ffffff 100%);
   display: flex;
   justify-content: center;
@@ -260,7 +261,7 @@
   justify-content: space-between;
   align-items: center;
   border: 1px solid #e9ecef;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
   transition: all 0.2s ease;
 }
 
@@ -271,7 +272,7 @@
 
 .service-row.clickable:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   border-color: #4a90e2;
 }
 
@@ -326,7 +327,7 @@
   background: white;
   border-radius: 16px;
   padding: 30px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
 /* Calendar Section */
@@ -433,17 +434,17 @@
   .profile-3col {
     grid-template-columns: 1fr;
   }
-  
+
   .profile-photo-frame {
     height: 300px;
     width: 300px;
     margin: 0 auto;
   }
-  
+
   .calendar-view-container {
     grid-template-columns: 1fr;
   }
-  
+
   .calendar-section {
     border-right: none;
     border-bottom: 1px solid #eee;
