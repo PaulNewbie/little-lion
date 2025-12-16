@@ -41,13 +41,13 @@ export default function EnrollStudent() {
       <AdminSidebar />
 
       <div className="student-enrollment-page">
-        <div className="enrollment-header">
+        <div className="header">
           <h1>STUDENT ENROLLMENT</h1>
 
           <div className="search-wrapper">
             <input
               type="text"
-              className="ooo-search"
+              className="search"
               placeholder="SEARCH NAME..."
             />
             <span className="search-icon">🔍</span>

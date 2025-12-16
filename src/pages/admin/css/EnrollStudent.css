@@ -1,7 +1,7 @@
 /* ============================================================
    HEADER + SEARCH (LIST PAGE)
 ============================================================ */
-.ooo-header {
+.header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -11,14 +11,14 @@
   padding: 40px;
 }
 
-.ooo-header h1 {
+.header h1 {
   font-size: 32px;
   font-weight: 600;
   color: #2c3e50;
   letter-spacing: -0.5px;
 }
 
-.ooo-search {
+.search {
   width: 300px;
   padding: 12px 20px;
   border-radius: 8px;
@@ -28,7 +28,7 @@
   transition: all 0.3s ease;
 }
 
-.ooo-search:focus {
+.search:focus {
   outline: none;
   border-color: #4a90e2;
   box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
@@ -39,20 +39,13 @@
 ============================================================ */
 
 /* Ensure the page scrolls if content overflows */
-.manageParentsPage {
+.student-enrollment-page {
   flex: 1; /* take remaining space beside sidebar */
   display: flex;
   flex-direction: column;
   overflow-y: auto; /* scroll vertically if needed */
   background-color: #fafafa;
-}
-
-/* Header stays on top, cards scroll */
-.manageParentsPage header {
-  padding: 20px;
-  background-color: #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  z-index: 1;
+  padding: 2rem;
 }
 
 /* Grid of parent cards */
