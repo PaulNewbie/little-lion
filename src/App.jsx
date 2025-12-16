@@ -22,6 +22,7 @@ import ManageTherapists from './pages/admin/ManageTherapists';
 import OtherServices from './pages/admin/OtherServices';
 import ManageAdmins from './pages/admin/ManageAdmins';
 import ManageParents from "./pages/admin/ManageParents.jsx";
+import StudentProfile from './pages/admin/StudentProfile';
 
 
 // Teacher Components
@@ -75,13 +76,15 @@ const AppRoutes = () => {
           currentUser ? (
             <Navigate
               to={
+          
                 currentUser.role === "admin"
-                  ? "/admin/one-on-one"
+                  ? "/admin/StudentProfile"
                   : currentUser.role === "teacher"
                   ? "/teacher/dashboard"
                   : currentUser.role === "therapist"
                   ? "/therapist/dashboard" // Redirect therapist
                   : "/parent/dashboard"
+                  
               }
               replace
             />
@@ -93,8 +96,10 @@ const AppRoutes = () => {
 
       {/* ADMIN ROUTES */}
       {/* 1. Shared Admin Routes (Accessible by admin AND super_admin) */}
+            {/* 1. Main 1:1 View */}
+      <Route path="/admin/StudentProfile" element={ <ProtectedRoute allowedRoles={['admin']}><StudentProfile /></ProtectedRoute>}/>
       <Route path="/admin/one-on-one" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><OneOnOne /></ProtectedRoute>} />
-      <Route path="/admin/dashboard" element={<Navigate to="/admin/one-on-one" replace />} />
+      <Route path="/admin/dashboard" element={<Navigate to="/admin/StudentProfile" replace />} />
       <Route path="/admin/play-group" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><PlayGroup /></ProtectedRoute>} />
       <Route path="/admin/enroll-child" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><EnrollChild /></ProtectedRoute>} />
       <Route path="/admin/manage-teachers" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><ManageTeachers /></ProtectedRoute>} />

@@ -72,11 +72,19 @@ const AdminSidebar = () => {
           <div className="section-title">MAIN</div>
           <div
             className={`menu-item ${
-              isActive("/admin/one-on-one") ? "active" : ""
+              isActive("/admin/StudentProfile") ? "active" : ""
             }`}
-            onClick={() => navigate("/admin/one-on-one")}
+            onClick={() => navigate("/admin/StudentProfile")}
           >
-            👤 1 : 1 SERVICES
+            👤 STUDENT PROFILE
+          </div>
+          <div
+            className={`menu-item ${
+              isActive("/admin/OneOnOne") ? "active" : ""
+            }`}
+            onClick={() => navigate("/admin/OneOnOne")}
+          >
+            👥 1 : 1 SERVICES
           </div>
           <div
             className={`menu-item ${

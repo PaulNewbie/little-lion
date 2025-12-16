@@ -1,219 +1,335 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
 import childService from "../../services/childService";
+import { db } from "../../config/firebase";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  addDoc
+} from "firebase/firestore";
+import useManageTeachers from "../../hooks/useManageTeachers";
 import "./css/OneOnOne.css";
 
-const OneOnOne = () => {
-  const [currentLevel, setCurrentLevel] = useState("student-list");
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  
+/* ================================================================
+   SELECTED SERVICE INFO (MULTIPLE DATES + COLLAPSIBLE)
+================================================================ */
+const SelectedServiceInfo = ({ records, teachers }) => {
+  const [openIndex, setOpenIndex] = useState(null);
 
+  const toggleIndex = (i) => setOpenIndex(openIndex === i ? null : i);
+
+  const getTeacherName = (teacherId) => {
+    const teacher = teachers.find(t => t.id === teacherId);
+    return teacher ? `${teacher.firstName} ${teacher.lastName}` : "—";
+  };
+
+  return (
+    <div className="service-date-list">
+      {records.map((rec, i) => (
+        <div key={i} className="service-date-block">
+          <div className="service-date-header" onClick={() => toggleIndex(i)}>
+            <span>{rec.date || "No Date"}</span>
+            <span className="arrow-icon">{openIndex === i ? "▲" : "▼"}</span>
+          </div>
+          {openIndex === i && (
+            <div className="service-info-card">
+              <p><span className="label">Teacher:</span> {rec.teacherId ? getTeacherName(rec.teacherId) : "—"}</p>
+              <p><span className="label">Activity:</span> {rec.title || "—"}: {rec.activities || rec.description || "—"}</p>
+              <p><span className="label">Participating Students:</span> {rec.participatingStudentsNames?.join(", ") || "—"}</p>
+              <p><span className="label">Observations:</span> {rec.observations || "—"}</p>
+              <p><span className="label">Follow up:</span> {rec.followUp || "—"}</p>
+              <p><span className="label">Other concerns:</span> {rec.otherConcerns || "—"}</p>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+/* ================================================================
+   MAIN COMPONENT
+================================================================ */
+const OneOnOne = () => {
+  const [level, setLevel] = useState("services");
+  const [services, setServices] = useState([]);
   const [students, setStudents] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedService, setSelectedService] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [studentActivities, setStudentActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [selectedService, setSelectedService] = useState("");
+  /* ADD SERVICE STATE */
+  const [showAddServiceModal, setShowAddServiceModal] = useState(false);
+  const [newService, setNewService] = useState({
+    name: "",
+    description: ""
+  });
 
-  // ---------------------------
-  // FETCH STUDENTS
-  // ---------------------------
+  const { teachers } = useManageTeachers();
+
+  /* ===============================
+     FETCH SERVICES + STUDENTS
+  =============================== */
   useEffect(() => {
-    const fetchStudents = async () => {
+    const fetchData = async () => {
       try {
-        const data = await childService.getAllChildren();
-        setStudents(data);
-      } catch (error) {
-        console.error("Error fetching students:", error);
+        const serviceSnap = await getDocs(collection(db, "services"));
+        const serviceList = serviceSnap.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        const studentList = await childService.getAllChildren();
+
+        setServices(serviceList);
+        setStudents(studentList);
+      } catch (err) {
+        console.error("Error loading services:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchStudents();
+
+    fetchData();
   }, []);
 
-  const filteredStudents = students.filter((student) =>
-    `${student.firstName} ${student.lastName}`
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  );
+  /* ===============================
+     HELPERS
+  =============================== */
+  const getTeacherName = (teacherId) => {
+    const t = teachers.find(t => t.id === teacherId);
+    return t ? `${t.firstName} ${t.lastName}` : "—";
+  };
 
-  const handleSelectStudent = (student) => {
+  const enrolledStudents = selectedService
+    ? students.filter(s =>
+        s.services?.some(srv => srv.serviceId === selectedService.id)
+      )
+    : [];
+
+  const handleSelectService = (service) => {
+    setSelectedService(service);
+    setLevel("students");
+  };
+
+  const handleSelectStudent = async (student) => {
     setSelectedStudent(student);
-    setCurrentLevel("student-profile");
+    setLevel("student-profile");
+
+    try {
+      const q = query(
+        collection(db, "activities"),
+        where("participatingStudentIds", "array-contains", student.id)
+      );
+      const snap = await getDocs(q);
+      const activities = snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        participatingStudentsNames: doc.data().participatingStudentIds.map(id => {
+          const s = students.find(st => st.id === id);
+          return s ? `${s.firstName} ${s.lastName}` : id;
+        })
+      }));
+      setStudentActivities(activities);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const goBack = () => {
-    setSelectedStudent(null);
-    setCurrentLevel("student-list");
+    if (level === "student-profile") {
+      setSelectedStudent(null);
+      setStudentActivities([]);
+      setLevel("students");
+    } else if (level === "students") {
+      setSelectedService(null);
+      setLevel("services");
+    }
   };
+
+  /* ===============================
+     ADD SERVICE LOGIC
+  =============================== */
+  const handleServiceInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewService(prev => ({ ...prev, [name]: value }));
+  };
+
+  const createService = async (e) => {
+    e.preventDefault();
+    try {
+      const docRef = await addDoc(collection(db, "services"), {
+        ...newService,
+        createdAt: new Date()
+      });
+
+      setServices(prev => [
+        ...prev,
+        { id: docRef.id, ...newService }
+      ]);
+
+      setShowAddServiceModal(false);
+      setNewService({ name: "", description: "" });
+    } catch (err) {
+      console.error("Error creating service:", err);
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div className="ooo-container">
       <AdminSidebar />
-
       <div className="ooo-main">
-        {/* =========================================================
-            PAGE 1 — STUDENT LIST
-        ========================================================== */}
-        {currentLevel === "student-list" && (
+
+        {/* ===============================
+            SERVICES LANDING PAGE
+        =============================== */}
+        {level === "services" && (
           <>
             <div className="ooo-header">
               <h1>1 : 1 SERVICES</h1>
-
-              <input
-                type="text"
-                className="ooo-search"
-                placeholder="SEARCH"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
             </div>
 
-            {loading ? (
-              <p>Loading students...</p>
+            <div className="ooo-grid">
+
+              {/* ADD SERVICE CARD */}
+              <div
+                className="ooo-card add-service-card"
+                onClick={() => setShowAddServiceModal(true)}
+              >
+                <div className="ooo-card-info add-card">
+                  <h3>＋ Add Service</h3>
+                  <p>Create new service</p>
+                </div>
+              </div>
+
+              {services.map(service => (
+                <div
+                  key={service.id}
+                  className="ooo-card"
+                  onClick={() => handleSelectService(service)}
+                >
+                  <div className="ooo-card-info">
+                    <h3>{service.name}</h3>
+                    <p>
+                      {
+                        students.filter(s =>
+                          s.services?.some(sr => sr.serviceId === service.id)
+                        ).length
+                      } enrolled students
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* ===============================
+            STUDENTS PER SERVICE
+        =============================== */}
+        {level === "students" && selectedService && (
+          <>
+            <div className="ooo-header">
+              <span className="back-arrow" onClick={goBack}>←</span>
+              <h1 className="service-name">{selectedService.name}</h1>
+            </div>
+
+            {enrolledStudents.length === 0 ? (
+              <p>No students enrolled in this service.</p>
             ) : (
               <div className="ooo-grid">
-                {filteredStudents.length === 0 && (
-                  <p>No students found.</p>
-                )}
-
-                {filteredStudents.map((student) => (
-                  <div
-                    key={student.id}
-                    className="ooo-card"
-                    onClick={() => handleSelectStudent(student)}
-                  >
-                    <div className="ooo-photo-area">
-                      {student.photoUrl ? (
-                        <img
-                          src={student.photoUrl}
-                          alt=""
-                          className="ooo-photo"
-                        />
-                      ) : (
-                        <span>📷</span>
-                      )}
+                {enrolledStudents.map(student => {
+                  const serviceInfo = student.services.find(
+                    s => s.serviceId === selectedService.id
+                  );
+                  return (
+                    <div
+                      key={student.id}
+                      className="ooo-card"
+                      onClick={() => handleSelectStudent(student)}
+                    >
+                      <div className="ooo-photo-area">
+                        {student.photoUrl ? <img src={student.photoUrl} alt="" /> : <span>📷</span>}
+                      </div>
+                      <div className="ooo-card-info">
+                        <p className="ooo-name">{student.lastName}, {student.firstName}</p>
+                        <p className="ooo-sub">Teacher: {getTeacherName(serviceInfo?.teacherId)}</p>
+                      </div>
                     </div>
-
-                    <div className="ooo-card-info">
-                      <p className="ooo-name">
-                        {student.lastName}, {student.firstName}
-                      </p>
-                      {/* <span className="ooo-see">See More ›</span> */}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </>
         )}
 
-        {/* =========================================================
-            PAGE 2 — STUDENT PROFILE (Matches Screenshot Exactly)
-        ========================================================== */}
-        {currentLevel === "student-profile" && selectedStudent && (
+        {/* ===============================
+            STUDENT PROFILE
+        =============================== */}
+        {level === "student-profile" && selectedStudent && (
           <div className="profile-wrapper">
+            <span className="back-arrow" onClick={goBack}>←</span>
+            <h2>{selectedStudent.lastName}, {selectedStudent.firstName}</h2>
 
-            {/* TOP BAR */}
-            <div className="profile-top">
-              <div className="left-group">
-                <span className="back-arrow" onClick={goBack}>←</span>
-                <h2>STUDENT PROFILES</h2>
-              </div>
-              <input
-                type="text"
-                placeholder="SEARCH"
-                className="profile-search"
-              />
-            </div>
+            <SelectedServiceInfo
+              records={studentActivities}
+              teachers={teachers}
+            />
+          </div>
+        )}
 
-            <div className="profile-3col">
+        {/* ===============================
+            ADD SERVICE MODAL (SIMPLIFIED)
+        =============================== */}
+        {showAddServiceModal && (
+          <div
+            className="modal-overlay"
+            onClick={() => setShowAddServiceModal(false)}
+          >
+            <div
+              className="modal-box"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2>Add New 1:1 Service</h2>
 
-              {/* COLUMN 1 — PHOTO */}
-              <div className="profile-photo-frame">
-                {selectedStudent.photoUrl ? (
-                  <img
-                    src={selectedStudent.photoUrl}
-                    alt=""
-                    className="profile-photo"
-                  />
-                ) : (
-                  <span>No Photo</span>
-                )}
-              </div>
+              <form onSubmit={createService} className="modal-form">
+                <input
+                  name="name"
+                  placeholder="Service Name"
+                  value={newService.name}
+                  onChange={handleServiceInputChange}
+                  required
+                />
 
-              {/* COLUMN 2 — NAME + DETAILS */}
-              <div className="profile-info">
+                <textarea
+                  name="description"
+                  placeholder="Description"
+                  value={newService.description}
+                  onChange={handleServiceInputChange}
+                />
 
-                <h1 className="profile-fullname">
-                  {selectedStudent.lastName}, {selectedStudent.firstName}
-                </h1>
-
-                <div className="profile-details">
-
-                  <div className="profile-left">
-                    <p><span className="icon">📞</span> {selectedStudent.phone|| "John Patrick J. Ignacio"}</p>
-                    <p><span className="icon">👩</span> {selectedStudent.motherName || "ana liza J. Ignacio"}</p>
-                    <p><span className="icon">✉️</span> {selectedStudent.motherEmail || "Analiza@gmail.com"}</p>
-                    <p><span className="icon">📍</span> {selectedStudent.address || "maligaya st. patubig marilao bulacan"}</p>
-                  </div>
-
-                  <div className="profile-center">
-
-                  </div>
-
-                  <div className="profile-right">
-                    <p><b>Age:</b> {selectedStudent.age || "21"}</p>
-                    <p><b>Gender:</b> {selectedStudent.gender || "N/A"}</p>
-                    <p><b>Birthday:</b> {selectedStudent.birthday || "12-21-2003"}</p>
-                    <p><b>Address:</b> {selectedStudent.address || "maligaya st. patubig marilao bulacan"}</p>
-                  </div>
-                </div>
-
-                {/* SERVICES HEADER */}
-                <h2 className="services-header">SERVICES AVAILED</h2>
-
-                {/* SERVICES LIST */}
-                <div className="services-list">
-                  {selectedStudent.services?.map((service, i) => (
-                    <div key={i} className="service-row">
-                      <div className="service-left">
-                        <span className="service-icon">🟡</span>
-                        {service.serviceName}
-                      </div>
-                      <span className="arrow">›</span>
-                    </div>
-                    
-                  ))}
-                </div>
-                <div className="select-service">
-                  <p>Select a service to view records: </p>
-                  <select
-                    value={selectedService}
-                    onChange={(e) => setSelectedService(e.target.value)}
+                <div className="modal-actions">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddServiceModal(false)}
                   >
-                    <option value="">--Select a service--</option>
-                    {selectedStudent.services?.map((service, i) => (
-                      <option key={i} value={service.serviceName}>
-                        {service.serviceName}
-                      </option>
-                    ))}
-                  </select>
+                    Cancel
+                  </button>
+                  <button type="submit">Add Service</button>
                 </div>
-
-
-              </div>
-
+              </form>
             </div>
           </div>
-          
-          
         )}
-        <div className="Profile-Footer"></div>
+
       </div>
     </div>
-
-    
   );
 };
+
 export default OneOnOne;
