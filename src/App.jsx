@@ -21,6 +21,8 @@ import ManageTeachers from './pages/admin/ManageTeachers';
 import ManageTherapists from './pages/admin/ManageTherapists';
 import OtherServices from './pages/admin/OtherServices';
 import ManageAdmins from './pages/admin/ManageAdmins';
+import ManageParents from "./pages/admin/ManageParents.jsx";
+
 
 // Teacher Components
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
@@ -97,7 +99,8 @@ const AppRoutes = () => {
       <Route path="/admin/enroll-child" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><EnrollChild /></ProtectedRoute>} />
       <Route path="/admin/manage-teachers" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><ManageTeachers /></ProtectedRoute>} />
       <Route path="/admin/manage-therapists" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><ManageTherapists /></ProtectedRoute>} />
-      
+      <Route path="/admin/manage-parents" element={ <ProtectedRoute allowedRoles={["admin"]}><ManageParents /></ProtectedRoute>}/>
+
       {/* 2. SUPER ADMIN ONLY ROUTES */}
       <Route path="/admin/services" element={<ProtectedRoute allowedRoles={['super_admin']}><OtherServices /></ProtectedRoute>} />
       <Route path="/admin/manage-admins" element={<ProtectedRoute allowedRoles={['super_admin']}><ManageAdmins /></ProtectedRoute>} />
