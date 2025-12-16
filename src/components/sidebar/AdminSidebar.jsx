@@ -133,14 +133,21 @@ const AdminSidebar = () => {
             ➕ ADD TEACHER
           </div>
           <div
-              className={`menu-item ${
-                isActive("/admin/manage-therapists") ? "active" : ""
-              }`}
-              onClick={() => navigate("/admin/manage-therapists")}
-            >
-              ➕ ADD THERAPIST
+            className={`menu-item ${
+              isActive("/admin/manage-therapists") ? "active" : ""
+            }`}
+            onClick={() => navigate("/admin/manage-therapists")}
+          >
+            ➕ ADD THERAPIST
           </div>
-
+          <div
+            className={`menu-item ${
+              isActive("/admin/manage-parents") ? "active" : ""
+            }`}
+            onClick={() => navigate("/admin/manage-parents")}
+          >
+            ➕ PARENTS
+          </div>
         </div>
         <button className="logout-btn" onClick={handleLogout}>
           LOG OUT

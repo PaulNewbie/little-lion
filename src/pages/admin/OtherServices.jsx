@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+// import React, { useState } from "react";
 import useOtherServices from "../../hooks/useOtherServices";
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
 import "./css/OtherServices.css";
@@ -14,7 +14,7 @@ const OtherServices = () => {
     handleInputChange,
     createService,
     toggleTeacherAssignment,
-    deactivateService,
+    // deactivateService,
     selectedService,
     selectService,
     clearSelection,
@@ -51,18 +51,11 @@ const OtherServices = () => {
       }}
     >
       {/* Sidebar */}
-      {/* {isSidebarVisible && (
-        <div className="admin-sidebar-container">
-          <AdminSidebar />
-        </div>
-      )} */}
+
       <AdminSidebar />
 
       {/* Main Content */}
       <div className="page-container">
-        {/* <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
-          {isSidebarVisible ? "Hide Menu ←" : "Show Menu →"}
-        </button> */}
         {/* Conditional Rendering: Service Details OR Service List */}
         {selectedService ? (
           // ---------------- VIEW: SERVICE DETAILS & ENROLLMENT ----------------

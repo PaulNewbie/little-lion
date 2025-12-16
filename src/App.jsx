@@ -1,7 +1,12 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import { useAuth } from './hooks/useAuth';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import { useAuth } from "./hooks/useAuth";
 
 // Auth Components
 import LoginPage from './pages/auth/LoginPage';
@@ -35,7 +40,7 @@ import NewInquiry from './pages/parent/NewInquiry';
 import StaffInquiries from './components/common/StaffInquiries'; 
 
 // Common Components
-import Loading from './components/common/Loading';
+import Loading from "./components/common/Loading";
 
 const AppRoutes = () => {
   const { currentUser, loading } = useAuth();
@@ -62,15 +67,26 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/change-password" element={<ChangePassword />} />
-      <Route 
-        path="/login" 
+      <Route
+        path="/login"
         element={
           currentUser ? (
-            <Navigate to={getHomeRoute(currentUser.role)} replace />
+            <Navigate
+              to={
+                currentUser.role === "admin"
+                  ? "/admin/one-on-one"
+                  : currentUser.role === "teacher"
+                  ? "/teacher/dashboard"
+                  : currentUser.role === "therapist"
+                  ? "/therapist/dashboard" // Redirect therapist
+                  : "/parent/dashboard"
+              }
+              replace
+            />
           ) : (
             <LoginPage />
           )
-        } 
+        }
       />
 
       {/* ADMIN ROUTES */}
