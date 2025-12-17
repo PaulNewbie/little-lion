@@ -437,7 +437,7 @@ export default function EnrollStudentFormModal({ show, onClose, onSave }) {
               </div>
 
               {/* 5. Developmental Background (Dynamic Mapping) */}
-              <div className="form-section-group">
+              <div className="form-section-group input-group">
                 <label>Developmental Background</label>
 
                 {studentInput.backgroundHistory.developmentalBackground.map(
@@ -538,7 +538,7 @@ export default function EnrollStudentFormModal({ show, onClose, onSave }) {
               </div>
 
               {/* 8. Interventions */}
-              <div className="form-section-group">
+              <div className="form-section-group input-group">
                 <label>Therapies / Interventions</label>
 
                 {/* Header Row for Desktop/Tablets */}
