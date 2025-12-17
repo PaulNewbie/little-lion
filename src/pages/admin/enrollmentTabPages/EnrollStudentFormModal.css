@@ -1,20 +1,41 @@
-/* Specific logic for the Enrollment Wizard Modal */
-.multi-step-modal {
-  max-width: 750px;
-  max-height: 90vh;
-  padding: 0;
+/* ==========================================================================
+   1. MODAL WRAPPER & BACKDROP
+   ========================================================================== */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: white;
-  border-radius: 24px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
 }
 
+.multi-step-modal {
+  display: flex;
+  flex-direction: column;
+  width: 95%;
+  max-width: 1100px;
+  max-height: 90vh;
+  padding: 0 !important;
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+}
+
+/* ==========================================================================
+   2. STICKY HEADER & PROGRESS INDICATOR
+   ========================================================================== */
 .modal-header-sticky {
-  padding: 25px 35px;
-  border-bottom: 1px solid #f1f5f9;
+  flex-shrink: 0;
+  padding: 25px 40px;
   background: white;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .modal-header-flex {
@@ -24,19 +45,12 @@
   margin-bottom: 15px;
 }
 
-.enroll-form-scroll {
-  padding: 30px 35px;
-  overflow-y: auto;
-  flex: 1;
-}
-
-.sticky-footer {
-  padding: 20px 35px;
-  background: #f8fafc;
-  border-top: 1px solid #f1f5f9;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.modal-header-flex h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
 }
 
 .step-indicator {
@@ -50,29 +64,313 @@
   height: 6px;
   background: #e2e8f0;
   border-radius: 10px;
-  transition: background 0.4s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .step-dot.active {
   background: #4a90e2;
+  box-shadow: 0 0 8px rgba(74, 144, 226, 0.4);
+}
+
+/* ==========================================================================
+   3. SCROLLABLE FORM CONTENT
+   ========================================================================== */
+.enroll-form-scroll {
+  flex: 1;
+  padding: 35px 40px;
+  overflow-y: auto;
+  background: #ffffff;
+}
+
+.form-section {
+  animation: slideIn 0.3s ease-out;
+}
+
+.form-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.form-section h3::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 22px;
+  background: #4a90e2;
+  border-radius: 4px;
+}
+
+/* ==========================================================================
+   4. FORM INPUTS & SHARED FIELD STYLES
+   ========================================================================== */
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.input-group input,
+.input-group select,
+.input-group textarea {
+  width: 100%;
+  padding: 14px 16px;
+  font-family: inherit;
+  font-size: 15px;
+  color: #1e293b;
+  background: #fcfdfe;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.input-group textarea {
+  min-height: 120px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.input-group input:focus,
+.input-group select:focus,
+.input-group textarea:focus {
+  outline: none;
+  background-color: #ffffff;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
+}
+
+/* ==========================================================================
+   5. SPECIALIZED GRID LAYOUTS
+   ========================================================================== */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.grid-3-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 25px;
 }
 
 .service-assign-row {
-  background: #f1f5f9;
-  padding: 20px;
-  border-radius: 15px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 25px;
+  margin-top: 20px;
+  padding: 30px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 20px;
 }
 
-.cancel-btn-alt {
-  border: none;
-  background: #fee2e2;
-  color: #dc2626;
-  padding: 12px 24px;
+/* ==========================================================================
+   6. DYNAMIC LISTS & REPEATER FIELDS
+   ========================================================================== */
+.dynamic-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dynamic-input-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px 15px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
-  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.dynamic-input-row:focus-within {
+  background: #ffffff;
+  border-color: #4a90e2;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.row-index {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: #4a90e2;
+  background: #eff6ff;
+  border-radius: 8px;
+}
+
+.dynamic-input-row input {
+  flex: 1;
+  padding: 5px 0;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.add-point-btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px;
+  font-weight: 700;
+  color: #64748b;
+  background: #ffffff;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
   cursor: pointer;
-  margin-left: 10px;
+  transition: all 0.2s;
+}
+
+.add-point-btn:hover {
+  color: #4a90e2;
+  background: #f0f7ff;
+  border-color: #4a90e2;
+}
+
+/* ==========================================================================
+   7. STICKY FOOTER & ACTION AREA
+   ========================================================================== */
+.sticky-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 25px 40px;
+  background: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+}
+
+.left-actions,
+.right-actions {
+  display: flex;
+  gap: 15px;
+}
+
+/* ==========================================================================
+   8. BUTTON VARIANTS
+   ========================================================================== */
+button {
+  font-family: inherit;
+  font-size: 14px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Primary Action */
+.create-btn {
+  padding: 12px 28px;
+  font-weight: 700;
+  color: white;
+  background: #4a90e2;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.create-btn:hover {
+  background: #357abd;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+/* Secondary Action */
+.cancel-btn {
+  padding: 12px 24px;
+  font-weight: 600;
+  color: #64748b;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+/* Neutral/Draft Action */
+.save-draft-btn {
+  padding: 12px 24px;
+  font-weight: 600;
+  color: #475569;
+  background: #f1f5f9;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.save-draft-btn:hover {
+  color: #1e293b;
+  background: #e2e8f0;
+}
+
+/* Danger Action */
+.cancel-btn-alt {
+  padding: 12px 24px;
+  font-weight: 600;
+  color: #e11d48;
+  background: #fff1f2;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.cancel-btn-alt:hover {
+  background: #ffe4e6;
+}
+
+/* Close Icon Button */
+.close-x-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  font-size: 20px;
+  color: #94a3b8;
+  background: #f1f5f9;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.close-x-btn:hover {
+  color: #475569;
+  background: #e2e8f0;
+}
+
+/* ==========================================================================
+   9. ANIMATIONS & MEDIA QUERIES
+   ========================================================================== */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .multi-step-modal {
+    max-width: 900px;
+  }
+  .form-row {
+    gap: 20px;
+  }
 }

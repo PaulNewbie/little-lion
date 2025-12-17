@@ -46,74 +46,9 @@
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
-/* Multi-step Specifics */
-.multi-step-modal {
-  max-width: 750px;
-  max-height: 90vh;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.modal-header-sticky {
-  padding: 25px 35px;
-  border-bottom: 1px solid #f1f5f9;
-  background: white;
-}
-
-.modal-header-flex {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.sticky-footer {
-  padding: 20px 35px;
-  background: #f8fafc;
-  border-top: 1px solid #f1f5f9;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 /* ==========================================================================
-   3. STEP PROGRESS INDICATOR
+   3. FORM ELEMENTS & INPUTS
    ========================================================================== */
-.step-indicator {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.step-dot {
-  flex: 1;
-  height: 6px;
-  background: #e2e8f0;
-  border-radius: 10px;
-  transition: background 0.4s ease;
-}
-
-.step-dot.active {
-  background: #4a90e2;
-}
-
-/* ==========================================================================
-   4. FORM ELEMENTS & INPUTS
-   ========================================================================== */
-.enroll-form-scroll {
-  padding: 30px 35px;
-  overflow-y: auto;
-  flex: 1;
-}
-
-.form-section h3 {
-  margin-bottom: 20px;
-  font-size: 1.1rem;
-  color: #1e293b;
-}
-
 .input-group {
   display: flex;
   flex-direction: column;
@@ -127,9 +62,7 @@
   color: #64748b;
 }
 
-.input-group input,
-.input-group textarea,
-.input-group select {
+.input-group input {
   padding: 14px;
   border: 1.5px solid #e2e8f0;
   border-radius: 12px;
@@ -138,40 +71,30 @@
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.input-group input:focus,
-.input-group textarea:focus {
+.input-group input:focus {
   outline: none;
   border-color: #4a90e2;
   box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
 }
 
-/* Grid Form Layouts */
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 15px;
 }
 
-.service-assign-row {
-  background: #f1f5f9;
-  padding: 20px;
-  border-radius: 15px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
 /* ==========================================================================
-   5. BUTTONS & ACTIONS
+   4. BUTTONS & ACTIONS
    ========================================================================== */
-.right-actions {
+.modalActions {
   display: flex;
+  justify-content: flex-end;
   gap: 12px;
+  margin-top: 10px;
 }
 
 .create-btn,
-.cancel-btn,
-.save-draft-btn {
+.cancel-btn {
   padding: 12px 24px;
   border-radius: 12px;
   font-weight: 600;
@@ -192,28 +115,9 @@
   color: #64748b;
 }
 
-.save-draft-btn {
-  background: white;
-  border: 1.5px solid #e2e8f0;
-  color: #64748b;
-}
-
-.close-x-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #94a3b8;
-}
-
-/* Hover States */
 .create-btn:hover,
 .cancel-btn:hover {
   opacity: 0.9;
-}
-.save-draft-btn:hover {
-  background: #f1f5f9;
-  color: #1e293b;
 }
 
 /* Floating Action Button (FAB) */
@@ -249,7 +153,7 @@
 }
 
 /* ==========================================================================
-   6. GRID CARDS & PROFILES
+   5. GRID CARDS & PROFILES
    ========================================================================== */
 .ooo-grid {
   display: grid;
@@ -295,7 +199,7 @@
 }
 
 /* ==========================================================================
-   7. STATUS BADGES & INDICATORS
+   6. STATUS BADGES & FAMILY VIEW
    ========================================================================== */
 .status-badge {
   padding: 6px 14px;
@@ -312,33 +216,11 @@
   color: #27ae60;
 }
 
-.status-badge.assessing {
-  background: #fff4e6;
-  color: #d35400;
-  border: 1px solid #ffe0b2;
-}
-
-.status-badge.assessment-done {
-  background: #eef2ff;
-  color: #4a90e2;
-  border: 1px solid #d0d7ff;
-}
-
-.current-status-preview {
-  font-size: 11px;
-  font-weight: 700;
-  color: #4a90e2;
-  background: #f0f7ff;
-  padding: 5px 12px;
-  border-radius: 8px;
-  text-transform: uppercase;
-}
-
-/* ==========================================================================
-   8. ANIMATIONS & UTILITIES
-   ========================================================================== */
-.profile-wrapper {
-  animation: fadeIn 0.3s ease-out;
+.profile-top {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
 }
 
 .back-arrow {
@@ -357,6 +239,21 @@
 
 .back-arrow:hover {
   background: #f1f5f9;
+}
+
+.service-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  border: 1px solid #f1f5f9;
+}
+
+.profile-wrapper {
+  animation: fadeIn 0.3s ease-out;
 }
 
 @keyframes fadeIn {

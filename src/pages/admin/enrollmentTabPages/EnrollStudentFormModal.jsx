@@ -1,67 +1,117 @@
 import React, { useState } from "react";
-import "./EnrollStudentFormModal.jsx";
+import "./EnrollStudentFormModal.css";
 
-export default function EnrollStudentFormModal({
-  show,
-  onClose,
-  selectedParent,
-  onSave,
-}) {
+export default function EnrollStudentFormModal({ show, onClose, onSave }) {
   const [formStep, setFormStep] = useState(1);
   const [studentInput, setStudentInput] = useState({
+    // STEP 1: IDENTIFYING DATA (Blank for typing)
     firstName: "",
-    lastName: selectedParent?.lastName || "",
+    lastName: "",
+    nickname: "",
+    address: "",
+    dateOfBirth: "",
+    age: "",
+    gender: "",
+    school: "",
+    gradeLevel: "",
+    assessmentDate: "",
+    examiner: "",
     relationshipToClient: "biological child",
+
+    // STEP 2-8: ASSESSMENT CONTENT (Blank for typing)
     reasonForReferral: "",
-    purposeOfAssessment: "",
+    purposeOfAssessment: [""], // Initialized with 4 empty slots
     backgroundHistory: {
       familyBackground: "",
+      familyRelationships: "",
+      dailyLifeActivities: "",
+      medicalHistory: "",
+      developmentalBackground: [{ devBgTitle: "", devBgInfo: "" }],
+      schoolHistory: "",
       clinicalDiagnosis: "",
+      interventions: [
+        { type: "Behavioral Management", frequency: "" },
+        { type: "SPED One-on-One", frequency: "" },
+        { type: "Occupational Therapy", frequency: "" },
+        { type: "Speech Therapy", frequency: "" },
+      ],
+      strengthsAndInterests: "",
+      socialSkills: "",
     },
     behaviorDuringAssessment: "",
-    assessmentTools: "",
-    assessmentResults: "",
+    assessmentTools: {
+      cognitive: "",
+      language: "",
+      socioEmotional: "",
+      adaptiveBehavior: "",
+      motorDevelopment: "",
+    },
+    assessmentResults: {
+      cognitive: "",
+      communication: "",
+      socioEmotional: "",
+      adaptiveBehavior: "",
+      motorDevelopment: "",
+    },
     assessmentSummary: "",
-    recommendations: "",
+    recommendations: {
+      cognitive: "",
+      language: "",
+      socioEmotional: "",
+      adaptive: "",
+      motor: "",
+    },
     service: "",
     assignedTeacherId: "",
   });
 
   if (!show) return null;
 
-  const getStatusByStep = (step) => {
-    if (step < 4) return "ASSESSING";
-    if (step === 4) return "ASSESSMENT DONE";
-    return "ENROLLED";
+  const handleInputChange = (field, value) => {
+    setStudentInput((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleInternalSave = (isFinal = false) => {
-    if (!studentInput.firstName) return alert("Please enter Student Name");
-
-    const finalData = {
-      ...studentInput,
-      status: isFinal ? "ENROLLED" : getStatusByStep(formStep),
-    };
-
-    onSave(finalData, isFinal);
-    resetAndClose();
+  const handleNestedChange = (category, field, value) => {
+    setStudentInput((prev) => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [field]: value,
+      },
+    }));
   };
 
-  const resetAndClose = () => {
-    setFormStep(1);
-    onClose();
+  //Function for step 3 assessments
+  const handleAddPurpose = () => {
+    setStudentInput((prev) => ({
+      ...prev,
+      purposeOfAssessment: [...prev.purposeOfAssessment, ""],
+    }));
+  };
+
+  const handleRemovePurpose = (index) => {
+    const newList = [...studentInput.purposeOfAssessment];
+    newList.splice(index, 1);
+    setStudentInput((prev) => ({ ...prev, purposeOfAssessment: newList }));
+  };
+
+  const handlePurposeChange = (index, value) => {
+    const newList = [...studentInput.purposeOfAssessment];
+    newList[index] = value;
+    setStudentInput((prev) => ({ ...prev, purposeOfAssessment: newList }));
   };
 
   return (
     <div className="modalOverlay">
       <div className="modal multi-step-modal">
+        {/* HEADER */}
         <div className="modal-header-sticky">
           <div className="modal-header-flex">
             <h2>
               Step {formStep}/9:{" "}
-              {formStep === 9 ? "Finalize Services" : "Assessment Section"}
+              {formStep === 1 ? "I. IDENTIFYING DATA" : "Assessment Section"}
             </h2>
-            <button className="close-x-btn" onClick={resetAndClose}>
+            <button className="close-x-btn" onClick={onClose}>
               ×
             </button>
           </div>
@@ -75,11 +125,12 @@ export default function EnrollStudentFormModal({
           </div>
         </div>
 
+        {/* SCROLLABLE CONTENT */}
         <div className="enroll-form-scroll">
-          {/* STEP 1: BASIC INFO */}
+          {/* STEP 1: IDENTIFYING DATA */}
           {formStep === 1 && (
             <div className="form-section">
-              <h3>1. Basic Information</h3>
+              <h3>I. IDENTIFYING DATA</h3>
               <div className="form-row">
                 <div className="input-group">
                   <label>First Name</label>
@@ -87,11 +138,9 @@ export default function EnrollStudentFormModal({
                     type="text"
                     value={studentInput.firstName}
                     onChange={(e) =>
-                      setStudentInput({
-                        ...studentInput,
-                        firstName: e.target.value,
-                      })
+                      handleInputChange("firstName", e.target.value)
                     }
+                    placeholder="Enter First Name"
                   />
                 </div>
                 <div className="input-group">
@@ -100,246 +149,381 @@ export default function EnrollStudentFormModal({
                     type="text"
                     value={studentInput.lastName}
                     onChange={(e) =>
-                      setStudentInput({
-                        ...studentInput,
-                        lastName: e.target.value,
-                      })
+                      handleInputChange("lastName", e.target.value)
+                    }
+                    placeholder="Enter Last Name"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="input-group">
+                  <label>Nickname</label>
+                  <input
+                    type="text"
+                    value={studentInput.nickname}
+                    onChange={(e) =>
+                      handleInputChange("nickname", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Gender</label>
+                  <input
+                    type="text"
+                    value={studentInput.gender}
+                    onChange={(e) =>
+                      handleInputChange("gender", e.target.value)
+                    }
+                    placeholder="Male/Female"
+                  />
+                </div>
+              </div>
+
+              <div className="input-group">
+                <label>Address</label>
+                <input
+                  type="text"
+                  value={studentInput.address}
+                  onChange={(e) => handleInputChange("address", e.target.value)}
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="input-group">
+                  <label>Date of Birth</label>
+                  <input
+                    type="text"
+                    value={studentInput.dateOfBirth}
+                    onChange={(e) =>
+                      handleInputChange("dateOfBirth", e.target.value)
+                    }
+                    placeholder="e.g. December 8, 2019"
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Age</label>
+                  <input
+                    type="text"
+                    value={studentInput.age}
+                    onChange={(e) => handleInputChange("age", e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="input-group">
+                <label>School</label>
+                <input
+                  type="text"
+                  value={studentInput.school}
+                  onChange={(e) => handleInputChange("school", e.target.value)}
+                />
+              </div>
+
+              <div className="input-group">
+                <label>Grade Level</label>
+                <input
+                  type="text"
+                  value={studentInput.gradeLevel}
+                  onChange={(e) =>
+                    handleInputChange("gradeLevel", e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="input-group">
+                  <label>Date/s of Assessment</label>
+                  <input
+                    type="text"
+                    value={studentInput.assessmentDate}
+                    onChange={(e) =>
+                      handleInputChange("assessmentDate", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Examiner</label>
+                  <input
+                    type="text"
+                    value={studentInput.examiner}
+                    onChange={(e) =>
+                      handleInputChange("examiner", e.target.value)
                     }
                   />
                 </div>
               </div>
-              <div className="input-group">
-                <label>Relationship to Parent/Guardian</label>
-                <select
-                  value={studentInput.relationshipToClient}
-                  onChange={(e) =>
-                    setStudentInput({
-                      ...studentInput,
-                      relationshipToClient: e.target.value,
-                    })
-                  }
-                >
-                  <option value="biological child">Biological Child</option>
-                  <option value="legal ward">Legal Ward / Guardian</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
             </div>
           )}
 
-          {/* STEP 2: REFERRAL */}
+          {/* STEP 2: REASON FOR REFERRAL */}
           {formStep === 2 && (
             <div className="form-section">
-              <h3>2. Reason for Referral</h3>
+              <h3>II. REASON FOR REFERRAL</h3>
               <div className="input-group">
                 <textarea
-                  rows="6"
-                  placeholder="Enter concerns from parents/teachers..."
+                  rows="10"
                   value={studentInput.reasonForReferral}
                   onChange={(e) =>
-                    setStudentInput({
-                      ...studentInput,
-                      reasonForReferral: e.target.value,
-                    })
+                    handleInputChange("reasonForReferral", e.target.value)
                   }
+                  placeholder="Type referral details here..."
                 />
               </div>
             </div>
           )}
 
-          {/* STEP 3: PURPOSE */}
+          {/* STEP 3: PURPOSE OF ASSESSMENT */}
           {formStep === 3 && (
             <div className="form-section">
-              <h3>3. Purpose of Assessment</h3>
-              <div className="input-group">
-                <textarea
-                  rows="6"
-                  placeholder="e.g. Identify developmental delays..."
-                  value={studentInput.purposeOfAssessment}
-                  onChange={(e) =>
-                    setStudentInput({
-                      ...studentInput,
-                      purposeOfAssessment: e.target.value,
-                    })
-                  }
-                />
+              <div className="section-header-flex">
+                <h3>III. PURPOSE OF ASSESSMENT</h3>
               </div>
+
+              <div className="dynamic-list-container">
+                {studentInput.purposeOfAssessment.map((purpose, index) => (
+                  <div className="dynamic-input-row">
+                    <span className="row-index">{index + 1}</span>
+                    <input
+                      type="text"
+                      placeholder="Enter purpose point..."
+                      value={purpose}
+                      onChange={(e) =>
+                        handlePurposeChange(index, e.target.value)
+                      }
+                    />
+                    <button
+                      className="remove-row-btn"
+                      onClick={() => handleRemovePurpose(index)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <button className="add-point-btn" onClick={handleAddPurpose}>
+                + Add Assessment Purpose
+              </button>
             </div>
           )}
 
-          {/* STEP 4: BACKGROUND */}
+          {/* Further steps (4-9) follow the same pattern of handleNestedChange... */}
           {formStep === 4 && (
             <div className="form-section">
-              <h3>4. Background History</h3>
-              <div className="input-group">
-                <label>Family Background & Milestones</label>
-                <textarea
-                  rows="4"
-                  value={studentInput.backgroundHistory.familyBackground}
-                  onChange={(e) =>
-                    setStudentInput({
-                      ...studentInput,
-                      backgroundHistory: {
-                        ...studentInput.backgroundHistory,
-                        familyBackground: e.target.value,
-                      },
-                    })
-                  }
-                />
-              </div>
-              <div className="input-group">
-                <label>Clinical Diagnosis (if any)</label>
+              <h3>IV. BACKGROUND HISTORY</h3>
+
+              {/* Diagnosis - Full Width Highlight */}
+              <div className="input-group" style={{ marginBottom: "25px" }}>
+                <label>Clinical Diagnosis</label>
                 <input
                   type="text"
+                  placeholder="Enter diagnosis (e.g., Autism Spectrum Disorder...)"
                   value={studentInput.backgroundHistory.clinicalDiagnosis}
                   onChange={(e) =>
-                    setStudentInput({
-                      ...studentInput,
-                      backgroundHistory: {
-                        ...studentInput.backgroundHistory,
-                        clinicalDiagnosis: e.target.value,
-                      },
-                    })
+                    handleNestedChange(
+                      "backgroundHistory",
+                      "clinicalDiagnosis",
+                      e.target.value
+                    )
                   }
                 />
               </div>
-            </div>
-          )}
 
-          {/* STEP 5-8 follow same pattern... (truncated for brevity but included in full logic) */}
-          {formStep === 5 && (
-            <div className="form-section">
-              <h3>5. Behavior During Assessment</h3>
-              <textarea
-                rows="6"
-                value={studentInput.behaviorDuringAssessment}
-                onChange={(e) =>
-                  setStudentInput({
-                    ...studentInput,
-                    behaviorDuringAssessment: e.target.value,
-                  })
-                }
-              />
-            </div>
-          )}
-
-          {formStep === 6 && (
-            <div className="form-section">
-              <h3>6. Assessment Tools</h3>
-              <textarea
-                rows="6"
-                value={studentInput.assessmentTools}
-                onChange={(e) =>
-                  setStudentInput({
-                    ...studentInput,
-                    assessmentTools: e.target.value,
-                  })
-                }
-              />
-            </div>
-          )}
-
-          {formStep === 7 && (
-            <div className="form-section">
-              <h3>7. Assessment Results</h3>
-              <textarea
-                rows="8"
-                value={studentInput.assessmentResults}
-                onChange={(e) =>
-                  setStudentInput({
-                    ...studentInput,
-                    assessmentResults: e.target.value,
-                  })
-                }
-              />
-            </div>
-          )}
-
-          {formStep === 8 && (
-            <div className="form-section">
-              <h3>8. Summary & Recommendations</h3>
-              <div className="input-group">
-                <label>Summary</label>
-                <textarea
-                  rows="4"
-                  value={studentInput.assessmentSummary}
-                  onChange={(e) =>
-                    setStudentInput({
-                      ...studentInput,
-                      assessmentSummary: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div className="input-group">
-                <label>Recommendations</label>
-                <textarea
-                  rows="4"
-                  value={studentInput.recommendations}
-                  onChange={(e) =>
-                    setStudentInput({
-                      ...studentInput,
-                      recommendations: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
-          )}
-
-          {/* STEP 9: SERVICES */}
-          {formStep === 9 && (
-            <div className="form-section">
-              <h3>9. Assign Services & Teachers</h3>
-              <div className="service-assign-row">
+              {/* Row 1: Family & Relationships */}
+              <div className="form-row">
                 <div className="input-group">
-                  <label>Service Type</label>
-                  <select
-                    value={studentInput.service}
+                  <label>Family Background</label>
+                  <textarea
+                    placeholder="Lives with parents..."
+                    value={studentInput.backgroundHistory.familyBackground}
                     onChange={(e) =>
-                      setStudentInput({
-                        ...studentInput,
-                        service: e.target.value,
-                      })
+                      handleNestedChange(
+                        "backgroundHistory",
+                        "familyBackground",
+                        e.target.value
+                      )
                     }
-                  >
-                    <option value="">Select Service...</option>
-                    <option value="Speech Therapy">Speech Therapy</option>
-                    <option value="Occupational Therapy">
-                      Occupational Therapy
-                    </option>
-                  </select>
+                  />
                 </div>
                 <div className="input-group">
-                  <label>Assigned Teacher</label>
-                  <select
-                    value={studentInput.assignedTeacherId}
+                  <label>Family Relationships</label>
+                  <textarea
+                    placeholder="Interactions with family/siblings..."
+                    value={studentInput.backgroundHistory.familyRelationships}
                     onChange={(e) =>
-                      setStudentInput({
-                        ...studentInput,
-                        assignedTeacherId: e.target.value,
-                      })
+                      handleNestedChange(
+                        "backgroundHistory",
+                        "familyRelationships",
+                        e.target.value
+                      )
                     }
-                  >
-                    <option value="">Select Teacher...</option>
-                    <option value="teacher_1">Teacher Joy</option>
-                    <option value="teacher_2">Teacher Grace</option>
-                  </select>
+                  />
                 </div>
+              </div>
+
+              {/* Row 2: Daily Life & Medical */}
+              <div className="form-row">
+                <div className="input-group">
+                  <label>Daily Life & Activities</label>
+                  <textarea
+                    placeholder="Feeding, bathing, interests..."
+                    value={studentInput.backgroundHistory.dailyLifeActivities}
+                    onChange={(e) =>
+                      handleNestedChange(
+                        "backgroundHistory",
+                        "dailyLifeActivities",
+                        e.target.value
+                      )
+                    }
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Medical History</label>
+                  <textarea
+                    placeholder="Allergies, asthma, etc..."
+                    value={studentInput.backgroundHistory.medicalHistory}
+                    onChange={(e) =>
+                      handleNestedChange(
+                        "backgroundHistory",
+                        "medicalHistory",
+                        e.target.value
+                      )
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* Developmental Milestones (Dynamic Style) */}
+              <div className="input-group">
+                <label>
+                  Developmental Background & Milestones (e.g. BDI-3 Results)
+                </label>
+                <textarea
+                  placeholder="Maternal history, milestones, etc..."
+                  value={
+                    studentInput.backgroundHistory.developmentalBackgroundInfo
+                  } // Added to state
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "backgroundHistory",
+                      "developmentalBackgroundInfo",
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+
+              {/* Row 3: School & Social */}
+              <div className="form-row">
+                <div className="input-group">
+                  <label>School History</label>
+                  <textarea
+                    placeholder="Current and previous schools..."
+                    value={studentInput.backgroundHistory.schoolHistory}
+                    onChange={(e) =>
+                      handleNestedChange(
+                        "backgroundHistory",
+                        "schoolHistory",
+                        e.target.value
+                      )
+                    }
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Social Skills</label>
+                  <textarea
+                    placeholder="Peer interaction, behavior regulation..."
+                    value={studentInput.backgroundHistory.socialSkills}
+                    onChange={(e) =>
+                      handleNestedChange(
+                        "backgroundHistory",
+                        "socialSkills",
+                        e.target.value
+                      )
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* Row 4: Strengths (Full Width) */}
+              <div className="input-group">
+                <label>Strengths & Interests</label>
+                <input
+                  type="text"
+                  placeholder="Alphabet, counting, swimming, etc."
+                  value={studentInput.backgroundHistory.strengthsAndInterests}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "backgroundHistory",
+                      "strengthsAndInterests",
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+
+              {/* Therapies / Interventions Section */}
+              <div className="service-assign-row" style={{ marginTop: "20px" }}>
+                <div style={{ gridColumn: "span 2" }}>
+                  <label
+                    style={{
+                      fontWeight: "700",
+                      color: "#1e293b",
+                      marginBottom: "10px",
+                      display: "block",
+                    }}
+                  >
+                    Current Therapies / Interventions
+                  </label>
+                </div>
+                {studentInput.backgroundHistory.interventions.map(
+                  (int, index) => (
+                    <div
+                      className="form-row"
+                      key={index}
+                      style={{ gridColumn: "span 2", marginBottom: "0" }}
+                    >
+                      <input
+                        type="text"
+                        value={int.type}
+                        readOnly
+                        style={{ background: "#f1f5f9" }}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Frequency (e.g. 5x weekly)"
+                        value={int.frequency}
+                        onChange={(e) => {
+                          const newInts = [
+                            ...studentInput.backgroundHistory.interventions,
+                          ];
+                          newInts[index].frequency = e.target.value;
+                          handleNestedChange(
+                            "backgroundHistory",
+                            "interventions",
+                            newInts
+                          );
+                        }}
+                      />
+                    </div>
+                  )
+                )}
               </div>
             </div>
           )}
         </div>
 
+        {/* FOOTER */}
         <div className="modalActions sticky-footer">
           <div className="left-actions">
             <button
               className="save-draft-btn"
-              onClick={() => handleInternalSave(false)}
+              onClick={() => onSave(studentInput, false)}
             >
               Save Draft
             </button>
-            <button className="cancel-btn-alt" onClick={resetAndClose}>
+            <button className="cancel-btn-alt" onClick={onClose}>
               Cancel
             </button>
           </div>
@@ -352,21 +536,12 @@ export default function EnrollStudentFormModal({
                 Back
               </button>
             )}
-            {formStep < 9 ? (
-              <button
-                className="create-btn"
-                onClick={() => setFormStep(formStep + 1)}
-              >
-                Next
-              </button>
-            ) : (
-              <button
-                className="create-btn"
-                onClick={() => handleInternalSave(true)}
-              >
-                Finalize & Enroll
-              </button>
-            )}
+            <button
+              className="create-btn"
+              onClick={() => setFormStep(formStep + 1)}
+            >
+              {formStep === 9 ? "Finalize & Enroll" : "Next Step"}
+            </button>
           </div>
         </div>
       </div>
