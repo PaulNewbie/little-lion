@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useLocation, useNavigate } from 'react-router-dom';
 import childService from '../../services/childService';
 import activityService from '../../services/activityService';
 import cloudinaryService from '../../services/cloudinaryService';
 
 const PlayGroupActivity = () => {
   const { currentUser } = useAuth();
-  
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Retrieve passed data from Dashboard (if any)
+  const { preSelectedClassName, preSelectedStudents } = location.state || {};
+
   // --- STATE ---
   const [students, setStudents] = useState([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
@@ -15,7 +21,8 @@ const PlayGroupActivity = () => {
   // Form Data
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [className, setClassName] = useState(''); // e.g., Art Class
+  // Pre-fill Class Name if passed, otherwise empty
+  const [className, setClassName] = useState(preSelectedClassName || ''); 
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]); 
   
   // Selection Data
@@ -26,6 +33,14 @@ const PlayGroupActivity = () => {
   // --- 1. FETCH STUDENTS ---
   useEffect(() => {
     const fetchStudents = async () => {
+      // OPTIMIZATION: If data was passed from Dashboard, use it directly!
+      if (preSelectedStudents && preSelectedStudents.length > 0) {
+        setStudents(preSelectedStudents);
+        setLoadingStudents(false);
+        return;
+      }
+
+      // Fallback: Fetch from DB if page accessed directly (not via Dashboard card)
       if (!currentUser) return;
       setLoadingStudents(true);
       try {
@@ -33,7 +48,7 @@ const PlayGroupActivity = () => {
         if (currentUser.role === 'admin') {
           data = await childService.getAllChildren();
         } else {
-          // Fetch only my class students
+          // Fetch all students assigned to me (mixed classes)
           data = await childService.getChildrenByTeacherId(currentUser.uid);
         }
         setStudents(data);
@@ -45,7 +60,7 @@ const PlayGroupActivity = () => {
       }
     };
     fetchStudents();
-  }, [currentUser]);
+  }, [currentUser, preSelectedStudents]);
 
   // --- 2. IMAGE HANDLING ---
   const handleImageSelect = (e) => {
@@ -113,60 +128,62 @@ const PlayGroupActivity = () => {
       // Save using Activity Service (type: group_activity)
       await activityService.createGroupActivity(activityData);
 
-      // Reset
+      // Success & Navigate Back
       alert('Activity Uploaded Successfully!');
-      setTitle('');
-      setDescription('');
-      setClassName('');
-      setSelectedImages([]);
-      setPreviews([]);
-      setTaggedStudentIds([]);
+      
+      // If we came from a specific class view, go back there. Otherwise go to dashboard.
+      navigate(-1);
 
     } catch (error) {
       console.error("Upload failed:", error);
       alert("Failed to upload activity.");
-    } finally {
       setUploading(false);
     }
   };
 
   // --- STYLES ---
   const styles = {
-    container: { padding: '20px', maxWidth: '1000px', margin: '0 auto' },
-    section: { marginBottom: '30px', padding: '20px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: 'white' },
-    label: { display: 'block', marginBottom: '5px', fontWeight: 'bold' },
-    input: { width: '100%', padding: '10px', marginBottom: '15px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' },
+    container: { padding: '20px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' },
+    backBtn: { background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', marginBottom: '20px', fontSize: '15px', fontWeight: '600' },
+    section: { marginBottom: '30px', padding: '20px', border: '1px solid #e2e8f0', borderRadius: '12px', backgroundColor: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' },
+    label: { display: 'block', marginBottom: '8px', fontWeight: '600', color: '#334155' },
+    input: { width: '100%', padding: '10px', marginBottom: '15px', borderRadius: '6px', border: '1px solid #cbd5e1', boxSizing: 'border-box' },
     grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '15px' },
     card: (isSelected) => ({
-      border: isSelected ? '3px solid #4ECDC4' : '1px solid #ddd',
-      backgroundColor: isSelected ? '#e6fffa' : '#fff',
+      border: isSelected ? '2px solid #2ecc71' : '1px solid #e2e8f0',
+      backgroundColor: isSelected ? '#f0fdf4' : '#fff',
       borderRadius: '8px',
       padding: '10px',
       textAlign: 'center',
       cursor: 'pointer',
-      opacity: isSelected ? 1 : 0.7,
-      transition: 'all 0.2s'
+      opacity: isSelected ? 1 : 0.8,
+      transition: 'all 0.2s',
+      boxShadow: isSelected ? '0 2px 4px rgba(46, 204, 113, 0.2)' : 'none'
     }),
-    previewImg: { width: '100px', height: '100px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #ddd' },
-    removeBtn: { background: 'red', color: 'white', border: 'none', cursor: 'pointer', padding: '2px 5px', fontSize: '10px', position: 'absolute', top: 0, right: 0 }
+    previewImg: { width: '100px', height: '100px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e2e8f0' },
+    removeBtn: { background: '#ef4444', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '50%', width: '20px', height: '20px', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'absolute', top: '-5px', right: '-5px' }
   };
 
   return (
     <div style={styles.container}>
-      <h1>📸 New Group Activity</h1>
+      <button onClick={() => navigate(-1)} style={styles.backBtn}>← Back</button>
+      
+      <h1 style={{ color: '#0f172a', marginBottom: '25px' }}>📸 New Group Activity</h1>
       
       <form onSubmit={handleSubmit}>
         
         {/* 1. Metadata */}
         <div style={styles.section}>
-          <h3>1. Activity Details</h3>
+          <h3 style={{ marginTop: 0, color: '#475569' }}>1. Activity Details</h3>
           
           <label style={styles.label}>Class Name</label>
           <input 
-            style={styles.input} 
+            style={{...styles.input, backgroundColor: preSelectedClassName ? '#f1f5f9' : 'white'}} 
             placeholder="e.g. Art Class"
             value={className} 
             onChange={e => setClassName(e.target.value)} 
+            // If pre-selected, we might want to make it read-only, or leave editable.
+            // Leaving editable is safer in case they want to fix a typo.
           />
 
           <label style={styles.label}>Activity Title</label>
@@ -189,15 +206,16 @@ const PlayGroupActivity = () => {
 
           <label style={styles.label}>Description</label>
           <textarea 
-            style={{...styles.input, height: '80px'}} 
+            style={{...styles.input, height: '80px', fontFamily: 'inherit'}} 
             value={description} 
-            onChange={e => setDescription(e.target.value)} 
+            onChange={e => setDescription(e.target.value)}
+            placeholder="What did the children do today?"
           />
         </div>
 
         {/* 2. Photos */}
         <div style={styles.section}>
-          <h3>2. Select Photos</h3>
+          <h3 style={{ marginTop: 0, color: '#475569' }}>2. Select Photos</h3>
           <input 
             type="file" 
             multiple 
@@ -205,11 +223,11 @@ const PlayGroupActivity = () => {
             onChange={handleImageSelect} 
             style={{ marginBottom: '20px' }}
           />
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
             {previews.map((src, idx) => (
               <div key={idx} style={{ position: 'relative' }}>
                 <img src={src} alt="Preview" style={styles.previewImg} />
-                <button type="button" onClick={() => removeImage(idx)} style={styles.removeBtn}>X</button>
+                <button type="button" onClick={() => removeImage(idx)} style={styles.removeBtn}>✕</button>
               </div>
             ))}
           </div>
@@ -218,8 +236,17 @@ const PlayGroupActivity = () => {
         {/* 3. Student Selection */}
         <div style={styles.section}>
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
-            <h3>3. Who was present? ({taggedStudentIds.length})</h3>
-            <button type="button" onClick={selectAll} style={{padding: '5px 10px', cursor: 'pointer'}}>
+            <h3 style={{ margin: 0, color: '#475569' }}>
+              3. Who was present? <span style={{fontSize: '14px', color: '#64748b', fontWeight: 'normal'}}>({taggedStudentIds.length} selected)</span>
+            </h3>
+            <button 
+              type="button" 
+              onClick={selectAll} 
+              style={{
+                padding: '6px 12px', cursor: 'pointer', backgroundColor: '#e2e8f0', 
+                border: 'none', borderRadius: '4px', fontSize: '13px', fontWeight: '600', color: '#475569'
+              }}
+            >
               {taggedStudentIds.length === students.length ? 'Deselect All' : 'Select All'}
             </button>
           </div>
@@ -227,7 +254,7 @@ const PlayGroupActivity = () => {
           {loadingStudents ? <p>Loading your class list...</p> : (
             <>
               {students.length === 0 ? (
-                <p style={{color: 'red'}}>No students found assigned to you.</p>
+                <p style={{color: '#ef4444', fontStyle: 'italic'}}>No students found assigned to this class.</p>
               ) : (
                 <div style={styles.grid}>
                   {students.map(student => {
@@ -238,7 +265,7 @@ const PlayGroupActivity = () => {
                         style={styles.card(isSelected)}
                         onClick={() => toggleStudent(student.id)}
                       >
-                        <div style={{ fontSize: '24px' }}>
+                        <div style={{ fontSize: '24px', marginBottom: '5px' }}>
                           {student.photoUrl ? (
                             <img 
                               src={student.photoUrl} 
@@ -247,8 +274,8 @@ const PlayGroupActivity = () => {
                             />
                           ) : '👤'}
                         </div>
-                        <div style={{ fontWeight: 'bold', marginTop: '5px', fontSize: '13px' }}>{student.firstName}</div>
-                        {isSelected && <div style={{ color: '#4ECDC4', fontWeight: 'bold', fontSize: '12px' }}>✓ Here</div>}
+                        <div style={{ fontWeight: '600', fontSize: '13px', color: '#334155' }}>{student.firstName}</div>
+                        {isSelected && <div style={{ color: '#2ecc71', fontWeight: 'bold', fontSize: '12px', marginTop: '4px' }}>✓ Here</div>}
                       </div>
                     );
                   })}
@@ -263,14 +290,16 @@ const PlayGroupActivity = () => {
           disabled={uploading}
           style={{
             width: '100%',
-            padding: '15px',
-            backgroundColor: uploading ? '#ccc' : '#2ecc71',
+            padding: '16px',
+            backgroundColor: uploading ? '#94a3b8' : '#2ecc71',
             color: 'white',
             border: 'none',
             borderRadius: '8px',
             fontSize: '18px',
             cursor: uploading ? 'not-allowed' : 'pointer',
-            fontWeight: 'bold'
+            fontWeight: 'bold',
+            boxShadow: '0 4px 6px rgba(46, 204, 113, 0.25)',
+            transition: 'background-color 0.2s'
           }}
         >
           {uploading ? 'Uploading...' : '🚀 Upload Group Activity'}
