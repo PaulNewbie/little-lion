@@ -26,9 +26,9 @@ const useEnrollChild = () => {
   });
   const [parentExists, setParentExists] = useState(false);
 
-  // Selection State (Separated)
-  const [selectedTherapies, setSelectedTherapies] = useState([]); // [{ serviceId, name, therapistId, therapistName }]
-  const [selectedClasses, setSelectedClasses] = useState([]);     // [{ serviceId, name, teacherId, teacherName }]
+  // Selection State
+  const [selectedTherapies, setSelectedTherapies] = useState([]); 
+  const [selectedClasses, setSelectedClasses] = useState([]);     
 
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -43,10 +43,8 @@ const useEnrollChild = () => {
           userService.getUsersByRole('therapist')
         ]);
 
-        // Separate Services by Type
         setTherapyOptions(allServices.filter(s => s.type === 'Therapy'));
         setClassOptions(allServices.filter(s => s.type === 'Class'));
-
         setTeachers(allTeachers);
         setTherapists(allTherapists);
       } catch (err) {
@@ -100,24 +98,23 @@ const useEnrollChild = () => {
     if (selectedTherapies.find(s => s.serviceId === serviceId)) {
       setSelectedTherapies(selectedTherapies.filter(s => s.serviceId !== serviceId));
     } else {
-      // Find therapists who specialize in this service
       const qualified = therapists.find(t => t.specializations?.includes(serviceName));
       setSelectedTherapies([
         ...selectedTherapies,
         { 
           serviceId, 
           serviceName, 
-          therapistId: qualified ? qualified.id : '',
+          // FIX 1: Changed .id to .uid
+          therapistId: qualified ? qualified.uid : '',
           therapistName: qualified ? `${qualified.firstName} ${qualified.lastName}` : '' 
         }
       ]);
     }
   };
 
-  // --- FIXED: Added check for undefined person ---
   const updateTherapyAssignee = (serviceId, therapistId) => {
-    const person = therapists.find(t => t.id === therapistId);
-    // If no therapist is selected (empty string), set name to empty
+    // FIX 2: Changed .id to .uid
+    const person = therapists.find(t => t.uid === therapistId);
     const therapistName = person ? `${person.firstName} ${person.lastName}` : '';
 
     setSelectedTherapies(selectedTherapies.map(s => 
@@ -130,24 +127,23 @@ const useEnrollChild = () => {
     if (selectedClasses.find(s => s.serviceId === serviceId)) {
       setSelectedClasses(selectedClasses.filter(s => s.serviceId !== serviceId));
     } else {
-      // Find teachers who teach this class
       const qualified = teachers.find(t => t.specializations?.includes(serviceName));
       setSelectedClasses([
         ...selectedClasses,
         { 
           serviceId, 
           serviceName, 
-          teacherId: qualified ? qualified.id : '', 
+          // FIX 3: Changed .id to .uid
+          teacherId: qualified ? qualified.uid : '', 
           teacherName: qualified ? `${qualified.firstName} ${qualified.lastName}` : '' 
         }
       ]);
     }
   };
 
-  // --- FIXED: Added check for undefined person ---
   const updateClassAssignee = (serviceId, teacherId) => {
-    const person = teachers.find(t => t.id === teacherId);
-    // If no teacher is selected, set name to empty
+    // FIX 4: Changed .id to .uid
+    const person = teachers.find(t => t.uid === teacherId);
     const teacherName = person ? `${person.firstName} ${person.lastName}` : '';
 
     setSelectedClasses(selectedClasses.map(s => 
@@ -185,7 +181,6 @@ const useEnrollChild = () => {
         photoUrl = await cloudinaryService.uploadImage(photoFile, 'little-lions/child-images');
       }
 
-      // Handle Parent Account
       let parentUid;
       if (parentExists) {
         const existingParent = await userService.getUserByEmail(parentInfo.email);
@@ -199,7 +194,6 @@ const useEnrollChild = () => {
         parentUid = parentUser.uid;
       }
       
-      // Save Child Data
       await childService.enrollChild({
         ...childInfo,
         photoUrl: photoUrl,
@@ -208,6 +202,7 @@ const useEnrollChild = () => {
       }, parentUid);
 
       alert('Child Enrolled Successfully!');
+      // Optional: Navigate to dashboard or clear form
       
     } catch (err) {
       console.error(err);
@@ -217,7 +212,7 @@ const useEnrollChild = () => {
     }
   };
 
-  // Helpers for Dropdowns
+  // Helpers
   const getQualifiedTherapists = (serviceName) => 
     therapists.filter(t => t.specializations?.includes(serviceName));
 
@@ -229,25 +224,11 @@ const useEnrollChild = () => {
     childInfo, handleChildChange,
     parentInfo, handleParentChange, parentExists, checkParentEmail,
     photoFile, photoPreview, handlePhotoChange,
-    
-    // Arrays for UI
-    therapyOptions,
-    classOptions,
-    
-    // Selection State
-    selectedTherapies,
-    selectedClasses,
-    
-    // Handlers
-    toggleTherapy,
-    updateTherapyAssignee,
-    toggleClass,
-    updateClassAssignee,
-    
-    // Filtering
-    getQualifiedTherapists,
-    getQualifiedTeachers,
-    
+    therapyOptions, classOptions,
+    selectedTherapies, selectedClasses,
+    toggleTherapy, updateTherapyAssignee,
+    toggleClass, updateClassAssignee,
+    getQualifiedTherapists, getQualifiedTeachers,
     handleSubmit
   };
 };
