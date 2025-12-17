@@ -21,9 +21,8 @@ import ManageTeachers from './pages/admin/ManageTeachers';
 import ManageTherapists from './pages/admin/ManageTherapists';
 import OtherServices from './pages/admin/OtherServices';
 import ManageAdmins from './pages/admin/ManageAdmins';
-import ManageParents from "./pages/admin/ManageParents.jsx";
+import ManageParents from "./pages/admin/ManageParents";
 import StudentProfile from './pages/admin/StudentProfile';
-
 
 // Teacher Components
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
@@ -99,7 +98,11 @@ const AppRoutes = () => {
       {/* FIX 2: Added 'super_admin' to allowedRoles for StudentProfile */}
       <Route path="/admin/StudentProfile" element={ <ProtectedRoute allowedRoles={['admin', 'super_admin']}><StudentProfile /></ProtectedRoute>}/>
       
-      <Route path="/admin/one-on-one" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><OneOnOne /></ProtectedRoute>} />
+      <Route path="/admin/one-on-one" element={
+        <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+           <OneOnOne />
+        </ProtectedRoute>
+      } />
       <Route path="/admin/dashboard" element={<Navigate to="/admin/StudentProfile" replace />} />
       <Route path="/admin/play-group" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><PlayGroup /></ProtectedRoute>} />
       <Route path="/admin/enroll-child" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><EnrollChild /></ProtectedRoute>} />

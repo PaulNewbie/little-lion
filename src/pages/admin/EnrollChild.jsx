@@ -134,7 +134,7 @@ const EnrollChild = () => {
                   <select className="teacher-select" value={isSelected.therapistId} onChange={(e) => updateTherapyAssignee(service.id, e.target.value)}>
                     <option value="">Select Therapist...</option>
                     {qualified.map(t => (
-                      <option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>
+                      <option key={t.uid} value={t.uid}>{t.firstName} {t.lastName}</option>
                     ))}
                   </select>
                 )}
@@ -162,7 +162,7 @@ const EnrollChild = () => {
                   <select className="teacher-select" value={isSelected.teacherId} onChange={(e) => updateClassAssignee(service.id, e.target.value)}>
                     <option value="">Select Teacher...</option>
                     {qualified.map(t => (
-                      <option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>
+                      <option key={t.uid} value={t.uid}>{t.firstName} {t.lastName}</option>
                     ))}
                   </select>
                 )}
