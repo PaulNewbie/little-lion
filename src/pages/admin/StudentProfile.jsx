@@ -6,6 +6,7 @@ import childService from "../../services/childService";
 import { db } from "../../config/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import useManageTeachers from "../../hooks/useManageTeachers";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./css/StudentProfile.css";
 
 /* ================================================================
@@ -17,7 +18,7 @@ const ActivityCalendarView = ({ activities, teachers, selectedServiceName }) => 
   useEffect(() => {
     setDate(new Date());
   }, [selectedServiceName]);
-  
+
   const getActivitiesForDate = (selectedDate) => {
     return activities.filter(act => {
       const actDate = new Date(act.date);
@@ -45,11 +46,8 @@ const ActivityCalendarView = ({ activities, teachers, selectedServiceName }) => 
   };
 
   return (
-    // Added display: flex to ensure side-by-side layout works with sizing logic
     <div className="calendar-view-container" style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
-      
-      {/* LEFT: ACTIVITY DETAILS (Expanded Space) */}
-      <div className="day-details-section" style={{ flex: 1 }}> 
+      <div className="day-details-section" style={{ flex: 1 }}>
         <h3 className="date-heading">
           {date.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric' })}
         </h3>
@@ -65,7 +63,7 @@ const ActivityCalendarView = ({ activities, teachers, selectedServiceName }) => 
                 <div className="record-header">
                   <span className="record-type">{rec.serviceType || "Activity"}</span>
                 </div>
-                
+
                 <p>
                   <span className="label">Staff:</span>{" "}
                   {rec.authorName || rec.teacherName || getTeacherName(rec.teacherId || rec.authorId)}
@@ -77,11 +75,11 @@ const ActivityCalendarView = ({ activities, teachers, selectedServiceName }) => 
                   <span className="label">Notes:</span>{" "}
                   {rec.progressNotes || rec.description || "—"}
                 </p>
-                
+
                 {rec.goalsAddressed && (
                   <p><span className="label">Goals:</span> {rec.goalsAddressed.join(", ")}</p>
                 )}
-                
+
                 <p>
                   <span className="label">Students:</span>{" "}
                   {rec.participatingStudentsNames?.join(", ") || "—"}
@@ -92,12 +90,10 @@ const ActivityCalendarView = ({ activities, teachers, selectedServiceName }) => 
         )}
       </div>
 
-      {/* RIGHT: CALENDAR (Fixed Compact Width) */}
-      {/* We use flexShrink: 0 and width: 350px to keep it from stretching */}
       <div className="calendar-section" style={{ width: "350px", flexShrink: 0 }}>
-        <Calendar 
-          onChange={setDate} 
-          value={date} 
+        <Calendar
+          onChange={setDate}
+          value={date}
           tileContent={tileContent}
           className="custom-calendar"
         />
@@ -110,32 +106,48 @@ const ActivityCalendarView = ({ activities, teachers, selectedServiceName }) => 
    MAIN COMPONENT
 ================================================================ */
 const StudentProfile = () => {
-  const [currentLevel, setCurrentLevel] = useState("student-list");
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const passedState = location.state || {};
+  const selectedStudentFromOneOnOne = passedState.student || null;
+  const activitiesFromOneOnOne = passedState.activities || [];
+  const therapistsFromOneOnOne = passedState.therapists || [];
+  const fromOneOnOne = passedState.fromOneOnOne || false;
+
+  const [currentLevel, setCurrentLevel] = useState(
+    selectedStudentFromOneOnOne ? "student-profile" : "student-list"
+  );
+  const [selectedStudent, setSelectedStudent] = useState(selectedStudentFromOneOnOne || null);
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState("all"); 
+  const [filterType, setFilterType] = useState("all");
   const [loading, setLoading] = useState(true);
-  
-  const [selectedService, setSelectedService] = useState("");
+  const [selectedService, setSelectedService] = useState(
+    fromOneOnOne && passedState.selectedService ? passedState.selectedService.name : ""
+  );
   const [studentActivities, setStudentActivities] = useState([]);
 
   const { teachers, loading: loadingTeachers } = useManageTeachers();
 
   // 1. FETCH STUDENTS
   useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        const data = await childService.getAllChildren();
-        setStudents(data);
-      } catch (error) {
-        console.error("Error fetching students:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStudents();
-  }, []);
+    if (!selectedStudentFromOneOnOne) {
+      const fetchStudents = async () => {
+        try {
+          const data = await childService.getAllChildren();
+          setStudents(data);
+        } catch (error) {
+          console.error("Error fetching students:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchStudents();
+    } else {
+      setLoading(false);
+      setStudentActivities(activitiesFromOneOnOne);
+    }
+  }, [selectedStudentFromOneOnOne, activitiesFromOneOnOne]);
 
   // 2. FETCH ACTIVITIES
   const fetchStudentActivities = async (studentId) => {
@@ -144,7 +156,7 @@ const StudentProfile = () => {
       const q2 = query(collection(db, "activities"), where("participatingStudentIds", "array-contains", studentId));
 
       const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
-      
+
       const mergedDocs = new Map();
       [...snap1.docs, ...snap2.docs].forEach(doc => {
         mergedDocs.set(doc.id, { id: doc.id, ...doc.data() });
@@ -152,11 +164,11 @@ const StudentProfile = () => {
 
       const activities = Array.from(mergedDocs.values()).map(act => ({
         ...act,
-        participatingStudentsNames: act.participatingStudentIds 
+        participatingStudentsNames: act.participatingStudentIds
           ? act.participatingStudentIds.map(id => {
               const s = students.find(st => st.id === id);
               return s ? `${s.firstName} ${s.lastName}` : "Unknown";
-            }) 
+            })
           : [act.studentName]
       }));
 
@@ -179,22 +191,17 @@ const StudentProfile = () => {
 
   // FILTER LOGIC
   const filteredStudents = students.filter((student) => {
-    const matchesSearch = `${student.firstName} ${student.lastName}`
-      .toLowerCase()
+    const matchesSearch = `${student.firstName} ${student.lastName}`.toLowerCase()
       .includes(searchTerm.toLowerCase());
-    
+
     let matchesFilter = true;
     const hasTherapy = (student.therapyServices && student.therapyServices.length > 0) || (student.services && student.services.length > 0);
     const hasGroup = student.groupClasses && student.groupClasses.length > 0;
 
-    if (filterType === "therapy") {
-      matchesFilter = hasTherapy;
-    } else if (filterType === "group") {
-      matchesFilter = hasGroup;
-    } else if (filterType === "none") {
-      matchesFilter = !hasTherapy && !hasGroup;
-    }
-    
+    if (filterType === "therapy") matchesFilter = hasTherapy;
+    else if (filterType === "group") matchesFilter = hasGroup;
+    else if (filterType === "none") matchesFilter = !hasTherapy && !hasGroup;
+
     return matchesSearch && matchesFilter;
   });
 
@@ -202,21 +209,29 @@ const StudentProfile = () => {
     setSelectedStudent(student);
     setCurrentLevel("student-profile");
     fetchStudentActivities(student.id);
-    setSelectedService(""); 
+    setSelectedService("");
   };
 
   const goBack = () => {
-    setSelectedService("");
-    setSelectedStudent(null);
-    setCurrentLevel("student-list");
-    setStudentActivities([]);
+    if (fromOneOnOne) {
+      navigate(-1); // go back to OneOnOne exactly
+    } else {
+      setSelectedService("");
+      setSelectedStudent(null);
+      setCurrentLevel("student-list");
+      setStudentActivities([]);
+    }
   };
 
   if (loading || loadingTeachers) return <div>Loading...</div>;
 
-  const therapyServices = selectedStudent?.therapyServices || [];
-  const groupServices = selectedStudent?.groupClasses || [];
-  const legacyServices = selectedStudent?.services || [];
+  const studentToDisplay = selectedStudentFromOneOnOne || selectedStudent;
+  const activitiesToDisplay = selectedStudentFromOneOnOne ? activitiesFromOneOnOne : studentActivities;
+  const therapistsToUse = selectedStudentFromOneOnOne ? therapistsFromOneOnOne : teachers;
+
+  const therapyServices = studentToDisplay?.therapyServices || [];
+  const groupServices = studentToDisplay?.groupClasses || [];
+  const legacyServices = studentToDisplay?.services || [];
 
   return (
     <div className="ooo-container">
@@ -232,7 +247,7 @@ const StudentProfile = () => {
                 <h1>STUDENT PROFILES</h1>
                 <p className="header-subtitle">Manage enrolled students and view activities</p>
               </div>
-              
+
               <div className="filter-actions">
                 <div className="search-wrapper">
                   <span className="search-icon">🔍</span>
@@ -246,9 +261,9 @@ const StudentProfile = () => {
                 </div>
 
                 <div className="filter-wrapper">
-                  <select 
+                  <select
                     className="ooo-filter-select"
-                    value={filterType} 
+                    value={filterType}
                     onChange={(e) => setFilterType(e.target.value)}
                   >
                     <option value="all">All Students</option>
@@ -277,7 +292,6 @@ const StudentProfile = () => {
                         className="ooo-card"
                         onClick={() => handleSelectStudent(student)}
                       >
-                        {/* --- NAME TAG IMAGE BOX --- */}
                         <div className="ooo-card-image-box">
                           {student.photoUrl ? (
                             <img src={student.photoUrl} alt="" className="ooo-photo" />
@@ -286,11 +300,8 @@ const StudentProfile = () => {
                           )}
                         </div>
 
-                        {/* --- INFO BELOW --- */}
                         <div className="ooo-card-body">
                           <h3 className="ooo-name">{student.firstName} {student.lastName}</h3>
-                          {/* Age removed */}
-                          
                           <div className="ooo-badges">
                             {hasTherapy && <span className="badge badge-therapy">Therapy</span>}
                             {hasGroup && <span className="badge badge-group">Group</span>}
@@ -307,10 +318,8 @@ const StudentProfile = () => {
         )}
 
         {/* --- VIEW 2: INDIVIDUAL PROFILE --- */}
-        {currentLevel === "student-profile" && selectedStudent && (
+        {currentLevel === "student-profile" && studentToDisplay && (
           <div className="profile-wrapper">
-            
-            {/* 1. TOP NAV */}
             <div className="profile-top">
               <div className="left-group">
                 <span className="back-arrow" onClick={goBack}>←</span>
@@ -318,11 +327,10 @@ const StudentProfile = () => {
               </div>
             </div>
 
-            {/* 2. PROFILE INFO CARD */}
             <div className="profile-3col">
               <div className="profile-photo-frame">
-                {selectedStudent.photoUrl ? (
-                  <img src={selectedStudent.photoUrl} alt="" className="profile-photo" />
+                {studentToDisplay.photoUrl ? (
+                  <img src={studentToDisplay.photoUrl} alt="" className="profile-photo" />
                 ) : (
                   <span>No Photo</span>
                 )}
@@ -330,26 +338,23 @@ const StudentProfile = () => {
 
               <div className="profile-info">
                 <h1 className="profile-fullname">
-                  {selectedStudent.lastName}, {selectedStudent.firstName}
+                  {studentToDisplay.lastName}, {studentToDisplay.firstName}
                 </h1>
                 <div className="profile-details">
                   <div className="profile-left">
-                    <p><span className="icon">🏥</span> <b>Medical:</b> {selectedStudent.medicalInfo || "None"}</p>
+                    <p><span className="icon">🏥</span> <b>Medical:</b> {studentToDisplay.medicalInfo || "None"}</p>
                   </div>
                   <div className="profile-right">
-                    <p><b>Age:</b> {calculateAge(selectedStudent.dateOfBirth)}</p>
-                    <p><b>Gender:</b> {selectedStudent.gender || "N/A"}</p>
-                    <p><b>Birthday:</b> {selectedStudent.dateOfBirth || "N/A"}</p>
+                    <p><b>Age:</b> {calculateAge(studentToDisplay.dateOfBirth)}</p>
+                    <p><b>Gender:</b> {studentToDisplay.gender || "N/A"}</p>
+                    <p><b>Birthday:</b> {studentToDisplay.dateOfBirth || "N/A"}</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* 3. SCROLLABLE SECTIONS */}
             <div className="profile-content-scroll">
-              
               <div className="services-split-row">
-                {/* --- SECTION A: THERAPY SERVICES --- */}
                 <div className="content-section">
                   <h2 className="services-header">THERAPY SERVICES</h2>
                   <div className="services-list">
@@ -359,10 +364,10 @@ const StudentProfile = () => {
                     {[...therapyServices, ...legacyServices].map((service, i) => {
                       const sName = service.serviceName;
                       const isSelected = selectedService === sName;
-                      
+
                       return (
-                        <div 
-                          key={i} 
+                        <div
+                          key={i}
                           className={`service-row clickable ${isSelected ? "active" : ""}`}
                           onClick={() => setSelectedService(sName)}
                         >
@@ -382,7 +387,6 @@ const StudentProfile = () => {
                   </div>
                 </div>
 
-                {/* --- SECTION B: GROUP CLASSES --- */}
                 <div className="content-section">
                   <h2 className="services-header">GROUP CLASS SERVICES</h2>
                   <div className="services-list">
@@ -394,8 +398,8 @@ const StudentProfile = () => {
                       const isSelected = selectedService === sName;
 
                       return (
-                        <div 
-                          key={i} 
+                        <div
+                          key={i}
                           className={`service-row clickable ${isSelected ? "active" : ""}`}
                           onClick={() => setSelectedService(sName)}
                         >
@@ -416,27 +420,26 @@ const StudentProfile = () => {
                 </div>
               </div>
 
-              {/* --- SECTION C: ACTIVITY TRACKER (CALENDAR) --- */}
               <div className="content-section" style={{marginTop: '20px'}}>
                 <h2 className="services-header">
-                  ACTIVITY TRACKER 
+                  ACTIVITY TRACKER
                   {selectedService && <span className="tracker-subtitle"> — {selectedService}</span>}
                 </h2>
 
                 <div className="selected-service-info">
                   {selectedService ? (
                     (() => {
-                      const filteredActivities = studentActivities.filter(
-                        (act) => 
-                          (act.serviceType === selectedService) || 
+                      const filteredActivities = activitiesToDisplay.filter(
+                        (act) =>
+                          (act.serviceType === selectedService) ||
                           (act.className === selectedService) ||
                           (act.title === selectedService)
                       );
 
                       return (
-                        <ActivityCalendarView 
-                          activities={filteredActivities} 
-                          teachers={teachers} 
+                        <ActivityCalendarView
+                          activities={filteredActivities}
+                          teachers={therapistsToUse}
                           selectedServiceName={selectedService}
                         />
                       );
@@ -448,10 +451,11 @@ const StudentProfile = () => {
                   )}
                 </div>
               </div>
-            </div>
 
+            </div>
           </div>
         )}
+
         <div className="Profile-Footer"></div>
       </div>
     </div>
