@@ -383,3 +383,88 @@ button {
     gap: 20px;
   }
 }
+
+/* =============================================================================
+   6A. ASSESSMENT TOOLS & MEASURES (STEP 6 – FORM STYLE)
+   ============================================================================= */
+
+/* Header labels */
+.assessment-tools-header {
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  gap: 24px;
+  margin-bottom: 6px;
+}
+
+.assessment-tools-header label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+}
+
+/* Row */
+.assessment-tool-row {
+  display: grid;
+  grid-template-columns: 2fr 3fr 40px;
+  gap: 24px;
+  margin-bottom: 20px;
+  align-items: flex-start;
+}
+
+/* Input wrappers */
+.assessment-tool-field {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Inputs look like standard form fields */
+.assessment-tool-field input,
+.assessment-tool-field textarea {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #1e293b;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+}
+
+/* Textarea sizing */
+.assessment-tool-field textarea {
+  min-height: 70px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+/* Focus */
+.assessment-tool-field input:focus,
+.assessment-tool-field textarea:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.12);
+}
+
+/* Remove button alignment */
+.assessment-tool-row .remove-entry-btn {
+  margin-top: 26px;
+}
+
+.assessment-tool-row {
+  padding-bottom: 16px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.assessment-tool-row:last-child {
+  border-bottom: none;
+}
+
+.assessment-tool-field input,
+.assessment-tool-field textarea {
+  margin-top: 4px;
+  min-height: 70px;
+}
+
+.assessment-tool-field input {
+  font-weight: 600;
+}
