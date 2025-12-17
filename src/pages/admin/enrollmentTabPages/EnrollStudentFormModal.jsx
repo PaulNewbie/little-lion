@@ -157,7 +157,7 @@ export default function EnrollStudentFormModal({ show, onClose, onSave }) {
 
   return (
     <div className="modalOverlay">
-      <div className="modal multi-step-modal">
+      <div className="multi-step-modal">
         {/* HEADER */}
         <div className="modal-header-sticky">
           <div className="modal-header-flex">
