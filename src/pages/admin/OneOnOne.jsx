@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; // ✅ import navigation
+import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
 import childService from "../../services/childService";
+import activityService from "../../services/activityService"; // Import Unified Service
 import { db } from "../../config/firebase";
-import { collection, getDocs, query, where, addDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc } from "firebase/firestore";
 import useManageTherapists from "../../hooks/useManageTherapists";
 import "./css/OneOnOne.css";
 
@@ -20,33 +21,51 @@ const SelectedServiceInfo = ({ records, therapists }) => {
 
   return (
     <div className="service-date-list">
-      {records.map((rec, i) => (
-        <div key={i} className="service-date-block">
-          <div className="service-date-header" onClick={() => toggleIndex(i)}>
-            <span>{rec.date || "No Date"}</span>
-            <span className="arrow-icon">{openIndex === i ? "▲" : "▼"}</span>
-          </div>
-          {openIndex === i && (
-            <div className="service-info-card">
-              <p>
-                <span className="label">Therapist:</span>{" "}
-                {rec.therapistId ? getTherapistName(rec.therapistId) : "—"}
-              </p>
-              <p>
-                <span className="label">Activity:</span>{" "}
-                {rec.title || "—"}: {rec.activities || rec.description || "—"}
-              </p>
-              <p>
-                <span className="label">Participating Students:</span>{" "}
-                {rec.participatingStudentsNames?.join(", ") || "—"}
-              </p>
-              <p><span className="label">Observations:</span> {rec.observations || "—"}</p>
-              <p><span className="label">Follow up:</span> {rec.followUp || "—"}</p>
-              <p><span className="label">Other concerns:</span> {rec.otherConcerns || "—"}</p>
+      {records.map((rec, i) => {
+         const isTherapy = rec.type === 'therapy_session';
+
+         return (
+          <div key={i} className="service-date-block">
+            <div className="service-date-header" onClick={() => toggleIndex(i)}>
+              <span>{rec.date || "No Date"}</span>
+              <span className="arrow-icon">{openIndex === i ? "▲" : "▼"}</span>
             </div>
-          )}
-        </div>
-      ))}
+            {openIndex === i && (
+              <div className="service-info-card">
+                <p>
+                  <span className="label">Therapist:</span>{" "}
+                  {rec.therapistId ? getTherapistName(rec.therapistId) : (rec.authorName || "—")}
+                </p>
+                
+                {/* Unified Display for New & Old Data */}
+                <p>
+                  <span className="label">Activity/Title:</span>{" "}
+                  {rec.title || "—"}
+                </p>
+
+                {isTherapy ? (
+                  <>
+                    <p><span className="label">Notes:</span> {rec.sessionNotes || "—"}</p>
+                    {rec.strengths && <p><span className="label">Strengths:</span> {rec.strengths}</p>}
+                    {rec.weaknesses && <p><span className="label">Improvements:</span> {rec.weaknesses}</p>}
+                    {rec.homeActivities && <p><span className="label">Home Plan:</span> {rec.homeActivities}</p>}
+                  </>
+                ) : (
+                   <p>
+                    <span className="label">Description:</span>{" "}
+                    {rec.activities || rec.description || "—"}
+                  </p>
+                )}
+
+                <p>
+                  <span className="label">Participating Students:</span>{" "}
+                  {rec.participatingStudentsNames?.join(", ") || "—"}
+                </p>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };
@@ -59,13 +78,12 @@ const OneOnOne = () => {
   const [services, setServices] = useState([]);
   const [students, setStudents] = useState([]);
   const [selectedService, setSelectedService] = useState(null);
-  const [studentActivities, setStudentActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddServiceModal, setShowAddServiceModal] = useState(false);
   const [newService, setNewService] = useState({ name: "", description: "", type: "Therapy" });
 
   const { therapists } = useManageTherapists();
-  const navigate = useNavigate(); // ✅ hook to navigate to StudentProfile
+  const navigate = useNavigate();
 
   /* ===============================
      FETCH SERVICES + STUDENTS
@@ -88,11 +106,6 @@ const OneOnOne = () => {
     fetchServicesAndStudents();
   }, []);
 
-  const getTherapistName = (therapistId) => {
-    const t = therapists.find((t) => t.uid === therapistId);
-    return t ? `${t.firstName} ${t.lastName}` : "—";
-  };
-
   /* ===============================
      FILTER STUDENTS ENROLLED IN SELECTED SERVICE
   =============================== */
@@ -113,31 +126,28 @@ const OneOnOne = () => {
 
   const handleSelectStudent = async (student) => {
     try {
-      // fetch activities for the selected student
-      const q = query(
-        collection(db, "activities"),
-        where("participatingStudentIds", "array-contains", student.id)
-      );
-      const snap = await getDocs(q);
-      const activities = snap.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        participatingStudentsNames: doc.data().participatingStudentIds.map((id) => {
-          const s = students.find((st) => st.id === id);
-          return s ? `${s.firstName} ${s.lastName}` : id;
-        }),
+      // ✅ UPDATED: Fetch unified activities using the service
+      const activities = await activityService.getActivitiesByChild(student.id);
+
+      // Enhance with names
+      const enhancedActivities = activities.map((doc) => ({
+        ...doc,
+        participatingStudentsNames: doc.participatingStudentIds 
+          ? doc.participatingStudentIds.map((id) => {
+              const s = students.find((st) => st.id === id);
+              return s ? `${s.firstName} ${s.lastName}` : id;
+            })
+          : [doc.studentName || student.firstName]
       }));
 
-      setStudentActivities(activities);
-
-      // ✅ navigate to StudentProfile and pass student + activities + therapists + selectedService
+      // Navigate
       navigate("/admin/StudentProfile", { 
         state: { 
           student, 
-          activities, 
+          activities: enhancedActivities, 
           therapists,
-          selectedService, // <-- automatically select the current OneOnOne service
-          fromOneOnOne: true // <-- flag to identify navigation source
+          selectedService, 
+          fromOneOnOne: true
         } 
       });
 
@@ -171,7 +181,6 @@ const OneOnOne = () => {
       setShowAddServiceModal(false);
       setNewService({ name: "", description: "", type: "Therapy" });
 
-      // REFRESH students to ensure newly enrolled children appear
       const studentList = await childService.getAllChildren();
       setStudents(studentList);
     } catch (err) {

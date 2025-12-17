@@ -37,100 +37,172 @@ const ChildActivities = () => {
 
   if (loading) return <Loading />;
 
-  // --- COMPONENT: THERAPY CARD (1:1) ---
-  const TherapyCard = ({ activity }) => (
-    <div style={{ ...styles.card, borderLeft: '5px solid #4a90e2' }}>
-      <div style={styles.cardHeader}>
-        <div>
-          <span style={{ ...styles.badge, backgroundColor: '#e3f2fd', color: '#0d47a1' }}>
-            🩺 1:1 Therapy
-          </span>
-          <span style={styles.date}>{activity.date}</span>
+  // --- COMPONENT: THERAPY CARD (Updated for Detailed Clinical Data) ---
+  const TherapyCard = ({ activity }) => {
+    // Helper to format date nicely
+    const dateStr = new Date(activity.date).toLocaleDateString('en-US', {
+      weekday: 'short', month: 'short', day: 'numeric'
+    });
+
+    return (
+      <div style={{ ...styles.card, borderLeft: '5px solid #4a90e2' }}>
+        {/* Header */}
+        <div style={styles.cardHeader}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ ...styles.badge, backgroundColor: '#e3f2fd', color: '#0d47a1' }}>
+              🩺 {activity.serviceName || 'Therapy Session'}
+            </span>
+            <span style={styles.date}>{dateStr}</span>
+          </div>
+          <div style={styles.author}>
+            Th: {activity.childName ? activity.childName.split(' ')[0] : ''} {/* Use therapist name if available in future updates */}
+          </div>
         </div>
-        <div style={styles.author}>
-          Th: {activity.authorName}
+        
+        <div style={styles.cardBody}>
+          {/* Mood / Reaction */}
+          {activity.studentReaction && activity.studentReaction.length > 0 && (
+            <div style={{ marginBottom: '15px', display: 'flex', gap: '8px' }}>
+              {activity.studentReaction.map((mood, i) => (
+                <span key={i} style={{ 
+                  backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', 
+                  padding: '4px 8px', borderRadius: '12px', fontSize: '13px', color: '#475569' 
+                }}>
+                  {getEmojiForMood(mood)} {mood}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Activity Purpose */}
+          {activity.activityPurpose && (
+            <div style={styles.section}>
+              <strong style={{ color: '#1e293b' }}>🎯 Purpose of Session:</strong>
+              <p style={styles.text}>{activity.activityPurpose}</p>
+            </div>
+          )}
+
+          {/* Specific Activities Performed (If OT/ST) */}
+          {activity.data?.activities && activity.data.activities.length > 0 && (
+            <div style={{ ...styles.section, backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #f1f5f9' }}>
+              <strong style={{ display: 'block', marginBottom: '8px', color: '#334155' }}>📋 Activities Performed:</strong>
+              <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                {activity.data.activities.map((act, i) => (
+                  <li key={i} style={{ marginBottom: '4px', fontSize: '14px', color: '#475569' }}>
+                    <span style={{ fontWeight: '600' }}>{act.name}</span>
+                    {act.performance && (
+                      <span style={{ fontSize: '12px', color: '#64748b', marginLeft: '6px', fontStyle: 'italic' }}>
+                         ({act.performance})
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Observations Grid */}
+          <div style={{ display: 'grid', gap: '15px', marginTop: '15px', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+            
+            {/* Strengths */}
+            {activity.strengths && (
+              <div style={{ padding: '12px', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
+                <strong style={{ color: '#166534', fontSize: '14px' }}>💪 Strengths</strong>
+                <p style={{ ...styles.text, marginTop: '5px', fontSize: '14px' }}>{activity.strengths}</p>
+              </div>
+            )}
+
+            {/* Weaknesses / Improvements */}
+            {activity.weaknesses && (
+              <div style={{ padding: '12px', backgroundColor: '#fef2f2', borderRadius: '8px', border: '1px solid #fecaca' }}>
+                <strong style={{ color: '#991b1b', fontSize: '14px' }}>🔻 Areas for Improvement</strong>
+                <p style={{ ...styles.text, marginTop: '5px', fontSize: '14px' }}>{activity.weaknesses}</p>
+              </div>
+            )}
+          </div>
+
+          {/* General Notes */}
+          {activity.sessionNotes && (
+            <div style={{ marginTop: '15px' }}>
+              <strong style={{ color: '#1e293b' }}>📝 Session Notes:</strong>
+              <p style={styles.text}>{activity.sessionNotes}</p>
+            </div>
+          )}
+
+          {/* Home Activities / Recommendations */}
+          {(activity.homeActivities || activity.recommendations) && (
+            <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px dashed #e2e8f0' }}>
+              <strong style={{ color: '#7c3aed' }}>🏠 Home Plan & Recommendations:</strong>
+              {activity.homeActivities && <p style={styles.text}>{activity.homeActivities}</p>}
+              {activity.recommendations && <p style={{...styles.text, fontStyle: 'italic', color: '#64748b'}}>{activity.recommendations}</p>}
+            </div>
+          )}
+
+          {/* Concerns (Optional Display) */}
+          {activity.concerns && (
+            <div style={{ marginTop: '10px' }}>
+              <span style={{ fontSize: '12px', fontWeight: '700', color: '#f59e0b' }}>⚠️ NOTE: </span>
+              <span style={{ fontSize: '13px', color: '#64748b' }}>{activity.concerns}</span>
+            </div>
+          )}
+
         </div>
       </div>
-      
-      <div style={styles.cardBody}>
-        <h3 style={styles.title}>{activity.title}</h3>
-        <h4 style={styles.subTitle}>{activity.serviceType}</h4>
-        
-        <div style={styles.section}>
-          <strong>📝 Progress Notes:</strong>
-          <p style={styles.text}>{activity.progressNotes}</p>
+    );
+  };
+
+  // --- COMPONENT: GROUP ACTIVITY CARD ---
+  const GroupCard = ({ activity }) => {
+    const dateStr = new Date(activity.date).toLocaleDateString('en-US', {
+      weekday: 'short', month: 'short', day: 'numeric'
+    });
+
+    return (
+      <div style={{ ...styles.card, borderLeft: '5px solid #2ecc71' }}>
+        <div style={styles.cardHeader}>
+          <div>
+            <span style={{ ...styles.badge, backgroundColor: '#e8f5e9', color: '#1b5e20' }}>
+              🎨 Group Class
+            </span>
+            <span style={styles.date}>{dateStr}</span>
+          </div>
+          <div style={styles.author}>
+            Tr: {activity.teacherName || 'Teacher'}
+          </div>
         </div>
 
-        {activity.goalsAddressed && activity.goalsAddressed.length > 0 && (
-          <div style={{ ...styles.section, backgroundColor: '#f8f9fa', padding: '10px', borderRadius: '5px' }}>
-            <strong>YW Goals Addressed:</strong>
-            <ul style={{ margin: '5px 0 0 20px', padding: 0 }}>
-              {activity.goalsAddressed.map((goal, i) => (
-                <li key={i} style={styles.text}>{goal}</li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <div style={styles.cardBody}>
+          <h3 style={styles.title}>{activity.title}</h3>
+          <h4 style={styles.subTitle}>{activity.className || 'Class Activity'}</h4>
 
-        {/* Therapy photos are usually fewer, show small thumbnails */}
-        {activity.photoUrls && activity.photoUrls.length > 0 && (
-          <div style={{ marginTop: '15px' }}>
-            <strong style={{ fontSize: '12px', color: '#666' }}>SESSION PHOTOS</strong>
-            <div style={styles.miniGrid}>
+          <p style={styles.text}>{activity.description}</p>
+
+          {/* Group photos are the main feature */}
+          {activity.photoUrls && activity.photoUrls.length > 0 && (
+            <div style={styles.photoGrid}>
               {activity.photoUrls.map((url, idx) => (
                 <img 
                   key={idx} 
                   src={url} 
-                  alt="Therapy" 
-                  style={styles.miniPhoto} 
+                  alt="Activity" 
+                  style={styles.mainPhoto} 
                   onClick={() => window.open(url, '_blank')}
                 />
               ))}
             </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  // --- COMPONENT: GROUP ACTIVITY CARD ---
-  const GroupCard = ({ activity }) => (
-    <div style={{ ...styles.card, borderLeft: '5px solid #2ecc71' }}>
-      <div style={styles.cardHeader}>
-        <div>
-          <span style={{ ...styles.badge, backgroundColor: '#e8f5e9', color: '#1b5e20' }}>
-            🎨 Group Class
-          </span>
-          <span style={styles.date}>{activity.date}</span>
-        </div>
-        <div style={styles.author}>
-          Tr: {activity.teacherName}
+          )}
         </div>
       </div>
+    );
+  };
 
-      <div style={styles.cardBody}>
-        <h3 style={styles.title}>{activity.title}</h3>
-        <h4 style={styles.subTitle}>{activity.className || 'Class Activity'}</h4>
-
-        <p style={styles.text}>{activity.description}</p>
-
-        {/* Group photos are the main feature */}
-        {activity.photoUrls && activity.photoUrls.length > 0 && (
-          <div style={styles.photoGrid}>
-            {activity.photoUrls.map((url, idx) => (
-              <img 
-                key={idx} 
-                src={url} 
-                alt="Activity" 
-                style={styles.mainPhoto} 
-                onClick={() => window.open(url, '_blank')}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  const getEmojiForMood = (mood) => {
+    const map = {
+      'Happy': '😊', 'Focused': '🧐', 'Active': '⚡',
+      'Tired': '🥱', 'Upset': '😢', 'Social': '👋'
+    };
+    return map[mood] || '•';
+  };
 
   return (
     <div style={styles.container}>
@@ -153,7 +225,8 @@ const ChildActivities = () => {
         <div style={styles.feed}>
           {activities.map(activity => (
             <React.Fragment key={activity.id}>
-              {activity.type === 'therapy_session' ? (
+              {/* Check _collection OR type to decide card style */}
+              {(activity.type === 'therapy_session' || activity._collection === 'therapy_sessions') ? (
                 <TherapyCard activity={activity} />
               ) : (
                 <GroupCard activity={activity} />
@@ -167,32 +240,29 @@ const ChildActivities = () => {
 };
 
 const styles = {
-  container: { padding: '20px', maxWidth: '800px', margin: '0 auto', fontFamily: 'Segoe UI, sans-serif' },
-  backBtn: { background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: '15px', marginBottom: '20px', padding: 0 },
-  pageHeader: { marginBottom: '30px', borderBottom: '1px solid #eee', paddingBottom: '15px' },
-  empty: { textAlign: 'center', padding: '50px', color: '#888', backgroundColor: '#f9f9f9', borderRadius: '8px' },
-  feed: { display: 'flex', flexDirection: 'column', gap: '30px' },
+  container: { padding: '20px', maxWidth: '800px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' },
+  backBtn: { background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '15px', marginBottom: '20px', padding: 0, fontWeight: '600' },
+  pageHeader: { marginBottom: '30px', borderBottom: '1px solid #e2e8f0', paddingBottom: '15px' },
+  empty: { textAlign: 'center', padding: '50px', color: '#94a3b8', backgroundColor: '#f8fafc', borderRadius: '12px', border: '2px dashed #e2e8f0' },
+  feed: { display: 'flex', flexDirection: 'column', gap: '25px' },
   
   // Card Styles
-  card: { backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', overflow: 'hidden', border: '1px solid #eaeaea' },
-  cardHeader: { padding: '15px 20px', backgroundColor: '#fff', borderBottom: '1px solid #f5f5f5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  card: { backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', overflow: 'hidden', border: '1px solid #f1f5f9' },
+  cardHeader: { padding: '15px 20px', backgroundColor: '#fff', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   cardBody: { padding: '20px' },
   
-  badge: { padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', marginRight: '10px' },
-  date: { color: '#888', fontSize: '13px' },
-  author: { fontSize: '13px', color: '#666', fontStyle: 'italic' },
+  badge: { padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold' },
+  date: { color: '#64748b', fontSize: '13px', fontWeight: '500' },
+  author: { fontSize: '13px', color: '#64748b', fontWeight: '500' },
   
-  title: { margin: '0 0 5px 0', fontSize: '18px', color: '#333' },
-  subTitle: { margin: '0 0 15px 0', fontSize: '14px', color: '#888', fontWeight: '500' },
-  text: { lineHeight: '1.6', color: '#444', fontSize: '15px' },
+  title: { margin: '0 0 5px 0', fontSize: '18px', color: '#0f172a', fontWeight: '700' },
+  subTitle: { margin: '0 0 15px 0', fontSize: '14px', color: '#64748b', fontWeight: '500' },
+  text: { lineHeight: '1.6', color: '#334155', fontSize: '15px', margin: 0 },
   section: { marginBottom: '15px' },
 
   // Photos
-  miniGrid: { display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' },
-  miniPhoto: { width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px', cursor: 'pointer' },
-  
   photoGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px', marginTop: '15px' },
-  mainPhoto: { width: '100%', height: '150px', objectFit: 'cover', borderRadius: '6px', cursor: 'pointer', transition: 'opacity 0.2s' }
+  mainPhoto: { width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px', cursor: 'pointer', transition: 'opacity 0.2s', border: '1px solid #e2e8f0' }
 };
 
 export default ChildActivities;

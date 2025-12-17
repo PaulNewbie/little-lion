@@ -3,8 +3,7 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
 import childService from "../../services/childService";
-import { db } from "../../config/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import activityService from "../../services/activityService"; // Import the unified service
 import useManageTeachers from "../../hooks/useManageTeachers";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./css/StudentProfile.css";
@@ -45,6 +44,12 @@ const ActivityCalendarView = ({ activities, teachers, selectedServiceName }) => 
     return staff ? `${staff.firstName} ${staff.lastName}` : "—";
   };
 
+  // Helper for Mood Emojis
+  const getEmojiForMood = (mood) => {
+    const map = { 'Happy': '😊', 'Focused': '🧐', 'Active': '⚡', 'Tired': '🥱', 'Upset': '😢', 'Social': '👋' };
+    return map[mood] || '•';
+  };
+
   return (
     <div className="calendar-view-container" style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
       <div className="day-details-section" style={{ flex: 1 }}>
@@ -58,34 +63,86 @@ const ActivityCalendarView = ({ activities, teachers, selectedServiceName }) => 
           </div>
         ) : (
           <div className="daily-records-list">
-            {selectedActivities.map((rec, i) => (
-              <div key={i} className="record-card">
-                <div className="record-header">
-                  <span className="record-type">{rec.serviceType || "Activity"}</span>
+            {selectedActivities.map((rec, i) => {
+              const isTherapy = rec.type === 'therapy_session' || rec._collection === 'therapy_sessions';
+              
+              return (
+                <div key={i} className="record-card" style={{ borderLeft: isTherapy ? '4px solid #4a90e2' : '4px solid #2ecc71' }}>
+                  <div className="record-header">
+                    <span className="record-type" style={{ color: isTherapy ? '#0d47a1' : '#1b5e20' }}>
+                      {rec.serviceName || rec.serviceType || "Activity"}
+                    </span>
+                  </div>
+
+                  <p>
+                    <span className="label">Staff:</span>{" "}
+                    {rec.authorName || rec.teacherName || getTeacherName(rec.teacherId || rec.authorId)}
+                  </p>
+                  
+                  {/* --- NEW: MOOD SECTION --- */}
+                  {rec.studentReaction && rec.studentReaction.length > 0 && (
+                    <div style={{ margin: '8px 0' }}>
+                       {rec.studentReaction.map((m, idx) => (
+                         <span key={idx} style={{ marginRight: '5px', fontSize: '12px', background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>
+                           {getEmojiForMood(m)} {m}
+                         </span>
+                       ))}
+                    </div>
+                  )}
+
+                  <p>
+                    <span className="label">Title:</span> {rec.title || "—"}
+                  </p>
+
+                  {/* --- CONDITIONAL DISPLAY BASED ON TYPE --- */}
+                  {isTherapy ? (
+                    <>
+                      {/* Clinical Notes */}
+                      {rec.sessionNotes && <p><span className="label">Notes:</span> {rec.sessionNotes}</p>}
+                      
+                      {/* Observations */}
+                      <div style={{ marginTop: '10px', display: 'grid', gap: '10px' }}>
+                        {rec.strengths && (
+                          <div style={{ background: '#f0fdf4', padding: '8px', borderRadius: '4px', border: '1px solid #bbf7d0' }}>
+                            <span style={{ color: '#166534', fontWeight: 'bold', fontSize: '12px' }}>💪 Strengths:</span>
+                            <p style={{ margin: '4px 0 0', fontSize: '13px' }}>{rec.strengths}</p>
+                          </div>
+                        )}
+                        {rec.weaknesses && (
+                          <div style={{ background: '#fef2f2', padding: '8px', borderRadius: '4px', border: '1px solid #fecaca' }}>
+                            <span style={{ color: '#991b1b', fontWeight: 'bold', fontSize: '12px' }}>🔻 Improvements:</span>
+                            <p style={{ margin: '4px 0 0', fontSize: '13px' }}>{rec.weaknesses}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Home Plan */}
+                      {rec.homeActivities && (
+                        <div style={{ marginTop: '10px', fontStyle: 'italic', color: '#555' }}>
+                          <span className="label">🏠 Home Plan:</span> {rec.homeActivities}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    // Legacy / Group Activity Display
+                    <>
+                      <p>
+                        <span className="label">Description:</span>{" "}
+                        {rec.progressNotes || rec.description || "—"}
+                      </p>
+                      {rec.goalsAddressed && (
+                        <p><span className="label">Goals:</span> {rec.goalsAddressed.join(", ")}</p>
+                      )}
+                    </>
+                  )}
+
+                  <p style={{ marginTop: '10px' }}>
+                    <span className="label">Students:</span>{" "}
+                    {rec.participatingStudentsNames?.join(", ") || "—"}
+                  </p>
                 </div>
-
-                <p>
-                  <span className="label">Staff:</span>{" "}
-                  {rec.authorName || rec.teacherName || getTeacherName(rec.teacherId || rec.authorId)}
-                </p>
-                <p>
-                  <span className="label">Title:</span> {rec.title || "—"}
-                </p>
-                <p>
-                  <span className="label">Notes:</span>{" "}
-                  {rec.progressNotes || rec.description || "—"}
-                </p>
-
-                {rec.goalsAddressed && (
-                  <p><span className="label">Goals:</span> {rec.goalsAddressed.join(", ")}</p>
-                )}
-
-                <p>
-                  <span className="label">Students:</span>{" "}
-                  {rec.participatingStudentsNames?.join(", ") || "—"}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -149,20 +206,14 @@ const StudentProfile = () => {
     }
   }, [selectedStudentFromOneOnOne, activitiesFromOneOnOne]);
 
-  // 2. FETCH ACTIVITIES
+  // 2. FETCH ACTIVITIES (UPDATED: Uses activityService for Unified View)
   const fetchStudentActivities = async (studentId) => {
     try {
-      const q1 = query(collection(db, "activities"), where("studentId", "==", studentId));
-      const q2 = query(collection(db, "activities"), where("participatingStudentIds", "array-contains", studentId));
+      // Use the new service that fetches from BOTH collections
+      const activities = await activityService.getActivitiesByChild(studentId);
 
-      const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
-
-      const mergedDocs = new Map();
-      [...snap1.docs, ...snap2.docs].forEach(doc => {
-        mergedDocs.set(doc.id, { id: doc.id, ...doc.data() });
-      });
-
-      const activities = Array.from(mergedDocs.values()).map(act => ({
+      // Enhance with Student Names (for participating lists)
+      const enhancedActivities = activities.map(act => ({
         ...act,
         participatingStudentsNames: act.participatingStudentIds
           ? act.participatingStudentIds.map(id => {
@@ -172,8 +223,9 @@ const StudentProfile = () => {
           : [act.studentName]
       }));
 
-      activities.sort((a, b) => new Date(b.date) - new Date(a.date));
-      setStudentActivities(activities);
+      // Service already sorts by date, but just to be safe
+      enhancedActivities.sort((a, b) => new Date(b.date) - new Date(a.date));
+      setStudentActivities(enhancedActivities);
     } catch (error) {
       console.error("Error fetching activities:", error);
       setStudentActivities([]);
@@ -214,7 +266,7 @@ const StudentProfile = () => {
 
   const goBack = () => {
     if (fromOneOnOne) {
-      navigate(-1); // go back to OneOnOne exactly
+      navigate(-1); 
     } else {
       setSelectedService("");
       setSelectedStudent(null);
@@ -429,10 +481,12 @@ const StudentProfile = () => {
                 <div className="selected-service-info">
                   {selectedService ? (
                     (() => {
+                      // UPDATED FILTER: Matches against new serviceName field as well
                       const filteredActivities = activitiesToDisplay.filter(
                         (act) =>
-                          (act.serviceType === selectedService) ||
-                          (act.className === selectedService) ||
+                          (act.serviceName === selectedService) || // New field
+                          (act.serviceType === selectedService) || // Legacy
+                          (act.className === selectedService) ||   // Group
                           (act.title === selectedService)
                       );
 
