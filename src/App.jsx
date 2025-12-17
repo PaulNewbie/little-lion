@@ -20,7 +20,7 @@ import EnrollChild from "./pages/admin/EnrollChild";
 import ManageTeachers from "./pages/admin/ManageTeachers";
 import ManageTherapists from "./pages/admin/ManageTherapists";
 import OtherServices from "./pages/admin/OtherServices";
-import EnrollStudent from "./pages/admin/EnrollStudent";
+import EnrollStudent from "./pages/admin/enrollmentTabPages/EnrollStudent";
 import ManageAdmins from "./pages/admin/ManageAdmins";
 import ManageParents from "./pages/admin/ManageParents.jsx";
 import StudentProfile from "./pages/admin/StudentProfile";

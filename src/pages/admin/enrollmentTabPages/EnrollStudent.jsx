@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import AdminSidebar from "../../components/sidebar/AdminSidebar";
-import "./css/EnrollStudent.css";
+import AdminSidebar from "../../../components/sidebar/AdminSidebar";
+import "../css/EnrollStudent.css";
 
 // Initial Mock Data
 const initialParents = [
@@ -182,7 +182,7 @@ export default function EnrollStudent() {
             className="add-fab secondary-fab"
             onClick={() => setShowParentForm(true)}
           >
-            + Parent Account
+            + Parent / Guardian Account
           </button>
         ) : (
           <button className="add-fab" onClick={() => setShowEnrollForm(true)}>
@@ -194,7 +194,7 @@ export default function EnrollStudent() {
         {showParentForm && (
           <div className="modalOverlay">
             <div className="modal">
-              <h2 className="services-header">New Parent Account</h2>
+              <h2 className="services-header">New Parent / Guardian Account</h2>
               <form onSubmit={handleParentSubmit}>
                 <div className="form-row">
                   <div className="input-group">
@@ -275,11 +275,20 @@ export default function EnrollStudent() {
               <div className="modal-header-sticky">
                 <div className="modal-header-flex">
                   <h2>
-                    Step {formStep}: {getStatusByStep(formStep)}
+                    Step {formStep}/9:{" "}
+                    {formStep === 9
+                      ? "Finalize Services"
+                      : "Assessment Section"}
                   </h2>
+                  <button
+                    className="close-x-btn"
+                    onClick={() => setShowEnrollForm(false)}
+                  >
+                    ×
+                  </button>
                 </div>
                 <div className="step-indicator">
-                  {[1, 2, 3, 4, 5].map((i) => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
                     <div
                       key={i}
                       className={`step-dot ${formStep >= i ? "active" : ""}`}
@@ -289,9 +298,10 @@ export default function EnrollStudent() {
               </div>
 
               <div className="enroll-form-scroll">
+                {/* STEP 1: BASIC INFO */}
                 {formStep === 1 && (
                   <div className="form-section">
-                    <h3>Basic Information</h3>
+                    <h3>1. Basic Information</h3>
                     <div className="form-row">
                       <div className="input-group">
                         <label>First Name</label>
@@ -310,104 +320,288 @@ export default function EnrollStudent() {
                         <label>Last Name</label>
                         <input
                           type="text"
-                          value={selectedParent.lastName}
-                          readOnly
+                          value={
+                            studentInput.lastName || selectedParent.lastName
+                          }
+                          onChange={(e) =>
+                            setStudentInput({
+                              ...studentInput,
+                              lastName: e.target.value,
+                            })
+                          }
                         />
                       </div>
                     </div>
                     <div className="input-group">
-                      <label>Reason for Referral</label>
-                      <textarea
-                        rows="3"
-                        value={studentInput.referral}
+                      <label>Relationship to Parent/Guardian</label>
+                      <select
+                        value={studentInput.relationshipToClient}
                         onChange={(e) =>
                           setStudentInput({
                             ...studentInput,
-                            referral: e.target.value,
+                            relationshipToClient: e.target.value,
+                          })
+                        }
+                      >
+                        <option value="biological child">
+                          Biological Child
+                        </option>
+                        <option value="legal ward">
+                          Legal Ward / Guardian
+                        </option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 2: REASON FOR REFERRAL */}
+                {formStep === 2 && (
+                  <div className="form-section">
+                    <h3>2. Reason for Referral</h3>
+                    <div className="input-group">
+                      <textarea
+                        rows="6"
+                        value={studentInput.reasonForReferral}
+                        placeholder="Enter concerns from parents/teachers..."
+                        onChange={(e) =>
+                          setStudentInput({
+                            ...studentInput,
+                            reasonForReferral: e.target.value,
                           })
                         }
                       />
                     </div>
                   </div>
                 )}
-                {formStep === 2 && (
-                  <div className="form-section">
-                    <h3>Background History</h3>
-                    <textarea
-                      rows="6"
-                      placeholder="Family background and history..."
-                      value={studentInput.background}
-                      onChange={(e) =>
-                        setStudentInput({
-                          ...studentInput,
-                          background: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                )}
+
+                {/* STEP 3: PURPOSE OF ASSESSMENT */}
                 {formStep === 3 && (
                   <div className="form-section">
-                    <h3>Behavior During Assessment</h3>
-                    <textarea
-                      rows="6"
-                      placeholder="Observation notes..."
-                      value={studentInput.behavior}
-                      onChange={(e) =>
-                        setStudentInput({
-                          ...studentInput,
-                          behavior: e.target.value,
-                        })
-                      }
-                    />
+                    <h3>3. Purpose of Assessment</h3>
+                    <div className="input-group">
+                      <label>Goals & Objectives (List format)</label>
+                      <textarea
+                        rows="6"
+                        placeholder="e.g. Identify developmental delays..."
+                        value={studentInput.purposeOfAssessment}
+                        onChange={(e) =>
+                          setStudentInput({
+                            ...studentInput,
+                            purposeOfAssessment: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
                   </div>
                 )}
+
+                {/* STEP 4: BACKGROUND HISTORY */}
                 {formStep === 4 && (
                   <div className="form-section">
-                    <h3>Summary & Recommendations</h3>
-                    <textarea
-                      rows="6"
-                      placeholder="Summary of results..."
-                      value={studentInput.summary}
-                      onChange={(e) =>
-                        setStudentInput({
-                          ...studentInput,
-                          summary: e.target.value,
-                        })
-                      }
-                    />
+                    <h3>4. Background History</h3>
+                    <div className="input-group">
+                      <label>Family Background & Milestones</label>
+                      <textarea
+                        rows="4"
+                        placeholder="Family environment, medical history..."
+                        value={studentInput.backgroundHistory?.familyBackground}
+                        onChange={(e) =>
+                          setStudentInput({
+                            ...studentInput,
+                            backgroundHistory: {
+                              ...studentInput.backgroundHistory,
+                              familyBackground: e.target.value,
+                            },
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label>Clinical Diagnosis (if any)</label>
+                      <input
+                        type="text"
+                        value={
+                          studentInput.backgroundHistory?.clinicalDiagnosis
+                        }
+                        onChange={(e) =>
+                          setStudentInput({
+                            ...studentInput,
+                            backgroundHistory: {
+                              ...studentInput.backgroundHistory,
+                              clinicalDiagnosis: e.target.value,
+                            },
+                          })
+                        }
+                      />
+                    </div>
                   </div>
                 )}
+
+                {/* STEP 5: BEHAVIOR DURING ASSESSMENT */}
                 {formStep === 5 && (
                   <div className="form-section">
-                    <h3>Services Enrollment</h3>
-                    <select
-                      className="ooo-search"
-                      style={{ paddingLeft: "10px" }}
-                      value={studentInput.service}
-                      onChange={(e) =>
-                        setStudentInput({
-                          ...studentInput,
-                          service: e.target.value,
-                        })
-                      }
-                    >
-                      <option value="">Select Service...</option>
-                      <option value="speech">Speech Therapy</option>
-                      <option value="ot">Occupational Therapy</option>
-                    </select>
+                    <h3>5. Behavior During Assessment</h3>
+                    <div className="input-group">
+                      <textarea
+                        rows="6"
+                        placeholder="Observations on attention, motor activity, and motivation..."
+                        value={studentInput.behaviorDuringAssessment}
+                        onChange={(e) =>
+                          setStudentInput({
+                            ...studentInput,
+                            behaviorDuringAssessment: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 6: ASSESSMENT TOOLS */}
+                {formStep === 6 && (
+                  <div className="form-section">
+                    <h3>6. Assessment Tools & Measures</h3>
+                    <div className="input-group">
+                      <label>Cognitive / Language / Motor Tools</label>
+                      <textarea
+                        rows="6"
+                        placeholder="e.g. BDI-3, ECCD Checklist, Language Probes..."
+                        value={studentInput.assessmentTools}
+                        onChange={(e) =>
+                          setStudentInput({
+                            ...studentInput,
+                            assessmentTools: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 7: ASSESSMENT RESULTS */}
+                {formStep === 7 && (
+                  <div className="form-section">
+                    <h3>7. Assessment Results</h3>
+                    <div className="input-group">
+                      <textarea
+                        rows="8"
+                        placeholder="Summarize performance in communication, social, and motor domains..."
+                        value={studentInput.assessmentResults}
+                        onChange={(e) =>
+                          setStudentInput({
+                            ...studentInput,
+                            assessmentResults: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 8: SUMMARY & RECOMMENDATIONS */}
+                {formStep === 8 && (
+                  <div className="form-section">
+                    <h3>8. Summary & Recommendations</h3>
+                    <div className="input-group">
+                      <label>Executive Summary</label>
+                      <textarea
+                        rows="4"
+                        value={studentInput.assessmentSummary}
+                        onChange={(e) =>
+                          setStudentInput({
+                            ...studentInput,
+                            assessmentSummary: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label>Specific Recommendations (ST, OT, SPED)</label>
+                      <textarea
+                        rows="4"
+                        value={studentInput.recommendations}
+                        onChange={(e) =>
+                          setStudentInput({
+                            ...studentInput,
+                            recommendations: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 9: SERVICES & TEACHER ASSIGNMENT */}
+                {formStep === 9 && (
+                  <div className="form-section">
+                    <h3>9. Assign Services & Teachers</h3>
+                    <div className="service-assign-row">
+                      <div className="input-group">
+                        <label>Service Type</label>
+                        <select
+                          value={studentInput.service}
+                          onChange={(e) =>
+                            setStudentInput({
+                              ...studentInput,
+                              service: e.target.value,
+                            })
+                          }
+                        >
+                          <option value="">Select Service...</option>
+                          <option value="Speech Therapy">Speech Therapy</option>
+                          <option value="Occupational Therapy">
+                            Occupational Therapy
+                          </option>
+                          <option value="Behavioral Management">
+                            Behavioral Management
+                          </option>
+                        </select>
+                      </div>
+                      <div className="input-group">
+                        <label>Assigned Teacher</label>
+                        <select
+                          value={studentInput.assignedTeacherId}
+                          onChange={(e) =>
+                            setStudentInput({
+                              ...studentInput,
+                              assignedTeacherId: e.target.value,
+                            })
+                          }
+                        >
+                          <option value="">Select Teacher...</option>
+                          {/* Map your teacher list here */}
+                          <option value="teacher_1">Teacher Joy</option>
+                          <option value="teacher_2">Teacher Grace</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
 
               <div className="modalActions sticky-footer">
-                <button
-                  type="button"
-                  className="save-draft-btn"
-                  onClick={() => saveEnrollment(false)}
-                >
-                  Save & Close
-                </button>
+                <div className="left-actions">
+                  <button
+                    type="button"
+                    className="save-draft-btn"
+                    onClick={() => saveEnrollment(false)}
+                  >
+                    Save Draft
+                  </button>
+                  <button
+                    type="button"
+                    className="cancel-btn"
+                    style={{
+                      background: "#fee2e2",
+                      color: "#dc2626",
+                      marginLeft: "10px",
+                    }}
+                    onClick={() => setShowEnrollForm(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
                 <div className="right-actions">
                   {formStep > 1 && (
                     <button
@@ -418,7 +612,7 @@ export default function EnrollStudent() {
                       Back
                     </button>
                   )}
-                  {formStep < 5 ? (
+                  {formStep < 9 ? (
                     <button
                       type="button"
                       className="create-btn"
@@ -432,7 +626,7 @@ export default function EnrollStudent() {
                       className="create-btn"
                       onClick={() => saveEnrollment(true)}
                     >
-                      Finalize Enrollment
+                      Finalize & Enroll
                     </button>
                   )}
                 </div>
