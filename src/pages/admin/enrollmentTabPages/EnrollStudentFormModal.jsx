@@ -29,12 +29,7 @@ export default function EnrollStudentFormModal({ show, onClose, onSave }) {
       developmentalBackground: [{ devBgTitle: "", devBgInfo: "" }],
       schoolHistory: "",
       clinicalDiagnosis: "",
-      interventions: [
-        { type: "Behavioral Management", frequency: "" },
-        { type: "SPED One-on-One", frequency: "" },
-        { type: "Occupational Therapy", frequency: "" },
-        { type: "Speech Therapy", frequency: "" },
-      ],
+      interventions: [],
       strengthsAndInterests: "",
       socialSkills: "",
     },
