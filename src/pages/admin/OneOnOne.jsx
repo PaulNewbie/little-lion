@@ -11,64 +11,64 @@ import "./css/OneOnOne.css";
 /* ================================================================
    SELECTED SERVICE INFO (MULTIPLE DATES + COLLAPSIBLE)
 ================================================================ */
-const SelectedServiceInfo = ({ records, therapists }) => {
-  const [openIndex, setOpenIndex] = useState(null);
-  const toggleIndex = (i) => setOpenIndex(openIndex === i ? null : i);
-  const getTherapistName = (therapistId) => {
-    const therapist = therapists.find((t) => t.uid === therapistId);
-    return therapist ? `${therapist.firstName} ${therapist.lastName}` : "—";
-  };
+// const SelectedServiceInfo = ({ records, therapists }) => {
+//   const [openIndex, setOpenIndex] = useState(null);
+//   const toggleIndex = (i) => setOpenIndex(openIndex === i ? null : i);
+//   const getTherapistName = (therapistId) => {
+//     const therapist = therapists.find((t) => t.uid === therapistId);
+//     return therapist ? `${therapist.firstName} ${therapist.lastName}` : "—";
+//   };
 
-  return (
-    <div className="service-date-list">
-      {records.map((rec, i) => {
-         const isTherapy = rec.type === 'therapy_session';
+//   return (
+//     <div className="service-date-list">
+//       {records.map((rec, i) => {
+//          const isTherapy = rec.type === 'therapy_session';
 
-         return (
-          <div key={i} className="service-date-block">
-            <div className="service-date-header" onClick={() => toggleIndex(i)}>
-              <span>{rec.date || "No Date"}</span>
-              <span className="arrow-icon">{openIndex === i ? "▲" : "▼"}</span>
-            </div>
-            {openIndex === i && (
-              <div className="service-info-card">
-                <p>
-                  <span className="label">Therapist:</span>{" "}
-                  {rec.therapistId ? getTherapistName(rec.therapistId) : (rec.authorName || "—")}
-                </p>
+//          return (
+//           <div key={i} className="service-date-block">
+//             <div className="service-date-header" onClick={() => toggleIndex(i)}>
+//               <span>{rec.date || "No Date"}</span>
+//               <span className="arrow-icon">{openIndex === i ? "▲" : "▼"}</span>
+//             </div>
+//             {openIndex === i && (
+//               <div className="service-info-card">
+//                 <p>
+//                   <span className="label">Therapist:</span>{" "}
+//                   {rec.therapistId ? getTherapistName(rec.therapistId) : (rec.authorName || "—")}
+//                 </p>
                 
-                {/* Unified Display for New & Old Data */}
-                <p>
-                  <span className="label">Activity/Title:</span>{" "}
-                  {rec.title || "—"}
-                </p>
+//                 {/* Unified Display for New & Old Data */}
+//                 <p>
+//                   <span className="label">Activity/Title:</span>{" "}
+//                   {rec.title || "—"}
+//                 </p>
 
-                {isTherapy ? (
-                  <>
-                    <p><span className="label">Notes:</span> {rec.sessionNotes || "—"}</p>
-                    {rec.strengths && <p><span className="label">Strengths:</span> {rec.strengths}</p>}
-                    {rec.weaknesses && <p><span className="label">Improvements:</span> {rec.weaknesses}</p>}
-                    {rec.homeActivities && <p><span className="label">Home Plan:</span> {rec.homeActivities}</p>}
-                  </>
-                ) : (
-                   <p>
-                    <span className="label">Description:</span>{" "}
-                    {rec.activities || rec.description || "—"}
-                  </p>
-                )}
+//                 {isTherapy ? (
+//                   <>
+//                     <p><span className="label">Notes:</span> {rec.sessionNotes || "—"}</p>
+//                     {rec.strengths && <p><span className="label">Strengths:</span> {rec.strengths}</p>}
+//                     {rec.weaknesses && <p><span className="label">Improvements:</span> {rec.weaknesses}</p>}
+//                     {rec.homeActivities && <p><span className="label">Home Plan:</span> {rec.homeActivities}</p>}
+//                   </>
+//                 ) : (
+//                    <p>
+//                     <span className="label">Description:</span>{" "}
+//                     {rec.activities || rec.description || "—"}
+//                   </p>
+//                 )}
 
-                <p>
-                  <span className="label">Participating Students:</span>{" "}
-                  {rec.participatingStudentsNames?.join(", ") || "—"}
-                </p>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-};
+//                 <p>
+//                   <span className="label">Participating Students:</span>{" "}
+//                   {rec.participatingStudentsNames?.join(", ") || "—"}
+//                 </p>
+//               </div>
+//             )}
+//           </div>
+//         );
+//       })}
+//     </div>
+//   );
+// };
 
 /* ================================================================
    MAIN COMPONENT

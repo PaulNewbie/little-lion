@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
@@ -167,7 +167,7 @@ const StudentProfile = () => {
   const navigate = useNavigate();
   const passedState = location.state || {};
   const selectedStudentFromOneOnOne = passedState.student || null;
-  const activitiesFromOneOnOne = passedState.activities || [];
+  const activitiesFromOneOnOne = useMemo(() => passedState.activities || [], [passedState.activities]);
   const therapistsFromOneOnOne = passedState.therapists || [];
   const fromOneOnOne = passedState.fromOneOnOne || false;
 

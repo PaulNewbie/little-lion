@@ -11,7 +11,6 @@ const TeacherDashboard = () => {
   const navigate = useNavigate();
   
   // Data State
-  const [students, setStudents] = useState([]);
   const [myClasses, setMyClasses] = useState([]); // Derived from students
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -41,7 +40,6 @@ const TeacherDashboard = () => {
         setLoading(true);
         // Fetch all students assigned to this teacher
         const myStudents = await childService.getChildrenByTeacherId(currentUser.uid);
-        setStudents(myStudents);
 
         // Derive "Classes" from the student data
         // We group students by the 'serviceName' of the groupClasses they are enrolled in with THIS teacher.
