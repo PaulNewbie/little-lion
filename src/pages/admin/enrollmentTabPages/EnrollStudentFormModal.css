@@ -1,12 +1,14 @@
-/* ==========================================================================
-   1. MODAL WRAPPER & BACKDROP
-   ========================================================================== */
+/* =============================================================================
+   ENROLL STUDENT – MULTI-STEP MODAL STYLESHEET
+   Purpose: Shared styles for all enrollment step components
+   ============================================================================= */
+
+/* =============================================================================
+   1. MODAL OVERLAY & CONTAINER
+   ============================================================================= */
 .modalOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -21,20 +23,19 @@
   width: 95%;
   max-width: 1100px;
   max-height: 90vh;
-  padding: 0 !important;
   overflow: hidden;
   background: #ffffff;
   border-radius: 24px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
 }
 
-/* ==========================================================================
-   2. STICKY HEADER & PROGRESS INDICATOR
-   ========================================================================== */
+/* =============================================================================
+   2. HEADER (STICKY) & STEP INDICATOR
+   ============================================================================= */
 .modal-header-sticky {
   flex-shrink: 0;
   padding: 25px 40px;
-  background: white;
+  background: #ffffff;
   border-bottom: 1px solid #f1f5f9;
 }
 
@@ -53,10 +54,10 @@
   letter-spacing: -0.02em;
 }
 
+/* Step progress bar */
 .step-indicator {
   display: flex;
   gap: 8px;
-  margin-top: 10px;
 }
 
 .step-dot {
@@ -64,7 +65,7 @@
   height: 6px;
   background: #e2e8f0;
   border-radius: 10px;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
 }
 
 .step-dot.active {
@@ -72,9 +73,9 @@
   box-shadow: 0 0 8px rgba(74, 144, 226, 0.4);
 }
 
-/* ==========================================================================
-   3. SCROLLABLE FORM CONTENT
-   ========================================================================== */
+/* =============================================================================
+   3. SCROLLABLE CONTENT AREA
+   ============================================================================= */
 .enroll-form-scroll {
   flex: 1;
   padding: 35px 40px;
@@ -83,7 +84,7 @@
 }
 
 .form-section {
-  animation: slideIn 0.3s ease-out;
+  animation: slideIn 0.25s ease-out;
 }
 
 .form-section h3 {
@@ -100,16 +101,15 @@
 
 .form-section h3::before {
   content: "";
-  display: inline-block;
   width: 5px;
   height: 22px;
   background: #4a90e2;
   border-radius: 4px;
 }
 
-/* ==========================================================================
-   4. FORM INPUTS & SHARED FIELD STYLES
-   ========================================================================== */
+/* =============================================================================
+   4. FORM INPUTS (SHARED)
+   ============================================================================= */
 .input-group {
   margin-bottom: 20px;
 }
@@ -117,8 +117,8 @@
 .input-group label {
   display: block;
   margin-bottom: 8px;
-  font-weight: 600;
   font-size: 14px;
+  font-weight: 600;
   color: #64748b;
 }
 
@@ -146,29 +146,29 @@
 .input-group select:focus,
 .input-group textarea:focus {
   outline: none;
-  background-color: #ffffff;
+  background: #ffffff;
   border-color: #4a90e2;
   box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
 }
 
-/* ==========================================================================
-   5. SPECIALIZED GRID LAYOUTS
-   ========================================================================== */
+/* =============================================================================
+   5. GRID & LAYOUT HELPERS
+   ============================================================================= */
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 30px;
 }
 
 .grid-3-col {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 25px;
 }
 
 .service-assign-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 25px;
   margin-top: 20px;
   padding: 30px;
@@ -177,9 +177,9 @@
   border-radius: 20px;
 }
 
-/* ==========================================================================
-   6. DYNAMIC LISTS & REPEATER FIELDS
-   ========================================================================== */
+/* =============================================================================
+   6. DYNAMIC LISTS & REPEATERS
+   ============================================================================= */
 .dynamic-list-container {
   display: flex;
   flex-direction: column;
@@ -194,7 +194,6 @@
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  transition: all 0.2s ease;
 }
 
 .dynamic-input-row:focus-within {
@@ -204,12 +203,11 @@
 }
 
 .row-index {
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
   font-size: 12px;
   font-weight: 800;
   color: #4a90e2;
@@ -220,9 +218,9 @@
 .dynamic-input-row input {
   flex: 1;
   padding: 5px 0;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .add-point-btn {
@@ -235,7 +233,6 @@
   border: 2px dashed #cbd5e1;
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s;
 }
 
 .add-point-btn:hover {
@@ -244,14 +241,58 @@
   border-color: #4a90e2;
 }
 
-/* ==========================================================================
-   7. STICKY FOOTER & ACTION AREA
-   ========================================================================== */
+/* =============================================================================
+   7. DEVELOPMENTAL BACKGROUND BLOCKS
+   ============================================================================= */
+.dev-bg-entry {
+  padding: 20px;
+  margin-bottom: 20px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+}
+
+.dev-bg-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.dev-bg-number {
+  font-size: 12px;
+  font-weight: 800;
+  color: #4a90e2;
+  text-transform: uppercase;
+}
+
+.dev-bg-grid {
+  display: grid;
+  gap: 15px;
+}
+
+.remove-entry-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #e11d48;
+  background: #fff1f2;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.remove-entry-btn:hover {
+  background: #ffe4e6;
+}
+
+/* =============================================================================
+   8. FOOTER & ACTION BUTTONS (STICKY)
+   ============================================================================= */
 .sticky-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-shrink: 0;
   padding: 25px 40px;
   background: #f8fafc;
   border-top: 1px solid #f1f5f9;
@@ -263,60 +304,41 @@
   gap: 15px;
 }
 
-/* ==========================================================================
-   8. BUTTON VARIANTS
-   ========================================================================== */
 button {
   font-family: inherit;
   font-size: 14px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
 }
 
-/* Primary Action */
 .create-btn {
   padding: 12px 28px;
   font-weight: 700;
-  color: white;
+  color: #ffffff;
   background: #4a90e2;
   border: none;
   border-radius: 12px;
-  cursor: pointer;
 }
 
 .create-btn:hover {
   background: #357abd;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
 }
 
-/* Secondary Action */
 .cancel-btn {
   padding: 12px 24px;
   font-weight: 600;
-  color: #64748b;
   background: #ffffff;
   border: 1.5px solid #e2e8f0;
   border-radius: 12px;
-  cursor: pointer;
 }
 
-/* Neutral/Draft Action */
 .save-draft-btn {
   padding: 12px 24px;
   font-weight: 600;
-  color: #475569;
   background: #f1f5f9;
   border: none;
   border-radius: 12px;
-  cursor: pointer;
 }
 
-.save-draft-btn:hover {
-  color: #1e293b;
-  background: #e2e8f0;
-}
-
-/* Danger Action */
 .cancel-btn-alt {
   padding: 12px 24px;
   font-weight: 600;
@@ -324,37 +346,23 @@ button {
   background: #fff1f2;
   border: none;
   border-radius: 12px;
-  cursor: pointer;
 }
 
-.cancel-btn-alt:hover {
-  background: #ffe4e6;
-}
-
-/* Close Icon Button */
 .close-x-btn {
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
   font-size: 20px;
-  color: #94a3b8;
   background: #f1f5f9;
   border: none;
   border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.2s;
 }
 
-.close-x-btn:hover {
-  color: #475569;
-  background: #e2e8f0;
-}
-
-/* ==========================================================================
-   9. ANIMATIONS & MEDIA QUERIES
-   ========================================================================== */
+/* =============================================================================
+   9. ANIMATIONS & RESPONSIVE
+   ============================================================================= */
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -370,56 +378,8 @@ button {
   .multi-step-modal {
     max-width: 900px;
   }
+
   .form-row {
     gap: 20px;
   }
-}
-
-/* Consistent Developmental Background Styling */
-.dev-bg-entry {
-  padding: 20px;
-  margin-bottom: 20px;
-  background: #f8fafc; /* Matches your service-assign-row background */
-  border: 1.5px solid #e2e8f0;
-  border-radius: 16px;
-  position: relative;
-  animation: slideIn 0.3s ease-out;
-}
-
-.dev-bg-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.dev-bg-number {
-  font-size: 12px;
-  font-weight: 800;
-  color: #4a90e2;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-/* Make the Title and Info flow like standard rows */
-.dev-bg-grid {
-  display: grid;
-  grid-template-columns: 1fr; /* Stacked for readability in textareas */
-  gap: 15px;
-}
-
-/* Remove button styling to match your 'cancel-btn-alt' logic but smaller */
-.remove-entry-btn {
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #e11d48;
-  background: #fff1f2;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.remove-entry-btn:hover {
-  background: #ffe4e6;
 }
