@@ -95,18 +95,6 @@ const AdminSidebar = () => {
             👥 PLAY GROUP
           </div>
 
-          {/* RESTRICTED: Add Services */}
-          {isSuperAdmin && (
-            <div
-              className={`menu-item ${
-                isActive("/admin/services") ? "active" : ""
-              }`}
-              onClick={() => navigate("/admin/services")}
-            >
-              ➕ ADD SERVICES
-            </div>
-          )}
-
           {/* RESTRICTED: Enroll Students*/}
           {isSuperAdmin && (
             <div
@@ -129,7 +117,7 @@ const AdminSidebar = () => {
             }`}
             onClick={() => navigate("/admin/enroll-child")}
           >
-            ➕ ADD PARENT
+            ➕ PARENT
           </div>
 
           {/* RESTRICTED: Add Admin (Only for Super Admin) */}
@@ -140,7 +128,7 @@ const AdminSidebar = () => {
               }`}
               onClick={() => navigate("/admin/manage-admins")}
             >
-              ➕ ADD ADMIN
+              ➕ ADMIN
             </div>
           )}
 
@@ -150,7 +138,7 @@ const AdminSidebar = () => {
             }`}
             onClick={() => navigate("/admin/manage-teachers")}
           >
-            ➕ ADD TEACHER
+            ➕ TEACHER
           </div>
           <div
             className={`menu-item ${
@@ -158,7 +146,7 @@ const AdminSidebar = () => {
             }`}
             onClick={() => navigate("/admin/manage-therapists")}
           >
-            ➕ ADD THERAPIST
+            ➕ THERAPIST
           </div>
           <div
             className={`menu-item ${

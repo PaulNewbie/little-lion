@@ -19,7 +19,6 @@ import PlayGroup from "./pages/admin/PlayGroup";
 import EnrollChild from "./pages/admin/EnrollChild";
 import ManageTeachers from "./pages/admin/ManageTeachers";
 import ManageTherapists from "./pages/admin/ManageTherapists";
-import OtherServices from "./pages/admin/OtherServices";
 import EnrollStudent from "./pages/admin/enrollmentTabPages/EnrollStudent";
 import ManageAdmins from "./pages/admin/ManageAdmins";
 import ManageParents from "./pages/admin/ManageParents.jsx";
@@ -121,15 +120,6 @@ const AppRoutes = () => {
         }
       />
 
-      {/* 2. SUPER ADMIN ONLY ROUTES */}
-      <Route
-        path="/admin/services"
-        element={
-          <ProtectedRoute allowedRoles={["super_admin"]}>
-            <OtherServices />
-          </ProtectedRoute>
-        }
-      />
       <Route
         path="/admin/enrollment"
         element={
