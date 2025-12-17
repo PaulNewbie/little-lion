@@ -41,26 +41,9 @@
   font-size: 14px;
 }
 
-<<<<<<< HEAD
-.ooo-search {
-  width: 300px;
-  padding: 12px 20px 12px 40px;
-  border-radius: 8px;
-  background: white;
-  border: 2px solid #e0e0e0;
-  font-size: 15px;
-  transition: all 0.3s ease;
-}
-
-.ooo-search:focus {
-  outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-=======
 .filter-actions {
   display: flex;
   gap: 15px;
->>>>>>> second-merge
 }
 
 .search-wrapper {
@@ -117,20 +100,17 @@
   padding: 40px;
 }
 
-<<<<<<< HEAD
-=======
 .ooo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 25px;
 }
 
->>>>>>> second-merge
 .ooo-card {
   background: white;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border: 1px solid #e6e6e6;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   display: flex;
@@ -140,25 +120,15 @@
 
 .ooo-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
   border-color: #4a90e2;
 }
 
-<<<<<<< HEAD
-.ooo-photo-area {
-  height: 220px;
-  width: 220px;
-  background: linear-gradient(135deg, #eedcc3 0%, #ffffff 100%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-=======
 /* The Image Box - Shortened */
 .ooo-card-image-box {
   width: 100%;
   height: 180px; /* Reduced from 220px */
   background: #f0f0f0;
->>>>>>> second-merge
   position: relative;
   overflow: hidden;
 }
@@ -268,18 +238,19 @@
   .services-split-row {
     grid-template-columns: 1fr;
   }
-  
+
   .ooo-header {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .filter-actions {
     width: 100%;
     flex-direction: column;
   }
-  
-  .search-wrapper, .ooo-filter-select {
+
+  .search-wrapper,
+  .ooo-filter-select {
     width: 100%;
   }
 }
@@ -419,7 +390,9 @@
   transition: all 0.2s ease;
 }
 
-.service-row.clickable { cursor: pointer; }
+.service-row.clickable {
+  cursor: pointer;
+}
 
 .service-row.clickable:hover {
   transform: translateY(-2px);
@@ -441,9 +414,18 @@
   color: #34495e;
 }
 
-.service-icon { font-size: 18px; }
-.teacher-name { font-size: 14px; color: #777; }
-.selected-check { margin-left: 10px; color: #4a90e2; font-weight: bold; }
+.service-icon {
+  font-size: 18px;
+}
+.teacher-name {
+  font-size: 14px;
+  color: #777;
+}
+.selected-check {
+  margin-left: 10px;
+  color: #4a90e2;
+  font-weight: bold;
+}
 
 .calendar-view-container {
   display: grid;
@@ -455,7 +437,10 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
-.calendar-section { border-right: 1px solid #eee; padding-right: 30px; }
+.calendar-section {
+  border-right: 1px solid #eee;
+  padding-right: 30px;
+}
 
 .react-calendar {
   width: 100% !important;
@@ -485,9 +470,13 @@
   border-radius: 8px;
 }
 
-.react-calendar__tile--active .calendar-dot { background-color: white; }
+.react-calendar__tile--active .calendar-dot {
+  background-color: white;
+}
 
-.day-details-section { padding-left: 10px; }
+.day-details-section {
+  padding-left: 10px;
+}
 
 .date-heading {
   font-size: 22px;
@@ -498,7 +487,11 @@
   border-bottom: 1px solid #eee;
 }
 
-.no-activity-msg { color: #999; font-style: italic; padding: 20px 0; }
+.no-activity-msg {
+  color: #999;
+  font-style: italic;
+  padding: 20px 0;
+}
 
 .daily-records-list {
   display: flex;
@@ -516,7 +509,9 @@
   padding: 15px;
 }
 
-.record-header { margin-bottom: 8px; }
+.record-header {
+  margin-bottom: 8px;
+}
 .record-type {
   font-weight: 700;
   color: #4a90e2;
@@ -525,25 +520,28 @@
   letter-spacing: 0.5px;
 }
 
-.record-card p { margin: 5px 0; font-size: 14px; color: #444; }
-.record-card .label { font-weight: 600; color: #222; }
+.record-card p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #444;
+}
+.record-card .label {
+  font-weight: 600;
+  color: #222;
+}
 
 @media (max-width: 1000px) {
-<<<<<<< HEAD
   .profile-3col {
     grid-template-columns: 1fr;
   }
-
   .profile-photo-frame {
     height: 300px;
     width: 300px;
     margin: 0 auto;
   }
-
   .calendar-view-container {
     grid-template-columns: 1fr;
   }
-
   .calendar-section {
     border-right: none;
     border-bottom: 1px solid #eee;
@@ -551,10 +549,3 @@
     padding-bottom: 30px;
   }
 }
-=======
-  .profile-3col { grid-template-columns: 1fr; }
-  .profile-photo-frame { height: 300px; width: 300px; margin: 0 auto; }
-  .calendar-view-container { grid-template-columns: 1fr; }
-  .calendar-section { border-right: none; border-bottom: 1px solid #eee; padding-right: 0; padding-bottom: 30px; }
-}
->>>>>>> second-merge
