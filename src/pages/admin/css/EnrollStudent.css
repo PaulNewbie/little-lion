@@ -11,25 +11,38 @@
   position: fixed;
   bottom: 40px;
   right: 40px;
-  width: 65px;
-  height: 65px;
-  background-color: #4a90e2; /* Matching the profile theme color */
+  height: 55px;
+  padding: 0 30px;
+  background-color: #4a90e2; /* Blue for Enrollment */
   color: white;
   border: none;
-  border-radius: 50%;
-  font-size: 32px;
+  border-radius: 30px;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
-  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
 }
 
+/* Secondary color for Parent Account */
+.secondary-fab {
+  background-color: #34495e; /* Slate for Account Creation */
+  box-shadow: 0 4px 15px rgba(52, 73, 94, 0.3);
+}
+
 .add-fab:hover {
-  transform: scale(1.1);
-  background-color: #357abd;
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  filter: brightness(1.1);
+}
+
+.fab-text {
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 /* Modal Styling */

@@ -133,14 +133,26 @@ export default function EnrollStudent() {
           )}
         </div>
 
-        {/* Floating Action Button */}
-        <button
-          className="add-fab"
-          onClick={() => setShowParentForm(true)}
-          title="Add Parent"
-        >
-          +
-        </button>
+        {/* DYNAMIC FLOATING ACTION BUTTON */}
+        {!selectedParent ? (
+          <button
+            className="add-fab secondary-fab"
+            onClick={() => setShowParentForm(true)}
+            title="Create Parent Account"
+          >
+            <span className="fab-text">+ Parent Account</span>
+          </button>
+        ) : (
+          <button
+            className="add-fab"
+            onClick={() =>
+              console.log("Enroll Student for:", selectedParent.firstName)
+            }
+            title={`Enroll Student to ${selectedParent.lastName} Family`}
+          >
+            <span className="fab-text">+ Enroll Student</span>
+          </button>
+        )}
 
         {/* Modal simplified to match the clean design */}
         {showParentForm && (
