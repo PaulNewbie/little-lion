@@ -101,6 +101,60 @@ export default function EnrollStudentFormModal({ show, onClose, onSave }) {
     setStudentInput((prev) => ({ ...prev, purposeOfAssessment: newList }));
   };
 
+  // Functions for Step 4: Developmental Background
+  const handleAddDevBg = () => {
+    setStudentInput((prev) => ({
+      ...prev,
+      backgroundHistory: {
+        ...prev.backgroundHistory,
+        developmentalBackground: [
+          ...prev.backgroundHistory.developmentalBackground,
+          { devBgTitle: "", devBgInfo: "" },
+        ],
+      },
+    }));
+  };
+
+  const handleRemoveDevBg = (index) => {
+    const newList = [...studentInput.backgroundHistory.developmentalBackground];
+    newList.splice(index, 1);
+    handleNestedChange("backgroundHistory", "developmentalBackground", newList);
+  };
+
+  const handleDevBgChange = (index, field, value) => {
+    const newList = [...studentInput.backgroundHistory.developmentalBackground];
+    newList[index] = { ...newList[index], [field]: value };
+    handleNestedChange("backgroundHistory", "developmentalBackground", newList);
+  };
+
+  //Step 4 Therapies/ Intervention
+  // 1. Add a new intervention entry
+  const handleAddIntervention = () => {
+    const newInts = [
+      ...studentInput.backgroundHistory.interventions,
+      { type: "", frequency: "" },
+    ];
+    handleNestedChange("backgroundHistory", "interventions", newInts);
+  };
+
+  // 2. Remove an intervention entry
+  const handleRemoveIntervention = (index) => {
+    const newInts = studentInput.backgroundHistory.interventions.filter(
+      (_, i) => i !== index
+    );
+    handleNestedChange("backgroundHistory", "interventions", newInts);
+  };
+
+  // Predefined list of services
+  const SERVICE_OPTIONS = [
+    "Behavioral Management",
+    "SPED One-on-One",
+    "Occupational Therapy",
+    "Speech Therapy",
+    "Physical Therapy",
+    "Counseling",
+  ];
+
   return (
     <div className="modalOverlay">
       <div className="modal multi-step-modal">
@@ -309,16 +363,168 @@ export default function EnrollStudentFormModal({ show, onClose, onSave }) {
           )}
 
           {/* Further steps (4-9) follow the same pattern of handleNestedChange... */}
+          {/* STEP 4: BACKGROUND HISTORY */}
           {formStep === 4 && (
             <div className="form-section">
-              <h3>IV. BACKGROUND HISTORY</h3>
+              <h3 className="section-title">IV. BACKGROUND HISTORY</h3>
 
-              {/* Diagnosis - Full Width Highlight */}
-              <div className="input-group" style={{ marginBottom: "25px" }}>
+              {/* 1. Family Background */}
+              <div className="input-group">
+                <label>Family Background</label>
+                <textarea
+                  rows="4"
+                  value={studentInput.backgroundHistory.familyBackground}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "backgroundHistory",
+                      "familyBackground",
+                      e.target.value
+                    )
+                  }
+                  placeholder="Parents, residence, and occupations..."
+                />
+              </div>
+
+              {/* 2. Family Relationships */}
+              <div className="input-group">
+                <label>Family Relationships</label>
+                <textarea
+                  rows="3"
+                  value={studentInput.backgroundHistory.familyRelationships}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "backgroundHistory",
+                      "familyRelationships",
+                      e.target.value
+                    )
+                  }
+                  placeholder="Interactions, communication style, and siblings..."
+                />
+              </div>
+
+              {/* 3. Daily Life & Activities */}
+              <div className="input-group">
+                <label>Daily Life & Activities</label>
+                <textarea
+                  rows="3"
+                  value={studentInput.backgroundHistory.dailyLifeActivities}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "backgroundHistory",
+                      "dailyLifeActivities",
+                      e.target.value
+                    )
+                  }
+                  placeholder="Independence levels and preferred activities..."
+                />
+              </div>
+
+              {/* 4. Medical History */}
+              <div className="input-group">
+                <label>Medical History</label>
+                <textarea
+                  rows="2"
+                  value={studentInput.backgroundHistory.medicalHistory}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "backgroundHistory",
+                      "medicalHistory",
+                      e.target.value
+                    )
+                  }
+                  placeholder="Dermatitis, allergies, asthma, etc..."
+                />
+              </div>
+
+              {/* 5. Developmental Background (Dynamic Mapping) */}
+              <div className="form-section-group">
+                <label>Developmental Background</label>
+
+                {studentInput.backgroundHistory.developmentalBackground.map(
+                  (item, index) => (
+                    <div className="dev-bg-entry" key={index}>
+                      <div className="dev-bg-header">
+                        <span className="dev-bg-number">
+                          Developmental Entry #{index + 1}
+                        </span>
+                        {studentInput.backgroundHistory.developmentalBackground
+                          .length > 1 && (
+                          <button
+                            className="remove-entry-btn"
+                            onClick={() => handleRemoveDevBg(index)}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="dev-bg-grid">
+                        <div className="input-group">
+                          <label>Title</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Maternal History"
+                            value={item.devBgTitle}
+                            onChange={(e) =>
+                              handleDevBgChange(
+                                index,
+                                "devBgTitle",
+                                e.target.value
+                              )
+                            }
+                          />
+                        </div>
+
+                        <div
+                          className="input-group"
+                          style={{ marginBottom: 0 }}
+                        >
+                          <label>Details</label>
+                          <textarea
+                            rows="3"
+                            placeholder="Enter specific details..."
+                            value={item.devBgInfo}
+                            onChange={(e) =>
+                              handleDevBgChange(
+                                index,
+                                "devBgInfo",
+                                e.target.value
+                              )
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )
+                )}
+
+                <button className="add-point-btn" onClick={handleAddDevBg}>
+                  + Add Milestone/History Entry
+                </button>
+              </div>
+
+              {/* 6. School History */}
+              <div className="input-group">
+                <label>School History</label>
+                <textarea
+                  rows="2"
+                  value={studentInput.backgroundHistory.schoolHistory}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "backgroundHistory",
+                      "schoolHistory",
+                      e.target.value
+                    )
+                  }
+                  placeholder="Current and previous school placements..."
+                />
+              </div>
+
+              {/* 7. Clinical Diagnosis */}
+              <div className="input-group highlight-box">
                 <label>Clinical Diagnosis</label>
-                <input
-                  type="text"
-                  placeholder="Enter diagnosis (e.g., Autism Spectrum Disorder...)"
+                <textarea
+                  rows="3"
                   value={studentInput.backgroundHistory.clinicalDiagnosis}
                   onChange={(e) =>
                     handleNestedChange(
@@ -327,131 +533,126 @@ export default function EnrollStudentFormModal({ show, onClose, onSave }) {
                       e.target.value
                     )
                   }
+                  placeholder="Diagnosis and support requirements..."
                 />
               </div>
 
-              {/* Row 1: Family & Relationships */}
-              <div className="form-row">
-                <div className="input-group">
-                  <label>Family Background</label>
-                  <textarea
-                    placeholder="Lives with parents..."
-                    value={studentInput.backgroundHistory.familyBackground}
-                    onChange={(e) =>
-                      handleNestedChange(
-                        "backgroundHistory",
-                        "familyBackground",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-                <div className="input-group">
-                  <label>Family Relationships</label>
-                  <textarea
-                    placeholder="Interactions with family/siblings..."
-                    value={studentInput.backgroundHistory.familyRelationships}
-                    onChange={(e) =>
-                      handleNestedChange(
-                        "backgroundHistory",
-                        "familyRelationships",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
+              {/* 8. Interventions */}
+              <div className="form-section-group">
+                <label>Therapies / Interventions</label>
+
+                {/* Header Row for Desktop/Tablets */}
+                {studentInput.backgroundHistory.interventions.length > 0 && (
+                  <div
+                    className="intervention-grid-header"
+                    style={{
+                      display: "flex",
+                      gap: "15px",
+                      marginBottom: "8px",
+                      paddingRight: "45px",
+                    }}
+                  >
+                    <label
+                      style={{ flex: 2, fontSize: "0.85rem", color: "#64748b" }}
+                    >
+                      Type of Service
+                    </label>
+                    <label
+                      style={{ flex: 1, fontSize: "0.85rem", color: "#64748b" }}
+                    >
+                      Frequency
+                    </label>
+                  </div>
+                )}
+
+                {studentInput.backgroundHistory.interventions.map(
+                  (int, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "15px",
+                        marginBottom: "10px",
+                      }}
+                    >
+                      {/* Type Dropdown */}
+                      <div style={{ flex: 2 }}>
+                        <select
+                          style={{ width: "100%" }}
+                          value={int.type}
+                          onChange={(e) => {
+                            const newInts = [
+                              ...studentInput.backgroundHistory.interventions,
+                            ];
+                            newInts[index].type = e.target.value;
+                            handleNestedChange(
+                              "backgroundHistory",
+                              "interventions",
+                              newInts
+                            );
+                          }}
+                        >
+                          <option value="" disabled>
+                            Select Service
+                          </option>
+                          {SERVICE_OPTIONS.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Frequency Input */}
+                      <div style={{ flex: 1 }}>
+                        <input
+                          type="text"
+                          style={{ width: "100%" }}
+                          placeholder="e.g. 2x weekly"
+                          value={int.frequency}
+                          onChange={(e) => {
+                            const newInts = [
+                              ...studentInput.backgroundHistory.interventions,
+                            ];
+                            newInts[index].frequency = e.target.value;
+                            handleNestedChange(
+                              "backgroundHistory",
+                              "interventions",
+                              newInts
+                            );
+                          }}
+                        />
+                      </div>
+
+                      {/* Delete Button */}
+                      <button
+                        type="button"
+                        className="remove-entry-btn"
+                        style={{ padding: "8px", minWidth: "35px" }}
+                        onClick={() => handleRemoveIntervention(index)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )
+                )}
+
+                <button
+                  className="add-point-btn"
+                  type="button"
+                  style={{ marginTop: "10px" }}
+                  onClick={handleAddIntervention}
+                >
+                  + Add Service
+                </button>
               </div>
 
-              {/* Row 2: Daily Life & Medical */}
-              <div className="form-row">
-                <div className="input-group">
-                  <label>Daily Life & Activities</label>
-                  <textarea
-                    placeholder="Feeding, bathing, interests..."
-                    value={studentInput.backgroundHistory.dailyLifeActivities}
-                    onChange={(e) =>
-                      handleNestedChange(
-                        "backgroundHistory",
-                        "dailyLifeActivities",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-                <div className="input-group">
-                  <label>Medical History</label>
-                  <textarea
-                    placeholder="Allergies, asthma, etc..."
-                    value={studentInput.backgroundHistory.medicalHistory}
-                    onChange={(e) =>
-                      handleNestedChange(
-                        "backgroundHistory",
-                        "medicalHistory",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-              </div>
-
-              {/* Developmental Milestones (Dynamic Style) */}
-              <div className="input-group">
-                <label>
-                  Developmental Background & Milestones (e.g. BDI-3 Results)
-                </label>
-                <textarea
-                  placeholder="Maternal history, milestones, etc..."
-                  value={
-                    studentInput.backgroundHistory.developmentalBackgroundInfo
-                  } // Added to state
-                  onChange={(e) =>
-                    handleNestedChange(
-                      "backgroundHistory",
-                      "developmentalBackgroundInfo",
-                      e.target.value
-                    )
-                  }
-                />
-              </div>
-
-              {/* Row 3: School & Social */}
-              <div className="form-row">
-                <div className="input-group">
-                  <label>School History</label>
-                  <textarea
-                    placeholder="Current and previous schools..."
-                    value={studentInput.backgroundHistory.schoolHistory}
-                    onChange={(e) =>
-                      handleNestedChange(
-                        "backgroundHistory",
-                        "schoolHistory",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-                <div className="input-group">
-                  <label>Social Skills</label>
-                  <textarea
-                    placeholder="Peer interaction, behavior regulation..."
-                    value={studentInput.backgroundHistory.socialSkills}
-                    onChange={(e) =>
-                      handleNestedChange(
-                        "backgroundHistory",
-                        "socialSkills",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-              </div>
-
-              {/* Row 4: Strengths (Full Width) */}
+              {/* 9. Strengths & Interests */}
               <div className="input-group">
                 <label>Strengths & Interests</label>
-                <input
-                  type="text"
-                  placeholder="Alphabet, counting, swimming, etc."
+                <textarea
+                  rows="3"
                   value={studentInput.backgroundHistory.strengthsAndInterests}
                   onChange={(e) =>
                     handleNestedChange(
@@ -460,55 +661,25 @@ export default function EnrollStudentFormModal({ show, onClose, onSave }) {
                       e.target.value
                     )
                   }
+                  placeholder="Academic skills and hobbies..."
                 />
               </div>
 
-              {/* Therapies / Interventions Section */}
-              <div className="service-assign-row" style={{ marginTop: "20px" }}>
-                <div style={{ gridColumn: "span 2" }}>
-                  <label
-                    style={{
-                      fontWeight: "700",
-                      color: "#1e293b",
-                      marginBottom: "10px",
-                      display: "block",
-                    }}
-                  >
-                    Current Therapies / Interventions
-                  </label>
-                </div>
-                {studentInput.backgroundHistory.interventions.map(
-                  (int, index) => (
-                    <div
-                      className="form-row"
-                      key={index}
-                      style={{ gridColumn: "span 2", marginBottom: "0" }}
-                    >
-                      <input
-                        type="text"
-                        value={int.type}
-                        readOnly
-                        style={{ background: "#f1f5f9" }}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Frequency (e.g. 5x weekly)"
-                        value={int.frequency}
-                        onChange={(e) => {
-                          const newInts = [
-                            ...studentInput.backgroundHistory.interventions,
-                          ];
-                          newInts[index].frequency = e.target.value;
-                          handleNestedChange(
-                            "backgroundHistory",
-                            "interventions",
-                            newInts
-                          );
-                        }}
-                      />
-                    </div>
-                  )
-                )}
+              {/* 10. Social Skills */}
+              <div className="input-group">
+                <label>Social Skills</label>
+                <textarea
+                  rows="2"
+                  value={studentInput.backgroundHistory.socialSkills}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "backgroundHistory",
+                      "socialSkills",
+                      e.target.value
+                    )
+                  }
+                  placeholder="Peer interaction and behavior regulation..."
+                />
               </div>
             </div>
           )}

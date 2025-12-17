@@ -374,3 +374,52 @@ button {
     gap: 20px;
   }
 }
+
+/* Consistent Developmental Background Styling */
+.dev-bg-entry {
+  padding: 20px;
+  margin-bottom: 20px;
+  background: #f8fafc; /* Matches your service-assign-row background */
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  position: relative;
+  animation: slideIn 0.3s ease-out;
+}
+
+.dev-bg-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.dev-bg-number {
+  font-size: 12px;
+  font-weight: 800;
+  color: #4a90e2;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Make the Title and Info flow like standard rows */
+.dev-bg-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* Stacked for readability in textareas */
+  gap: 15px;
+}
+
+/* Remove button styling to match your 'cancel-btn-alt' logic but smaller */
+.remove-entry-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #e11d48;
+  background: #fff1f2;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.remove-entry-btn:hover {
+  background: #ffe4e6;
+}
