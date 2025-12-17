@@ -1,11 +1,8 @@
-// THIS FILE IS WRITTEN  BY FIDEL FOR ENROLLMENT PAGE, YES IT IS ANOTHER FILE, and DIFFERENT syntax from enrollchil.jsx, but with same intent of enrolling a student.
+import React, { useState } from "react";
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
 import "./css/EnrollStudent.css";
-import { useState } from "react";
 
-// --------------------------
-// Parent Data
-// --------------------------
+// Static Data
 const parents = [
   { id: 1, firstName: "Juan", lastName: "Dela Cruz" },
   { id: 2, firstName: "Maria", lastName: "Santos" },
@@ -15,9 +12,6 @@ const parents = [
   { id: 6, firstName: "Clara", lastName: "Torres" },
 ];
 
-// --------------------------
-// Student Data
-// --------------------------
 const students = [
   { id: 1, parentId: 1, firstName: "Mark", lastName: "Dela Cruz" },
   { id: 2, parentId: 2, firstName: "Liza", lastName: "Santos" },
@@ -27,154 +21,186 @@ const students = [
 
 export default function EnrollStudent() {
   const [selectedParent, setSelectedParent] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [showParentForm, setShowParentForm] = useState(false);
-  const [parentForm, setParentForm] = useState({
-    email: "",
-    password: "",
-  });
+  const [parentForm, setParentForm] = useState({ email: "", password: "" });
+
   const handleBack = () => setSelectedParent(null);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setParentForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  const filteredParents = parents.filter((p) =>
+    `${p.firstName} ${p.lastName}`
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
 
   const handleCreateParent = (e) => {
     e.preventDefault();
     console.log("New Parent Account:", parentForm);
-
-    // reset & close
     setParentForm({ email: "", password: "" });
     setShowParentForm(false);
   };
 
-  //just to know how many child has
-  const selectedParentChildren = selectedParent
-    ? students.filter((s) => s.parentId === selectedParent.id)
-    : [];
-
   return (
-    <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        maxHeight: "100vh",
-        overflow: "hidden",
-      }}
-    >
+    <div className="ooo-container">
       <AdminSidebar />
 
-      <div className="student-enrollment-page">
-        <div className="header">
-          <h1>STUDENT ENROLLMENT</h1>
-
+      <div className="ooo-main">
+        {/* HEADER - COPIED FROM STUDENT PROFILE */}
+        <div className="ooo-header">
+          <div className="header-title">
+            <h1>STUDENT ENROLLMENT</h1>
+            <p className="header-subtitle">
+              Manage parent accounts and student registration
+            </p>
+          </div>
           <div className="search-wrapper">
             <input
               type="text"
-              className="search"
-              placeholder="SEARCH NAME..."
+              className="ooo-search"
+              placeholder="SEARCH PARENT NAME..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
             <span className="search-icon">🔍</span>
           </div>
         </div>
 
-        <main>
-          <h2>
-            {" "}
-            {!selectedParent
-              ? "Parents Accounts"
-              : selectedParentChildren > 1
-              ? "Parent's Children"
-              : "Parent's Child"}
-          </h2>
+        <div className="ooo-content-area">
           {!selectedParent ? (
-            <div className="parentsGrid">
-              {parents.map((parent) => (
-                <div
-                  key={parent.id}
-                  className="parentCard"
-                  onClick={() => setSelectedParent(parent)}
-                  style={{ cursor: "pointer" }}
-                >
-                  <div className="photoArea">
-                    <span className="photoEmoji">👤</span>
-                    {parent.photoUrl && (
-                      <img src={parent.photoUrl} alt={parent.firstName} />
-                    )}
+            <>
+              <h2 className="services-header">Parent Accounts</h2>
+              <div className="ooo-grid">
+                {filteredParents.map((parent) => (
+                  <div
+                    key={parent.id}
+                    className="ooo-card"
+                    onClick={() => setSelectedParent(parent)}
+                  >
+                    <div className="ooo-photo-area">
+                      {parent.photoUrl ? (
+                        <img
+                          src={parent.photoUrl}
+                          alt=""
+                          className="ooo-photo"
+                        />
+                      ) : (
+                        <span style={{ fontSize: "40px" }}>👤</span>
+                      )}
+                    </div>
+                    <div className="ooo-card-info">
+                      <p className="ooo-name">
+                        {parent.lastName}, {parent.firstName}
+                      </p>
+                    </div>
                   </div>
-                  <div className="parentCardInfoCon">
-                    <p className="parentName">
-                      {parent.lastName}, {parent.firstName}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           ) : (
-            <div>
-              <button onClick={handleBack} style={{ marginBottom: "20px" }}>
-                ← Back to Parents
-              </button>
-              <ul>
-                {students
-                  .filter((s) => s.parentId === selectedParent.id)
-                  .map((student) => (
-                    <li key={student.id}>
-                      {student.lastName}, {student.firstName}
-                    </li>
-                  ))}
-              </ul>
-              {students.filter((s) => s.parentId === selectedParent.id)
-                .length === 0 && <p>No students found for this parent.</p>}
+            <div className="profile-wrapper">
+              <div className="profile-top">
+                <div className="left-group">
+                  <span className="back-arrow" onClick={handleBack}>
+                    ←
+                  </span>
+                  <h2>{selectedParent.firstName}'s Family</h2>
+                </div>
+              </div>
+
+              <div className="profile-info">
+                <h2 className="services-header">Registered Children</h2>
+                <div className="services-list">
+                  {students
+                    .filter((s) => s.parentId === selectedParent.id)
+                    .map((student) => (
+                      <div key={student.id} className="service-row">
+                        <div className="service-left">
+                          <span className="service-icon">👶</span>
+                          {student.lastName}, {student.firstName}
+                        </div>
+                        <div className="teacher-name">Enrolled</div>
+                      </div>
+                    ))}
+                  {students.filter((s) => s.parentId === selectedParent.id)
+                    .length === 0 && (
+                    <p className="no-activity-msg">
+                      No students found for this parent.
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
           )}
-        </main>
+        </div>
 
+        {/* Floating Action Button */}
         <button
-          className="addParentAccBtn"
-          onClick={() => {
-            setShowParentForm(true);
-          }}
+          className="add-fab"
+          onClick={() => setShowParentForm(true)}
+          title="Add Parent"
         >
           +
         </button>
 
-        {/* Create Parent Modal */}
+        {/* Modal simplified to match the clean design */}
         {showParentForm && (
           <div className="modalOverlay">
             <div className="modal">
-              <h2>Create Parent Account</h2>
-
+              <h2 className="services-header">Create Parent Account</h2>
               <form onSubmit={handleCreateParent}>
-                <label>Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={parentForm.email}
-                  onChange={handleInputChange}
-                  required
-                />
-
-                <label>Password</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={parentForm.password}
-                  onChange={handleInputChange}
-                  required
-                />
-
+                <div style={{ marginBottom: "15px" }}>
+                  <label
+                    style={{
+                      display: "block",
+                      marginBottom: "5px",
+                      fontWeight: "600",
+                    }}
+                  >
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    className="ooo-search"
+                    style={{ paddingLeft: "15px" }}
+                    value={parentForm.email}
+                    onChange={(e) =>
+                      setParentForm({ ...parentForm, email: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div style={{ marginBottom: "20px" }}>
+                  <label
+                    style={{
+                      display: "block",
+                      marginBottom: "5px",
+                      fontWeight: "600",
+                    }}
+                  >
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    className="ooo-search"
+                    style={{ paddingLeft: "15px" }}
+                    value={parentForm.password}
+                    onChange={(e) =>
+                      setParentForm({ ...parentForm, password: e.target.value })
+                    }
+                    required
+                  />
+                </div>
                 <div className="modalActions">
                   <button
                     type="button"
                     onClick={() => setShowParentForm(false)}
+                    className="cancel-btn"
                   >
                     Cancel
                   </button>
-                  <button type="submit">Create</button>
+                  <button type="submit" className="create-btn">
+                    Create Account
+                  </button>
                 </div>
               </form>
             </div>
