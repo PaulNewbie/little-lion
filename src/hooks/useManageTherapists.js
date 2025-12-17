@@ -26,9 +26,9 @@ const useManageTherapists = () => {
     try {
       setLoading(true);
       const [tData, sData] = await Promise.all([
-        // FIXED: Changed getAllTherapists() to getUsersByRole('therapist')
         userService.getUsersByRole('therapist'),
-        servicesService.getActiveServices()
+        // CHANGED: Fetch ONLY 'Therapy' type services for Therapists
+        servicesService.getServicesByType('Therapy')
       ]);
       setTherapists(tData);
       setServices(sData);
@@ -72,9 +72,6 @@ const useManageTherapists = () => {
   const deleteTherapist = async (id) => {
     if (!window.confirm('Are you sure?')) return;
     try {
-      // FIXED: Ensure deleteUser is used if deleteTherapist doesn't exist, 
-      // or ensure deleteTherapist maps to deleteUser in userService.
-      // Based on your userService, you have deleteUser but not deleteTherapist.
       await userService.deleteUser(id); 
       fetchData();
     } catch (err) {

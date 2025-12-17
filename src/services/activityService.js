@@ -4,12 +4,13 @@ import {
   where, 
   getDocs, 
 //  orderBy,
-  addDoc 
+  addDoc,
+  serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
-class ActivityService {
 
+class ActivityService {
 // 1. Create a 1:1 Therapy Session (Phase 3)
   async createTherapySession(sessionData) {
     try {
@@ -106,6 +107,22 @@ class ActivityService {
   // }
 
 }
+
+export const saveSessionActivity = async (sessionData) => {
+  try {
+    // We store all sessions in a main 'therapy_sessions' collection
+    // The 'type' field (activity vs observation) helps us filter them later
+    const docRef = await addDoc(collection(db, 'therapy_sessions'), {
+      ...sessionData,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error("Error adding session document: ", error);
+    throw error;
+  }
+};
 
 const activityServiceInstance = new ActivityService();
 export default activityServiceInstance;

@@ -27,9 +27,9 @@ const useManageTeachers = () => {
     try {
       setLoading(true);
       const [tData, sData] = await Promise.all([
-        // FIXED: Changed getAllTeachers() to getUsersByRole('teacher')
         userService.getUsersByRole('teacher'),
-        servicesService.getActiveServices()
+        // CHANGED: Fetch ONLY 'Class' type services for Teachers
+        servicesService.getServicesByType('Class') 
       ]);
       setTeachers(tData);
       setServices(sData);
@@ -59,12 +59,11 @@ const useManageTeachers = () => {
     setError(null);
     try {
       await authService.createTeacherAccount(newTeacher.email, newTeacher.password, newTeacher);
-      // Reset form
       setNewTeacher({ 
         firstName: '', lastName: '', email: '', phone: '', 
         password: 'Welcome123!', specializations: [] 
       });
-      fetchData(); // Refresh list
+      fetchData(); 
       alert('Teacher created successfully');
     } catch (err) {
       setError(err.message);
@@ -74,7 +73,6 @@ const useManageTeachers = () => {
   const deleteTeacher = async (id) => {
     if (!window.confirm('Are you sure?')) return;
     try {
-      // FIXED: Changed deleteTeacher(id) to deleteUser(id)
       await userService.deleteUser(id);
       fetchData();
     } catch (err) {

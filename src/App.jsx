@@ -120,7 +120,14 @@ const AppRoutes = () => {
       {/* THERAPIST ROUTES */}
       <Route path="/therapist/dashboard" element={<ProtectedRoute allowedRoles={['therapist']}><TherapistDashboard /></ProtectedRoute>} />
       <Route path="/therapist/session/:studentId" element={<ProtectedRoute allowedRoles={['therapist']}><TherapySessionForm /></ProtectedRoute>} />
-
+      <Route 
+        path="/therapist/session-form" 
+        element={
+          <ProtectedRoute role="therapist">
+            <TherapySessionForm />
+          </ProtectedRoute>
+        } 
+      />
       {/* PARENT ROUTES */}
       <Route path="/parent/dashboard" element={<ProtectedRoute allowedRoles={['parent']}><ParentDashboard /></ProtectedRoute>} />
       <Route path="/parent/child/:childId" element={<ProtectedRoute allowedRoles={['parent']}><ChildActivities /></ProtectedRoute>} />

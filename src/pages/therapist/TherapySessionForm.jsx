@@ -1,191 +1,315 @@
-import React, { useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import activityService from '../../services/activityService';
-import cloudinaryService from '../../services/cloudinaryService';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { saveSessionActivity } from '../../services/activityService'; // You'll create this next
+import Card from '../../components/common/Card';
+import Loading from '../../components/common/Loading';
 
 const TherapySessionForm = () => {
-  const { studentId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
-  
-  // Get student data passed from dashboard to avoid re-fetching
-  const student = location.state?.student || { firstName: 'Student', lastName: '' };
+  const { child, service } = location.state || {};
 
-  const [formData, setFormData] = useState({
-    title: '',
-    progressNotes: '',
-    goals: '',
-    visibleToParents: true
+  // --- State Management ---
+  const [loading, setLoading] = useState(false);
+  
+  // Common Fields
+  const [notes, setNotes] = useState('');
+  const [suggestions, setSuggestions] = useState('');
+  const [reaction, setReaction] = useState([]); // Array to store multiple reactions
+  
+  // Activity Based Fields (OT, Speech)
+  const [activities, setActivities] = useState([]);
+  const [currentActivity, setCurrentActivity] = useState('');
+
+  // Observation Based Fields (SPED, Language Enhancement)
+  const [observationData, setObservationData] = useState({
+    circleTime: '',
+    workTime: '',
+    playTime: '',
+    snackTime: ''
   });
-  
-  const [photoFiles, setPhotoFiles] = useState([]);
-  const [previews, setPreviews] = useState([]);
-  const [uploading, setUploading] = useState(false);
 
-  const handleChange = (e) => {
-    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
-    setFormData({ ...formData, [e.target.name]: value });
+  // --- Logic to Determine Form Type ---
+  const isActivityBased = ['Occupational Therapy', 'Speech Therapy', 'Occupational Service', 'Speech Service'].includes(service?.name);
+  const isObservationBased = ['Sped Educational Therapy', 'Language and Communication Enhancement'].includes(service?.name);
+
+  // --- Handlers ---
+
+  const handleAddActivity = () => {
+    if (!currentActivity.trim()) return;
+    setActivities([...activities, { name: currentActivity, status: 'Completed', performance: '' }]);
+    setCurrentActivity('');
   };
 
-  const handlePhotoSelect = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length > 0) {
-      setPhotoFiles(prev => [...prev, ...files]);
-      const newPreviews = files.map(f => URL.createObjectURL(f));
-      setPreviews(prev => [...prev, ...newPreviews]);
+  const handleRemoveActivity = (index) => {
+    const newActivities = activities.filter((_, i) => i !== index);
+    setActivities(newActivities);
+  };
+
+  const toggleReaction = (mood) => {
+    if (reaction.includes(mood)) {
+      setReaction(reaction.filter(r => r !== mood));
+    } else {
+      setReaction([...reaction, mood]);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setUploading(true);
+    setLoading(true);
+
+    const sessionData = {
+      childId: child.id,
+      childName: `${child.firstName} ${child.lastName}`,
+      serviceId: service.id,
+      serviceName: service.name,
+      date: new Date().toISOString(),
+      // Conditional Data
+      type: isActivityBased ? 'activity' : 'observation',
+      data: isActivityBased ? { activities } : { observation: observationData },
+      // Common Data
+      studentReaction: reaction,
+      sessionNotes: notes,
+      recommendations: suggestions,
+    };
 
     try {
-      // 1. Find the service name this therapist provides for this child
-      const myService = student.therapyServices?.find(s => s.therapistId === currentUser.uid);
-      const serviceName = myService ? myService.serviceName : 'Therapy Session';
-
-      // 2. Upload Photos
-      const photoUrls = [];
-      if (photoFiles.length > 0) {
-        const uploadPromises = photoFiles.map(file => 
-          cloudinaryService.uploadImage(file, `little-lions/therapy/${studentId}/${new Date().toISOString().split('T')[0]}`)
-        );
-        const results = await Promise.all(uploadPromises);
-        photoUrls.push(...results);
-      }
-
-      // 3. Prepare Data
-      const sessionData = {
-        studentId,
-        studentName: `${student.firstName} ${student.lastName}`,
-        
-        authorId: currentUser.uid,
-        authorName: `${currentUser.firstName} ${currentUser.lastName}`,
-        authorRole: 'therapist',
-        
-        serviceType: serviceName,
-        title: formData.title,
-        description: formData.progressNotes, // Mapping to generic description field
-        progressNotes: formData.progressNotes, // Specific field
-        goalsAddressed: formData.goals.split('\n').filter(g => g.trim() !== ''),
-        
-        date: new Date().toISOString().split('T')[0],
-        photoUrls,
-        visibleToParents: formData.visibleToParents
-      };
-
-      // 4. Save
-      await activityService.createTherapySession(sessionData);
-      
-      alert('Session Saved!');
+      await saveSessionActivity(sessionData);
+      alert('Session saved successfully!');
       navigate('/therapist/dashboard');
-
-    } catch (err) {
-      console.error(err);
-      alert('Failed to save session: ' + err.message);
+    } catch (error) {
+      console.error("Error saving session", error);
+      alert('Failed to save session.');
     } finally {
-      setUploading(false);
+      setLoading(false);
     }
   };
 
+  // --- UI Components ---
+
+  const ReactionButton = ({ label, emoji }) => (
+    <button
+      type="button"
+      onClick={() => toggleReaction(label)}
+      className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all border-2 ${
+        reaction.includes(label) 
+          ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-md transform scale-105' 
+          : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50'
+      }`}
+    >
+      <span className="text-2xl mb-1">{emoji}</span>
+      <span className="text-xs font-semibold">{label}</span>
+    </button>
+  );
+
+  if (!child || !service) return <div className="p-8 text-center text-gray-500">No session details provided.</div>;
+  if (loading) return <Loading />;
+
   return (
-    <div style={styles.container}>
-      <button onClick={() => navigate(-1)} style={styles.backBtn}>← Back</button>
-      
-      <h1 style={{ color: '#2c3e50' }}>📝 New Session Note</h1>
-      <h3 style={{ color: '#666', marginTop: '-10px', marginBottom: '30px' }}>
-        For: {student.firstName} {student.lastName}
-      </h3>
-
-      <form onSubmit={handleSubmit} style={styles.form}>
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
         
-        {/* Title */}
-        <div style={styles.group}>
-          <label style={styles.label}>Session Title</label>
-          <input 
-            name="title" 
-            placeholder="e.g. Articulation Progress - Week 6"
-            value={formData.title} 
-            onChange={handleChange} 
-            required 
-            style={styles.input}
-          />
-        </div>
-
-        {/* Notes */}
-        <div style={styles.group}>
-          <label style={styles.label}>Progress Notes & Observations</label>
-          <textarea 
-            name="progressNotes" 
-            placeholder="Detailed notes on what was worked on and how the student responded..."
-            value={formData.progressNotes} 
-            onChange={handleChange} 
-            required 
-            style={{...styles.input, height: '150px'}}
-          />
-        </div>
-
-        {/* Goals */}
-        <div style={styles.group}>
-          <label style={styles.label}>Goals Addressed (One per line)</label>
-          <textarea 
-            name="goals" 
-            placeholder="- Improve R sound articulation&#10;- Increase vocabulary"
-            value={formData.goals} 
-            onChange={handleChange} 
-            style={{...styles.input, height: '100px'}}
-          />
-        </div>
-
-        {/* Photos */}
-        <div style={styles.group}>
-          <label style={styles.label}>Progress Photos (Optional)</label>
-          <input type="file" multiple accept="image/*" onChange={handlePhotoSelect} style={{ marginBottom: '10px' }} />
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            {previews.map((src, i) => (
-              <img key={i} src={src} alt="Preview" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
-            ))}
+        {/* Header Section */}
+        <div className="mb-8">
+          <button onClick={() => navigate(-1)} className="text-gray-500 hover:text-gray-700 mb-4 flex items-center gap-2">
+             ← Back to Dashboard
+          </button>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800">New Session Log</h1>
+              <p className="text-gray-600 mt-1">
+                Student: <span className="font-semibold text-indigo-600">{child.firstName} {child.lastName}</span> • Service: <span className="font-semibold text-indigo-600">{service.name}</span>
+              </p>
+            </div>
+            <div className="mt-4 md:mt-0 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200 text-gray-600">
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </div>
           </div>
         </div>
 
-        {/* Visibility */}
-        <div style={styles.group}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-            <input 
-              type="checkbox" 
-              name="visibleToParents" 
-              checked={formData.visibleToParents} 
-              onChange={handleChange}
-              style={{ width: '20px', height: '20px' }}
-            />
-            <span>Visible to Parents? (Uncheck for private notes)</span>
-          </label>
-        </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
 
-        <button 
-          type="submit" 
-          disabled={uploading}
-          style={{ ...styles.submitBtn, opacity: uploading ? 0.7 : 1 }}
-        >
-          {uploading ? 'Saving Session...' : 'Save Session Note'}
-        </button>
+          {/* --- CONDITION 1: Activity Based Form (OT / Speech) --- */}
+          {isActivityBased && (
+            <Card className="p-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                📋 Activity List
+              </h2>
+              <p className="text-sm text-gray-500 mb-6">Log the specific activities performed during this session.</p>
 
-      </form>
+              {/* Add Activity Input */}
+              <div className="flex gap-2 mb-6">
+                <input
+                  type="text"
+                  value={currentActivity}
+                  onChange={(e) => setCurrentActivity(e.target.value)}
+                  placeholder="Enter activity (e.g., 'Pincer Grasp Exercises', 'Vocabulary Drills')"
+                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddActivity())}
+                />
+                <button
+                  type="button"
+                  onClick={handleAddActivity}
+                  className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+                >
+                  Add
+                </button>
+              </div>
+
+              {/* Activities List */}
+              <div className="space-y-3">
+                {activities.length === 0 && <p className="text-center text-gray-400 italic py-4">No activities added yet.</p>}
+                
+                {activities.map((act, index) => (
+                  <div key={index} className="flex items-center justify-between bg-gray-50 p-4 rounded-lg border border-gray-100 group hover:border-indigo-200 transition-colors">
+                    <div className="flex-1">
+                      <span className="font-medium text-gray-700">{index + 1}. {act.name}</span>
+                    </div>
+                    
+                    {/* Optional: Performance Selector */}
+                    <select 
+                      className="mx-4 text-sm bg-white border border-gray-200 rounded p-1"
+                      value={act.performance}
+                      onChange={(e) => {
+                        const newActs = [...activities];
+                        newActs[index].performance = e.target.value;
+                        setActivities(newActs);
+                      }}
+                    >
+                      <option value="">Select Performance...</option>
+                      <option value="Independent">Independent</option>
+                      <option value="With Assistance">With Assistance</option>
+                      <option value="Refused">Refused</option>
+                    </select>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveActivity(index)}
+                      className="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* --- CONDITION 2: Observation Based Form (SPED / Language) --- */}
+          {isObservationBased && (
+            <Card className="p-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                🏫 Today In... (Observation)
+              </h2>
+              <p className="text-sm text-gray-500 mb-6">Record observations for specific daily routines.</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Circle Time</label>
+                  <textarea
+                    rows="3"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Participation, attention span..."
+                    value={observationData.circleTime}
+                    onChange={(e) => setObservationData({...observationData, circleTime: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Work Time / Table Top</label>
+                  <textarea
+                    rows="3"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Task completion, focus..."
+                    value={observationData.workTime}
+                    onChange={(e) => setObservationData({...observationData, workTime: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Play Time / Social</label>
+                  <textarea
+                    rows="3"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Interaction with peers..."
+                    value={observationData.playTime}
+                    onChange={(e) => setObservationData({...observationData, playTime: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Snack / Lunch</label>
+                  <textarea
+                    rows="3"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Independence, eating habits..."
+                    value={observationData.snackTime}
+                    onChange={(e) => setObservationData({...observationData, snackTime: e.target.value})}
+                  />
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* --- COMMON SECTIONS (Reaction, Notes, Suggestions) --- */}
+          <Card className="p-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-6">Student Feedback & Notes</h2>
+            
+            {/* Reaction Grid */}
+            <div className="mb-8">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Student's Reaction (Select all that apply)</label>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <ReactionButton label="Happy" emoji="😊" />
+                <ReactionButton label="Focused" emoji="🧐" />
+                <ReactionButton label="Active" emoji="⚡" />
+                <ReactionButton label="Distracted" emoji="😶‍🌫️" />
+                <ReactionButton label="Upset" emoji="😢" />
+                <ReactionButton label="Tired" emoji="🥱" />
+                <ReactionButton label="Social" emoji="👋" />
+                <ReactionButton label="Quiet" emoji="🤐" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Notes */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">Session Notes</label>
+                <textarea
+                  required
+                  rows="5"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Detailed observations about the session..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
+              </div>
+
+              {/* Suggestions */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">Suggestions for Home/Classroom</label>
+                <textarea
+                  required
+                  rows="5"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Homework, drills, or environmental adjustments..."
+                  value={suggestions}
+                  onChange={(e) => setSuggestions(e.target.value)}
+                />
+              </div>
+            </div>
+          </Card>
+
+          <div className="flex justify-end pt-4">
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-green-600 text-white text-lg font-semibold px-8 py-3 rounded-lg hover:bg-green-700 transition-colors shadow-lg disabled:bg-gray-400"
+            >
+              {loading ? 'Saving Session...' : 'Save & Complete Session'}
+            </button>
+          </div>
+
+        </form>
+      </div>
     </div>
   );
-};
-
-const styles = {
-  container: { padding: '30px', maxWidth: '800px', margin: '0 auto', backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' },
-  backBtn: { background: 'none', border: 'none', color: '#666', cursor: 'pointer', marginBottom: '20px', fontSize: '16px' },
-  form: { display: 'flex', flexDirection: 'column', gap: '20px' },
-  group: { display: 'flex', flexDirection: 'column', gap: '8px' },
-  label: { fontWeight: '600', color: '#444' },
-  input: { padding: '12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '15px' },
-  submitBtn: { padding: '15px', backgroundColor: '#4a90e2', color: 'white', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' }
 };
 
 export default TherapySessionForm;
