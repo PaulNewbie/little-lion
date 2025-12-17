@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { saveSessionActivity } from '../../services/activityService'; // You'll create this next
-import Card from '../../components/common/Card';
+import { saveSessionActivity } from '../../services/activityService';
 import Loading from '../../components/common/Loading';
 
 const TherapySessionForm = () => {
@@ -9,41 +8,23 @@ const TherapySessionForm = () => {
   const navigate = useNavigate();
   const { child, service } = location.state || {};
 
-  // --- State Management ---
   const [loading, setLoading] = useState(false);
-  
-  // Common Fields
   const [notes, setNotes] = useState('');
   const [suggestions, setSuggestions] = useState('');
-  const [reaction, setReaction] = useState([]); // Array to store multiple reactions
-  
-  // Activity Based Fields (OT, Speech)
+  const [reaction, setReaction] = useState([]);
   const [activities, setActivities] = useState([]);
   const [currentActivity, setCurrentActivity] = useState('');
 
-  // Observation Based Fields (SPED, Language Enhancement)
-  const [observationData, setObservationData] = useState({
-    circleTime: '',
-    workTime: '',
-    playTime: '',
-    snackTime: ''
-  });
-
-  // --- Logic to Determine Form Type ---
   const isActivityBased = ['Occupational Therapy', 'Speech Therapy', 'Occupational Service', 'Speech Service'].includes(service?.name);
-  const isObservationBased = ['Sped Educational Therapy', 'Language and Communication Enhancement'].includes(service?.name);
-
-  // --- Handlers ---
 
   const handleAddActivity = () => {
     if (!currentActivity.trim()) return;
-    setActivities([...activities, { name: currentActivity, status: 'Completed', performance: '' }]);
+    setActivities([...activities, { name: currentActivity, performance: '' }]);
     setCurrentActivity('');
   };
 
   const handleRemoveActivity = (index) => {
-    const newActivities = activities.filter((_, i) => i !== index);
-    setActivities(newActivities);
+    setActivities(activities.filter((_, i) => i !== index));
   };
 
   const toggleReaction = (mood) => {
@@ -64,10 +45,8 @@ const TherapySessionForm = () => {
       serviceId: service.id,
       serviceName: service.name,
       date: new Date().toISOString(),
-      // Conditional Data
       type: isActivityBased ? 'activity' : 'observation',
-      data: isActivityBased ? { activities } : { observation: observationData },
-      // Common Data
+      data: isActivityBased ? { activities } : {},
       studentReaction: reaction,
       sessionNotes: notes,
       recommendations: suggestions,
@@ -85,226 +64,394 @@ const TherapySessionForm = () => {
     }
   };
 
-  // --- UI Components ---
+  const ReactionButton = ({ label, emoji }) => {
+    const isSelected = reaction.includes(label);
+    return (
+      <button
+        type="button"
+        onClick={() => toggleReaction(label)}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1rem',
+          borderRadius: '0.75rem',
+          border: '2px solid',
+          borderColor: isSelected ? '#6d28d9' : '#e2e8f0',
+          backgroundColor: isSelected ? '#f5f3ff' : 'white',
+          cursor: 'pointer',
+          transition: 'all 0.2s',
+          minWidth: '90px'
+        }}
+        onMouseOver={e => {
+          if (!isSelected) e.currentTarget.style.borderColor = '#cbd5e1';
+        }}
+        onMouseOut={e => {
+          if (!isSelected) e.currentTarget.style.borderColor = '#e2e8f0';
+        }}
+      >
+        <span style={{ fontSize: '2rem', marginBottom: '0.25rem' }}>{emoji}</span>
+        <span style={{ 
+          fontSize: '0.75rem', 
+          fontWeight: '600',
+          color: isSelected ? '#6d28d9' : '#64748b'
+        }}>{label}</span>
+      </button>
+    );
+  };
 
-  const ReactionButton = ({ label, emoji }) => (
-    <button
-      type="button"
-      onClick={() => toggleReaction(label)}
-      className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all border-2 ${
-        reaction.includes(label) 
-          ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-md transform scale-105' 
-          : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50'
-      }`}
-    >
-      <span className="text-2xl mb-1">{emoji}</span>
-      <span className="text-xs font-semibold">{label}</span>
-    </button>
-  );
+  if (!child || !service) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
+        No session details provided.
+      </div>
+    );
+  }
 
-  if (!child || !service) return <div className="p-8 text-center text-gray-500">No session details provided.</div>;
   if (loading) return <Loading />;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
+    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      
+      {/* Header */}
+      <div style={{
+        backgroundColor: 'white',
+        borderBottom: '1px solid #e2e8f0',
+        padding: '1.5rem 2rem'
+      }}>
+        <button 
+          onClick={() => navigate(-1)}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#64748b',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            marginBottom: '1rem',
+            padding: '0.5rem 0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}
+          onMouseOver={e => e.target.style.color = '#3b82f6'}
+          onMouseOut={e => e.target.style.color = '#64748b'}
+        >
+          ← Back
+        </button>
         
-        {/* Header Section */}
-        <div className="mb-8">
-          <button onClick={() => navigate(-1)} className="text-gray-500 hover:text-gray-700 mb-4 flex items-center gap-2">
-             ← Back to Dashboard
-          </button>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800">New Session Log</h1>
-              <p className="text-gray-600 mt-1">
-                Student: <span className="font-semibold text-indigo-600">{child.firstName} {child.lastName}</span> • Service: <span className="font-semibold text-indigo-600">{service.name}</span>
-              </p>
-            </div>
-            <div className="mt-4 md:mt-0 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200 text-gray-600">
-              {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-            </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <h1 style={{ fontSize: '1.875rem', fontWeight: '700', color: '#0f172a', margin: '0 0 0.5rem 0' }}>
+              New Session
+            </h1>
+            <p style={{ color: '#64748b', margin: 0 }}>
+              <span style={{ fontWeight: '600', color: '#3b82f6' }}>{child.firstName} {child.lastName}</span>
+              {' • '}
+              <span style={{ fontWeight: '600', color: '#6d28d9' }}>{service.name}</span>
+            </p>
+          </div>
+          <div style={{
+            backgroundColor: '#f8fafc',
+            padding: '0.75rem 1rem',
+            borderRadius: '0.5rem',
+            fontSize: '0.875rem',
+            color: '#64748b',
+            fontWeight: '500'
+          }}>
+            {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
           </div>
         </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Form */}
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
-          {/* --- CONDITION 1: Activity Based Form (OT / Speech) --- */}
+          {/* Activity List (Conditional) */}
           {isActivityBased && (
-            <Card className="p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                📋 Activity List
-              </h2>
-              <p className="text-sm text-gray-500 mb-6">Log the specific activities performed during this session.</p>
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '1rem',
+              padding: '1.5rem',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+            }}>
+              <div style={{ marginBottom: '1rem' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#0f172a', margin: '0 0 0.5rem 0' }}>
+                  📋 Activities
+                </h2>
+                <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
+                  What did you work on today?
+                </p>
+              </div>
 
-              {/* Add Activity Input */}
-              <div className="flex gap-2 mb-6">
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
                 <input
                   type="text"
                   value={currentActivity}
                   onChange={(e) => setCurrentActivity(e.target.value)}
-                  placeholder="Enter activity (e.g., 'Pincer Grasp Exercises', 'Vocabulary Drills')"
-                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  placeholder="e.g., Vocabulary drills, Pincer grasp exercises"
+                  style={{
+                    flex: 1,
+                    padding: '0.875rem 1rem',
+                    border: '2px solid #e2e8f0',
+                    borderRadius: '0.75rem',
+                    fontSize: '0.9375rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s'
+                  }}
+                  onFocus={e => e.target.style.borderColor = '#6d28d9'}
+                  onBlur={e => e.target.style.borderColor = '#e2e8f0'}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddActivity())}
                 />
                 <button
                   type="button"
                   onClick={handleAddActivity}
-                  className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+                  style={{
+                    padding: '0.875rem 1.5rem',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '0.75rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    fontSize: '0.9375rem',
+                    transition: 'transform 0.2s'
+                  }}
+                  onMouseOver={e => e.target.style.transform = 'translateY(-2px)'}
+                  onMouseOut={e => e.target.style.transform = 'translateY(0)'}
                 >
                   Add
                 </button>
               </div>
 
-              {/* Activities List */}
-              <div className="space-y-3">
-                {activities.length === 0 && <p className="text-center text-gray-400 italic py-4">No activities added yet.</p>}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {activities.length === 0 && (
+                  <p style={{ textAlign: 'center', color: '#94a3b8', fontStyle: 'italic', padding: '1.5rem 0', fontSize: '0.875rem' }}>
+                    No activities added yet
+                  </p>
+                )}
                 
                 {activities.map((act, index) => (
-                  <div key={index} className="flex items-center justify-between bg-gray-50 p-4 rounded-lg border border-gray-100 group hover:border-indigo-200 transition-colors">
-                    <div className="flex-1">
-                      <span className="font-medium text-gray-700">{index + 1}. {act.name}</span>
-                    </div>
-                    
-                    {/* Optional: Performance Selector */}
+                  <div 
+                    key={index}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '1rem',
+                      padding: '1rem',
+                      backgroundColor: '#f8fafc',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #f1f5f9'
+                    }}
+                  >
+                    <span style={{ fontWeight: '600', color: '#64748b', fontSize: '0.875rem' }}>
+                      {index + 1}.
+                    </span>
+                    <span style={{ flex: 1, color: '#1e293b', fontSize: '0.9375rem' }}>
+                      {act.name}
+                    </span>
                     <select 
-                      className="mx-4 text-sm bg-white border border-gray-200 rounded p-1"
                       value={act.performance}
                       onChange={(e) => {
                         const newActs = [...activities];
                         newActs[index].performance = e.target.value;
                         setActivities(newActs);
                       }}
+                      style={{
+                        padding: '0.5rem',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '0.5rem',
+                        fontSize: '0.8125rem',
+                        backgroundColor: 'white',
+                        color: '#475569',
+                        cursor: 'pointer',
+                        outline: 'none'
+                      }}
                     >
-                      <option value="">Select Performance...</option>
+                      <option value="">Performance...</option>
                       <option value="Independent">Independent</option>
                       <option value="With Assistance">With Assistance</option>
                       <option value="Refused">Refused</option>
                     </select>
-
                     <button
                       type="button"
                       onClick={() => handleRemoveActivity(index)}
-                      className="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#ef4444',
+                        cursor: 'pointer',
+                        fontSize: '1.25rem',
+                        padding: '0.25rem',
+                        transition: 'color 0.2s'
+                      }}
+                      onMouseOver={e => e.target.style.color = '#dc2626'}
+                      onMouseOut={e => e.target.style.color = '#ef4444'}
                     >
                       ✕
                     </button>
                   </div>
                 ))}
               </div>
-            </Card>
+            </div>
           )}
 
-          {/* --- CONDITION 2: Observation Based Form (SPED / Language) --- */}
-          {isObservationBased && (
-            <Card className="p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                🏫 Today In... (Observation)
-              </h2>
-              <p className="text-sm text-gray-500 mb-6">Record observations for specific daily routines.</p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Circle Time</label>
-                  <textarea
-                    rows="3"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                    placeholder="Participation, attention span..."
-                    value={observationData.circleTime}
-                    onChange={(e) => setObservationData({...observationData, circleTime: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Work Time / Table Top</label>
-                  <textarea
-                    rows="3"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                    placeholder="Task completion, focus..."
-                    value={observationData.workTime}
-                    onChange={(e) => setObservationData({...observationData, workTime: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Play Time / Social</label>
-                  <textarea
-                    rows="3"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                    placeholder="Interaction with peers..."
-                    value={observationData.playTime}
-                    onChange={(e) => setObservationData({...observationData, playTime: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Snack / Lunch</label>
-                  <textarea
-                    rows="3"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                    placeholder="Independence, eating habits..."
-                    value={observationData.snackTime}
-                    onChange={(e) => setObservationData({...observationData, snackTime: e.target.value})}
-                  />
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* --- COMMON SECTIONS (Reaction, Notes, Suggestions) --- */}
-          <Card className="p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-6">Student Feedback & Notes</h2>
+          {/* Student Reaction */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '1rem',
+            padding: '1.5rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+          }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#0f172a', margin: '0 0 0.5rem 0' }}>
+              😊 Student's Mood
+            </h2>
+            <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
+              Select all that apply
+            </p>
             
-            {/* Reaction Grid */}
-            <div className="mb-8">
-              <label className="block text-sm font-medium text-gray-700 mb-3">Student's Reaction (Select all that apply)</label>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                <ReactionButton label="Happy" emoji="😊" />
-                <ReactionButton label="Focused" emoji="🧐" />
-                <ReactionButton label="Active" emoji="⚡" />
-                <ReactionButton label="Distracted" emoji="😶‍🌫️" />
-                <ReactionButton label="Upset" emoji="😢" />
-                <ReactionButton label="Tired" emoji="🥱" />
-                <ReactionButton label="Social" emoji="👋" />
-                <ReactionButton label="Quiet" emoji="🤐" />
-              </div>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))',
+              gap: '0.75rem'
+            }}>
+              <ReactionButton label="Happy" emoji="😊" />
+              <ReactionButton label="Focused" emoji="🧐" />
+              <ReactionButton label="Active" emoji="⚡" />
+              <ReactionButton label="Tired" emoji="🥱" />
+              <ReactionButton label="Upset" emoji="😢" />
+              <ReactionButton label="Social" emoji="👋" />
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Notes */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Session Notes</label>
-                <textarea
-                  required
-                  rows="5"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Detailed observations about the session..."
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                />
-              </div>
-
-              {/* Suggestions */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Suggestions for Home/Classroom</label>
-                <textarea
-                  required
-                  rows="5"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Homework, drills, or environmental adjustments..."
-                  value={suggestions}
-                  onChange={(e) => setSuggestions(e.target.value)}
-                />
-              </div>
-            </div>
-          </Card>
-
-          <div className="flex justify-end pt-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-green-600 text-white text-lg font-semibold px-8 py-3 rounded-lg hover:bg-green-700 transition-colors shadow-lg disabled:bg-gray-400"
-            >
-              {loading ? 'Saving Session...' : 'Save & Complete Session'}
-            </button>
           </div>
+
+          {/* Session Notes */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '1rem',
+            padding: '1.5rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+          }}>
+            <label style={{
+              display: 'block',
+              fontSize: '1.25rem',
+              fontWeight: '700',
+              color: '#0f172a',
+              marginBottom: '0.5rem'
+            }}>
+              📝 Session Notes
+            </label>
+            <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
+              Detailed observations about today's session
+            </p>
+            <textarea
+              required
+              rows="6"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="What happened during the session? Progress, challenges, observations..."
+              style={{
+                width: '100%',
+                padding: '1rem',
+                border: '2px solid #e2e8f0',
+                borderRadius: '0.75rem',
+                fontSize: '0.9375rem',
+                lineHeight: '1.6',
+                outline: 'none',
+                resize: 'vertical',
+                fontFamily: 'inherit',
+                transition: 'border-color 0.2s',
+                boxSizing: 'border-box'
+              }}
+              onFocus={e => e.target.style.borderColor = '#6d28d9'}
+              onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+            />
+          </div>
+
+          {/* Suggestions */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '1rem',
+            padding: '1.5rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+          }}>
+            <label style={{
+              display: 'block',
+              fontSize: '1.25rem',
+              fontWeight: '700',
+              color: '#0f172a',
+              marginBottom: '0.5rem'
+            }}>
+              💡 Recommendations
+            </label>
+            <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
+              Homework, activities, or follow-up suggestions
+            </p>
+            <textarea
+              required
+              rows="4"
+              value={suggestions}
+              onChange={(e) => setSuggestions(e.target.value)}
+              placeholder="What can parents or teachers work on at home or in class?"
+              style={{
+                width: '100%',
+                padding: '1rem',
+                border: '2px solid #e2e8f0',
+                borderRadius: '0.75rem',
+                fontSize: '0.9375rem',
+                lineHeight: '1.6',
+                outline: 'none',
+                resize: 'vertical',
+                fontFamily: 'inherit',
+                transition: 'border-color 0.2s',
+                boxSizing: 'border-box'
+              }}
+              onFocus={e => e.target.style.borderColor = '#6d28d9'}
+              onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+            />
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%',
+              padding: '1.25rem',
+              background: loading ? '#94a3b8' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.75rem',
+              fontSize: '1.125rem',
+              fontWeight: '700',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              boxShadow: loading ? 'none' : '0 4px 6px rgba(16, 185, 129, 0.25)',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.75rem'
+            }}
+            onMouseOver={e => {
+              if (!loading) {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 8px 12px rgba(16, 185, 129, 0.35)';
+              }
+            }}
+            onMouseOut={e => {
+              if (!loading) {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 6px rgba(16, 185, 129, 0.25)';
+              }
+            }}
+          >
+            {loading ? (
+              <>⏳ Saving Session...</>
+            ) : (
+              <>✓ Complete Session</>
+            )}
+          </button>
 
         </form>
       </div>

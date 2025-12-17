@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import childService from '../../services/childService'; 
+import childService from '../../services/childService';
 import Loading from '../../components/common/Loading';
-import ErrorMessage from '../../components/common/ErrorMessage';
 
 const TherapistDashboard = () => {
   const { currentUser, logout } = useAuth();
@@ -14,11 +13,9 @@ const TherapistDashboard = () => {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // --- 1. Fetch Logic (Unchanged) ---
   useEffect(() => {
     const fetchMyStudents = async () => {
       if (!currentUser?.uid) return;
-
       try {
         setLoading(true);
         const myStudents = await childService.getChildrenByTherapistId(currentUser.uid);
@@ -30,11 +27,15 @@ const TherapistDashboard = () => {
         setLoading(false);
       }
     };
-
     fetchMyStudents();
   }, [currentUser]);
 
-  // --- 2. Helper Logic ---
+  const filteredStudents = useMemo(() => {
+    return students.filter(student => 
+      `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [students, searchTerm]);
+
   const handleLogout = async () => {
     await logout();
     navigate('/login');
@@ -46,12 +47,10 @@ const TherapistDashboard = () => {
 
   const handleStartSession = (student) => {
     const serviceAssignment = getServiceAssignment(student);
-
     if (!serviceAssignment) {
       alert("Error: You are not assigned to a specific service for this student.");
       return;
     }
-
     navigate('/therapist/session-form', { 
       state: { 
         child: student, 
@@ -63,16 +62,6 @@ const TherapistDashboard = () => {
     });
   };
 
-  // --- 3. New UI Logic ---
-  
-  // Filter students based on search
-  const filteredStudents = useMemo(() => {
-    return students.filter(student => 
-      `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [students, searchTerm]);
-
-  // Dynamic Greeting
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good Morning';
@@ -83,163 +72,362 @@ const TherapistDashboard = () => {
   if (loading) return <Loading />;
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-800">
+    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       
-      {/* Top Navigation Bar */}
-      <nav className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🦁</span>
-              <span className="font-bold text-xl tracking-tight text-indigo-900">Little Lion</span>
-              <span className="bg-indigo-100 text-indigo-700 text-xs px-2 py-0.5 rounded-full font-semibold ml-2">Therapist Portal</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <button 
-                onClick={() => navigate('/staff/inquiries')}
-                className="flex items-center gap-2 text-gray-500 hover:text-indigo-600 transition-colors"
-              >
-                <span>📩</span>
-                <span className="hidden sm:inline font-medium">Inbox</span>
-              </button>
-              <div className="h-6 w-px bg-gray-200"></div>
-              <button 
-                onClick={handleLogout} 
-                className="text-red-500 hover:text-red-700 font-medium text-sm transition-colors"
-              >
-                Sign Out
-              </button>
-            </div>
-          </div>
+      {/* Top Navigation */}
+      <div style={{ 
+        backgroundColor: 'white', 
+        borderBottom: '1px solid #e2e8f0',
+        padding: '1rem 2rem',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        position: 'sticky',
+        top: 0,
+        zIndex: 10
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <span style={{ fontSize: '1.75rem' }}>🦁</span>
+          <span style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1e293b' }}>Little Lion</span>
         </div>
-      </nav>
+        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+          <button 
+            onClick={() => navigate('/staff/inquiries')}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: '#64748b',
+              cursor: 'pointer',
+              fontSize: '1.5rem',
+              padding: '0.5rem',
+              transition: 'color 0.2s'
+            }}
+            onMouseOver={e => e.target.style.color = '#3b82f6'}
+            onMouseOut={e => e.target.style.color = '#64748b'}
+          >
+            📬
+          </button>
+          <button 
+            onClick={handleLogout}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: '#ef4444',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              transition: 'background 0.2s'
+            }}
+            onMouseOver={e => e.target.style.backgroundColor = '#fee2e2'}
+            onMouseOut={e => e.target.style.backgroundColor = 'transparent'}
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem' }}>
         
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-1">
-              {getGreeting()}, {currentUser?.firstName}! 👋
-            </h1>
-            <p className="text-gray-500">
-              You are logged in as a <span className="font-semibold text-indigo-600">{currentUser?.specializations?.join(', ') || 'Therapist'}</span>.
-            </p>
-          </div>
-          
-          {/* Stats Cards */}
-          <div className="flex gap-4">
-            <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3 pr-6">
-              <div className="p-2 bg-indigo-50 rounded-lg text-xl">📂</div>
-              <div>
-                <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Caseload</p>
-                <p className="text-xl font-bold text-gray-900">{students.length}</p>
-              </div>
-            </div>
-            {/* You could add more stats here later, like "Sessions Today" */}
-          </div>
+        {/* Welcome Section */}
+        <div style={{ marginBottom: '2.5rem' }}>
+          <h1 style={{ 
+            fontSize: '2.25rem', 
+            fontWeight: '700', 
+            color: '#0f172a',
+            margin: '0 0 0.5rem 0',
+            lineHeight: '1.2'
+          }}>
+            {getGreeting()}, {currentUser?.firstName}! 👋
+          </h1>
+          <p style={{ color: '#64748b', margin: 0, fontSize: '1rem' }}>
+            Ready to make a difference today
+          </p>
         </div>
 
-        <ErrorMessage message={error} />
+        {error && (
+          <div style={{
+            backgroundColor: '#fee2e2',
+            color: '#991b1b',
+            padding: '1rem',
+            borderRadius: '0.5rem',
+            marginBottom: '1.5rem'
+          }}>
+            {error}
+          </div>
+        )}
 
-        {/* Search & Filter Bar */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <h2 className="text-lg font-bold text-gray-700 flex items-center gap-2 w-full sm:w-auto">
-            My Students <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">{filteredStudents.length}</span>
-          </h2>
-          <div className="relative w-full sm:w-72">
-            <input 
-              type="text" 
-              placeholder="Search student name..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-            />
-            <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
+        {/* Stats + Search Bar Row */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '1.5rem',
+          marginBottom: '2rem'
+        }}>
+          
+          {/* Caseload Card */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '1rem',
+            padding: '1.5rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <div>
+              <div style={{ 
+                fontSize: '0.75rem', 
+                fontWeight: '600', 
+                color: '#64748b', 
+                textTransform: 'uppercase', 
+                letterSpacing: '0.05em',
+                marginBottom: '0.5rem'
+              }}>
+                My Caseload
+              </div>
+              <div style={{ fontSize: '3rem', fontWeight: '700', color: '#0f172a', lineHeight: '1' }}>
+                {students.length}
+              </div>
+            </div>
+            <div style={{ 
+              fontSize: '3rem',
+              opacity: 0.2
+            }}>
+              👨‍⚕️
+            </div>
+          </div>
+
+          {/* Search Bar */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '1rem',
+            padding: '1.5rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            display: 'flex',
+            alignItems: 'center'
+          }}>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <span style={{
+                position: 'absolute',
+                left: '1rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: '1.25rem'
+              }}>🔍</span>
+              <input 
+                type="text" 
+                placeholder="Search students..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  width: '100%',
+                  paddingLeft: '3rem',
+                  paddingRight: '1rem',
+                  paddingTop: '0.75rem',
+                  paddingBottom: '0.75rem',
+                  backgroundColor: '#f8fafc',
+                  border: '2px solid transparent',
+                  borderRadius: '0.75rem',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'all 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={e => {
+                  e.target.style.borderColor = '#3b82f6';
+                  e.target.style.backgroundColor = 'white';
+                }}
+                onBlur={e => {
+                  e.target.style.borderColor = 'transparent';
+                  e.target.style.backgroundColor = '#f8fafc';
+                }}
+              />
+            </div>
           </div>
         </div>
 
         {/* Students Grid */}
         {filteredStudents.length === 0 ? (
-          <div className="text-center py-24 bg-white rounded-2xl border-2 border-dashed border-gray-200">
-            <div className="text-6xl mb-4">🦁</div>
-            <h3 className="text-xl font-bold text-gray-900">No students found</h3>
-            <p className="text-gray-500 mt-2">
+          <div style={{
+            textAlign: 'center',
+            padding: '4rem 2rem',
+            backgroundColor: 'white',
+            borderRadius: '1rem',
+            border: '2px dashed #e2e8f0'
+          }}>
+            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🦁</div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1e293b', margin: '0 0 0.5rem 0' }}>
+              No students found
+            </h3>
+            <p style={{ color: '#64748b', margin: 0 }}>
               {searchTerm ? `No matches for "${searchTerm}"` : "You haven't been assigned any students yet."}
             </p>
             {searchTerm && (
               <button 
-                onClick={() => setSearchTerm('')} 
-                className="mt-4 text-indigo-600 font-medium hover:underline"
+                onClick={() => setSearchTerm('')}
+                style={{
+                  marginTop: '1rem',
+                  color: '#3b82f6',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  textDecoration: 'underline'
+                }}
               >
                 Clear Search
               </button>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
+            gap: '1.5rem' 
+          }}>
             {filteredStudents.map(student => {
               const myService = getServiceAssignment(student);
               
               return (
-                <div key={student.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col">
-                  
-                  {/* Card Header with Color Accent */}
-                  <div className="h-2 bg-indigo-500 w-full"></div>
-                  
-                  <div className="p-6 flex-1">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-full bg-indigo-50 flex items-center justify-center text-2xl border border-indigo-100 overflow-hidden">
-                          {student.photoUrl ? (
-                            <img src={student.photoUrl} alt={student.firstName} className="w-full h-full object-cover" />
-                          ) : (
-                            <span>👤</span>
-                          )}
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-lg text-gray-900 leading-tight">
-                            {student.firstName} {student.lastName}
-                          </h3>
-                          <span className="text-xs text-gray-500 block mt-1">
-                            DOB: {student.dateOfBirth}
-                          </span>
-                        </div>
+                <div 
+                  key={student.id} 
+                  style={{
+                    backgroundColor: 'white',
+                    borderRadius: '1rem',
+                    overflow: 'hidden',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                    transition: 'all 0.2s',
+                    border: '1px solid #f1f5f9'
+                  }}
+                  onMouseOver={e => {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.1)';
+                  }}
+                  onMouseOut={e => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                  }}
+                >
+                  {/* Header */}
+                  <div style={{ padding: '1.5rem', borderBottom: '1px solid #f1f5f9' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                      <div style={{
+                        width: '60px',
+                        height: '60px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1.75rem',
+                        overflow: 'hidden',
+                        flexShrink: 0
+                      }}>
+                        {student.photoUrl ? (
+                          <img src={student.photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : '👤'}
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <h3 style={{ 
+                          fontSize: '1.125rem', 
+                          fontWeight: '700', 
+                          color: '#0f172a',
+                          margin: '0 0 0.25rem 0',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {student.firstName} {student.lastName}
+                        </h3>
+                        <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0 }}>
+                          DOB: {student.dateOfBirth}
+                        </p>
                       </div>
                     </div>
-
-                    {/* Badge */}
+                    
                     {myService && (
-                      <div className="mb-4">
-                         <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-700 text-sm font-semibold rounded-full border border-indigo-100">
-                           🩺 {myService.serviceName}
-                         </span>
+                      <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.375rem 0.75rem',
+                        backgroundColor: '#ede9fe',
+                        color: '#6d28d9',
+                        borderRadius: '1rem',
+                        fontSize: '0.8125rem',
+                        fontWeight: '600'
+                      }}>
+                        <span>🩺</span>
+                        {myService.serviceName}
                       </div>
                     )}
-
-                    {/* Medical Info Snippet */}
-                    <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-600 mb-2">
-                      <span className="font-semibold text-gray-700 block text-xs uppercase tracking-wide mb-1">Medical Notes</span>
-                      <p className="line-clamp-2">
-                        {student.medicalInfo || <span className="text-gray-400 italic">No notes available.</span>}
-                      </p>
-                    </div>
                   </div>
 
-                  {/* Card Footer / Actions */}
-                  <div className="p-4 bg-gray-50 border-t border-gray-100 grid grid-cols-2 gap-3">
-                    <button 
-                      onClick={() => alert('View History Feature Coming Soon!')}
-                      className="px-4 py-2 text-gray-600 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 hover:text-gray-900 transition-colors"
-                    >
-                      📜 History
-                    </button>
+                  {/* Body */}
+                  <div style={{ padding: '1.5rem' }}>
+                    <div style={{
+                      backgroundColor: '#f8fafc',
+                      borderRadius: '0.5rem',
+                      padding: '1rem',
+                      marginBottom: '1rem'
+                    }}>
+                      <div style={{ 
+                        fontSize: '0.6875rem', 
+                        fontWeight: '600', 
+                        color: '#64748b',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        marginBottom: '0.5rem'
+                      }}>
+                        Medical Notes
+                      </div>
+                      <p style={{ 
+                        fontSize: '0.875rem', 
+                        color: '#475569', 
+                        margin: 0,
+                        lineHeight: '1.5',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
+                      }}>
+                        {student.medicalInfo || <span style={{ fontStyle: 'italic', color: '#94a3b8' }}>No notes available.</span>}
+                      </p>
+                    </div>
+
                     <button 
                       onClick={() => handleStartSession(student)}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold shadow-md hover:bg-indigo-700 hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                      style={{
+                        width: '100%',
+                        padding: '0.875rem',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '0.75rem',
+                        fontSize: '0.9375rem',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 6px rgba(102, 126, 234, 0.25)',
+                        transition: 'all 0.2s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem'
+                      }}
+                      onMouseOver={e => {
+                        e.target.style.transform = 'translateY(-2px)';
+                        e.target.style.boxShadow = '0 8px 12px rgba(102, 126, 234, 0.35)';
+                      }}
+                      onMouseOut={e => {
+                        e.target.style.transform = 'translateY(0)';
+                        e.target.style.boxShadow = '0 4px 6px rgba(102, 126, 234, 0.25)';
+                      }}
                     >
-                      <span>📝</span> Session
+                      <span>📝</span>
+                      Start Session
                     </button>
                   </div>
                 </div>
@@ -247,7 +435,7 @@ const TherapistDashboard = () => {
             })}
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 };
