@@ -34,13 +34,13 @@ export default function EnrollStudentFormModal({ show, onClose, onSave }) {
       socialSkills: "",
     },
     behaviorDuringAssessment: "",
-    assessmentTools: {
-      cognitive: "",
-      language: "",
-      socioEmotional: "",
-      adaptiveBehavior: "",
-      motorDevelopment: "",
-    },
+    assessmentTools: [
+      {
+        tool: "",
+        details: "",
+      },
+    ],
+
     assessmentResults: {
       cognitive: "",
       communication: "",
@@ -69,10 +69,13 @@ export default function EnrollStudentFormModal({ show, onClose, onSave }) {
   const handleNestedChange = (category, field, value) => {
     setStudentInput((prev) => ({
       ...prev,
-      [category]: {
-        ...prev[category],
-        [field]: value,
-      },
+      [category]:
+        field === null
+          ? value
+          : {
+              ...prev[category],
+              [field]: value,
+            },
     }));
   };
 
@@ -149,6 +152,39 @@ export default function EnrollStudentFormModal({ show, onClose, onSave }) {
     "Physical Therapy",
     "Counseling",
   ];
+
+  // STEP 6: Assessment Tools & Measures
+  const handleAddAssessmentTool = () => {
+    const newTools = [
+      ...studentInput.assessmentTools,
+      { tool: "", details: "" },
+    ];
+    handleNestedChange("assessmentTools", null, newTools);
+  };
+
+  const handleRemoveAssessmentTool = (index) => {
+    const newTools = studentInput.assessmentTools.filter((_, i) => i !== index);
+    handleNestedChange("assessmentTools", null, newTools);
+  };
+
+  const handleAssessmentToolChange = (index, field, value) => {
+    const newTools = [...studentInput.assessmentTools];
+    newTools[index] = { ...newTools[index], [field]: value };
+    handleNestedChange("assessmentTools", null, newTools);
+  };
+
+  // const handleNestedChange = (category, field, value) => {
+  //   setStudentInput((prev) => ({
+  //     ...prev,
+  //     [category]:
+  //       field === null
+  //         ? value
+  //         : {
+  //             ...prev[category],
+  //             [field]: value,
+  //           },
+  //   }));
+  // };
 
   return (
     <div className="modalOverlay">
@@ -676,6 +712,90 @@ export default function EnrollStudentFormModal({ show, onClose, onSave }) {
                   placeholder="Peer interaction and behavior regulation..."
                 />
               </div>
+            </div>
+          )}
+
+          {/* STEP 5: BEHAVIOR DURING ASSESSMENT */}
+          {formStep === 5 && (
+            <div className="form-section">
+              <h3>V. BEHAVIOR DURING ASSESSMENT</h3>
+              <div className="input-group">
+                <textarea
+                  rows="8"
+                  value={studentInput.behaviorDuringAssessment}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "behaviorDuringAssessment",
+                      e.target.value
+                    )
+                  }
+                  placeholder="Describe the student's behavior during assessment..."
+                />
+              </div>
+            </div>
+          )}
+
+          {/* STEP 6: ASSESSMENT TOOLS AND MEASURES */}
+          {formStep === 6 && (
+            <div className="form-section">
+              <h3>VI. ASSESSMENT TOOLS AND MEASURES</h3>
+
+              {studentInput.assessmentTools.length > 0 && (
+                <div className="assessment-tools-header">
+                  <label>Tool / Measure</label>
+                  <label>Details</label>
+                </div>
+              )}
+
+              {studentInput.assessmentTools.map((item, index) => (
+                <div className="assessment-tool-row" key={index}>
+                  <div className="assessment-tool-field">
+                    <input
+                      type="text"
+                      placeholder="e.g. Cognitive / Pre-academic Skills"
+                      value={item.tool}
+                      onChange={(e) =>
+                        handleAssessmentToolChange(
+                          index,
+                          "tool",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </div>
+
+                  <div className="assessment-tool-field">
+                    <textarea
+                      rows="2"
+                      placeholder="Observation, structured tasks, ECCD Checklist..."
+                      value={item.details}
+                      onChange={(e) =>
+                        handleAssessmentToolChange(
+                          index,
+                          "details",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    className="remove-entry-btn"
+                    onClick={() => handleRemoveAssessmentTool(index)}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                className="add-point-btn"
+                onClick={handleAddAssessmentTool}
+              >
+                + Add Tool / Measure
+              </button>
             </div>
           )}
         </div>
