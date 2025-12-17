@@ -3,34 +3,45 @@
 ============================================================ */
 .ooo-container {
   display: flex;
-  background: #f8f9fa;
+  background: #f0f2f5;
   min-height: 100vh;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .ooo-main {
-  background: #f8f9fa;
   flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ============================================================
-   HEADER + SEARCH
+   HEADER + FILTER BAR
 ============================================================ */
 .ooo-header {
+  background: white;
+  padding: 30px 40px;
+  border-bottom: 1px solid #e0e0e0;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 40px;
-  border-bottom: 2px solid #e0e0e0;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
-.ooo-header h1 {
-  font-size: 32px;
-  font-weight: 600;
-  color: #2c3e50;
+.header-title h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 5px 0;
+}
+
+.header-subtitle {
+  color: #666;
   margin: 0;
+  font-size: 14px;
 }
 
+<<<<<<< HEAD
 .ooo-search {
   width: 300px;
   padding: 12px 20px 12px 40px;
@@ -45,48 +56,95 @@
   outline: none;
   border-color: #4a90e2;
   box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+=======
+.filter-actions {
+  display: flex;
+  gap: 15px;
+>>>>>>> second-merge
 }
 
 .search-wrapper {
   position: relative;
-  display: inline-block;
+  width: 300px;
 }
 
 .search-wrapper .search-icon {
   position: absolute;
-  left: 12px;
+  left: 15px;
   top: 50%;
   transform: translateY(-50%);
-  pointer-events: none;
-  font-size: 16px;
-  color: #888;
+  color: #999;
+  font-size: 14px;
+}
+
+.ooo-search {
+  width: 100%;
+  padding: 10px 15px 10px 40px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  background: #f9f9f9;
+  transition: all 0.2s;
+}
+
+.ooo-search:focus {
+  background: white;
+  border-color: #4a90e2;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.ooo-filter-select {
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: white;
+  font-size: 14px;
+  color: #444;
+  cursor: pointer;
+  min-width: 160px;
+  outline: none;
+}
+
+.ooo-filter-select:focus {
+  border-color: #4a90e2;
 }
 
 /* ============================================================
-   STUDENT GRID
+   STUDENT GRID (COMPACT NAME TAG STYLE)
 ============================================================ */
-.ooo-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 30px;
+.ooo-content-area {
   padding: 40px;
 }
 
+<<<<<<< HEAD
+=======
+.ooo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 25px;
+}
+
+>>>>>>> second-merge
 .ooo-card {
   background: white;
   border-radius: 12px;
-  cursor: pointer;
   overflow: hidden;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f0f0f0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border: 1px solid #e6e6e6;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
 }
 
 .ooo-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+  border-color: #4a90e2;
 }
 
+<<<<<<< HEAD
 .ooo-photo-area {
   height: 220px;
   width: 220px;
@@ -94,6 +152,13 @@
   display: flex;
   justify-content: center;
   align-items: center;
+=======
+/* The Image Box - Shortened */
+.ooo-card-image-box {
+  width: 100%;
+  height: 180px; /* Reduced from 220px */
+  background: #f0f0f0;
+>>>>>>> second-merge
   position: relative;
   overflow: hidden;
 }
@@ -102,35 +167,128 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
-.ooo-card-info {
+.ooo-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  color: #555;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 60px;
+  font-weight: bold;
+}
+
+/* The Info Body - Tighter Padding */
+.ooo-card-body {
+  padding: 10px 15px 15px 15px; /* Reduced top padding */
   text-align: center;
-  padding: 16px;
   background: white;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .ooo-name {
-  font-weight: 600;
-  font-size: 16px;
+  font-size: 17px;
+  font-weight: 700;
   color: #2c3e50;
-  margin: 0;
+  margin: 0 0 10px 0; /* Space between name and badges */
+}
+
+/* Age removed */
+
+.ooo-badges {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-therapy {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.badge-group {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.badge-none {
+  background: #f5f5f5;
+  color: #757575;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px;
+  color: #888;
+  background: white;
+  border-radius: 12px;
+  border: 1px dashed #ccc;
 }
 
 /* ============================================================
-   PROFILE PAGE — NEW LAYOUT
+   PROFILE PAGE (Existing styles + Split Row)
 ============================================================ */
 .profile-wrapper {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding-bottom: 50px;
+  padding: 30px 40px 60px 40px;
 }
 
+.services-split-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  align-items: start;
+}
+
+.services-split-row .services-list {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 900px) {
+  .services-split-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .ooo-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .filter-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+  
+  .search-wrapper, .ooo-filter-select {
+    width: 100%;
+  }
+}
+
+/* ... Keeping the rest of the profile styles ... */
 .profile-top {
   display: flex;
   align-items: center;
-  padding: 30px 0;
+  padding-bottom: 20px;
   border-bottom: 2px solid #e0e0e0;
   margin-bottom: 30px;
 }
@@ -217,9 +375,6 @@
   color: #2c3e50;
 }
 
-/* ============================================================
-   SERVICES LISTS & SELECTION
-============================================================ */
 .profile-content-scroll {
   display: flex;
   flex-direction: column;
@@ -227,7 +382,7 @@
 }
 
 .content-section {
-  margin-bottom: 20px;
+  margin-bottom: 0;
 }
 
 .services-header {
@@ -252,7 +407,6 @@
   gap: 15px;
 }
 
-/* Service Row Styles */
 .service-row {
   background: white;
   padding: 15px 20px;
@@ -265,10 +419,7 @@
   transition: all 0.2s ease;
 }
 
-/* Interactive States */
-.service-row.clickable {
-  cursor: pointer;
-}
+.service-row.clickable { cursor: pointer; }
 
 .service-row.clickable:hover {
   transform: translateY(-2px);
@@ -276,7 +427,6 @@
   border-color: #4a90e2;
 }
 
-/* Active/Selected State */
 .service-row.active {
   background-color: #eaf4ff;
   border: 2px solid #4a90e2;
@@ -291,34 +441,9 @@
   color: #34495e;
 }
 
-.service-icon {
-  font-size: 18px;
-}
-
-.teacher-name {
-  font-size: 14px;
-  color: #777;
-}
-
-.selected-check {
-  margin-left: 10px;
-  color: #4a90e2;
-  font-weight: bold;
-}
-
-/* ============================================================
-   CALENDAR & TRACKER
-============================================================ */
-.empty-calendar-placeholder {
-  background: #fff;
-  padding: 50px;
-  text-align: center;
-  border-radius: 12px;
-  border: 2px dashed #ccc;
-  color: #888;
-  font-style: italic;
-  font-size: 16px;
-}
+.service-icon { font-size: 18px; }
+.teacher-name { font-size: 14px; color: #777; }
+.selected-check { margin-left: 10px; color: #4a90e2; font-weight: bold; }
 
 .calendar-view-container {
   display: grid;
@@ -330,11 +455,7 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
-/* Calendar Section */
-.calendar-section {
-  border-right: 1px solid #eee;
-  padding-right: 30px;
-}
+.calendar-section { border-right: 1px solid #eee; padding-right: 30px; }
 
 .react-calendar {
   width: 100% !important;
@@ -348,10 +469,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  position: relative;
 }
 
-/* Dots */
 .calendar-dot {
   width: 6px;
   height: 6px;
@@ -366,14 +485,9 @@
   border-radius: 8px;
 }
 
-.react-calendar__tile--active .calendar-dot {
-  background-color: white;
-}
+.react-calendar__tile--active .calendar-dot { background-color: white; }
 
-/* Details Section */
-.day-details-section {
-  padding-left: 10px;
-}
+.day-details-section { padding-left: 10px; }
 
 .date-heading {
   font-size: 22px;
@@ -384,11 +498,7 @@
   border-bottom: 1px solid #eee;
 }
 
-.no-activity-msg {
-  color: #999;
-  font-style: italic;
-  padding: 20px 0;
-}
+.no-activity-msg { color: #999; font-style: italic; padding: 20px 0; }
 
 .daily-records-list {
   display: flex;
@@ -406,10 +516,7 @@
   padding: 15px;
 }
 
-.record-header {
-  margin-bottom: 8px;
-}
-
+.record-header { margin-bottom: 8px; }
 .record-type {
   font-weight: 700;
   color: #4a90e2;
@@ -418,19 +525,11 @@
   letter-spacing: 0.5px;
 }
 
-.record-card p {
-  margin: 5px 0;
-  font-size: 14px;
-  color: #444;
-}
+.record-card p { margin: 5px 0; font-size: 14px; color: #444; }
+.record-card .label { font-weight: 600; color: #222; }
 
-.record-card .label {
-  font-weight: 600;
-  color: #222;
-}
-
-/* Responsive */
 @media (max-width: 1000px) {
+<<<<<<< HEAD
   .profile-3col {
     grid-template-columns: 1fr;
   }
@@ -452,3 +551,10 @@
     padding-bottom: 30px;
   }
 }
+=======
+  .profile-3col { grid-template-columns: 1fr; }
+  .profile-photo-frame { height: 300px; width: 300px; margin: 0 auto; }
+  .calendar-view-container { grid-template-columns: 1fr; }
+  .calendar-section { border-right: none; border-bottom: 1px solid #eee; padding-right: 0; padding-bottom: 30px; }
+}
+>>>>>>> second-merge
