@@ -2,55 +2,113 @@ import React, { useState } from "react";
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
 import "./css/EnrollStudent.css";
 
-// Static Data
-const parents = [
+// Initial Mock Data
+const initialParents = [
   { id: 1, firstName: "Juan", lastName: "Dela Cruz" },
   { id: 2, firstName: "Maria", lastName: "Santos" },
-  { id: 3, firstName: "Pedro", lastName: "Reyes" },
-  { id: 4, firstName: "Ana", lastName: "Lopez" },
-  { id: 5, firstName: "Luis", lastName: "Garcia" },
-  { id: 6, firstName: "Clara", lastName: "Torres" },
 ];
 
-const students = [
-  { id: 1, parentId: 1, firstName: "Mark", lastName: "Dela Cruz" },
-  { id: 2, parentId: 2, firstName: "Liza", lastName: "Santos" },
-  { id: 3, parentId: 1, firstName: "Tony", lastName: "Dela Cruz" },
-  { id: 4, parentId: 3, firstName: "Ella", lastName: "Reyes" },
+const initialStudents = [
+  {
+    id: 101,
+    parentId: 1,
+    firstName: "Mark",
+    lastName: "Dela Cruz",
+    status: "ENROLLED",
+  },
 ];
 
 export default function EnrollStudent() {
+  const [allParents, setAllParents] = useState(initialParents);
+  const [allStudents, setAllStudents] = useState(initialStudents);
   const [selectedParent, setSelectedParent] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Modals Toggle
   const [showParentForm, setShowParentForm] = useState(false);
-  const [parentForm, setParentForm] = useState({ email: "", password: "" });
+  const [showEnrollForm, setShowEnrollForm] = useState(false);
+  const [formStep, setFormStep] = useState(1);
 
-  const handleBack = () => setSelectedParent(null);
+  // Form States
+  const [parentInput, setParentInput] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+  });
+  const [studentInput, setStudentInput] = useState({
+    firstName: "",
+    nickname: "",
+    dob: "",
+    gender: "Male",
+    referral: "",
+    background: "",
+    behavior: "",
+    summary: "",
+    service: "",
+  });
 
-  const filteredParents = parents.filter((p) =>
+  // --- Handlers ---
+  const handleParentSubmit = (e) => {
+    e.preventDefault();
+    const newParent = {
+      id: Date.now(),
+      firstName: parentInput.firstName,
+      lastName: parentInput.lastName,
+    };
+    setAllParents([...allParents, newParent]);
+    setShowParentForm(false);
+    setParentInput({ firstName: "", lastName: "", email: "", password: "" });
+  };
+
+  const getStatusByStep = (step) => {
+    if (step < 4) return "ASSESSING";
+    if (step === 4) return "ASSESSMENT DONE";
+    return "ENROLLED";
+  };
+
+  const saveEnrollment = (isFinal = false) => {
+    if (!studentInput.firstName) return alert("Please enter Student Name");
+
+    const newStudent = {
+      id: Date.now(),
+      parentId: selectedParent.id,
+      firstName: studentInput.firstName,
+      lastName: selectedParent.lastName,
+      status: isFinal ? "ENROLLED" : getStatusByStep(formStep),
+    };
+
+    setAllStudents([...allStudents, newStudent]);
+    setShowEnrollForm(false);
+    setFormStep(1);
+    setStudentInput({
+      firstName: "",
+      nickname: "",
+      dob: "",
+      referral: "",
+      background: "",
+      behavior: "",
+      summary: "",
+      service: "",
+    });
+  };
+
+  const filteredParents = allParents.filter((p) =>
     `${p.firstName} ${p.lastName}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
 
-  const handleCreateParent = (e) => {
-    e.preventDefault();
-    console.log("New Parent Account:", parentForm);
-    setParentForm({ email: "", password: "" });
-    setShowParentForm(false);
-  };
-
   return (
     <div className="ooo-container">
       <AdminSidebar />
-
       <div className="ooo-main">
-        {/* HEADER - COPIED FROM STUDENT PROFILE */}
+        {/* HEADER */}
         <div className="ooo-header">
           <div className="header-title">
             <h1>STUDENT ENROLLMENT</h1>
             <p className="header-subtitle">
-              Manage parent accounts and student registration
+              Manage accounts and enrollment progress
             </p>
           </div>
           <div className="search-wrapper">
@@ -61,152 +119,143 @@ export default function EnrollStudent() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <span className="search-icon">🔍</span>
           </div>
         </div>
 
         <div className="ooo-content-area">
           {!selectedParent ? (
-            <>
-              <h2 className="services-header">Parent Accounts</h2>
-              <div className="ooo-grid">
-                {filteredParents.map((parent) => (
-                  <div
-                    key={parent.id}
-                    className="ooo-card"
-                    onClick={() => setSelectedParent(parent)}
-                  >
-                    <div className="ooo-photo-area">
-                      {parent.photoUrl ? (
-                        <img
-                          src={parent.photoUrl}
-                          alt=""
-                          className="ooo-photo"
-                        />
-                      ) : (
-                        <span style={{ fontSize: "40px" }}>👤</span>
-                      )}
-                    </div>
-                    <div className="ooo-card-info">
-                      <p className="ooo-name">
-                        {parent.lastName}, {parent.firstName}
-                      </p>
-                    </div>
+            <div className="ooo-grid">
+              {filteredParents.map((p) => (
+                <div
+                  key={p.id}
+                  className="ooo-card"
+                  onClick={() => setSelectedParent(p)}
+                >
+                  <div className="ooo-photo-area">👤</div>
+                  <div className="ooo-card-info">
+                    <p className="ooo-name">
+                      {p.lastName}, {p.firstName}
+                    </p>
                   </div>
-                ))}
-              </div>
-            </>
+                </div>
+              ))}
+            </div>
           ) : (
             <div className="profile-wrapper">
               <div className="profile-top">
-                <div className="left-group">
-                  <span className="back-arrow" onClick={handleBack}>
-                    ←
-                  </span>
-                  <h2>{selectedParent.lastName}'s Family</h2>
-                </div>
+                <span
+                  className="back-arrow"
+                  onClick={() => setSelectedParent(null)}
+                >
+                  ←
+                </span>
+                <h2>{selectedParent.lastName} Family</h2>
               </div>
-
               <div className="profile-info">
-                <h2 className="services-header">Registered Children</h2>
+                <h3 className="services-header">Family Children</h3>
                 <div className="services-list">
-                  {students
+                  {allStudents
                     .filter((s) => s.parentId === selectedParent.id)
-                    .map((student) => (
-                      <div key={student.id} className="service-row">
+                    .map((s) => (
+                      <div key={s.id} className="service-row">
                         <div className="service-left">
-                          <span className="service-icon">👶</span>
-                          {student.lastName}, {student.firstName}
+                          👶 {s.lastName}, {s.firstName}
                         </div>
-                        <div className="teacher-name">Enrolled</div>
+                        <div
+                          className={`status-badge ${s.status
+                            .toLowerCase()
+                            .replace(" ", "-")}`}
+                        >
+                          {s.status}
+                        </div>
                       </div>
                     ))}
-                  {students.filter((s) => s.parentId === selectedParent.id)
-                    .length === 0 && (
-                    <p className="no-activity-msg">
-                      No students found for this parent.
-                    </p>
-                  )}
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* DYNAMIC FLOATING ACTION BUTTON */}
+        {/* FAB */}
         {!selectedParent ? (
           <button
             className="add-fab secondary-fab"
             onClick={() => setShowParentForm(true)}
-            title="Create Parent Account"
           >
-            <span className="fab-text">+ Parent Account</span>
+            + Parent Account
           </button>
         ) : (
-          <button
-            className="add-fab"
-            onClick={() =>
-              console.log("Enroll Student for:", selectedParent.firstName)
-            }
-            title={`Enroll Student to ${selectedParent.lastName} Family`}
-          >
-            <span className="fab-text">+ Enroll Student</span>
+          <button className="add-fab" onClick={() => setShowEnrollForm(true)}>
+            + Enroll Student
           </button>
         )}
 
-        {/* Modal simplified to match the clean design */}
+        {/* PARENT MODAL */}
         {showParentForm && (
           <div className="modalOverlay">
             <div className="modal">
-              <h2 className="services-header">Create Parent Account</h2>
-              <form onSubmit={handleCreateParent}>
-                <div style={{ marginBottom: "15px" }}>
-                  <label
-                    style={{
-                      display: "block",
-                      marginBottom: "5px",
-                      fontWeight: "600",
-                    }}
-                  >
-                    Email
-                  </label>
+              <h2 className="services-header">New Parent Account</h2>
+              <form onSubmit={handleParentSubmit}>
+                <div className="form-row">
+                  <div className="input-group">
+                    <label>First Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={parentInput.firstName}
+                      onChange={(e) =>
+                        setParentInput({
+                          ...parentInput,
+                          firstName: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label>Last Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={parentInput.lastName}
+                      onChange={(e) =>
+                        setParentInput({
+                          ...parentInput,
+                          lastName: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="input-group">
+                  <label>Email Address</label>
                   <input
                     type="email"
-                    className="ooo-search"
-                    style={{ paddingLeft: "15px" }}
-                    value={parentForm.email}
-                    onChange={(e) =>
-                      setParentForm({ ...parentForm, email: e.target.value })
-                    }
                     required
+                    value={parentInput.email}
+                    onChange={(e) =>
+                      setParentInput({ ...parentInput, email: e.target.value })
+                    }
                   />
                 </div>
-                <div style={{ marginBottom: "20px" }}>
-                  <label
-                    style={{
-                      display: "block",
-                      marginBottom: "5px",
-                      fontWeight: "600",
-                    }}
-                  >
-                    Password
-                  </label>
+                <div className="input-group">
+                  <label>Password</label>
                   <input
                     type="password"
-                    className="ooo-search"
-                    style={{ paddingLeft: "15px" }}
-                    value={parentForm.password}
-                    onChange={(e) =>
-                      setParentForm({ ...parentForm, password: e.target.value })
-                    }
                     required
+                    value={parentInput.password}
+                    onChange={(e) =>
+                      setParentInput({
+                        ...parentInput,
+                        password: e.target.value,
+                      })
+                    }
                   />
                 </div>
                 <div className="modalActions">
                   <button
                     type="button"
-                    onClick={() => setShowParentForm(false)}
                     className="cancel-btn"
+                    onClick={() => setShowParentForm(false)}
                   >
                     Cancel
                   </button>
@@ -215,6 +264,179 @@ export default function EnrollStudent() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* ENROLLMENT WIZARD */}
+        {showEnrollForm && (
+          <div className="modalOverlay">
+            <div className="modal multi-step-modal">
+              <div className="modal-header-sticky">
+                <div className="modal-header-flex">
+                  <h2>
+                    Step {formStep}: {getStatusByStep(formStep)}
+                  </h2>
+                </div>
+                <div className="step-indicator">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div
+                      key={i}
+                      className={`step-dot ${formStep >= i ? "active" : ""}`}
+                    ></div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="enroll-form-scroll">
+                {formStep === 1 && (
+                  <div className="form-section">
+                    <h3>Basic Information</h3>
+                    <div className="form-row">
+                      <div className="input-group">
+                        <label>First Name</label>
+                        <input
+                          type="text"
+                          value={studentInput.firstName}
+                          onChange={(e) =>
+                            setStudentInput({
+                              ...studentInput,
+                              firstName: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="input-group">
+                        <label>Last Name</label>
+                        <input
+                          type="text"
+                          value={selectedParent.lastName}
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                    <div className="input-group">
+                      <label>Reason for Referral</label>
+                      <textarea
+                        rows="3"
+                        value={studentInput.referral}
+                        onChange={(e) =>
+                          setStudentInput({
+                            ...studentInput,
+                            referral: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+                {formStep === 2 && (
+                  <div className="form-section">
+                    <h3>Background History</h3>
+                    <textarea
+                      rows="6"
+                      placeholder="Family background and history..."
+                      value={studentInput.background}
+                      onChange={(e) =>
+                        setStudentInput({
+                          ...studentInput,
+                          background: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                )}
+                {formStep === 3 && (
+                  <div className="form-section">
+                    <h3>Behavior During Assessment</h3>
+                    <textarea
+                      rows="6"
+                      placeholder="Observation notes..."
+                      value={studentInput.behavior}
+                      onChange={(e) =>
+                        setStudentInput({
+                          ...studentInput,
+                          behavior: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                )}
+                {formStep === 4 && (
+                  <div className="form-section">
+                    <h3>Summary & Recommendations</h3>
+                    <textarea
+                      rows="6"
+                      placeholder="Summary of results..."
+                      value={studentInput.summary}
+                      onChange={(e) =>
+                        setStudentInput({
+                          ...studentInput,
+                          summary: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                )}
+                {formStep === 5 && (
+                  <div className="form-section">
+                    <h3>Services Enrollment</h3>
+                    <select
+                      className="ooo-search"
+                      style={{ paddingLeft: "10px" }}
+                      value={studentInput.service}
+                      onChange={(e) =>
+                        setStudentInput({
+                          ...studentInput,
+                          service: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="">Select Service...</option>
+                      <option value="speech">Speech Therapy</option>
+                      <option value="ot">Occupational Therapy</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              <div className="modalActions sticky-footer">
+                <button
+                  type="button"
+                  className="save-draft-btn"
+                  onClick={() => saveEnrollment(false)}
+                >
+                  Save & Close
+                </button>
+                <div className="right-actions">
+                  {formStep > 1 && (
+                    <button
+                      type="button"
+                      className="cancel-btn"
+                      onClick={() => setFormStep(formStep - 1)}
+                    >
+                      Back
+                    </button>
+                  )}
+                  {formStep < 5 ? (
+                    <button
+                      type="button"
+                      className="create-btn"
+                      onClick={() => setFormStep(formStep + 1)}
+                    >
+                      Next
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="create-btn"
+                      onClick={() => saveEnrollment(true)}
+                    >
+                      Finalize Enrollment
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}
