@@ -6,7 +6,7 @@ import 'react-calendar/dist/Calendar.css';
 import childService from '../../services/childService';
 import activityService from '../../services/activityService';
 import servicesService from '../../services/servicesService';
-import cloudinaryService from '../../services/cloudinaryService'; // Added Cloudinary
+import cloudinaryService from '../../services/cloudinaryService';
 
 // Components & Styles
 import AdminSidebar from '../../components/sidebar/AdminSidebar';
@@ -25,7 +25,7 @@ const PlayGroup = () => {
   // Loading States
   const [loadingServices, setLoadingServices] = useState(true);
   const [loadingDashboard, setLoadingDashboard] = useState(false);
-  const [uploading, setUploading] = useState(false); // New uploading state
+  const [uploading, setUploading] = useState(false);
 
   // Selection State
   const [selectedService, setSelectedService] = useState(null);
@@ -37,7 +37,7 @@ const PlayGroup = () => {
   // --- Add Service Modal State ---
   const [showAddModal, setShowAddModal] = useState(false);
   const [newServiceData, setNewServiceData] = useState({ name: '', description: '' });
-  const [serviceImage, setServiceImage] = useState(null); // New image state
+  const [serviceImage, setServiceImage] = useState(null);
 
   // --- 1. INITIAL LOAD (Only Services) ---
   useEffect(() => {
@@ -61,10 +61,12 @@ const PlayGroup = () => {
     setSelectedDate(new Date()); 
     setSelectedStudentForPhotos(null);
 
+    // Only fetch if we haven't loaded them yet to save bandwidth
     if (allChildren.length === 0 || allActivities.length === 0) {
       setLoadingDashboard(true);
       try {
         const [activitiesData, childrenData] = await Promise.all([
+          // Strictly fetches 'group_activity' type
           activityService.getAllPlayGroupActivities(),
           childService.getAllChildren() 
         ]);
@@ -81,13 +83,13 @@ const PlayGroup = () => {
   // --- HELPERS ---
   const getServiceActivities = () => {
     if (!selectedService) return [];
+    
+    // Strict Filter: Only show activities that match the selected Class Name
+    // matches either 'className' (New Standard) or 'serviceType' (Legacy)
     return allActivities.filter(act => 
-      act.serviceType === selectedService.name || 
-      act.className === selectedService.name ||
-      act.type === 'group_activity'
-    ).filter(act => {
-      return act.serviceType ? act.serviceType === selectedService.name : true;
-    });
+      (act.className === selectedService.name) || 
+      (act.serviceType === selectedService.name)
+    );
   };
 
   const getActivityDates = () => {
@@ -100,7 +102,9 @@ const PlayGroup = () => {
     const localDate = new Date(selectedDate.getTime() - (offset * 60 * 1000));
     const dateString = localDate.toISOString().split('T')[0];
 
+    // Find activities for this specific date
     const acts = getServiceActivities().filter(a => a.date === dateString);
+    
     const presentIds = new Set();
     acts.forEach(a => {
       if (a.participatingStudentIds) {
@@ -115,6 +119,8 @@ const PlayGroup = () => {
     const offset = selectedDate.getTimezoneOffset();
     const localDate = new Date(selectedDate.getTime() - (offset * 60 * 1000));
     const dateString = localDate.toISOString().split('T')[0];
+    
+    // Find activities where this student participated
     const acts = getServiceActivities().filter(a => 
       a.date === dateString && 
       a.participatingStudentIds?.includes(selectedStudentForPhotos.id)
@@ -123,33 +129,27 @@ const PlayGroup = () => {
   };
 
   // --- HANDLERS ---
-
   const handleCreateService = async (e) => {
     e.preventDefault();
     if(!newServiceData.name) return;
     
     setUploading(true);
-
     try {
-      // 1. Upload Image (if selected)
       let imageUrl = "";
       if (serviceImage) {
         imageUrl = await cloudinaryService.uploadImage(serviceImage, 'little-lions/services');
       }
 
-      // 2. Create Service Document
       await servicesService.createService({ 
         name: newServiceData.name, 
         description: newServiceData.description,
         type: 'Class',
-        imageUrl: imageUrl // Save the URL
+        imageUrl: imageUrl
       });
       
-      // 3. Refresh List
       const updated = await servicesService.getServicesByType('Class');
       setServices(updated);
       
-      // 4. Reset & Close
       setNewServiceData({ name: '', description: '' });
       setServiceImage(null);
       setShowAddModal(false);
@@ -196,7 +196,6 @@ const PlayGroup = () => {
                       className="pg-service-card"
                       onClick={() => handleServiceSelect(service)}
                     >
-                      {/* Check if image exists, otherwise show emoji */}
                       {service.imageUrl ? (
                         <div className="pg-card-image-box">
                           <img src={service.imageUrl} alt={service.name} className="pg-card-image" />
@@ -204,7 +203,6 @@ const PlayGroup = () => {
                       ) : (
                         <div className="pg-card-icon">🎨</div>
                       )}
-                      
                       <h3>{service.name}</h3>
                       <p>{service.description || "No description provided."}</p>
                     </div>
@@ -215,11 +213,7 @@ const PlayGroup = () => {
                 </div>
              </div>
 
-             {/* FLOATING ACTION BUTTON */}
-             <button 
-               className="pg-fab" 
-               onClick={() => setShowAddModal(true)}
-             >
+             <button className="pg-fab" onClick={() => setShowAddModal(true)}>
                <span className="pg-fab-icon">+</span>
                <span className="pg-fab-text">Add Play Group Service</span>
              </button>
@@ -243,7 +237,7 @@ const PlayGroup = () => {
               <div className="pg-loading"><p>Loading Class Data...</p></div>
             ) : (
               <div className="pg-split-layout">
-                {/* LEFT SIDE */}
+                {/* LEFT SIDE: Students & Photos */}
                 <div className="pg-left-panel">
                   {selectedStudentForPhotos ? (
                     <>
@@ -352,7 +346,6 @@ const PlayGroup = () => {
                   />
                 </div>
                 
-                {/* --- IMAGE UPLOAD INPUT --- */}
                 <div className="pg-form-group">
                   <label>Service Image (Optional)</label>
                   <input 
@@ -366,27 +359,13 @@ const PlayGroup = () => {
                 </div>
 
                 <div className="pg-form-actions">
-                  <button 
-                    type="button" 
-                    className="pg-cancel-btn" 
-                    onClick={() => setShowAddModal(false)}
-                    disabled={uploading}
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    className="pg-submit-btn" 
-                    disabled={uploading}
-                  >
-                    {uploading ? 'Uploading...' : 'Create Class'}
-                  </button>
+                  <button type="button" className="pg-cancel-btn" onClick={() => setShowAddModal(false)} disabled={uploading}>Cancel</button>
+                  <button type="submit" className="pg-submit-btn" disabled={uploading}>{uploading ? 'Uploading...' : 'Create Class'}</button>
                 </div>
               </form>
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

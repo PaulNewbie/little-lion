@@ -1,10 +1,13 @@
-// import React, { useState } from "react";
+import React from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import useOtherServices from "../../hooks/useOtherServices";
+import activityService from "../../services/activityService"; // Import Activity Service
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
 import "./css/OtherServices.css";
 
 const OtherServices = () => {
-  // const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+  const navigate = useNavigate(); // Initialize navigation hooks
+  
   const {
     services,
     teachers,
@@ -14,7 +17,6 @@ const OtherServices = () => {
     handleInputChange,
     createService,
     toggleTeacherAssignment,
-    // deactivateService,
     selectedService,
     selectService,
     clearSelection,
@@ -25,9 +27,30 @@ const OtherServices = () => {
     enrollStudent,
   } = useOtherServices();
 
+  // --- NEW HANDLER: NAVIGATE TO PROFILE ---
+  const handleStudentClick = async (student) => {
+    try {
+      // 1. Fetch Unified Activities (Therapy + Group + Observations)
+      const activities = await activityService.getActivitiesByChild(student.id);
+      
+      // 2. Navigate to Student Profile with Data
+      navigate("/admin/StudentProfile", {
+        state: {
+          student: student,
+          activities: activities,
+          selectedService: selectedService, // Pass context so profile highlights this service
+          fromOneOnOne: true // Reusing this flag to trigger the "Profile Mode"
+        }
+      });
+    } catch (err) {
+      console.error("Failed to load student activities", err);
+      // Fallback navigation if fetch fails
+      navigate("/admin/StudentProfile", { state: { student } });
+    }
+  };
+
   if (loading) return <div className="loading">Loading...</div>;
 
-  // Prepare data for Service Details View
   const qualifiedTeachers = selectedService
     ? teachers.filter((t) => t.specializations?.includes(selectedService.name))
     : [];
@@ -36,29 +59,12 @@ const OtherServices = () => {
     ? allStudents.filter((s) => !enrolledStudents.find((es) => es.id === s.id))
     : [];
 
-  // // Toggle function
-  // const toggleSidebar = () => {
-  //   setIsSidebarVisible((prev) => !prev);
-  // };
-
   return (
-    <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        maxHeight: "100vh",
-        overflow: "hidden",
-      }}
-    >
-      {/* Sidebar */}
-
+    <div style={{ display: "flex", minHeight: "100vh", maxHeight: "100vh", overflow: "hidden" }}>
       <AdminSidebar />
-
-      {/* Main Content */}
       <div className="page-container">
-        {/* Conditional Rendering: Service Details OR Service List */}
         {selectedService ? (
-          // ---------------- VIEW: SERVICE DETAILS & ENROLLMENT ----------------
+          // ---------------- VIEW: SERVICE DETAILS ----------------
           <>
             <button className="back-btn" onClick={clearSelection}>
               ← Back to Services
@@ -76,15 +82,25 @@ const OtherServices = () => {
                     <li>No students enrolled yet.</li>
                   )}
                   {enrolledStudents.map((student) => (
-                    <li key={student.id}>
-                      {student.firstName} {student.lastName}
-                      <span className="teacher-label">
+                    <li 
+                      key={student.id}
+                      onClick={() => handleStudentClick(student)} // Click handler
+                      style={{ cursor: 'pointer', borderBottom: '1px solid #eee', padding: '8px 0', transition: '0.2s' }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <span style={{ fontWeight: '600', color: '#2c3e50' }}>
+                        {student.firstName} {student.lastName}
+                      </span>
+                      <br/>
+                      <span className="teacher-label" style={{ fontSize: '0.85em', color: '#7f8c8d' }}>
                         (Teacher:{" "}
                         {student.services.find(
                           (s) => s.serviceName === selectedService.name
                         )?.teacherName || "Unknown"}
                         )
                       </span>
+                      <span style={{ float: 'right', fontSize: '0.8em', color: '#3498db' }}>View Profile →</span>
                     </li>
                   ))}
                 </ul>
@@ -133,10 +149,7 @@ const OtherServices = () => {
                     )}
                   </label>
 
-                  <button
-                    type="submit"
-                    disabled={qualifiedTeachers.length === 0}
-                  >
+                  <button type="submit" disabled={qualifiedTeachers.length === 0}>
                     Enroll Student
                   </button>
                 </form>
@@ -188,41 +201,24 @@ const OtherServices = () => {
               <div key={service.id} className="service-item">
                 <div className="service-title-row">
                   <h4
-                    className={`service-title ${
-                      service.active ? "active" : "inactive"
-                    }`}
+                    className={`service-title ${service.active ? "active" : "inactive"}`}
                     onClick={() => selectService(service)}
                   >
                     {service.name} ({service.enrolledCount} students)
                   </h4>
-
-                  {/* {service.active && (
-                    <button
-                      className="danger-btn"
-                      onClick={() => deactivateService(service.id)}
-                    >
-                      Deactivate
-                    </button>
-                  )} */}
                 </div>
 
                 <p className="service-description">{service.description}</p>
 
                 <div className="teacher-assign-box">
                   <strong>Qualified Teachers:</strong>
-
                   <div className="teacher-list">
                     {teachers.map((teacher) => (
                       <label key={teacher.id} className="teacher-checkbox">
                         <input
                           type="checkbox"
-                          checked={
-                            teacher.specializations?.includes(service.name) ||
-                            false
-                          }
-                          onChange={() =>
-                            toggleTeacherAssignment(teacher.id, service.name)
-                          }
+                          checked={teacher.specializations?.includes(service.name) || false}
+                          onChange={() => toggleTeacherAssignment(teacher.id, service.name)}
                         />
                         {teacher.firstName}
                       </label>

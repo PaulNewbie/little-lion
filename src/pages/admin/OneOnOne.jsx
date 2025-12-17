@@ -91,7 +91,12 @@ const OneOnOne = () => {
   const fetchServicesAndStudents = async () => {
     try {
       const serviceSnap = await getDocs(collection(db, "services"));
-      const serviceList = serviceSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      
+      // FILTER: Exclude any service where type is 'Class'
+      const serviceList = serviceSnap.docs
+        .map((doc) => ({ id: doc.id, ...doc.data() }))
+        .filter(service => service.type !== 'Class'); // <--- CRITICAL FIX
+
       const studentList = await childService.getAllChildren();
       setServices(serviceList);
       setStudents(studentList);
@@ -177,7 +182,11 @@ const OneOnOne = () => {
         createdAt: new Date(),
       });
 
-      setServices((prev) => [...prev, { id: docRef.id, ...newService }]);
+      // Add to local state (but keep the filter in mind if you add a 'Class' here, though default is Therapy)
+      if (newService.type !== 'Class') {
+        setServices((prev) => [...prev, { id: docRef.id, ...newService }]);
+      }
+      
       setShowAddServiceModal(false);
       setNewService({ name: "", description: "", type: "Therapy" });
 
@@ -279,6 +288,21 @@ const OneOnOne = () => {
                   value={newService.description}
                   onChange={handleServiceInputChange}
                 />
+                <div style={{ margin: '15px 0' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Service Type:</label>
+                  <select
+                    name="type"
+                    value={newService.type}
+                    onChange={handleServiceInputChange}
+                    style={{ width: '100%', padding: '8px' }}
+                  >
+                    <option value="Therapy">Therapy</option>
+                    <option value="Assessment">Assessment</option>
+                    {/* Removed 'Class' option from this modal since this is 1:1 view */}
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
                 <div className="modal-actions">
                   <button type="button" onClick={() => setShowAddServiceModal(false)}>Cancel</button>
                   <button type="submit">Add Service</button>
