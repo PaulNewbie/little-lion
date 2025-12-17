@@ -292,3 +292,25 @@
   border-radius: 6px;
   cursor: pointer;
 }
+
+.floating-add-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: #705fed;
+  color: #fff;
+  border: none;
+  padding: 25px 35px;
+  font-size: 24px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  z-index: 1000;
+}
+
+.floating-add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.2);
+}
+
