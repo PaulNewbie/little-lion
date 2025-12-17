@@ -103,7 +103,7 @@ export default function EnrollStudent() {
                   <span className="back-arrow" onClick={handleBack}>
                     ←
                   </span>
-                  <h2>{selectedParent.firstName}'s Family</h2>
+                  <h2>{selectedParent.lastName}'s Family</h2>
                 </div>
               </div>
 
