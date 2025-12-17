@@ -1,0 +1,470 @@
+/* =============================================================================
+   ENROLL STUDENT – MULTI‑STEP MODAL STYLESHEET
+   Purpose: Shared styles for all enrollment step components
+   ============================================================================= */
+
+/* =============================================================================
+   1. MODAL OVERLAY & CONTAINER
+   ============================================================================= */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.multi-step-modal {
+  display: flex;
+  flex-direction: column;
+  width: 95%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+}
+
+/* =============================================================================
+   2. HEADER (STICKY) & STEP INDICATOR
+   ============================================================================= */
+.modal-header-sticky {
+  flex-shrink: 0;
+  padding: 25px 40px;
+  background: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.modal-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.modal-header-flex h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+/* Step progress bar */
+.step-indicator {
+  display: flex;
+  gap: 8px;
+}
+
+.step-dot {
+  flex: 1;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.step-dot.active {
+  background: #4a90e2;
+  box-shadow: 0 0 8px rgba(74, 144, 226, 0.4);
+}
+
+/* =============================================================================
+   3. SCROLLABLE CONTENT AREA
+   ============================================================================= */
+.enroll-form-scroll {
+  flex: 1;
+  padding: 35px 40px;
+  overflow-y: auto;
+  background: #ffffff;
+}
+
+.form-section {
+  animation: slideIn 0.25s ease-out;
+}
+
+.form-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.form-section h3::before {
+  content: "";
+  width: 5px;
+  height: 22px;
+  background: #4a90e2;
+  border-radius: 4px;
+}
+
+/* =============================================================================
+   4. FORM INPUTS (SHARED)
+   ============================================================================= */
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.input-group input,
+.input-group select,
+.input-group textarea {
+  width: 100%;
+  padding: 14px 16px;
+  font-family: inherit;
+  font-size: 15px;
+  color: #1e293b;
+  background: #fcfdfe;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.input-group textarea {
+  min-height: 120px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.input-group input:focus,
+.input-group select:focus,
+.input-group textarea:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
+}
+
+/* =============================================================================
+   5. GRID & LAYOUT HELPERS
+   ============================================================================= */
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+}
+
+.grid-3-col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+}
+
+.service-assign-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 25px;
+  margin-top: 20px;
+  padding: 30px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 20px;
+}
+
+/* =============================================================================
+   6. DYNAMIC LISTS & REPEATERS
+   ============================================================================= */
+.dynamic-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dynamic-input-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px 15px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.dynamic-input-row:focus-within {
+  background: #ffffff;
+  border-color: #4a90e2;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.row-index {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: #4a90e2;
+  background: #eff6ff;
+  border-radius: 8px;
+}
+
+.dynamic-input-row input {
+  flex: 1;
+  padding: 5px 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.add-point-btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px;
+  font-weight: 700;
+  color: #64748b;
+  background: #ffffff;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.add-point-btn:hover {
+  color: #4a90e2;
+  background: #f0f7ff;
+  border-color: #4a90e2;
+}
+
+/* =============================================================================
+   7. DEVELOPMENTAL BACKGROUND BLOCKS
+   ============================================================================= */
+.dev-bg-entry {
+  padding: 20px;
+  margin-bottom: 20px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+}
+
+.dev-bg-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.dev-bg-number {
+  font-size: 12px;
+  font-weight: 800;
+  color: #4a90e2;
+  text-transform: uppercase;
+}
+
+.dev-bg-grid {
+  display: grid;
+  gap: 15px;
+}
+
+.remove-entry-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #e11d48;
+  background: #fff1f2;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.remove-entry-btn:hover {
+  background: #ffe4e6;
+}
+
+/* =============================================================================
+   8. FOOTER & ACTION BUTTONS (STICKY)
+   ============================================================================= */
+.sticky-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px 40px;
+  background: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+}
+
+.left-actions,
+.right-actions {
+  display: flex;
+  gap: 15px;
+}
+
+button {
+  font-family: inherit;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.create-btn {
+  padding: 12px 28px;
+  font-weight: 700;
+  color: #ffffff;
+  background: #4a90e2;
+  border: none;
+  border-radius: 12px;
+}
+
+.create-btn:hover {
+  background: #357abd;
+}
+
+.cancel-btn {
+  padding: 12px 24px;
+  font-weight: 600;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.save-draft-btn {
+  padding: 12px 24px;
+  font-weight: 600;
+  background: #f1f5f9;
+  border: none;
+  border-radius: 12px;
+}
+
+.cancel-btn-alt {
+  padding: 12px 24px;
+  font-weight: 600;
+  color: #e11d48;
+  background: #fff1f2;
+  border: none;
+  border-radius: 12px;
+}
+
+.close-x-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  background: #f1f5f9;
+  border: none;
+  border-radius: 50%;
+}
+
+/* =============================================================================
+   9. ANIMATIONS & RESPONSIVE
+   ============================================================================= */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .multi-step-modal {
+    max-width: 900px;
+  }
+
+  .form-row {
+    gap: 20px;
+  }
+}
+
+/* =============================================================================
+   6A. ASSESSMENT TOOLS & MEASURES (STEP 6 – FORM STYLE)
+   ============================================================================= */
+
+/* Header labels */
+.assessment-tools-header {
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  gap: 24px;
+  margin-bottom: 6px;
+}
+
+.assessment-tools-header label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+}
+
+/* Row */
+.assessment-tool-row {
+  display: grid;
+  grid-template-columns: 2fr 3fr 40px;
+  gap: 24px;
+  margin-bottom: 20px;
+  align-items: flex-start;
+}
+
+/* Input wrappers */
+.assessment-tool-field {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Inputs look like standard form fields */
+.assessment-tool-field input,
+.assessment-tool-field textarea {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #1e293b;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+}
+
+/* Textarea sizing */
+.assessment-tool-field textarea {
+  min-height: 70px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+/* Focus */
+.assessment-tool-field input:focus,
+.assessment-tool-field textarea:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.12);
+}
+
+/* Remove button alignment */
+.assessment-tool-row .remove-entry-btn {
+  margin-top: 26px;
+}
+
+.assessment-tool-row {
+  padding-bottom: 16px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.assessment-tool-row:last-child {
+  border-bottom: none;
+}
+
+.assessment-tool-field input,
+.assessment-tool-field textarea {
+  margin-top: 4px;
+  min-height: 70px;
+}
+
+.assessment-tool-field input {
+  font-weight: 600;
+}

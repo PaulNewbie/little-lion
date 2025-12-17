@@ -1,0 +1,268 @@
+/* ==========================================================================
+   1. CORE LAYOUT & CONTAINERS
+   ========================================================================== */
+.ooo-container {
+  display: flex;
+  height: 100vh;
+  background-color: #f8f9fa;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+.ooo-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.ooo-content-area {
+  padding: 30px 40px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ==========================================================================
+   2. MODAL SYSTEM
+   ========================================================================== */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal {
+  background: white;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 24px;
+  padding: 35px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* ==========================================================================
+   3. FORM ELEMENTS & INPUTS
+   ========================================================================== */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.input-group label {
+  font-weight: 600;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.input-group input {
+  padding: 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #334155;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+/* ==========================================================================
+   4. BUTTONS & ACTIONS
+   ========================================================================== */
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.create-btn,
+.cancel-btn {
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.create-btn {
+  border: none;
+  background: #4a90e2;
+  color: white;
+}
+
+.cancel-btn {
+  border: none;
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.create-btn:hover,
+.cancel-btn:hover {
+  opacity: 0.9;
+}
+
+/* Floating Action Button (FAB) */
+.add-fab {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  height: 55px;
+  padding: 0 25px;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 100;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.add-fab.secondary-fab {
+  background-color: #34495e;
+  box-shadow: 0 8px 20px rgba(52, 73, 94, 0.3);
+}
+
+.add-fab:hover {
+  transform: translateY(-4px);
+  filter: brightness(1.1);
+}
+
+/* ==========================================================================
+   5. GRID CARDS & PROFILES
+   ========================================================================== */
+.ooo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 30px;
+  margin-top: 20px;
+}
+
+.ooo-card {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid #f1f5f9;
+}
+
+.ooo-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08);
+  border-color: #4a90e2;
+}
+
+.ooo-photo-area {
+  height: 160px;
+  background: #f1f5f9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 45px;
+  width: 100%;
+}
+
+.ooo-card-info {
+  padding: 20px;
+  text-align: center;
+}
+
+.ooo-name {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 15px;
+}
+
+/* ==========================================================================
+   6. STATUS BADGES & FAMILY VIEW
+   ========================================================================== */
+.status-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+}
+
+.status-badge.enrolled {
+  background: #e6f7ed;
+  color: #27ae60;
+}
+
+.profile-top {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.back-arrow {
+  width: 40px;
+  height: 40px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  font-size: 20px;
+  transition: background 0.2s;
+}
+
+.back-arrow:hover {
+  background: #f1f5f9;
+}
+
+.service-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  border: 1px solid #f1f5f9;
+}
+
+.profile-wrapper {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

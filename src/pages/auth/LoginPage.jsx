@@ -139,10 +139,11 @@ const LoginPage = () => {
           <div className="demo-box">
             <strong>Demo Accounts:</strong>
             <div style={{ marginTop: "10px" }}>
+              <div>Super Admin: super@school.com (Password: password123)</div>
               <div>Admin: admin@school.com (Password: password123)</div>
-              <div>Teacher: ana@school.com (Password: Welcome123!)</div>
-              <div>Therapist: therapist@school.com (Password: Welcome123!)</div>
-              <div>Parent: joy@school.com (Password: Welcome123!)</div>
+              <div>Teacher: teacher@school.com (Password: qwerty123)</div>
+              <div>Therapist: maria@school.com (Password: qwerty123)</div>
+              <div>Parent: revo@school.com (Password: Welcome123!)</div>
             </div>
           </div>
         </div>
