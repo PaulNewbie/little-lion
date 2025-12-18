@@ -468,3 +468,16 @@ button {
 .assessment-tool-field input {
   font-weight: 600;
 }
+
+.readonly-field {
+  margin-top: 4px;
+  background: #f8fafc;
+  border: 1px solid #cbd5f5;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  color: #334155;
+}

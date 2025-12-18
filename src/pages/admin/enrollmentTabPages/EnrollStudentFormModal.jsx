@@ -798,6 +798,45 @@ export default function EnrollStudentFormModal({ show, onClose, onSave }) {
               </button>
             </div>
           )}
+
+          {/* STEP 7: ASSESSMENT RESULTS */}
+          {formStep === 7 && (
+            <div className="form-section">
+              <h3>VII. ASSESSMENT RESULTS</h3>
+
+              {studentInput.assessmentTools.length > 0 && (
+                <div className="assessment-tools-header">
+                  <label>Tool / Measure</label>
+                  <label>Result</label>
+                </div>
+              )}
+
+              {studentInput.assessmentTools.map((item, index) => (
+                <div className="assessment-tool-row" key={index}>
+                  {/* DISPLAY TOOL (READ-ONLY TEXT) */}
+                  <div className="assessment-tool-field">
+                    <div className="readonly-field">
+                      {item.tool || "No tool specified"}
+                    </div>
+                  </div>
+
+                  {/* RESULT INPUT */}
+                  <div className="assessment-tool-field">
+                    <textarea
+                      rows="4"
+                      placeholder="Enter assessment result..."
+                      value={item.result || ""}
+                      onChange={(e) => {
+                        const newTools = [...studentInput.assessmentTools];
+                        newTools[index].result = e.target.value;
+                        handleNestedChange("assessmentTools", null, newTools);
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* FOOTER */}
