@@ -282,6 +282,9 @@ export default function Step9Enrollment({ data, onChange }) {
               type="button"
               className="remove-entry-btn"
               onClick={() => handleRemoveService(category, index)}
+              style={{
+                marginTop: "0px",
+              }}
             >
               ✕
             </button>
