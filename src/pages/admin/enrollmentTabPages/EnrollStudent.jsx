@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import AdminSidebar from "../../../components/sidebar/AdminSidebar";
-import EnrollStudentFormModal from "./EnrollStudentFormModal";
+import EnrollStudentFormModal from "./enrollmentForm/EnrollStudentFormModal";
 import "../css/EnrollStudent.css";
 
 // Initial Mock Data
