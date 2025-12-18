@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from "react";
 
-export default function Step9ServiceEnrollment({ data, onChange }) {
+export default function Step9Enrollment({ data, onChange }) {
   const [services, setServices] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [therapists, setTherapists] = useState([]);
-  const [selectedServices, setSelectedServices] = useState([]);
 
-  // Mock data - Replace with actual API calls
+  // State split into two parts
+  const [oneOnOneServices, setOneOnOneServices] = useState([]);
+  const [groupClassServices, setGroupClassServices] = useState([]);
+
   useEffect(() => {
-    // Fetch services, teachers, therapists from your backend
-    // For now, using mock data
+    // Mock data - Replace with actual API calls
     setServices([
       { id: "1", name: "Speech Therapy", type: "Therapy" },
       { id: "2", name: "Occupational Therapy", type: "Therapy" },
-      { id: "3", name: "Behavioral Management", type: "Class" },
-      { id: "4", name: "SPED One-on-One", type: "Class" },
+      { id: "3", name: "Physical Therapy", type: "Therapy" },
+      { id: "4", name: "Behavioral Management", type: "Class" },
+      { id: "5", name: "SPED One-on-One", type: "Class" },
     ]);
 
     setTeachers([
@@ -45,56 +47,97 @@ export default function Step9ServiceEnrollment({ data, onChange }) {
         lastName: "Lee",
         specializations: ["Occupational Therapy", "Speech Therapy"],
       },
+      {
+        uid: "th3",
+        firstName: "Dr. Sarah",
+        lastName: "Johnson",
+        specializations: ["Physical Therapy"],
+      },
     ]);
 
-    // Initialize with existing data if any
-    if (data.assignedServices) {
-      setSelectedServices(data.assignedServices);
-    }
-  }, [data.assignedServices]);
+    if (data.oneOnOneServices) setOneOnOneServices(data.oneOnOneServices);
+    if (data.groupClassServices) setGroupClassServices(data.groupClassServices);
+  }, [data.oneOnOneServices, data.groupClassServices]);
 
-  const handleToggleService = (service) => {
-    const exists = selectedServices.find((s) => s.serviceId === service.id);
-
-    if (exists) {
-      // Remove service
-      const updated = selectedServices.filter(
-        (s) => s.serviceId !== service.id
-      );
-      setSelectedServices(updated);
-      onChange("assignedServices", updated);
+  // Generic handlers updated to accept "category" (oneOnOne vs groupClass)
+  const handleAddService = (category) => {
+    const newService = {
+      serviceId: "",
+      serviceName: "",
+      serviceType: "",
+      staffId: "",
+      staffName: "",
+    };
+    if (category === "oneOnOne") {
+      const updated = [...oneOnOneServices, newService];
+      setOneOnOneServices(updated);
+      onChange("oneOnOneServices", updated);
     } else {
-      // Add service with auto-assigned staff
-      const isTherapy = service.type === "Therapy";
-      const staffList = isTherapy ? therapists : teachers;
-      const qualified = staffList.find((staff) =>
-        staff.specializations?.includes(service.name)
-      );
-
-      const newService = {
-        serviceId: service.id,
-        serviceName: service.name,
-        serviceType: service.type,
-        staffId: qualified?.uid || "",
-        staffName: qualified
-          ? `${qualified.firstName} ${qualified.lastName}`
-          : "",
-      };
-
-      const updated = [...selectedServices, newService];
-      setSelectedServices(updated);
-      onChange("assignedServices", updated);
+      const updated = [...groupClassServices, newService];
+      setGroupClassServices(updated);
+      onChange("groupClassServices", updated);
     }
   };
 
-  const handleStaffChange = (serviceId, staffId) => {
-    const service = selectedServices.find((s) => s.serviceId === serviceId);
+  const handleRemoveService = (category, index) => {
+    const list =
+      category === "oneOnOne" ? oneOnOneServices : groupClassServices;
+    const updated = list.filter((_, i) => i !== index);
+
+    if (category === "oneOnOne") {
+      setOneOnOneServices(updated);
+      onChange("oneOnOneServices", updated);
+    } else {
+      setGroupClassServices(updated);
+      onChange("groupClassServices", updated);
+    }
+  };
+
+  const handleServiceChange = (category, index, serviceId) => {
+    const service = services.find((s) => s.id === serviceId);
+    if (!service) return;
+
+    const isTherapy = service.type === "Therapy";
+    const staffList = isTherapy ? therapists : teachers;
+    const qualified = staffList.find((staff) =>
+      staff.specializations?.includes(service.name)
+    );
+
+    const list =
+      category === "oneOnOne" ? oneOnOneServices : groupClassServices;
+    const updated = list.map((s, i) =>
+      i === index
+        ? {
+            serviceId: service.id,
+            serviceName: service.name,
+            serviceType: service.type,
+            staffId: qualified?.uid || "",
+            staffName: qualified
+              ? `${qualified.firstName} ${qualified.lastName}`
+              : "",
+          }
+        : s
+    );
+
+    if (category === "oneOnOne") {
+      setOneOnOneServices(updated);
+      onChange("oneOnOneServices", updated);
+    } else {
+      setGroupClassServices(updated);
+      onChange("groupClassServices", updated);
+    }
+  };
+
+  const handleStaffChange = (category, index, staffId) => {
+    const list =
+      category === "oneOnOne" ? oneOnOneServices : groupClassServices;
+    const service = list[index];
     const isTherapy = service.serviceType === "Therapy";
     const staffList = isTherapy ? therapists : teachers;
     const staff = staffList.find((s) => s.uid === staffId);
 
-    const updated = selectedServices.map((s) =>
-      s.serviceId === serviceId
+    const updated = list.map((s, i) =>
+      i === index
         ? {
             ...s,
             staffId: staff?.uid || "",
@@ -103,209 +146,218 @@ export default function Step9ServiceEnrollment({ data, onChange }) {
         : s
     );
 
-    setSelectedServices(updated);
-    onChange("assignedServices", updated);
+    if (category === "oneOnOne") {
+      setOneOnOneServices(updated);
+      onChange("oneOnOneServices", updated);
+    } else {
+      setGroupClassServices(updated);
+      onChange("groupClassServices", updated);
+    }
   };
 
   const getQualifiedStaff = (serviceName, serviceType) => {
+    if (!serviceName || !serviceType) return [];
     const staffList = serviceType === "Therapy" ? therapists : teachers;
     return staffList.filter((staff) =>
       staff.specializations?.includes(serviceName)
     );
   };
 
-  return (
-    <div className="form-section">
-      <h3>IX. SERVICE ENROLLMENT</h3>
-      <p style={{ color: "#64748b", marginBottom: "20px" }}>
-        Select services for this student and assign qualified staff members.
-      </p>
+  // Styles from your original code
+  const selectStyles = {
+    width: "100%",
+    padding: "10px 35px 10px 12px",
+    fontSize: "0.95rem",
+    fontFamily: "inherit",
+    color: "#1e293b",
+    backgroundColor: "#ffffff",
+    border: "1px solid #cbd5e1",
+    borderRadius: "6px",
+    outline: "none",
+    cursor: "pointer",
+    appearance: "none",
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "right 12px center",
+  };
+  const selectDisabledStyles = {
+    ...selectStyles,
+    backgroundColor: "#f1f5f9",
+    color: "#94a3b8",
+    cursor: "not-allowed",
+    opacity: 0.6,
+  };
+  const selectErrorStyles = {
+    ...selectStyles,
+    borderColor: "#ef4444",
+    backgroundColor: "#fef2f2",
+  };
+  const selectSuccessStyles = { ...selectStyles, borderColor: "#10b981" };
 
-      {/* Available Services */}
-      <div className="service-selection-container">
-        <h4 style={{ marginBottom: "15px", color: "#334155" }}>
-          Available Services
-        </h4>
-
-        <div className="services-grid">
-          {services.map((service) => {
-            const isSelected = selectedServices.some(
-              (s) => s.serviceId === service.id
-            );
-
-            return (
-              <div
-                key={service.id}
-                className={`service-card ${isSelected ? "selected" : ""}`}
-                onClick={() => handleToggleService(service)}
-                style={{
-                  padding: "15px",
-                  border: isSelected
-                    ? "2px solid #3b82f6"
-                    : "2px solid #e2e8f0",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  backgroundColor: isSelected ? "#eff6ff" : "#fff",
-                  transition: "all 0.2s",
-                }}
-              >
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "10px" }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => {}}
-                    style={{ width: "18px", height: "18px" }}
-                  />
-                  <div>
-                    <div style={{ fontWeight: "600", color: "#1e293b" }}>
-                      {service.name}
-                    </div>
-                    <div style={{ fontSize: "0.85rem", color: "#64748b" }}>
-                      {service.type}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Selected Services with Staff Assignment */}
-      {selectedServices.length > 0 && (
-        <div
-          className="assigned-services-container"
-          style={{ marginTop: "30px" }}
-        >
-          <h4 style={{ marginBottom: "15px", color: "#334155" }}>
-            Assigned Services & Staff
-          </h4>
-
-          <div className="assigned-services-list">
-            {selectedServices.map((service, index) => {
-              const qualifiedStaff = getQualifiedStaff(
-                service.serviceName,
-                service.serviceType
-              );
-
-              return (
-                <div
-                  key={service.serviceId}
-                  className="assigned-service-row"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "15px",
-                    padding: "15px",
-                    backgroundColor: "#f8fafc",
-                    borderRadius: "8px",
-                    marginBottom: "10px",
-                    border: "1px solid #e2e8f0",
-                  }}
-                >
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: "600", color: "#1e293b" }}>
-                      {service.serviceName}
-                    </div>
-                    <div style={{ fontSize: "0.85rem", color: "#64748b" }}>
-                      {service.serviceType}
-                    </div>
-                  </div>
-
-                  <div style={{ flex: 2 }}>
-                    <label
-                      style={{
-                        fontSize: "0.85rem",
-                        color: "#64748b",
-                        display: "block",
-                        marginBottom: "5px",
-                      }}
-                    >
-                      Assign{" "}
-                      {service.serviceType === "Therapy"
-                        ? "Therapist"
-                        : "Teacher"}
-                    </label>
-                    <select
-                      value={service.staffId}
-                      onChange={(e) =>
-                        handleStaffChange(service.serviceId, e.target.value)
-                      }
-                      style={{
-                        width: "100%",
-                        padding: "8px 12px",
-                        borderRadius: "6px",
-                        border: "1px solid #cbd5e1",
-                      }}
-                    >
-                      <option value="">
-                        Select{" "}
-                        {service.serviceType === "Therapy"
-                          ? "Therapist"
-                          : "Teacher"}
-                      </option>
-                      {qualifiedStaff.map((staff) => (
-                        <option key={staff.uid} value={staff.uid}>
-                          {staff.firstName} {staff.lastName}
-                        </option>
-                      ))}
-                    </select>
-
-                    {qualifiedStaff.length === 0 && (
-                      <p
-                        style={{
-                          fontSize: "0.75rem",
-                          color: "#ef4444",
-                          marginTop: "5px",
-                        }}
-                      >
-                        ⚠️ No qualified staff available for this service
-                      </p>
-                    )}
-                  </div>
-
-                  <button
-                    type="button"
-                    className="remove-entry-btn"
-                    onClick={() =>
-                      handleToggleService({
-                        id: service.serviceId,
-                        name: service.serviceName,
-                        type: service.serviceType,
-                      })
-                    }
-                    style={{
-                      padding: "8px 12px",
-                      backgroundColor: "#fee2e2",
-                      color: "#dc2626",
-                      border: "none",
-                      borderRadius: "6px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Remove
-                  </button>
-                </div>
-              );
-            })}
-          </div>
+  // Helper to render the table rows to avoid code duplication
+  const renderRows = (list, category) => (
+    <>
+      {list.length > 0 && (
+        <div className="assessment-tools-header">
+          <label>Service</label>
+          <label>Assigned Staff</label>
         </div>
       )}
+      {list.map((service, index) => {
+        const qualifiedStaff = getQualifiedStaff(
+          service.serviceName,
+          service.serviceType
+        );
+        const hasError = service.serviceId && qualifiedStaff.length === 0;
+        return (
+          <div
+            className="assessment-tool-row"
+            key={`${category}-${index}`}
+            style={{
+              alignItems: "center",
+            }}
+          >
+            <div className="assessment-tool-field">
+              <select
+                value={service.serviceId}
+                onChange={(e) =>
+                  handleServiceChange(category, index, e.target.value)
+                }
+                style={
+                  service.serviceId && !hasError
+                    ? selectSuccessStyles
+                    : selectStyles
+                }
+              >
+                <option value="">-- Select Service --</option>
+                {services.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name} ({s.type})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="assessment-tool-field">
+              <select
+                value={service.staffId}
+                onChange={(e) =>
+                  handleStaffChange(category, index, e.target.value)
+                }
+                disabled={!service.serviceId}
+                style={
+                  !service.serviceId
+                    ? selectDisabledStyles
+                    : hasError
+                    ? selectErrorStyles
+                    : service.staffId
+                    ? selectSuccessStyles
+                    : selectStyles
+                }
+              >
+                <option value="">
+                  -- Select{" "}
+                  {service.serviceType === "Therapy" ? "Therapist" : "Teacher"}{" "}
+                  --
+                </option>
+                {qualifiedStaff.map((staff) => (
+                  <option key={staff.uid} value={staff.uid}>
+                    {staff.firstName} {staff.lastName}
+                  </option>
+                ))}
+              </select>
+              {hasError && (
+                <small
+                  style={{
+                    color: "#ef4444",
+                    fontSize: "0.75rem",
+                    marginTop: "5px",
+                    display: "block",
+                  }}
+                >
+                  ⚠️ No qualified staff available
+                </small>
+              )}
+            </div>
+            <button
+              type="button"
+              className="remove-entry-btn"
+              onClick={() => handleRemoveService(category, index)}
+            >
+              ✕
+            </button>
+          </div>
+        );
+      })}
+    </>
+  );
 
-      {selectedServices.length === 0 && (
+  return (
+    <div className="form-section">
+      <h3>IX. ENROLLMENT</h3>
+      <p
+        style={{ color: "#64748b", marginBottom: "20px", fontSize: "0.95rem" }}
+      >
+        Assign services and their respective teachers or therapists to this
+        student.
+      </p>
+
+      {/* SECTION 1: 1 ON 1 SERVICE */}
+      <div style={{ marginBottom: "30px" }}>
+        <h4
+          style={{ fontSize: "1rem", color: "#334155", marginBottom: "15px" }}
+        >
+          1 ON 1 SERVICE
+        </h4>
+        {renderRows(oneOnOneServices, "oneOnOne")}
+        <button
+          type="button"
+          className="add-point-btn"
+          onClick={() => handleAddService("oneOnOne")}
+        >
+          + Add 1 on 1 Service
+        </button>
+      </div>
+
+      <hr
+        style={{
+          border: "0",
+          borderTop: "1px solid #e2e8f0",
+          margin: "30px 0",
+        }}
+      />
+
+      {/* SECTION 2: GROUP CLASS */}
+      <div style={{ marginBottom: "30px" }}>
+        <h4
+          style={{ fontSize: "1rem", color: "#334155", marginBottom: "15px" }}
+        >
+          GROUP CLASS
+        </h4>
+        {renderRows(groupClassServices, "groupClass")}
+        <button
+          type="button"
+          className="add-point-btn"
+          onClick={() => handleAddService("groupClass")}
+        >
+          + Add Group Class
+        </button>
+      </div>
+
+      {oneOnOneServices.length === 0 && groupClassServices.length === 0 && (
         <div
           style={{
-            padding: "30px",
+            padding: "40px 30px",
             textAlign: "center",
             color: "#94a3b8",
             backgroundColor: "#f8fafc",
             borderRadius: "8px",
-            marginTop: "20px",
+            border: "2px dashed #e2e8f0",
           }}
         >
-          No services selected yet. Please select at least one service above.
+          <div style={{ fontSize: "3rem", marginBottom: "10px", opacity: 0.5 }}>
+            📋
+          </div>
+          <div>No services assigned yet.</div>
         </div>
       )}
     </div>
