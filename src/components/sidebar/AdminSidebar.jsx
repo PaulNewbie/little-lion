@@ -91,16 +91,6 @@ const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
             👥 PLAY GROUP
           </div>
 
-          {/* RESTRICTED: Add Services */}
-          {isSuperAdmin && (
-            <div
-              className={`menu-item ${isActive("/admin/services") ? "active" : ""}`}
-              onClick={() => navigate("/admin/services")}
-            >
-              ➕ ADD SERVICES
-            </div>
-          )}
-
           {/* RESTRICTED: Enroll Students*/}
           {isSuperAdmin && (
             <div
@@ -119,7 +109,7 @@ const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
             className={`menu-item ${isActive("/admin/enroll-child") ? "active" : ""}`}
             onClick={() => navigate("/admin/enroll-child")}
           >
-            ➕ ADD PARENT
+            ➕ PARENT
           </div>
 
           {/* RESTRICTED: Add Admin (Only for Super Admin) */}
@@ -128,7 +118,7 @@ const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
               className={`menu-item ${isActive("/admin/manage-admins") ? "active" : ""}`}
               onClick={() => navigate("/admin/manage-admins")}
             >
-              ➕ ADD ADMIN
+              ➕ ADMIN
             </div>
           )}
 
@@ -136,13 +126,13 @@ const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
             className={`menu-item ${isActive("/admin/manage-teachers") ? "active" : ""}`}
             onClick={() => navigate("/admin/manage-teachers")}
           >
-            ➕ ADD TEACHER
+            ➕ TEACHER
           </div>
           <div
             className={`menu-item ${isActive("/admin/manage-therapists") ? "active" : ""}`}
             onClick={() => navigate("/admin/manage-therapists")}
           >
-            ➕ ADD THERAPIST
+            ➕ THERAPIST
           </div>
           <div
             className={`menu-item ${isActive("/admin/manage-parents") ? "active" : ""}`}
