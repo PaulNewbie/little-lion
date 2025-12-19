@@ -1,16 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
 import childService from "../../services/childService";
-import activityService from "../../services/activityService"; // Import Unified Service
+import activityService from "../../services/activityService";
 import { db } from "../../config/firebase";
 import { collection, getDocs, addDoc } from "firebase/firestore";
 import useManageTherapists from "../../hooks/useManageTherapists";
 import "./css/OneOnOne.css";
 
-/* ================================================================
-   MAIN COMPONENT
-================================================================ */
 const OneOnOne = () => {
   const [level, setLevel] = useState("services");
   const [services, setServices] = useState([]);
@@ -22,6 +19,17 @@ const OneOnOne = () => {
 
   const { therapists } = useManageTherapists();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  /* ===============================
+     CHECK IF COMING BACK FROM STUDENTPROFILE
+  =============================== */
+  useEffect(() => {
+    if (location.state?.returnToService) {
+      setSelectedService(location.state.returnToService);
+      setLevel("students");
+    }
+  }, [location.state]);
 
   /* ===============================
      FETCH SERVICES + STUDENTS
@@ -30,10 +38,9 @@ const OneOnOne = () => {
     try {
       const serviceSnap = await getDocs(collection(db, "services"));
       
-      // FILTER: Exclude any service where type is 'Class'
       const serviceList = serviceSnap.docs
         .map((doc) => ({ id: doc.id, ...doc.data() }))
-        .filter(service => service.type !== 'Class'); // <--- CRITICAL FIX
+        .filter(service => service.type !== 'Class');
 
       const studentList = await childService.getAllChildren();
       setServices(serviceList);
@@ -69,10 +76,8 @@ const OneOnOne = () => {
 
   const handleSelectStudent = async (student) => {
     try {
-      // ✅ UPDATED: Fetch unified activities using the service
       const activities = await activityService.getActivitiesByChild(student.id);
 
-      // Enhance with names
       const enhancedActivities = activities.map((doc) => ({
         ...doc,
         participatingStudentsNames: doc.participatingStudentIds 
@@ -83,14 +88,14 @@ const OneOnOne = () => {
           : [doc.studentName || student.firstName]
       }));
 
-      // Navigate to StudentProfile with One-on-One context
       navigate("/admin/StudentProfile", { 
         state: { 
           student, 
           activities: enhancedActivities, 
           therapists,
-          selectedService, 
-          fromOneOnOne: true // This keeps the sidebar highlight on One-on-One
+          selectedService,
+          selectedServiceFromOneOnOne: selectedService,
+          fromOneOnOne: true
         } 
       });
 
@@ -120,7 +125,6 @@ const OneOnOne = () => {
         createdAt: new Date(),
       });
 
-      // Add to local state if not a 'Class'
       if (newService.type !== 'Class') {
         setServices((prev) => [...prev, { id: docRef.id, ...newService }]);
       }
@@ -142,7 +146,7 @@ const OneOnOne = () => {
   =============================== */
   return (
     <div className="ooo-container">
-      <AdminSidebar forceActive="/admin/one-on-one" /> {/* Highlight One-on-One */}
+      <AdminSidebar forceActive="/admin/one-on-one" />
 
       <div className="ooo-main">
 
@@ -242,7 +246,6 @@ const OneOnOne = () => {
                   >
                     <option value="Therapy">Therapy</option>
                     <option value="Assessment">Assessment</option>
-                    {/* Removed 'Class' option from this modal since this is 1:1 view */}
                     <option value="Other">Other</option>
                   </select>
                 </div>
