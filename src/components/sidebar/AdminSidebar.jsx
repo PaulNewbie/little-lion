@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import "./AdminSidebar.css";
 
-const AdminSidebar = () => {
+const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -16,7 +16,11 @@ const AdminSidebar = () => {
     navigate("/login");
   };
 
-  const isActive = (path) => location.pathname === path;
+  // Updated to use forceActive if provided
+  const isActive = (path) => {
+    if (forceActive) return path === forceActive; // <-- NEW LINE
+    return location.pathname === path;
+  };
 
   // Helper to check for super admin
   const isSuperAdmin = currentUser?.role === "super_admin";
@@ -61,9 +65,7 @@ const AdminSidebar = () => {
             <div className="role-label">
               {isSuperAdmin ? "SUPER ADMIN" : "ADMINISTRATOR"}
             </div>
-            <div className="profile-name">
-              {currentUser?.firstName || "Admin"}
-            </div>
+            <div className="profile-name">{currentUser?.firstName || "Admin"}</div>
           </div>
         </div>
 
@@ -71,48 +73,28 @@ const AdminSidebar = () => {
         <div className="menu-section">
           <div className="section-title">MAIN</div>
           <div
-            className={`menu-item ${
-              isActive("/admin/StudentProfile") ? "active" : ""
-            }`}
+            className={`menu-item ${isActive("/admin/StudentProfile") ? "active" : ""}`}
             onClick={() => navigate("/admin/StudentProfile")}
           >
             👤 STUDENT PROFILE
           </div>
           <div
-            className={`menu-item ${
-              isActive("/admin/one-on-one") ? "active" : ""
-            }`}
+            className={`menu-item ${isActive("/admin/one-on-one") ? "active" : ""}`}
             onClick={() => navigate("/admin/one-on-one")}
           >
             👥 1 : 1 SERVICES
           </div>
           <div
-            className={`menu-item ${
-              isActive("/admin/play-group") ? "active" : ""
-            }`}
+            className={`menu-item ${isActive("/admin/play-group") ? "active" : ""}`}
             onClick={() => navigate("/admin/play-group")}
           >
             👥 PLAY GROUP
           </div>
 
-          {/* RESTRICTED: Add Services */}
-          {isSuperAdmin && (
-            <div
-              className={`menu-item ${
-                isActive("/admin/services") ? "active" : ""
-              }`}
-              onClick={() => navigate("/admin/services")}
-            >
-              ➕ ADD SERVICES
-            </div>
-          )}
-
           {/* RESTRICTED: Enroll Students*/}
           {isSuperAdmin && (
             <div
-              className={`menu-item ${
-                isActive("/admin/enrollment") ? "active" : ""
-              }`}
+              className={`menu-item ${isActive("/admin/enrollment") ? "active" : ""}`}
               onClick={() => navigate("/admin/enrollment")}
             >
               ➕ ENROLL STUDENT
@@ -124,51 +106,42 @@ const AdminSidebar = () => {
         <div className="menu-section">
           <div className="section-title">USER MANAGEMENT</div>
           <div
-            className={`menu-item ${
-              isActive("/admin/enroll-child") ? "active" : ""
-            }`}
+            className={`menu-item ${isActive("/admin/enroll-child") ? "active" : ""}`}
             onClick={() => navigate("/admin/enroll-child")}
           >
-            ➕ ADD PARENT
+            ➕ PARENT
           </div>
 
           {/* RESTRICTED: Add Admin (Only for Super Admin) */}
           {isSuperAdmin && (
             <div
-              className={`menu-item ${
-                isActive("/admin/manage-admins") ? "active" : ""
-              }`}
+              className={`menu-item ${isActive("/admin/manage-admins") ? "active" : ""}`}
               onClick={() => navigate("/admin/manage-admins")}
             >
-              ➕ ADD ADMIN
+              ➕ ADMIN
             </div>
           )}
 
           <div
-            className={`menu-item ${
-              isActive("/admin/manage-teachers") ? "active" : ""
-            }`}
+            className={`menu-item ${isActive("/admin/manage-teachers") ? "active" : ""}`}
             onClick={() => navigate("/admin/manage-teachers")}
           >
-            ➕ ADD TEACHER
+            ➕ TEACHER
           </div>
           <div
-            className={`menu-item ${
-              isActive("/admin/manage-therapists") ? "active" : ""
-            }`}
+            className={`menu-item ${isActive("/admin/manage-therapists") ? "active" : ""}`}
             onClick={() => navigate("/admin/manage-therapists")}
           >
-            ➕ ADD THERAPIST
+            ➕ THERAPIST
           </div>
           <div
-            className={`menu-item ${
-              isActive("/admin/manage-parents") ? "active" : ""
-            }`}
+            className={`menu-item ${isActive("/admin/manage-parents") ? "active" : ""}`}
             onClick={() => navigate("/admin/manage-parents")}
           >
             ➕ PARENTS
           </div>
         </div>
+
         <button className="logout-btn" onClick={handleLogout}>
           LOG OUT
         </button>

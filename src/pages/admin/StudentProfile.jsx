@@ -287,7 +287,8 @@ const StudentProfile = () => {
 
   return (
     <div className="ooo-container">
-      <AdminSidebar />
+      {/* Pass forceActive to sidebar if fromOneOnOne */}
+      <AdminSidebar forceActive={fromOneOnOne ? "/admin/one-on-one" : null} />
 
       <div className="ooo-main">
 
@@ -374,7 +375,7 @@ const StudentProfile = () => {
           <div className="profile-wrapper">
             <div className="profile-top">
               <div className="left-group">
-                <span className="back-arrow" onClick={goBack}>←</span>
+                <span className="back-arrow" onClick={goBack}>‹</span>
                 <h2>STUDENT PROFILE</h2>
               </div>
             </div>
@@ -456,7 +457,7 @@ const StudentProfile = () => {
                           onClick={() => setSelectedService(sName)}
                         >
                           <div className="service-left">
-                            <span className="service-icon">🎨</span>
+                            <span className="service-icon">👥</span>
                             {sName}
                           </div>
                           <div>
@@ -472,46 +473,21 @@ const StudentProfile = () => {
                 </div>
               </div>
 
-              <div className="content-section" style={{marginTop: '20px'}}>
-                <h2 className="services-header">
-                  ACTIVITY TRACKER
-                  {selectedService && <span className="tracker-subtitle"> — {selectedService}</span>}
-                </h2>
-
-                <div className="selected-service-info">
-                  {selectedService ? (
-                    (() => {
-                      // UPDATED FILTER: Matches against new serviceName field as well
-                      const filteredActivities = activitiesToDisplay.filter(
-                        (act) =>
-                          (act.serviceName === selectedService) || // New field
-                          (act.serviceType === selectedService) || // Legacy
-                          (act.className === selectedService) ||   // Group
-                          (act.title === selectedService)
-                      );
-
-                      return (
-                        <ActivityCalendarView
-                          activities={filteredActivities}
-                          teachers={therapistsToUse}
-                          selectedServiceName={selectedService}
-                        />
-                      );
-                    })()
-                  ) : (
-                    <div className="empty-calendar-placeholder">
-                      <p>Select a service from the lists above to view its activity calendar.</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
+              {selectedService && (
+                <ActivityCalendarView
+                  activities={activitiesToDisplay.filter(a => a.serviceName === selectedService)}
+                  teachers={therapistsToUse}
+                  selectedServiceName={selectedService}
+                />
+              )}
             </div>
           </div>
         )}
-
-        <div className="Profile-Footer"></div>
       </div>
+
+      <footer className="footer">
+        <p>© 2025 Little Lions Learning & Development Center. All rights reserved.</p>
+      </footer>
     </div>
   );
 };

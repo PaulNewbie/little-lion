@@ -9,68 +9,6 @@ import useManageTherapists from "../../hooks/useManageTherapists";
 import "./css/OneOnOne.css";
 
 /* ================================================================
-   SELECTED SERVICE INFO (MULTIPLE DATES + COLLAPSIBLE)
-================================================================ */
-// const SelectedServiceInfo = ({ records, therapists }) => {
-//   const [openIndex, setOpenIndex] = useState(null);
-//   const toggleIndex = (i) => setOpenIndex(openIndex === i ? null : i);
-//   const getTherapistName = (therapistId) => {
-//     const therapist = therapists.find((t) => t.uid === therapistId);
-//     return therapist ? `${therapist.firstName} ${therapist.lastName}` : "—";
-//   };
-
-//   return (
-//     <div className="service-date-list">
-//       {records.map((rec, i) => {
-//          const isTherapy = rec.type === 'therapy_session';
-
-//          return (
-//           <div key={i} className="service-date-block">
-//             <div className="service-date-header" onClick={() => toggleIndex(i)}>
-//               <span>{rec.date || "No Date"}</span>
-//               <span className="arrow-icon">{openIndex === i ? "▲" : "▼"}</span>
-//             </div>
-//             {openIndex === i && (
-//               <div className="service-info-card">
-//                 <p>
-//                   <span className="label">Therapist:</span>{" "}
-//                   {rec.therapistId ? getTherapistName(rec.therapistId) : (rec.authorName || "—")}
-//                 </p>
-                
-//                 {/* Unified Display for New & Old Data */}
-//                 <p>
-//                   <span className="label">Activity/Title:</span>{" "}
-//                   {rec.title || "—"}
-//                 </p>
-
-//                 {isTherapy ? (
-//                   <>
-//                     <p><span className="label">Notes:</span> {rec.sessionNotes || "—"}</p>
-//                     {rec.strengths && <p><span className="label">Strengths:</span> {rec.strengths}</p>}
-//                     {rec.weaknesses && <p><span className="label">Improvements:</span> {rec.weaknesses}</p>}
-//                     {rec.homeActivities && <p><span className="label">Home Plan:</span> {rec.homeActivities}</p>}
-//                   </>
-//                 ) : (
-//                    <p>
-//                     <span className="label">Description:</span>{" "}
-//                     {rec.activities || rec.description || "—"}
-//                   </p>
-//                 )}
-
-//                 <p>
-//                   <span className="label">Participating Students:</span>{" "}
-//                   {rec.participatingStudentsNames?.join(", ") || "—"}
-//                 </p>
-//               </div>
-//             )}
-//           </div>
-//         );
-//       })}
-//     </div>
-//   );
-// };
-
-/* ================================================================
    MAIN COMPONENT
 ================================================================ */
 const OneOnOne = () => {
@@ -145,14 +83,14 @@ const OneOnOne = () => {
           : [doc.studentName || student.firstName]
       }));
 
-      // Navigate
+      // Navigate to StudentProfile with One-on-One context
       navigate("/admin/StudentProfile", { 
         state: { 
           student, 
           activities: enhancedActivities, 
           therapists,
           selectedService, 
-          fromOneOnOne: true
+          fromOneOnOne: true // This keeps the sidebar highlight on One-on-One
         } 
       });
 
@@ -182,7 +120,7 @@ const OneOnOne = () => {
         createdAt: new Date(),
       });
 
-      // Add to local state (but keep the filter in mind if you add a 'Class' here, though default is Therapy)
+      // Add to local state if not a 'Class'
       if (newService.type !== 'Class') {
         setServices((prev) => [...prev, { id: docRef.id, ...newService }]);
       }
@@ -204,16 +142,22 @@ const OneOnOne = () => {
   =============================== */
   return (
     <div className="ooo-container">
-      <AdminSidebar />
+      <AdminSidebar forceActive="/admin/one-on-one" /> {/* Highlight One-on-One */}
+
       <div className="ooo-main">
 
         {level === "services" && (
           <>
-            <div className="ooo-header"><h1>1 : 1 SERVICES</h1></div>
+            <div className="ooo-header">
+              <div className="000-title">
+                <h1>ONE-ON-ONE SERVICES</h1>
+                <p className="ooo-subtitle">Manage parent accounts and student registration</p>
+              </div>
+            </div>
 
             <div className="ooo-grid">
               <button className="floating-add-btn" onClick={() => setShowAddServiceModal(true)}>
-                Add 1 on 1 Service
+                + ONE-ON-ONE SERVICE
               </button>
 
               {services.map((service) => (
@@ -235,7 +179,7 @@ const OneOnOne = () => {
         {level === "students" && selectedService && (
           <>
             <div className="ooo-header">
-              <span className="back-arrow" onClick={goBack}>←</span>
+              <span className="back-arrow" onClick={goBack}>‹</span>
               <h1 className="service-name">{selectedService.name}</h1>
             </div>
 
@@ -311,8 +255,12 @@ const OneOnOne = () => {
             </div>
           </div>
         )}
-
+        
       </div>
+
+      <footer className="footer">
+        <p>© 2025 Little Lions Learning & Development Center. All rights reserved.</p>
+      </footer>
     </div>
   );
 };
