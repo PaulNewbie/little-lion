@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
@@ -193,6 +193,7 @@ const StudentProfile = () => {
   const activitiesFromOneOnOne = useMemo(() => passedState.activities || [], [passedState.activities]);
   const therapistsFromOneOnOne = passedState.therapists || [];
   const fromOneOnOne = passedState.fromOneOnOne || false;
+  const selectedServiceFromOneOnOne = passedState.selectedService || null;
 
   const [currentLevel, setCurrentLevel] = useState(
     selectedStudentFromOneOnOne ? "student-profile" : "student-list"
@@ -203,9 +204,10 @@ const StudentProfile = () => {
   const [filterType, setFilterType] = useState("all");
   const [loading, setLoading] = useState(true);
   const [selectedService, setSelectedService] = useState(
-    fromOneOnOne && passedState.selectedService ? passedState.selectedService.name : ""
+    fromOneOnOne && selectedServiceFromOneOnOne ? selectedServiceFromOneOnOne.name : ""
   );
   const [studentActivities, setStudentActivities] = useState([]);
+  const calendarRef = useRef(null);
 
   const { teachers, loading: loadingTeachers } = useManageTeachers();
 
@@ -280,6 +282,23 @@ const StudentProfile = () => {
     return matchesSearch && matchesFilter;
   });
 
+  const goBack = () => {
+    if (fromOneOnOne && selectedServiceFromOneOnOne) {
+      // Navigate back to OneOnOne with the service
+      navigate("/admin/one-on-one", {
+        state: {
+          returnToService: selectedServiceFromOneOnOne,
+          level: "students"
+        }
+      });
+    } else {
+      // Go back to student list
+      setCurrentLevel("student-list");
+      setSelectedStudent(null);
+      setSelectedService("");
+    }
+  };
+
   const handleSelectStudent = (student) => {
     setSelectedStudent(student);
     setCurrentLevel("student-profile");
@@ -287,15 +306,12 @@ const StudentProfile = () => {
     setSelectedService("");
   };
 
-  const goBack = () => {
-    if (fromOneOnOne) {
-      navigate(-1); 
-    } else {
-      setSelectedService("");
-      setSelectedStudent(null);
-      setCurrentLevel("student-list");
-      setStudentActivities([]);
-    }
+  const handleServiceClick = (serviceName) => {
+    setSelectedService(serviceName);
+    // Scroll to calendar after state update
+    setTimeout(() => {
+      calendarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   if (loading || loadingTeachers) return <div>Loading...</div>;
@@ -445,7 +461,7 @@ const StudentProfile = () => {
                         <div
                           key={i}
                           className={`service-row clickable ${isSelected ? "active" : ""}`}
-                          onClick={() => setSelectedService(sName)}
+                          onClick={() => handleServiceClick(sName)}
                         >
                           <div className="service-left">
                             <span className="service-icon">🧠</span>
@@ -477,7 +493,7 @@ const StudentProfile = () => {
                         <div
                           key={i}
                           className={`service-row clickable ${isSelected ? "active" : ""}`}
-                          onClick={() => setSelectedService(sName)}
+                          onClick={() => handleServiceClick(sName)}
                         >
                           <div className="service-left">
                             <span className="service-icon">👥</span>
@@ -497,13 +513,13 @@ const StudentProfile = () => {
               </div>
 
               {selectedService && (
-                <ActivityCalendarView
-                  activities={activitiesToDisplay.filter(a => 
-                    a.serviceName === selectedService || a.className === selectedService
-                  )}
-                  teachers={therapistsToUse}
-                  selectedServiceName={selectedService}
-                />
+                <div ref={calendarRef}>
+                  <ActivityCalendarView
+                    activities={activitiesToDisplay.filter(a => a.serviceName === selectedService)}
+                    teachers={therapistsToUse}
+                    selectedServiceName={selectedService}
+                  />
+                </div>
               )}
             </div>
           </div>
