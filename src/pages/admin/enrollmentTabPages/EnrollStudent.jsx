@@ -1,10 +1,12 @@
+// EnrollStudent.jsx
 import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../../components/sidebar/AdminSidebar";
 import EnrollStudentFormModal from "./enrollmentForm/EnrollStudentFormModal";
 import "../css/EnrollStudent.css";
 
-// Firebase parent service
+// Firebase services
 import manageParents from "./enrollmentDatabase/manageParents";
+import manageChildren from "./enrollmentDatabase/manageChildren";
 
 function generatePassword() {
   // 🔐 Password generator: 3 letters + 3 digits (ALL CAPS)
@@ -45,8 +47,9 @@ export default function EnrollStudent() {
     password: generatedPassword,
   });
 
-  // Mock Students
+  // Students from Firebase
   const [allStudents, setAllStudents] = useState([]);
+  const [isLoadingChildren, setIsLoadingChildren] = useState(false);
 
   // --- Handlers ---
   const handleParentSubmit = async (e) => {
@@ -59,7 +62,7 @@ export default function EnrollStudent() {
       setAllParents((prev) => [
         ...prev,
         {
-          id: savedParent.id,
+          id: savedParent.uid,
           firstName: savedParent.firstName,
           middleName: savedParent.middleName,
           lastName: savedParent.lastName,
@@ -73,7 +76,7 @@ export default function EnrollStudent() {
         lastName: "",
         email: "",
         phone: "",
-        password: generatedPassword,
+        password: generatePassword(),
       });
 
       alert("Parent account created successfully!");
@@ -82,7 +85,7 @@ export default function EnrollStudent() {
     }
   };
 
-  //get data from db
+  // Get parents from db
   useEffect(() => {
     const fetchParents = async () => {
       try {
@@ -96,15 +99,37 @@ export default function EnrollStudent() {
     fetchParents();
   }, []);
 
-  const handleEnrollmentSave = (studentData) => {
-    // Add new student linked to selected parent
-    const newStudent = {
-      ...studentData,
-      id: Date.now(),
-      parentId: selectedParent.id,
-    };
-    setAllStudents([...allStudents, newStudent]);
-    setShowEnrollForm(false);
+  // Get students when parent is selected - WITH IMMEDIATE CLEAR
+  useEffect(() => {
+    if (selectedParent) {
+      // ✅ CLEAR IMMEDIATELY when parent changes
+      setAllStudents([]);
+      setIsLoadingChildren(true);
+
+      const fetchChildren = async () => {
+        try {
+          const childrenFromDB = await manageChildren.getChildrenByParent(
+            selectedParent.id
+          );
+          setAllStudents(childrenFromDB);
+        } catch (error) {
+          console.error("Failed to load children");
+        } finally {
+          setIsLoadingChildren(false);
+        }
+      };
+
+      fetchChildren();
+    } else {
+      // Clear when going back to parent list
+      setAllStudents([]);
+      setIsLoadingChildren(false);
+    }
+  }, [selectedParent]);
+
+  const handleEnrollmentSave = (savedChild) => {
+    // Update local state with saved child from Firebase
+    setAllStudents((prev) => [...prev, savedChild]);
   };
 
   const filteredParents = allParents.filter((p) =>
@@ -170,12 +195,20 @@ export default function EnrollStudent() {
               <div className="profile-info">
                 <h3 className="services-header">Family Children</h3>
                 <div className="services-list">
-                  {allStudents
-                    .filter((s) => s.parentId === selectedParent.id)
-                    .map((s) => (
+                  {isLoadingChildren ? (
+                    <p style={{ textAlign: "center", padding: "20px" }}>
+                      Loading children...
+                    </p>
+                  ) : allStudents.length === 0 ? (
+                    <p style={{ textAlign: "center", padding: "20px" }}>
+                      No children enrolled yet
+                    </p>
+                  ) : (
+                    allStudents.map((s) => (
                       <div key={s.id} className="service-row">
                         <div className="service-left">
-                          👶 {s.lastName}, {s.firstName} {s.middleName}
+                          👶 {s.lastName}, {s.firstName}{" "}
+                          {s.nickname ? `"${s.nickname}"` : ""}
                         </div>
                         <div
                           className={`status-badge ${
@@ -185,7 +218,8 @@ export default function EnrollStudent() {
                           {s.status || "ENROLLED"}
                         </div>
                       </div>
-                    ))}
+                    ))
+                  )}
                 </div>
               </div>
             </div>

@@ -91,14 +91,13 @@ export default function EnrollStudentFormModal({
     }));
   };
 
-  const handleSave = async (isDraft) => {
+  const handleSave = async (isFinalized) => {
     setIsSaving(true);
     try {
       // Save to Firebase
       const savedChild = await manageChildren.createChild(selectedParent.id, {
         ...studentInput,
-        status: isDraft ? "DRAFT" : "ENROLLED",
-        isDraft: isDraft,
+        status: isFinalized ? "ENROLLED" : "ASSESSING",
       });
 
       // Update parent component state
@@ -108,13 +107,36 @@ export default function EnrollStudentFormModal({
       onClose();
 
       alert(
-        isDraft ? "Draft saved successfully!" : "Student enrolled successfully!"
+        isFinalized
+          ? "Student enrolled successfully!"
+          : "Student data saved! Status: ASSESSING"
       );
     } catch (error) {
       console.error("Save error:", error);
       alert("Failed to save student. Please try again.");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleNextOrSave = async () => {
+    if (formStep === 9) {
+      // Final step - mark as ENROLLED
+      await handleSave(true);
+    } else {
+      // Not final step - save as ASSESSING and move to next step
+      setIsSaving(true);
+      try {
+        await manageChildren.createChild(selectedParent.id, {
+          ...studentInput,
+          status: "ASSESSING",
+        });
+        setFormStep(formStep + 1);
+      } catch (error) {
+        console.error("Auto-save error:", error);
+      } finally {
+        setIsSaving(false);
+      }
     }
   };
 
@@ -144,7 +166,22 @@ export default function EnrollStudentFormModal({
             </h2>
             <button
               className="close-x-btn"
-              onClick={onClose}
+              onClick={async () => {
+                // Auto-save as ASSESSING when closing
+                setIsSaving(true);
+                try {
+                  await manageChildren.createChild(selectedParent.id, {
+                    ...studentInput,
+                    status: "ASSESSING",
+                  });
+                  onClose();
+                } catch (error) {
+                  console.error("Auto-save on close error:", error);
+                  onClose();
+                } finally {
+                  setIsSaving(false);
+                }
+              }}
               disabled={isSaving}
             >
               ×
@@ -223,14 +260,29 @@ export default function EnrollStudentFormModal({
           <div className="left-actions">
             <button
               className="save-draft-btn"
-              onClick={() => handleSave(true)}
+              onClick={() => handleSave(false)}
               disabled={isSaving}
             >
-              {isSaving ? "Saving..." : "Save Draft"}
+              {isSaving ? "Saving..." : "Save Progress"}
             </button>
             <button
               className="cancel-btn-alt"
-              onClick={onClose}
+              onClick={async () => {
+                // Auto-save as ASSESSING when canceling
+                setIsSaving(true);
+                try {
+                  await manageChildren.createChild(selectedParent.id, {
+                    ...studentInput,
+                    status: "ASSESSING",
+                  });
+                  onClose();
+                } catch (error) {
+                  console.error("Auto-save on cancel error:", error);
+                  onClose();
+                } finally {
+                  setIsSaving(false);
+                }
+              }}
               disabled={isSaving}
             >
               Cancel
@@ -248,13 +300,7 @@ export default function EnrollStudentFormModal({
             )}
             <button
               className="create-btn"
-              onClick={() => {
-                if (formStep === 9) {
-                  handleSave(false); // Final save
-                } else {
-                  setFormStep(formStep + 1);
-                }
-              }}
+              onClick={handleNextOrSave}
               disabled={isSaving}
             >
               {isSaving
