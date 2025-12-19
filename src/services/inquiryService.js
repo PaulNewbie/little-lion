@@ -1,24 +1,24 @@
 import { 
-  collection, 
-  addDoc, 
-  query, 
-  where, 
-  getDocs, 
-  updateDoc, 
-  doc
-  // orderBy is removed to prevent index errors
+  collection, addDoc, query, where, getDocs, updateDoc, doc, arrayUnion 
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 class InquiryService {
-  // 1. Send Inquiry (Parent)
+  // 1. Send Initial Inquiry (Parent)
   async createInquiry(inquiryData) {
     try {
       const docRef = await addDoc(collection(db, 'inquiries'), {
         ...inquiryData,
         status: 'pending',
         createdAt: new Date().toISOString(),
-        reply: null 
+        // Initialize as a thread
+        messages: [{
+          senderId: inquiryData.parentId,
+          senderName: inquiryData.parentName,
+          text: inquiryData.message,
+          timestamp: new Date().toISOString(),
+          type: 'parent'
+        }]
       });
       return docRef.id;
     } catch (error) {
@@ -26,23 +26,26 @@ class InquiryService {
     }
   }
 
-  // 2. Get Inquiries for a Parent (Sorted Client-Side)
-  async getInquiriesByParent(parentId) {
+  // 2. Add a Message to Thread (Used by both Parent and Staff)
+  async addMessageToThread(inquiryId, text, senderInfo, type) {
     try {
-      // FIX: Removed orderBy('createdAt', 'desc') to avoid missing index error
-      const q = query(
-        collection(db, 'inquiries'),
-        where('parentId', '==', parentId)
-      );
+      const inquiryRef = doc(db, 'inquiries', inquiryId);
       
-      const snapshot = await getDocs(q);
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const newMessage = {
+        senderId: senderInfo.id,
+        senderName: senderInfo.name,
+        text: text,
+        timestamp: new Date().toISOString(),
+        type: type // 'parent' or 'staff'
+      };
 
-      // Sort in JavaScript instead
-      return data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      await updateDoc(inquiryRef, {
+        messages: arrayUnion(newMessage),
+        status: type === 'staff' ? 'answered' : 'pending',
+        lastUpdated: new Date().toISOString()
+      });
     } catch (error) {
-      console.error("Error fetching parent inquiries:", error);
-      throw new Error('Failed to fetch inquiries.');
+      throw new Error('Failed to send message: ' + error.message);
     }
   }
 
