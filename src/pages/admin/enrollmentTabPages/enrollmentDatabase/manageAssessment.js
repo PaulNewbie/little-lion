@@ -22,14 +22,11 @@ const manageAssessment = {
       // STEP 5
       behaviorDuringAssessment: data.behaviorDuringAssessment,
 
-      // STEP 6
+      // STEP 6, 7, 8
       assessmentTools: data.assessmentTools,
 
-      // STEP 7
-      assessmentResults: data.assessmentResults,
-
-      // STEP 8
-      recommendations: data.recommendations,
+      // STEP 8: OVERALL SUMMARY
+      assessmentSummary: data.assessmentSummary,
 
       updatedAt: serverTimestamp(),
       createdAt: serverTimestamp(),

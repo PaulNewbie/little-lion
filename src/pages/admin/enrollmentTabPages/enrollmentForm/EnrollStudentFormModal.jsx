@@ -128,9 +128,11 @@ export default function EnrollStudentFormModal({
   const handleSave = async (isFinalized) => {
     setIsSaving(true);
     try {
+      const childId = studentInput.childId || crypto.randomUUID();
+
       // Create/Update assessment (Steps 2-8)
       const assessmentId = await manageAssessment.createOrUpdateAssessment(
-        studentInput.childId || crypto.randomUUID(),
+        childId,
         studentInput
       );
 
@@ -139,6 +141,7 @@ export default function EnrollStudentFormModal({
         selectedParent.id,
         {
           ...studentInput,
+          childId,
           assessmentId,
           status: isFinalized ? "ENROLLED" : "ASSESSING",
         }
@@ -168,32 +171,8 @@ export default function EnrollStudentFormModal({
       // Final step - mark as ENROLLED
       await handleSave(true);
     } else {
-      // Not final step - save as ASSESSING and move to next step
-      setIsSaving(true);
-      try {
-        const childId = studentInput.childId || crypto.randomUUID();
-
-        // Create/Update assessment (Steps 2-8)
-        const assessmentId = await manageAssessment.createOrUpdateAssessment(
-          childId,
-          studentInput
-        );
-
-        // Create/Update child (Step 1 & 9) with assessmentId link
-        await manageChildren.createOrUpdateChild(selectedParent.id, {
-          ...studentInput,
-          childId,
-          assessmentId,
-          status: "ASSESSING",
-        });
-
-        setStudentInput((prev) => ({ ...prev, childId, assessmentId }));
-        setFormStep(formStep + 1);
-      } catch (error) {
-        console.error("Auto-save error:", error);
-      } finally {
-        setIsSaving(false);
-      }
+      // Move to next step without saving
+      setFormStep(formStep + 1);
     }
   };
 
@@ -223,32 +202,7 @@ export default function EnrollStudentFormModal({
             </h2>
             <button
               className="close-x-btn"
-              onClick={async () => {
-                // Auto-save as ASSESSING when closing
-                // setIsSaving(true);
-                try {
-                  const childId = studentInput.childId || crypto.randomUUID();
-
-                  const assessmentId =
-                    await manageAssessment.createOrUpdateAssessment(
-                      childId,
-                      studentInput
-                    );
-
-                  await manageChildren.createOrUpdateChild(selectedParent.id, {
-                    ...studentInput,
-                    childId,
-                    assessmentId,
-                    status: "ASSESSING",
-                  });
-                  onClose();
-                } catch (error) {
-                  console.error("Auto-save on close error:", error);
-                  onClose();
-                } finally {
-                  setIsSaving(false);
-                }
-              }}
+              onClick={onClose}
               disabled={isSaving}
             >
               ×
@@ -334,32 +288,7 @@ export default function EnrollStudentFormModal({
             </button>
             <button
               className="cancel-btn-alt"
-              onClick={async () => {
-                // Auto-save as ASSESSING when canceling
-                // setIsSaving(true);
-                try {
-                  const childId = studentInput.childId || crypto.randomUUID();
-
-                  const assessmentId =
-                    await manageAssessment.createOrUpdateAssessment(
-                      childId,
-                      studentInput
-                    );
-
-                  await manageChildren.createOrUpdateChild(selectedParent.id, {
-                    ...studentInput,
-                    childId,
-                    assessmentId,
-                    status: "ASSESSING",
-                  });
-                  onClose();
-                } catch (error) {
-                  console.error("Auto-save on cancel error:", error);
-                  onClose();
-                } finally {
-                  setIsSaving(false);
-                }
-              }}
+              onClick={onClose}
               disabled={isSaving}
             >
               Cancel
