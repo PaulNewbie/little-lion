@@ -10,6 +10,7 @@ export default function Step2ReasonForReferral({ data, onChange }) {
           value={data.reasonForReferral}
           onChange={(e) => onChange("reasonForReferral", e.target.value)}
           placeholder="Type referral details here..."
+          required
         />
       </div>
     </div>

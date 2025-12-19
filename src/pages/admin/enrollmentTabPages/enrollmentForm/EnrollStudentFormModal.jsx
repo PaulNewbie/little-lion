@@ -1,3 +1,4 @@
+// EnrollStudentFormModal.jsx
 import React, { useState } from "react";
 import "./EnrollStudentFormModal.css";
 import Step1IdentifyingData from "./components/Step1IdentifyingData";
@@ -9,9 +10,16 @@ import Step6AssessmentTools from "./components/Step6AssessmentTools";
 import Step7AssessmentResults from "./components/Step7AssessmentResults";
 import Step8SummaryRecommendations from "./components/Step8SummaryRecommendations";
 import Step9ServiceEnrollment from "./components/Step9ServiceEnrollment";
+import manageChildren from "../enrollmentDatabase/manageChildren";
 
-export default function EnrollStudentFormModal({ show, onClose, onSave }) {
+export default function EnrollStudentFormModal({
+  show,
+  onClose,
+  onSave,
+  selectedParent,
+}) {
   const [formStep, setFormStep] = useState(1);
+  const [isSaving, setIsSaving] = useState(false);
   const [studentInput, setStudentInput] = useState({
     // STEP 1: IDENTIFYING DATA
     firstName: "",
@@ -83,6 +91,33 @@ export default function EnrollStudentFormModal({ show, onClose, onSave }) {
     }));
   };
 
+  const handleSave = async (isDraft) => {
+    setIsSaving(true);
+    try {
+      // Save to Firebase
+      const savedChild = await manageChildren.createChild(selectedParent.id, {
+        ...studentInput,
+        status: isDraft ? "DRAFT" : "ENROLLED",
+        isDraft: isDraft,
+      });
+
+      // Update parent component state
+      onSave(savedChild);
+
+      // Close modal
+      onClose();
+
+      alert(
+        isDraft ? "Draft saved successfully!" : "Student enrolled successfully!"
+      );
+    } catch (error) {
+      console.error("Save error:", error);
+      alert("Failed to save student. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const getStepTitle = () => {
     const titles = {
       1: "I. IDENTIFYING DATA",
@@ -107,7 +142,11 @@ export default function EnrollStudentFormModal({ show, onClose, onSave }) {
             <h2>
               Step {formStep}/9: {getStepTitle()}
             </h2>
-            <button className="close-x-btn" onClick={onClose}>
+            <button
+              className="close-x-btn"
+              onClick={onClose}
+              disabled={isSaving}
+            >
               ×
             </button>
           </div>
@@ -184,11 +223,16 @@ export default function EnrollStudentFormModal({ show, onClose, onSave }) {
           <div className="left-actions">
             <button
               className="save-draft-btn"
-              onClick={() => onSave(studentInput, false)}
+              onClick={() => handleSave(true)}
+              disabled={isSaving}
             >
-              Save Draft
+              {isSaving ? "Saving..." : "Save Draft"}
             </button>
-            <button className="cancel-btn-alt" onClick={onClose}>
+            <button
+              className="cancel-btn-alt"
+              onClick={onClose}
+              disabled={isSaving}
+            >
               Cancel
             </button>
           </div>
@@ -197,6 +241,7 @@ export default function EnrollStudentFormModal({ show, onClose, onSave }) {
               <button
                 className="cancel-btn"
                 onClick={() => setFormStep(formStep - 1)}
+                disabled={isSaving}
               >
                 Back
               </button>
@@ -205,13 +250,18 @@ export default function EnrollStudentFormModal({ show, onClose, onSave }) {
               className="create-btn"
               onClick={() => {
                 if (formStep === 9) {
-                  onSave(studentInput, true); // Final save
+                  handleSave(false); // Final save
                 } else {
                   setFormStep(formStep + 1);
                 }
               }}
+              disabled={isSaving}
             >
-              {formStep === 9 ? "Finalize & Enroll" : "Next Step"}
+              {isSaving
+                ? "Saving..."
+                : formStep === 9
+                ? "Finalize & Enroll"
+                : "Next Step"}
             </button>
           </div>
         </div>

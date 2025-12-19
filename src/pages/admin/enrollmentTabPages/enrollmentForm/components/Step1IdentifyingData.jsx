@@ -1,3 +1,4 @@
+// Step1IdentifyingData.jsx
 import React from "react";
 
 export default function Step1IdentifyingData({ data, onChange }) {
@@ -12,6 +13,7 @@ export default function Step1IdentifyingData({ data, onChange }) {
             value={data.firstName}
             onChange={(e) => onChange("firstName", e.target.value)}
             placeholder="Enter First Name"
+            required
           />
         </div>
         <div className="input-group">
@@ -21,6 +23,7 @@ export default function Step1IdentifyingData({ data, onChange }) {
             value={data.lastName}
             onChange={(e) => onChange("lastName", e.target.value)}
             placeholder="Enter Last Name"
+            required
           />
         </div>
       </div>

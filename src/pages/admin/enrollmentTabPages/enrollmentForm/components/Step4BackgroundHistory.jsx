@@ -59,6 +59,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
             onChange("backgroundHistory", "familyBackground", e.target.value)
           }
           placeholder="Parents, residence, and occupations..."
+          required
         />
       </div>
 
@@ -72,6 +73,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
             onChange("backgroundHistory", "familyRelationships", e.target.value)
           }
           placeholder="Interactions, communication style, and siblings..."
+          required
         />
       </div>
 
@@ -85,6 +87,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
             onChange("backgroundHistory", "dailyLifeActivities", e.target.value)
           }
           placeholder="Independence levels and preferred activities..."
+          required
         />
       </div>
 
@@ -98,6 +101,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
             onChange("backgroundHistory", "medicalHistory", e.target.value)
           }
           placeholder="Dermatitis, allergies, asthma, etc..."
+          required
         />
       </div>
 
@@ -131,6 +135,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
                   onChange={(e) =>
                     handleDevBgChange(index, "devBgTitle", e.target.value)
                   }
+                  required
                 />
               </div>
 
@@ -143,6 +148,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
                   onChange={(e) =>
                     handleDevBgChange(index, "devBgInfo", e.target.value)
                   }
+                  required
                 />
               </div>
             </div>
@@ -164,6 +170,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
             onChange("backgroundHistory", "schoolHistory", e.target.value)
           }
           placeholder="Current and previous school placements..."
+          required
         />
       </div>
 
@@ -177,6 +184,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
             onChange("backgroundHistory", "clinicalDiagnosis", e.target.value)
           }
           placeholder="Diagnosis and support requirements..."
+          required
         />
       </div>
 
@@ -245,6 +253,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
                   newInts[index].frequency = e.target.value;
                   onChange("backgroundHistory", "interventions", newInts);
                 }}
+                required
               />
             </div>
 
@@ -283,6 +292,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
             )
           }
           placeholder="Academic skills and hobbies..."
+          required
         />
       </div>
 
@@ -296,6 +306,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
             onChange("backgroundHistory", "socialSkills", e.target.value)
           }
           placeholder="Peer interaction and behavior regulation..."
+          required
         />
       </div>
     </div>

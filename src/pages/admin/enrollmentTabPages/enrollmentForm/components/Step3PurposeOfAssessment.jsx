@@ -32,6 +32,7 @@ export default function Step3PurposeOfAssessment({ data, onChange }) {
               placeholder="Enter purpose point..."
               value={purpose}
               onChange={(e) => handlePurposeChange(index, e.target.value)}
+              required
             />
             <button
               className="remove-row-btn"

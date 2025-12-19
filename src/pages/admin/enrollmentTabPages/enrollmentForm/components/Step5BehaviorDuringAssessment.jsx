@@ -10,6 +10,7 @@ export default function Step5BehaviorDuringAssessment({ data, onChange }) {
           value={data.behaviorDuringAssessment}
           onChange={(e) => onChange("behaviorDuringAssessment", e.target.value)}
           placeholder="Describe the student's behavior during assessment..."
+          required
         />
       </div>
     </div>

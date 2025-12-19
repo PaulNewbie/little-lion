@@ -38,6 +38,7 @@ export default function Step6AssessmentTools({ data, onChange }) {
               onChange={(e) =>
                 handleAssessmentToolChange(index, "tool", e.target.value)
               }
+              required
             />
           </div>
 

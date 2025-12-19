@@ -21,6 +21,7 @@ export default function Step7AssessmentResults({ data, onChange }) {
               newTools[index].result = e.target.value;
               onChange("assessmentTools", null, newTools);
             }}
+            required
           />
         </div>
       ))}

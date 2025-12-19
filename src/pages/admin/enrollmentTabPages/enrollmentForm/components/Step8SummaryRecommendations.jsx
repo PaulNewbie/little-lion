@@ -14,6 +14,7 @@ export default function Step8SummaryRecommendations({ data, onChange }) {
           placeholder="Enter overall assessment summary..."
           value={data.assessmentSummary}
           onChange={(e) => onChange("assessmentSummary", null, e.target.value)}
+          required
         />
       </div>
 
@@ -34,6 +35,7 @@ export default function Step8SummaryRecommendations({ data, onChange }) {
               newTools[index].recommendation = e.target.value;
               onChange("assessmentTools", null, newTools);
             }}
+            required
           />
         </div>
       ))}
