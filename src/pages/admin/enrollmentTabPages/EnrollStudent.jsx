@@ -149,7 +149,7 @@ export default function EnrollStudent() {
                   <div className="ooo-photo-area">👤</div>
                   <div className="ooo-card-info">
                     <p className="ooo-name">
-                      {p.lastName}, {p.firstName},{" "}
+                      {p.lastName}, {p.firstName}{" "}
                       {p.middleName ? p.middleName[0] + "." : ""}
                     </p>
                   </div>
