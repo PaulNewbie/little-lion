@@ -20,24 +20,39 @@ export default function EnrollStudentFormModal({
 }) {
   const [formStep, setFormStep] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Helper to get today's date in YYYY-MM-DD format
+  const getTodayDate = () => new Date().toISOString().split("T")[0];
+
   const [studentInput, setStudentInput] = useState({
-    // STEP 1: IDENTIFYING DATA
+    // STEP 1: IDENTIFYING DATA (Matches your JSON Step 1)
     firstName: "",
+    middleName: "",
     lastName: "",
     nickname: "",
-    address: "",
     dateOfBirth: "",
-    age: "",
     gender: "",
+    relationshipToClient: "biological child",
+    photoUrl: "",
+    active: true,
+    address: "",
     school: "",
     gradeLevel: "",
-    assessmentDate: "",
+    assessmentDates: getTodayDate(), // Changed from assessmentDate to match JSON
     examiner: "",
-    relationshipToClient: "biological child",
+    ageAtAssessment: "", // Changed from age to match JSON
 
-    // STEP 2-8: ASSESSMENT CONTENT
+    // STEP 9 DATA (Moved to top as per your request)
+    services: [], // Array of objects: { serviceId, serviceName, teacherId, teacherName }
+    classes: [], // Array of objects: { classId, className, teacherId, teacherName }
+
+    // STEP 2: REASON FOR REFERRAL
     reasonForReferral: "",
-    purposeOfAssessment: [""],
+
+    // STEP 3: PURPOSE OF ASSESSMENT
+    purposeOfAssessment: [], // Array of strings
+
+    // STEP 4: BACKGROUND HISTORY
     backgroundHistory: {
       familyBackground: "",
       familyRelationships: "",
@@ -46,12 +61,25 @@ export default function EnrollStudentFormModal({
       developmentalBackground: [{ devBgTitle: "", devBgInfo: "" }],
       schoolHistory: "",
       clinicalDiagnosis: "",
-      interventions: [],
+      interventions: [], // Array of objects: { type, frequency }
       strengthsAndInterests: "",
       socialSkills: "",
     },
+
+    // STEP 5: BEHAVIOR DURING ASSESSMENT
     behaviorDuringAssessment: "",
-    assessmentTools: [{ tool: "", details: "" }],
+
+    // STEPS 6, 7, 8: ASSESSMENT TOOLS, RESULTS, & SUMMARY
+    assessmentTools: [
+      {
+        tool: "",
+        details: "",
+        result: "",
+        assessmentSummary: "",
+      },
+    ],
+
+    // These fields are often kept for easier form binding in Step 7/8
     assessmentResults: {
       cognitive: "",
       communication: "",
@@ -59,7 +87,6 @@ export default function EnrollStudentFormModal({
       adaptiveBehavior: "",
       motorDevelopment: "",
     },
-    assessmentSummary: "",
     recommendations: {
       cognitive: "",
       language: "",
@@ -67,15 +94,34 @@ export default function EnrollStudentFormModal({
       adaptive: "",
       motor: "",
     },
-    service: "",
-    assignedTeacherId: "",
-    assignedServices: [],
   });
 
   if (!show) return null;
 
+  //Age Calculator
+  // Add this helper function inside your Modal or a utility file
+  const calculateAge = (dob) => {
+    if (!dob) return "";
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age >= 0 ? age.toString() : "";
+  };
+
+  // Inside your handleInputChange in EnrollStudentFormModal:
   const handleInputChange = (field, value) => {
-    setStudentInput((prev) => ({ ...prev, [field]: value }));
+    setStudentInput((prev) => {
+      const updated = { ...prev, [field]: value };
+      // Auto-calculate age if DOB changes
+      if (field === "dateOfBirth") {
+        updated.ageAtAssessment = calculateAge(value);
+      }
+      return updated;
+    });
   };
 
   const handleNestedChange = (category, field, value) => {
