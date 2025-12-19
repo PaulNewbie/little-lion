@@ -168,7 +168,7 @@ export default function EnrollStudentFormModal({
               className="close-x-btn"
               onClick={async () => {
                 // Auto-save as ASSESSING when closing
-                setIsSaving(true);
+                // setIsSaving(true);
                 try {
                   await manageChildren.createChild(selectedParent.id, {
                     ...studentInput,
@@ -269,7 +269,7 @@ export default function EnrollStudentFormModal({
               className="cancel-btn-alt"
               onClick={async () => {
                 // Auto-save as ASSESSING when canceling
-                setIsSaving(true);
+                // setIsSaving(true);
                 try {
                   await manageChildren.createChild(selectedParent.id, {
                     ...studentInput,
