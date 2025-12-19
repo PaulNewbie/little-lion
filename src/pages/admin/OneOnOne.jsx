@@ -257,10 +257,6 @@ const OneOnOne = () => {
         )}
         
       </div>
-
-      <footer className="footer">
-        <p>© 2025 Little Lions Learning & Development Center. All rights reserved.</p>
-      </footer>
     </div>
   );
 };
