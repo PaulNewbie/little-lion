@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../../components/sidebar/AdminSidebar";
 import EnrollStudentFormModal from "./enrollmentForm/EnrollStudentFormModal";
 import "../css/EnrollStudent.css";
@@ -6,14 +6,28 @@ import "../css/EnrollStudent.css";
 // Firebase parent service
 import manageParents from "./enrollmentDatabase/manageParents";
 
-// Mock initial parents for UI
-const initialParents = [
-  { id: 1, firstName: "Juan", lastName: "Dela Cruz" },
-  { id: 2, firstName: "Maria", lastName: "Santos" },
-];
+function generatePassword() {
+  // 🔐 Password generator: 3 letters + 3 digits (ALL CAPS)
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const digits = "0123456789";
+
+  let password = "";
+
+  for (let i = 0; i < 3; i++) {
+    password += letters[Math.floor(Math.random() * letters.length)];
+  }
+
+  for (let i = 0; i < 3; i++) {
+    password += digits[Math.floor(Math.random() * digits.length)];
+  }
+
+  return password;
+}
+
+const generatedPassword = generatePassword();
 
 export default function EnrollStudent() {
-  const [allParents, setAllParents] = useState(initialParents);
+  const [allParents, setAllParents] = useState([]);
   const [selectedParent, setSelectedParent] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -24,10 +38,11 @@ export default function EnrollStudent() {
   // Form State for Parent
   const [parentInput, setParentInput] = useState({
     firstName: "",
+    middleName: "",
     lastName: "",
     email: "",
     phone: "",
-    password: "ABC-123",
+    password: generatedPassword,
   });
 
   // Mock Students
@@ -44,8 +59,9 @@ export default function EnrollStudent() {
       setAllParents((prev) => [
         ...prev,
         {
-          id: savedParent.uid,
+          id: savedParent.id,
           firstName: savedParent.firstName,
+          middleName: savedParent.middleName,
           lastName: savedParent.lastName,
         },
       ]);
@@ -53,10 +69,11 @@ export default function EnrollStudent() {
       setShowParentForm(false);
       setParentInput({
         firstName: "",
+        middleName: "",
         lastName: "",
         email: "",
         phone: "",
-        password: "ABC-123",
+        password: generatedPassword,
       });
 
       alert("Parent account created successfully!");
@@ -64,6 +81,20 @@ export default function EnrollStudent() {
       alert("Failed to create parent. Check console.");
     }
   };
+
+  //get data from db
+  useEffect(() => {
+    const fetchParents = async () => {
+      try {
+        const parentsFromDB = await manageParents.getParents();
+        setAllParents(parentsFromDB);
+      } catch (error) {
+        console.error("Failed to load parents");
+      }
+    };
+
+    fetchParents();
+  }, []);
 
   const handleEnrollmentSave = (studentData) => {
     // Add new student linked to selected parent
@@ -77,7 +108,7 @@ export default function EnrollStudent() {
   };
 
   const filteredParents = allParents.filter((p) =>
-    `${p.firstName} ${p.lastName}`
+    `${p.firstName} ${p.middleName} ${p.lastName}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
@@ -118,7 +149,8 @@ export default function EnrollStudent() {
                   <div className="ooo-photo-area">👤</div>
                   <div className="ooo-card-info">
                     <p className="ooo-name">
-                      {p.lastName}, {p.firstName}
+                      {p.lastName}, {p.firstName},{" "}
+                      {p.middleName ? p.middleName[0] + "." : ""}
                     </p>
                   </div>
                 </div>
@@ -143,7 +175,7 @@ export default function EnrollStudent() {
                     .map((s) => (
                       <div key={s.id} className="service-row">
                         <div className="service-left">
-                          👶 {s.lastName}, {s.firstName}
+                          👶 {s.lastName}, {s.firstName} {s.middleName}
                         </div>
                         <div
                           className={`status-badge ${
@@ -191,6 +223,20 @@ export default function EnrollStudent() {
                         setParentInput({
                           ...parentInput,
                           firstName: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label>Middle Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={parentInput.middleName}
+                      onChange={(e) =>
+                        setParentInput({
+                          ...parentInput,
+                          middleName: e.target.value,
                         })
                       }
                     />
