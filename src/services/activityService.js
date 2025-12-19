@@ -32,6 +32,8 @@ class ActivityService {
       const docRef = await addDoc(collection(db, 'activities'), {
         ...activityData,
         type: 'group_activity', 
+        createdAt: new Date().toISOString(),
+        type: 'group_activity', 
         createdAt: new Date().toISOString()
       });
       return docRef.id;

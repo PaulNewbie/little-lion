@@ -136,10 +136,33 @@ const ActivityCalendarView = ({ activities, teachers, selectedServiceName }) => 
                     </>
                   )}
 
-                  <p style={{ marginTop: '10px' }}>
-                    <span className="label">Students:</span>{" "}
-                    {rec.participatingStudentsNames?.join(", ") || "—"}
-                  </p>
+                  {rec.photoUrls && rec.photoUrls.length > 0 && (
+                    <div style={{ 
+                      display: 'flex', 
+                      flexWrap: 'wrap', 
+                      gap: '8px', 
+                      marginTop: '10px', 
+                      marginBottom: '10px' 
+                    }}>
+                      {rec.photoUrls.map((url, imgIdx) => (
+                        <img 
+                          className="activity-image-preview"
+                          key={imgIdx} 
+                          src={url} 
+                          alt={`Activity ${imgIdx}`} 
+                          style={{ 
+                            width: '80px', 
+                            height: '80px', 
+                            objectFit: 'cover', 
+                            borderRadius: '6px',
+                            border: '1px solid #e2e8f0',
+                            cursor: 'pointer'
+                          }} 
+                          onClick={() => window.open(url, '_blank')} // Optional: open full image
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -447,7 +470,7 @@ const StudentProfile = () => {
                       <p style={{color:'#888', fontStyle:'italic'}}>No group classes enrolled.</p>
                     )}
                     {groupServices.map((service, i) => {
-                      const sName = service.className || service.serviceName;
+                      const sName = service.className || service.serviceName; // both therapist and class
                       const isSelected = selectedService === sName;
 
                       return (
@@ -475,7 +498,9 @@ const StudentProfile = () => {
 
               {selectedService && (
                 <ActivityCalendarView
-                  activities={activitiesToDisplay.filter(a => a.serviceName === selectedService)}
+                  activities={activitiesToDisplay.filter(a => 
+                    a.serviceName === selectedService || a.className === selectedService
+                  )}
                   teachers={therapistsToUse}
                   selectedServiceName={selectedService}
                 />
