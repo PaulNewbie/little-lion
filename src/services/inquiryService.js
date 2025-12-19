@@ -4,14 +4,14 @@ import {
 import { db } from '../config/firebase';
 
 class InquiryService {
-  // 1. Send Initial Inquiry (Parent)
+  // 1. Send Initial Inquiry (Starts the thread)
   async createInquiry(inquiryData) {
     try {
       const docRef = await addDoc(collection(db, 'inquiries'), {
         ...inquiryData,
-        status: 'pending',
+        status: 'waiting_for_staff',
         createdAt: new Date().toISOString(),
-        // Initialize as a thread
+        lastUpdated: new Date().toISOString(),
         messages: [{
           senderId: inquiryData.parentId,
           senderName: inquiryData.parentName,
@@ -26,22 +26,21 @@ class InquiryService {
     }
   }
 
-  // 2. Add a Message to Thread (Used by both Parent and Staff)
+  // 2. Add Message to Thread (Universal for Parent & Staff)
   async addMessageToThread(inquiryId, text, senderInfo, type) {
     try {
       const inquiryRef = doc(db, 'inquiries', inquiryId);
-      
       const newMessage = {
         senderId: senderInfo.id,
         senderName: senderInfo.name,
         text: text,
         timestamp: new Date().toISOString(),
-        type: type // 'parent' or 'staff'
+        type: type 
       };
 
       await updateDoc(inquiryRef, {
         messages: arrayUnion(newMessage),
-        status: type === 'staff' ? 'answered' : 'pending',
+        status: type === 'staff' ? 'waiting_for_parent' : 'waiting_for_staff',
         lastUpdated: new Date().toISOString()
       });
     } catch (error) {
@@ -49,41 +48,32 @@ class InquiryService {
     }
   }
 
-  // 3. Get Inquiries for Staff (Sorted Client-Side)
-  async getInquiriesByStaff(staffId) {
-    try {
-      // FIX: Removed orderBy('createdAt', 'desc') to avoid missing index error
-      const q = query(
-        collection(db, 'inquiries'),
-        where('targetId', '==', staffId)
-      );
-      
-      const snapshot = await getDocs(q);
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-      // Sort in JavaScript instead
-      return data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    } catch (error) {
-      console.error("Error fetching staff inquiries:", error);
-      throw new Error('Failed to fetch inquiries.');
-    }
-  }
-
-  // 4. Reply to Inquiry (Staff)
-  async replyToInquiry(inquiryId, replyMessage, responderInfo) {
+  // 3. Close Conversation (Teacher/Therapist only)
+  async closeInquiry(inquiryId, closedByName) {
     try {
       const inquiryRef = doc(db, 'inquiries', inquiryId);
       await updateDoc(inquiryRef, {
-        reply: {
-          message: replyMessage,
-          responderName: responderInfo.name,
-          timestamp: new Date().toISOString()
-        },
-        status: 'answered'
+        status: 'closed',
+        closedAt: new Date().toISOString(),
+        closedBy: closedByName
       });
     } catch (error) {
-      throw new Error('Failed to send reply: ' + error.message);
+      throw new Error('Failed to close inquiry: ' + error.message);
     }
+  }
+
+  async getInquiriesByParent(parentId) {
+    const q = query(collection(db, 'inquiries'), where('parentId', '==', parentId));
+    const snapshot = await getDocs(q);
+    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return data.sort((a, b) => new Date(b.lastUpdated || b.createdAt) - new Date(a.lastUpdated || a.createdAt));
+  }
+
+  async getInquiriesByStaff(staffId) {
+    const q = query(collection(db, 'inquiries'), where('targetId', '==', staffId));
+    const snapshot = await getDocs(q);
+    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return data.sort((a, b) => new Date(b.lastUpdated || b.createdAt) - new Date(a.lastUpdated || a.createdAt));
   }
 }
 
