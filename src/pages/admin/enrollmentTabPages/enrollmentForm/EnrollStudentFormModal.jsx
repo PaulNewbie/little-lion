@@ -11,6 +11,7 @@ import Step7AssessmentResults from "./components/Step7AssessmentResults";
 import Step8SummaryRecommendations from "./components/Step8SummaryRecommendations";
 import Step9ServiceEnrollment from "./components/Step9ServiceEnrollment";
 import manageChildren from "../enrollmentDatabase/manageChildren";
+import manageAssessment from "../enrollmentDatabase/manageAssessment";
 
 export default function EnrollStudentFormModal({
   show,
@@ -69,31 +70,18 @@ export default function EnrollStudentFormModal({
     // STEP 5: BEHAVIOR DURING ASSESSMENT
     behaviorDuringAssessment: "",
 
-    // STEPS 6, 7, 8: ASSESSMENT TOOLS, RESULTS, & SUMMARY
+    // STEPS 6, 7, 8: ASSESSMENT TOOLS, RESULTS, RECOMMENDATIONS
     assessmentTools: [
       {
-        tool: "",
-        details: "",
-        result: "",
-        assessmentSummary: "",
+        tool: "", // Step 6: Tool name
+        details: "", // Step 6: Tool details
+        result: "", // Step 7: Assessment result for this tool
+        recommendation: "", // Step 8: Recommendation for this tool
       },
     ],
 
-    // These fields are often kept for easier form binding in Step 7/8
-    assessmentResults: {
-      cognitive: "",
-      communication: "",
-      socioEmotional: "",
-      adaptiveBehavior: "",
-      motorDevelopment: "",
-    },
-    recommendations: {
-      cognitive: "",
-      language: "",
-      socioEmotional: "",
-      adaptive: "",
-      motor: "",
-    },
+    // STEP 8: OVERALL SUMMARY (single input, not per tool)
+    assessmentSummary: "",
   });
 
   if (!show) return null;
@@ -140,11 +128,21 @@ export default function EnrollStudentFormModal({
   const handleSave = async (isFinalized) => {
     setIsSaving(true);
     try {
-      // Save to Firebase
-      const savedChild = await manageChildren.createChild(selectedParent.id, {
-        ...studentInput,
-        status: isFinalized ? "ENROLLED" : "ASSESSING",
-      });
+      // Create/Update assessment (Steps 2-8)
+      const assessmentId = await manageAssessment.createOrUpdateAssessment(
+        studentInput.childId || crypto.randomUUID(),
+        studentInput
+      );
+
+      // Create/Update child (Step 1 & 9) with assessmentId link
+      const savedChild = await manageChildren.createOrUpdateChild(
+        selectedParent.id,
+        {
+          ...studentInput,
+          assessmentId,
+          status: isFinalized ? "ENROLLED" : "ASSESSING",
+        }
+      );
 
       // Update parent component state
       onSave(savedChild);
@@ -173,10 +171,23 @@ export default function EnrollStudentFormModal({
       // Not final step - save as ASSESSING and move to next step
       setIsSaving(true);
       try {
-        await manageChildren.createChild(selectedParent.id, {
+        const childId = studentInput.childId || crypto.randomUUID();
+
+        // Create/Update assessment (Steps 2-8)
+        const assessmentId = await manageAssessment.createOrUpdateAssessment(
+          childId,
+          studentInput
+        );
+
+        // Create/Update child (Step 1 & 9) with assessmentId link
+        await manageChildren.createOrUpdateChild(selectedParent.id, {
           ...studentInput,
+          childId,
+          assessmentId,
           status: "ASSESSING",
         });
+
+        setStudentInput((prev) => ({ ...prev, childId, assessmentId }));
         setFormStep(formStep + 1);
       } catch (error) {
         console.error("Auto-save error:", error);
@@ -216,8 +227,18 @@ export default function EnrollStudentFormModal({
                 // Auto-save as ASSESSING when closing
                 // setIsSaving(true);
                 try {
-                  await manageChildren.createChild(selectedParent.id, {
+                  const childId = studentInput.childId || crypto.randomUUID();
+
+                  const assessmentId =
+                    await manageAssessment.createOrUpdateAssessment(
+                      childId,
+                      studentInput
+                    );
+
+                  await manageChildren.createOrUpdateChild(selectedParent.id, {
                     ...studentInput,
+                    childId,
+                    assessmentId,
                     status: "ASSESSING",
                   });
                   onClose();
@@ -317,8 +338,18 @@ export default function EnrollStudentFormModal({
                 // Auto-save as ASSESSING when canceling
                 // setIsSaving(true);
                 try {
-                  await manageChildren.createChild(selectedParent.id, {
+                  const childId = studentInput.childId || crypto.randomUUID();
+
+                  const assessmentId =
+                    await manageAssessment.createOrUpdateAssessment(
+                      childId,
+                      studentInput
+                    );
+
+                  await manageChildren.createOrUpdateChild(selectedParent.id, {
                     ...studentInput,
+                    childId,
+                    assessmentId,
                     status: "ASSESSING",
                   });
                   onClose();
