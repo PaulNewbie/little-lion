@@ -105,7 +105,7 @@ export default function EnrollStudentFormModal({ show, onClose, onSave }) {
         <div className="modal-header-sticky">
           <div className="modal-header-flex">
             <h2>
-              Step {formStep}/8: {getStepTitle()}
+              Step {formStep}/9: {getStepTitle()}
             </h2>
             <button className="close-x-btn" onClick={onClose}>
               ×

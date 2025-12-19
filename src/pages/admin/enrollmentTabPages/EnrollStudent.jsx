@@ -3,61 +3,75 @@ import AdminSidebar from "../../../components/sidebar/AdminSidebar";
 import EnrollStudentFormModal from "./enrollmentForm/EnrollStudentFormModal";
 import "../css/EnrollStudent.css";
 
-// Initial Mock Data
+// Firebase parent service
+import manageParents from "./enrollmentDatabase/manageParents";
+
+// Mock initial parents for UI
 const initialParents = [
   { id: 1, firstName: "Juan", lastName: "Dela Cruz" },
   { id: 2, firstName: "Maria", lastName: "Santos" },
 ];
 
-const initialStudents = [
-  {
-    id: 101,
-    parentId: 1,
-    firstName: "Mark",
-    lastName: "Dela Cruz",
-    status: "ENROLLED",
-  },
-];
-
 export default function EnrollStudent() {
   const [allParents, setAllParents] = useState(initialParents);
-  const [allStudents, setAllStudents] = useState(initialStudents);
   const [selectedParent, setSelectedParent] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Modals Toggle
+  // Modal Toggle
   const [showParentForm, setShowParentForm] = useState(false);
   const [showEnrollForm, setShowEnrollForm] = useState(false);
 
-  // Form State for Parent (Keeping this simple here, or move to its own file later)
+  // Form State for Parent
   const [parentInput, setParentInput] = useState({
     firstName: "",
     lastName: "",
     email: "",
-    password: "",
+    phone: "",
+    password: "ABC-123",
   });
 
+  // Mock Students
+  const [allStudents, setAllStudents] = useState([]);
+
   // --- Handlers ---
-  const handleParentSubmit = (e) => {
+  const handleParentSubmit = async (e) => {
     e.preventDefault();
-    const newParent = {
-      id: Date.now(),
-      firstName: parentInput.firstName,
-      lastName: parentInput.lastName,
-    };
-    setAllParents([...allParents, newParent]);
-    setShowParentForm(false);
-    setParentInput({ firstName: "", lastName: "", email: "", password: "" });
+
+    try {
+      const savedParent = await manageParents.createParent(parentInput);
+
+      // UI update only
+      setAllParents((prev) => [
+        ...prev,
+        {
+          id: savedParent.uid,
+          firstName: savedParent.firstName,
+          lastName: savedParent.lastName,
+        },
+      ]);
+
+      setShowParentForm(false);
+      setParentInput({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        password: "ABC-123",
+      });
+
+      alert("Parent account created successfully!");
+    } catch (error) {
+      alert("Failed to create parent. Check console.");
+    }
   };
 
   const handleEnrollmentSave = (studentData) => {
-    // This receives the data from the child component (EnrollStudentFormModal)
+    // Add new student linked to selected parent
     const newStudent = {
       ...studentData,
       id: Date.now(),
       parentId: selectedParent.id,
     };
-
     setAllStudents([...allStudents, newStudent]);
     setShowEnrollForm(false);
   };
@@ -91,9 +105,9 @@ export default function EnrollStudent() {
           </div>
         </div>
 
+        {/* PARENT GRID VIEW */}
         <div className="ooo-content-area">
           {!selectedParent ? (
-            /* PARENT GRID VIEW */
             <div className="ooo-grid">
               {filteredParents.map((p) => (
                 <div
@@ -111,7 +125,6 @@ export default function EnrollStudent() {
               ))}
             </div>
           ) : (
-            /* FAMILY DETAIL VIEW */
             <div className="profile-wrapper">
               <div className="profile-top">
                 <span
@@ -133,11 +146,11 @@ export default function EnrollStudent() {
                           👶 {s.lastName}, {s.firstName}
                         </div>
                         <div
-                          className={`status-badge ${s.status
-                            .toLowerCase()
-                            .replace(" ", "-")}`}
+                          className={`status-badge ${
+                            s.status?.toLowerCase() || "enrolled"
+                          }`}
                         >
-                          {s.status}
+                          {s.status || "ENROLLED"}
                         </div>
                       </div>
                     ))}
@@ -147,7 +160,7 @@ export default function EnrollStudent() {
           )}
         </div>
 
-        {/* FLOATING ACTION BUTTONS */}
+        {/* FLOATING ACTION BUTTON */}
         {!selectedParent ? (
           <button
             className="add-fab secondary-fab"
@@ -161,15 +174,7 @@ export default function EnrollStudent() {
           </button>
         )}
 
-        {/* COMPONENTIZED ENROLLMENT MODAL */}
-        <EnrollStudentFormModal
-          show={showEnrollForm}
-          onClose={() => setShowEnrollForm(false)}
-          selectedParent={selectedParent}
-          onSave={handleEnrollmentSave}
-        />
-
-        {/* NEW PARENT ACCOUNT MODAL (Inline for now) */}
+        {/* NEW PARENT ACCOUNT MODAL */}
         {showParentForm && (
           <div className="modalOverlay">
             <div className="modal">
@@ -217,9 +222,20 @@ export default function EnrollStudent() {
                   />
                 </div>
                 <div className="input-group">
+                  <label>Phone Number</label>
+                  <input
+                    type="text"
+                    required
+                    value={parentInput.phone}
+                    onChange={(e) =>
+                      setParentInput({ ...parentInput, phone: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="input-group">
                   <label>Password</label>
                   <input
-                    type="password"
+                    type="text"
                     required
                     value={parentInput.password}
                     onChange={(e) =>
@@ -245,6 +261,16 @@ export default function EnrollStudent() {
               </form>
             </div>
           </div>
+        )}
+
+        {/* ENROLL STUDENT MODAL */}
+        {selectedParent && (
+          <EnrollStudentFormModal
+            show={showEnrollForm}
+            onClose={() => setShowEnrollForm(false)}
+            selectedParent={selectedParent}
+            onSave={handleEnrollmentSave}
+          />
         )}
       </div>
     </div>
