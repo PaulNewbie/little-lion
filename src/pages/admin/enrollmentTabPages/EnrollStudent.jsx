@@ -1,69 +1,114 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../../components/sidebar/AdminSidebar";
-import EnrollStudentFormModal from "./EnrollStudentFormModal";
+import EnrollStudentFormModal from "./enrollmentForm/EnrollStudentFormModal";
 import "../css/EnrollStudent.css";
 
-// Initial Mock Data
-const initialParents = [
-  { id: 1, firstName: "Juan", lastName: "Dela Cruz" },
-  { id: 2, firstName: "Maria", lastName: "Santos" },
-];
+// Firebase parent service
+import manageParents from "./enrollmentDatabase/manageParents";
 
-const initialStudents = [
-  {
-    id: 101,
-    parentId: 1,
-    firstName: "Mark",
-    lastName: "Dela Cruz",
-    status: "ENROLLED",
-  },
-];
+function generatePassword() {
+  // 🔐 Password generator: 3 letters + 3 digits (ALL CAPS)
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const digits = "0123456789";
+
+  let password = "";
+
+  for (let i = 0; i < 3; i++) {
+    password += letters[Math.floor(Math.random() * letters.length)];
+  }
+
+  for (let i = 0; i < 3; i++) {
+    password += digits[Math.floor(Math.random() * digits.length)];
+  }
+
+  return password;
+}
+
+const generatedPassword = generatePassword();
 
 export default function EnrollStudent() {
-  const [allParents, setAllParents] = useState(initialParents);
-  const [allStudents, setAllStudents] = useState(initialStudents);
+  const [allParents, setAllParents] = useState([]);
   const [selectedParent, setSelectedParent] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Modals Toggle
+  // Modal Toggle
   const [showParentForm, setShowParentForm] = useState(false);
   const [showEnrollForm, setShowEnrollForm] = useState(false);
 
-  // Form State for Parent (Keeping this simple here, or move to its own file later)
+  // Form State for Parent
   const [parentInput, setParentInput] = useState({
     firstName: "",
+    middleName: "",
     lastName: "",
     email: "",
-    password: "",
+    phone: "",
+    password: generatedPassword,
   });
 
+  // Mock Students
+  const [allStudents, setAllStudents] = useState([]);
+
   // --- Handlers ---
-  const handleParentSubmit = (e) => {
+  const handleParentSubmit = async (e) => {
     e.preventDefault();
-    const newParent = {
-      id: Date.now(),
-      firstName: parentInput.firstName,
-      lastName: parentInput.lastName,
-    };
-    setAllParents([...allParents, newParent]);
-    setShowParentForm(false);
-    setParentInput({ firstName: "", lastName: "", email: "", password: "" });
+
+    try {
+      const savedParent = await manageParents.createParent(parentInput);
+
+      // UI update only
+      setAllParents((prev) => [
+        ...prev,
+        {
+          id: savedParent.id,
+          firstName: savedParent.firstName,
+          middleName: savedParent.middleName,
+          lastName: savedParent.lastName,
+        },
+      ]);
+
+      setShowParentForm(false);
+      setParentInput({
+        firstName: "",
+        middleName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        password: generatedPassword,
+      });
+
+      alert("Parent account created successfully!");
+    } catch (error) {
+      alert("Failed to create parent. Check console.");
+    }
   };
 
+  //get data from db
+  useEffect(() => {
+    const fetchParents = async () => {
+      try {
+        const parentsFromDB = await manageParents.getParents();
+        setAllParents(parentsFromDB);
+      } catch (error) {
+        console.error("Failed to load parents");
+      }
+    };
+
+    fetchParents();
+  }, []);
+
   const handleEnrollmentSave = (studentData) => {
-    // This receives the data from the child component (EnrollStudentFormModal)
+    // Add new student linked to selected parent
     const newStudent = {
       ...studentData,
       id: Date.now(),
       parentId: selectedParent.id,
     };
-
     setAllStudents([...allStudents, newStudent]);
     setShowEnrollForm(false);
   };
 
   const filteredParents = allParents.filter((p) =>
-    `${p.firstName} ${p.lastName}`
+    `${p.firstName} ${p.middleName} ${p.lastName}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
@@ -91,9 +136,9 @@ export default function EnrollStudent() {
           </div>
         </div>
 
+        {/* PARENT GRID VIEW */}
         <div className="ooo-content-area">
           {!selectedParent ? (
-            /* PARENT GRID VIEW */
             <div className="ooo-grid">
               {filteredParents.map((p) => (
                 <div
@@ -104,14 +149,14 @@ export default function EnrollStudent() {
                   <div className="ooo-photo-area">👤</div>
                   <div className="ooo-card-info">
                     <p className="ooo-name">
-                      {p.lastName}, {p.firstName}
+                      {p.lastName}, {p.firstName}{" "}
+                      {p.middleName ? p.middleName[0] + "." : ""}
                     </p>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            /* FAMILY DETAIL VIEW */
             <div className="profile-wrapper">
               <div className="profile-top">
                 <span
@@ -130,14 +175,14 @@ export default function EnrollStudent() {
                     .map((s) => (
                       <div key={s.id} className="service-row">
                         <div className="service-left">
-                          👶 {s.lastName}, {s.firstName}
+                          👶 {s.lastName}, {s.firstName} {s.middleName}
                         </div>
                         <div
-                          className={`status-badge ${s.status
-                            .toLowerCase()
-                            .replace(" ", "-")}`}
+                          className={`status-badge ${
+                            s.status?.toLowerCase() || "enrolled"
+                          }`}
                         >
-                          {s.status}
+                          {s.status || "ENROLLED"}
                         </div>
                       </div>
                     ))}
@@ -147,7 +192,7 @@ export default function EnrollStudent() {
           )}
         </div>
 
-        {/* FLOATING ACTION BUTTONS */}
+        {/* FLOATING ACTION BUTTON */}
         {!selectedParent ? (
           <button
             className="add-fab secondary-fab"
@@ -161,15 +206,7 @@ export default function EnrollStudent() {
           </button>
         )}
 
-        {/* COMPONENTIZED ENROLLMENT MODAL */}
-        <EnrollStudentFormModal
-          show={showEnrollForm}
-          onClose={() => setShowEnrollForm(false)}
-          selectedParent={selectedParent}
-          onSave={handleEnrollmentSave}
-        />
-
-        {/* NEW PARENT ACCOUNT MODAL (Inline for now) */}
+        {/* NEW PARENT ACCOUNT MODAL */}
         {showParentForm && (
           <div className="modalOverlay">
             <div className="modal">
@@ -186,6 +223,20 @@ export default function EnrollStudent() {
                         setParentInput({
                           ...parentInput,
                           firstName: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label>Middle Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={parentInput.middleName}
+                      onChange={(e) =>
+                        setParentInput({
+                          ...parentInput,
+                          middleName: e.target.value,
                         })
                       }
                     />
@@ -217,9 +268,20 @@ export default function EnrollStudent() {
                   />
                 </div>
                 <div className="input-group">
+                  <label>Phone Number</label>
+                  <input
+                    type="text"
+                    required
+                    value={parentInput.phone}
+                    onChange={(e) =>
+                      setParentInput({ ...parentInput, phone: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="input-group">
                   <label>Password</label>
                   <input
-                    type="password"
+                    type="text"
                     required
                     value={parentInput.password}
                     onChange={(e) =>
@@ -245,6 +307,16 @@ export default function EnrollStudent() {
               </form>
             </div>
           </div>
+        )}
+
+        {/* ENROLL STUDENT MODAL */}
+        {selectedParent && (
+          <EnrollStudentFormModal
+            show={showEnrollForm}
+            onClose={() => setShowEnrollForm(false)}
+            selectedParent={selectedParent}
+            onSave={handleEnrollmentSave}
+          />
         )}
       </div>
     </div>

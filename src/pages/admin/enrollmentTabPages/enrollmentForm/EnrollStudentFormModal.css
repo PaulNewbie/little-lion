@@ -468,3 +468,35 @@ button {
 .assessment-tool-field input {
   font-weight: 600;
 }
+
+/* Step 7 form */
+/* STEP 7 – Assessment Results (Report Style) */
+.assessment-result-block {
+  margin-bottom: 24px;
+}
+
+.assessment-result-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+
+/* Narrative result field */
+.assessment-result-text {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid #cbd5f5;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  background-color: #ffffff;
+}
+
+/* Remove "input feel" */
+.assessment-result-text:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: none;
+}
