@@ -19,7 +19,7 @@
 ============================================================ */
 .ooo-header {
   background: white;
-  padding: 30px 40px;
+  padding: 40px 40px;
   border-bottom: 1px solid #e0e0e0;
   display: flex;
   justify-content: space-between;
@@ -270,10 +270,11 @@
   gap: 15px;
 }
 
-.back-arrow {
-  font-size: 28px;
+.left-group .back-arrow {
+  font-size: 150px;
   cursor: pointer;
-  color: #4a90e2;
+  color: #636363;
+  margin-bottom: 20px;
   transition: transform 0.2s ease;
 }
 
@@ -286,6 +287,7 @@
   font-weight: 700;
   color: #2c3e50;
   margin: 0;
+  margin-top: 20px;
 }
 
 .profile-3col {
