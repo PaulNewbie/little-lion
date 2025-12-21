@@ -556,3 +556,12 @@
     padding-bottom: 30px;
   }
 }
+
+.activity-image-preview {
+  transition: transform 0.2s;
+}
+
+.activity-image-preview:hover {
+  transform: scale(1.05);
+  z-index: 10;
+}
