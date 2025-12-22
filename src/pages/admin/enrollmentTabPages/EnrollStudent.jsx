@@ -14,7 +14,7 @@ function generatePassword() {
   const digits = "0123456789";
 
   let password = "";
-
+ 
   for (let i = 0; i < 3; i++) {
     password += letters[Math.floor(Math.random() * letters.length)];
   }
