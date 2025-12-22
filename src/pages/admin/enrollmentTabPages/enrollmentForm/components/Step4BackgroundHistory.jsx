@@ -8,6 +8,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
       const services = await readServices.getAllServices();
       console.log("SERVICES FROM FIRESTORE:", services);
       setServiceOptions(services);
+      console.log("hello");
     };
 
     loadServices();
@@ -192,6 +193,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
       </div>
 
       {/* 8. Interventions */}
+      {/* 8. Interventions */}
       <div className="form-section-group input-group">
         <label>Therapies / Interventions</label>
 
@@ -215,6 +217,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
                   marginBottom: "10px",
                 }}
               >
+                {/* Service Dropdown */}
                 <div style={{ flex: 2 }}>
                   <select
                     style={{ width: "100%" }}
@@ -228,7 +231,6 @@ export default function Step4BackgroundHistory({ data, onChange }) {
                     <option value="" disabled>
                       Select 1 on 1 Service
                     </option>
-
                     {serviceOptions
                       .filter((service) => service.type === "Therapy")
                       .map((service) => (
@@ -239,6 +241,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
                   </select>
                 </div>
 
+                {/* Frequency Input */}
                 <div style={{ flex: 1 }}>
                   <input
                     type="text"
@@ -253,16 +256,23 @@ export default function Step4BackgroundHistory({ data, onChange }) {
                   />
                 </div>
 
+                {/* Remove Button */}
                 <button
                   type="button"
                   className="remove-entry-btn"
-                  onClick={() => handleRemoveIntervention(index)}
+                  onClick={() => {
+                    const newInts = data.backgroundHistory.interventions.filter(
+                      (_, i) => i !== index
+                    );
+                    onChange("backgroundHistory", "interventions", newInts);
+                  }}
                 >
                   ✕
                 </button>
               </div>
             ))}
 
+          {/* Add 1 on 1 Service Button */}
           <button
             type="button"
             className="add-point-btn"
@@ -298,6 +308,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
                   marginBottom: "10px",
                 }}
               >
+                {/* Service Dropdown */}
                 <div style={{ flex: 2 }}>
                   <select
                     style={{ width: "100%" }}
@@ -311,7 +322,6 @@ export default function Step4BackgroundHistory({ data, onChange }) {
                     <option value="" disabled>
                       Select Group Class
                     </option>
-
                     {serviceOptions
                       .filter((service) => service.type === "Class")
                       .map((service) => (
@@ -322,6 +332,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
                   </select>
                 </div>
 
+                {/* Frequency Input */}
                 <div style={{ flex: 1 }}>
                   <input
                     type="text"
@@ -336,16 +347,23 @@ export default function Step4BackgroundHistory({ data, onChange }) {
                   />
                 </div>
 
+                {/* Remove Button */}
                 <button
                   type="button"
                   className="remove-entry-btn"
-                  onClick={() => handleRemoveIntervention(index)}
+                  onClick={() => {
+                    const newInts = data.backgroundHistory.interventions.filter(
+                      (_, i) => i !== index
+                    );
+                    onChange("backgroundHistory", "interventions", newInts);
+                  }}
                 >
                   ✕
                 </button>
               </div>
             ))}
 
+          {/* Add Group Class Button */}
           <button
             type="button"
             className="add-point-btn"
