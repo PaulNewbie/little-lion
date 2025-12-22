@@ -39,9 +39,8 @@ class ChildService {
    * @param {string} parentId - The UID of the parent user
    * @returns {Promise<string>} The ID of the newly created child document
    */
-  async enrollChild(childData, parentId) {
+async enrollChild(childData, parentId) {
     try {
-      // Logic for Quick Access Arrays
       const therapistIds = childData.therapyServices?.map(s => s.therapistId).filter(Boolean) || [];
       const teacherIds = childData.groupClasses?.map(s => s.teacherId).filter(Boolean) || [];
 
@@ -66,15 +65,9 @@ class ChildService {
   }
 
   // 2. Get children for a specific parent
-async getChildrenByParentId(parentId) {
+  async getChildrenByParentId(parentId) {
     try {
-      // 🔴 WAS: where('parentIds', 'array-contains', parentId)
-      // ✅ FIX: Change to match the Admin Enrollment tool ('parentId' is a string)
-      const q = query(
-        collection(db, 'children'), 
-        where('parentId', '==', parentId)
-      );
-      
+      const q = query(collection(db, 'children'), where('parentId', '==', parentId));
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
@@ -85,10 +78,8 @@ async getChildrenByParentId(parentId) {
   // 3. Get children enrolled in a specific service (For Teachers)
   async getChildrenByService(serviceType) {
     try {
-      // NOTE: We fetch all and filter client-side because 'services' is an array of objects
       const querySnapshot = await getDocs(collection(db, 'children'));
       const allChildren = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
       return allChildren.filter(child => 
         child.services && child.services.some(s => s.serviceName === serviceType)
       );
@@ -105,12 +96,8 @@ async getChildrenByTeacherId(teacherId) {
         where('teacherIds', 'array-contains', teacherId),
         where('active', '==', true)
       );
-      
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
       throw new Error('Failed to fetch your class students: ' + error.message);
     }
@@ -124,25 +111,17 @@ async getChildrenByTeacherId(teacherId) {
         where('therapistIds', 'array-contains', therapistId),
         where('active', '==', true)
       );
-      
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
       throw new Error('Failed to fetch your therapy students: ' + error.message);
     }
   }
 
-  // 6. Get ALL children
   async getAllChildren() {
     try {
       const querySnapshot = await getDocs(collection(db, 'children'));
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
       throw new Error('Failed to fetch all children: ' + error.message);
     }
@@ -162,6 +141,47 @@ async getChildrenByTeacherId(teacherId) {
       });
     } catch (error) {
       throw new Error('Failed to assign service: ' + error.message);
+    }
+  }
+  
+  async assignTherapyService(childId, serviceData) {
+    try {
+      const childRef = doc(db, 'children', childId);
+      
+      // Updates: Add to therapyServices array AND add therapistId to quick-access list
+      const updates = {
+        therapyServices: arrayUnion(serviceData)
+      };
+
+      if (serviceData.therapistId) {
+        updates.therapistIds = arrayUnion(serviceData.therapistId);
+      }
+
+      await updateDoc(childRef, updates);
+    } catch (error) {
+      throw new Error('Failed to assign therapy: ' + error.message);
+    }
+  }
+
+  /**
+   * Assigns a Group Class
+   */
+  async assignGroupClass(childId, serviceData) {
+    try {
+      const childRef = doc(db, 'children', childId);
+
+      // Updates: Add to groupClasses array AND add teacherId to quick-access list
+      const updates = {
+        groupClasses: arrayUnion(serviceData)
+      };
+
+      if (serviceData.teacherId) {
+        updates.teacherIds = arrayUnion(serviceData.teacherId);
+      }
+
+      await updateDoc(childRef, updates);
+    } catch (error) {
+      throw new Error('Failed to assign class: ' + error.message);
     }
   }
 }
