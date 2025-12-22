@@ -1,15 +1,18 @@
-import React from "react";
-
-const SERVICE_OPTIONS = [
-  "Behavioral Management",
-  "SPED One-on-One",
-  "Occupational Therapy",
-  "Speech Therapy",
-  "Physical Therapy",
-  "Counseling",
-];
+import React, { useEffect, useState } from "react";
+import readServices from "../../enrollmentDatabase/readServices";
 
 export default function Step4BackgroundHistory({ data, onChange }) {
+  const [serviceOptions, setServiceOptions] = useState([]);
+
+  useEffect(() => {
+    const loadServices = async () => {
+      const services = await readServices.getTherapyServices();
+      setServiceOptions(services);
+    };
+
+    loadServices();
+  }, []);
+
   const handleAddDevBg = () => {
     const newList = [
       ...data.backgroundHistory.developmentalBackground,
@@ -192,90 +195,171 @@ export default function Step4BackgroundHistory({ data, onChange }) {
       <div className="form-section-group input-group">
         <label>Therapies / Interventions</label>
 
-        {data.backgroundHistory.interventions.length > 0 && (
-          <div
-            className="intervention-grid-header"
-            style={{
-              display: "flex",
-              gap: "15px",
-              marginBottom: "8px",
-              paddingRight: "45px",
-            }}
-          >
-            <label style={{ flex: 2, fontSize: "0.85rem", color: "#64748b" }}>
-              Type of Service
-            </label>
-            <label style={{ flex: 1, fontSize: "0.85rem", color: "#64748b" }}>
-              Frequency
-            </label>
-          </div>
-        )}
+        {/* ===================== */}
+        {/* 1 ON 1 SERVICES */}
+        {/* ===================== */}
+        <div style={{ marginBottom: "20px" }}>
+          <h4 style={{ fontSize: "0.9rem", marginBottom: "8px" }}>
+            1 on 1 Services
+          </h4>
 
-        {data.backgroundHistory.interventions.map((int, index) => (
-          <div
-            key={index}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "15px",
-              marginBottom: "10px",
-            }}
-          >
-            <div style={{ flex: 2 }}>
-              <select
-                style={{ width: "100%" }}
-                value={int.type}
-                onChange={(e) => {
-                  const newInts = [...data.backgroundHistory.interventions];
-                  newInts[index].type = e.target.value;
-                  onChange("backgroundHistory", "interventions", newInts);
+          {data.backgroundHistory.interventions
+            .filter((int) => int.serviceType === "Therapy")
+            .map((int, index) => (
+              <div
+                key={index}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "15px",
+                  marginBottom: "10px",
                 }}
               >
-                <option value="" disabled>
-                  Select Service
-                </option>
-                {SERVICE_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
-            </div>
+                <div style={{ flex: 2 }}>
+                  <select
+                    style={{ width: "100%" }}
+                    value={int.name}
+                    onChange={(e) => {
+                      const newInts = [...data.backgroundHistory.interventions];
+                      newInts[index].name = e.target.value;
+                      onChange("backgroundHistory", "interventions", newInts);
+                    }}
+                  >
+                    <option value="" disabled>
+                      Select 1 on 1 Service
+                    </option>
 
-            <div style={{ flex: 1 }}>
-              <input
-                type="text"
-                style={{ width: "100%" }}
-                placeholder="e.g. 2x weekly"
-                value={int.frequency}
-                onChange={(e) => {
-                  const newInts = [...data.backgroundHistory.interventions];
-                  newInts[index].frequency = e.target.value;
-                  onChange("backgroundHistory", "interventions", newInts);
+                    {serviceOptions
+                      .filter((service) => service.type === "Therapy")
+                      .map((service) => (
+                        <option key={service.id} value={service.name}>
+                          {service.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div style={{ flex: 1 }}>
+                  <input
+                    type="text"
+                    placeholder="e.g. 2x weekly"
+                    value={int.frequency}
+                    onChange={(e) => {
+                      const newInts = [...data.backgroundHistory.interventions];
+                      newInts[index].frequency = e.target.value;
+                      onChange("backgroundHistory", "interventions", newInts);
+                    }}
+                    required
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className="remove-entry-btn"
+                  onClick={() => handleRemoveIntervention(index)}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+
+          <button
+            type="button"
+            className="add-point-btn"
+            onClick={() => {
+              const newInts = [
+                ...data.backgroundHistory.interventions,
+                { serviceType: "Therapy", name: "", frequency: "" },
+              ];
+              onChange("backgroundHistory", "interventions", newInts);
+            }}
+          >
+            + Add 1 on 1 Service
+          </button>
+        </div>
+
+        {/* ===================== */}
+        {/* GROUP CLASSES */}
+        {/* ===================== */}
+        <div>
+          <h4 style={{ fontSize: "0.9rem", marginBottom: "8px" }}>
+            Group Classes
+          </h4>
+
+          {data.backgroundHistory.interventions
+            .filter((int) => int.serviceType === "Class")
+            .map((int, index) => (
+              <div
+                key={index}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "15px",
+                  marginBottom: "10px",
                 }}
-                required
-              />
-            </div>
+              >
+                <div style={{ flex: 2 }}>
+                  <select
+                    style={{ width: "100%" }}
+                    value={int.name}
+                    onChange={(e) => {
+                      const newInts = [...data.backgroundHistory.interventions];
+                      newInts[index].name = e.target.value;
+                      onChange("backgroundHistory", "interventions", newInts);
+                    }}
+                  >
+                    <option value="" disabled>
+                      Select Group Class
+                    </option>
 
-            <button
-              type="button"
-              className="remove-entry-btn"
-              style={{ padding: "8px", minWidth: "35px" }}
-              onClick={() => handleRemoveIntervention(index)}
-            >
-              ✕
-            </button>
-          </div>
-        ))}
+                    {serviceOptions
+                      .filter((service) => service.type === "Class")
+                      .map((service) => (
+                        <option key={service.id} value={service.name}>
+                          {service.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
 
-        <button
-          className="add-point-btn"
-          type="button"
-          style={{ marginTop: "10px" }}
-          onClick={handleAddIntervention}
-        >
-          + Add Service
-        </button>
+                <div style={{ flex: 1 }}>
+                  <input
+                    type="text"
+                    placeholder="e.g. 2x weekly"
+                    value={int.frequency}
+                    onChange={(e) => {
+                      const newInts = [...data.backgroundHistory.interventions];
+                      newInts[index].frequency = e.target.value;
+                      onChange("backgroundHistory", "interventions", newInts);
+                    }}
+                    required
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className="remove-entry-btn"
+                  onClick={() => handleRemoveIntervention(index)}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+
+          <button
+            type="button"
+            className="add-point-btn"
+            onClick={() => {
+              const newInts = [
+                ...data.backgroundHistory.interventions,
+                { serviceType: "Class", name: "", frequency: "" },
+              ];
+              onChange("backgroundHistory", "interventions", newInts);
+            }}
+          >
+            + Add Group Class
+          </button>
+        </div>
       </div>
 
       {/* 9. Strengths & Interests */}
