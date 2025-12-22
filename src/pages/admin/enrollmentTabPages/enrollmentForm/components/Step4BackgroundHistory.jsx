@@ -37,7 +37,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
   const handleAddInterventionType = (type) => {
     const newInts = [
       ...data.backgroundHistory.interventions,
-      { serviceType: type, name: "", frequency: "" },
+      { serviceType: type, serviceId: "", name: "", frequency: "" },
     ];
     onChange("backgroundHistory", "interventions", newInts);
   };
@@ -52,6 +52,18 @@ export default function Step4BackgroundHistory({ data, onChange }) {
   const handleInterventionChange = (index, field, value) => {
     const newInts = [...data.backgroundHistory.interventions];
     newInts[index] = { ...newInts[index], [field]: value };
+    onChange("backgroundHistory", "interventions", newInts);
+  };
+
+  // --- Handler for service selection (stores both ID and name) ---
+  const handleServiceSelect = (index, serviceId) => {
+    const selectedService = serviceOptions.find((s) => s.id === serviceId);
+    const newInts = [...data.backgroundHistory.interventions];
+    newInts[index] = {
+      ...newInts[index],
+      serviceId: serviceId,
+      name: selectedService ? selectedService.name : "",
+    };
     onChange("backgroundHistory", "interventions", newInts);
   };
 
@@ -77,13 +89,9 @@ export default function Step4BackgroundHistory({ data, onChange }) {
               <div style={{ flex: 2 }}>
                 <select
                   style={{ width: "100%" }}
-                  value={int.name}
+                  value={int.serviceId}
                   onChange={(e) =>
-                    handleInterventionChange(
-                      int.originalIndex,
-                      "name",
-                      e.target.value
-                    )
+                    handleServiceSelect(int.originalIndex, e.target.value)
                   }
                 >
                   <option value="" disabled>
@@ -92,7 +100,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
                   {serviceOptions
                     .filter((service) => service.type === type)
                     .map((service) => (
-                      <option key={service.id} value={service.name}>
+                      <option key={service.id} value={service.id}>
                         {service.name}
                       </option>
                     ))}

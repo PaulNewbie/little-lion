@@ -8,7 +8,7 @@ const readServices = {
     return snapshot.docs.map((doc) => ({
       id: doc.id,
       name: doc.data().name,
-      type: doc.data().type, // 🔴 REQUIRED
+      type: doc.data().type,
     }));
   },
 };
