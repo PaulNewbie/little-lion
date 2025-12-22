@@ -34,15 +34,17 @@ export default function Step4BackgroundHistory({ data, onChange }) {
     onChange("backgroundHistory", "developmentalBackground", newList);
   };
 
-  const handleAddIntervention = () => {
+  // Add Intervention
+  const handleAddInterventionType = (type) => {
     const newInts = [
       ...data.backgroundHistory.interventions,
-      { type: "", frequency: "" },
+      { serviceType: type, name: "", frequency: "" },
     ];
     onChange("backgroundHistory", "interventions", newInts);
   };
 
-  const handleRemoveIntervention = (index) => {
+  // Remove Intervention
+  const handleRemoveInterventionType = (index) => {
     const newInts = data.backgroundHistory.interventions.filter(
       (_, i) => i !== index
     );
@@ -193,7 +195,6 @@ export default function Step4BackgroundHistory({ data, onChange }) {
       </div>
 
       {/* 8. Interventions */}
-      {/* 8. Interventions */}
       <div className="form-section-group input-group">
         <label>Therapies / Interventions</label>
 
@@ -260,12 +261,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
                 <button
                   type="button"
                   className="remove-entry-btn"
-                  onClick={() => {
-                    const newInts = data.backgroundHistory.interventions.filter(
-                      (_, i) => i !== index
-                    );
-                    onChange("backgroundHistory", "interventions", newInts);
-                  }}
+                  onClick={() => handleRemoveInterventionType(index)}
                 >
                   ✕
                 </button>
@@ -276,13 +272,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
           <button
             type="button"
             className="add-point-btn"
-            onClick={() => {
-              const newInts = [
-                ...data.backgroundHistory.interventions,
-                { serviceType: "Therapy", name: "", frequency: "" },
-              ];
-              onChange("backgroundHistory", "interventions", newInts);
-            }}
+            onClick={() => handleAddInterventionType("Therapy")}
           >
             + Add 1 on 1 Service
           </button>
@@ -351,12 +341,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
                 <button
                   type="button"
                   className="remove-entry-btn"
-                  onClick={() => {
-                    const newInts = data.backgroundHistory.interventions.filter(
-                      (_, i) => i !== index
-                    );
-                    onChange("backgroundHistory", "interventions", newInts);
-                  }}
+                  onClick={() => handleRemoveInterventionType(index)}
                 >
                   ✕
                 </button>
@@ -367,13 +352,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
           <button
             type="button"
             className="add-point-btn"
-            onClick={() => {
-              const newInts = [
-                ...data.backgroundHistory.interventions,
-                { serviceType: "Class", name: "", frequency: "" },
-              ];
-              onChange("backgroundHistory", "interventions", newInts);
-            }}
+            onClick={() => handleAddInterventionType("Class")}
           >
             + Add Group Class
           </button>
