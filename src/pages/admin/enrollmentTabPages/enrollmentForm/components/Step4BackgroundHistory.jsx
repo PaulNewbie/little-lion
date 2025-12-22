@@ -3,10 +3,10 @@ import readServices from "../../enrollmentDatabase/readServices";
 
 export default function Step4BackgroundHistory({ data, onChange }) {
   const [serviceOptions, setServiceOptions] = useState([]);
-
   useEffect(() => {
     const loadServices = async () => {
-      const services = await readServices.getTherapyServices();
+      const services = await readServices.getAllServices();
+      console.log("SERVICES FROM FIRESTORE:", services);
       setServiceOptions(services);
     };
 
