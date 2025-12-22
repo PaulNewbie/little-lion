@@ -66,12 +66,15 @@ class ChildService {
   }
 
   // 2. Get children for a specific parent
-  async getChildrenByParentId(parentId) {
+async getChildrenByParentId(parentId) {
     try {
+      // 🔴 WAS: where('parentIds', 'array-contains', parentId)
+      // ✅ FIX: Change to match the Admin Enrollment tool ('parentId' is a string)
       const q = query(
         collection(db, 'children'), 
-        where('parentIds', 'array-contains', parentId)
+        where('parentId', '==', parentId)
       );
+      
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {

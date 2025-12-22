@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../../components/sidebar/AdminSidebar";
 import EnrollStudentFormModal from "./enrollmentForm/EnrollStudentFormModal";
 import "../css/EnrollStudent.css";
+import authService from "../../../services/authService";
 
 // Firebase services
 import manageParents from "./enrollmentDatabase/manageParents";
@@ -55,20 +56,29 @@ export default function EnrollStudent() {
   const handleParentSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      const savedParent = await manageParents.createParent(parentInput);
+  try {
+      // 1. Separate email and password
+      const { email, password, ...profileData } = parentInput;
 
-      // UI update only
+      // 2. Create the account
+      // ⚠️ PASS 'password' INSIDE THE 3RD ARGUMENT TO STORE IT IN FIRESTORE
+      const user = await authService.createParentAccount(email, password, {
+        ...profileData,
+        password: password // <--- ADD THIS to save it in the database
+      });
+
+      // 3. Update the UI list
       setAllParents((prev) => [
         ...prev,
         {
-          id: savedParent.uid,
-          firstName: savedParent.firstName,
-          middleName: savedParent.middleName,
-          lastName: savedParent.lastName,
+          id: user.uid,
+          firstName: parentInput.firstName,
+          middleName: parentInput.middleName,
+          lastName: parentInput.lastName,
         },
       ]);
 
+      // 4. Reset Form
       setShowParentForm(false);
       setParentInput({
         firstName: "",
@@ -76,12 +86,15 @@ export default function EnrollStudent() {
         lastName: "",
         email: "",
         phone: "",
-        password: generatePassword(),
+        password: generatePassword(), // Generate a NEW password for the next user
       });
 
-      alert("Parent account created successfully!");
+      // 5. Alert the admin with the password just to be sure
+      alert(`Parent account created!\n\nEmail: ${email}\nPassword: ${password}\n\nPlease copy this now.`);
+      
     } catch (error) {
-      alert("Failed to create parent. Check console.");
+      console.error("Creation Error:", error);
+      alert(`Failed to create parent: ${error.message}`);
     }
   };
 
