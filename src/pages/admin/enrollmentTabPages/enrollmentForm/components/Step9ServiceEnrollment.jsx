@@ -1,63 +1,52 @@
 import React, { useState, useEffect } from "react";
+import readUsers from "../../enrollmentDatabase/readUsers";
+import readServices from "../../enrollmentDatabase/readServices";
 
 export default function Step9Enrollment({ data, onChange }) {
   const [services, setServices] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [therapists, setTherapists] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // State split into two parts
   const [oneOnOneServices, setOneOnOneServices] = useState([]);
   const [groupClassServices, setGroupClassServices] = useState([]);
 
   useEffect(() => {
-    // Mock data - Replace with actual API calls
-    setServices([
-      { id: "1", name: "Speech Therapy", type: "Therapy" },
-      { id: "2", name: "Occupational Therapy", type: "Therapy" },
-      { id: "3", name: "Physical Therapy", type: "Therapy" },
-      { id: "4", name: "Behavioral Management", type: "Class" },
-      { id: "5", name: "SPED One-on-One", type: "Class" },
-    ]);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // 1. Fetch all services from DB
+        const allDbServices = await readServices.getAllServices();
 
-    setTeachers([
-      {
-        uid: "t1",
-        firstName: "John",
-        lastName: "Doe",
-        specializations: ["Behavioral Management", "SPED One-on-One"],
-      },
-      {
-        uid: "t2",
-        firstName: "Jane",
-        lastName: "Smith",
-        specializations: ["SPED One-on-One"],
-      },
-    ]);
+        // 2. Get the names of interventions saved in Step 4
+        // Based on your Step 4 code, they are in: data.backgroundHistory.interventions
+        const savedInterventions = data.backgroundHistory?.interventions || [];
+        const savedNames = savedInterventions.map((item) => item.name);
 
-    setTherapists([
-      {
-        uid: "th1",
-        firstName: "Dr. Maria",
-        lastName: "Garcia",
-        specializations: ["Speech Therapy"],
-      },
-      {
-        uid: "th2",
-        firstName: "Dr. Robert",
-        lastName: "Lee",
-        specializations: ["Occupational Therapy", "Speech Therapy"],
-      },
-      {
-        uid: "th3",
-        firstName: "Dr. Sarah",
-        lastName: "Johnson",
-        specializations: ["Physical Therapy"],
-      },
-    ]);
+        // 3. Filter the dropdown options to ONLY show what was saved in Step 4
+        const filtered = allDbServices.filter((service) =>
+          savedNames.includes(service.name)
+        );
+        setServices(filtered);
+
+        // 4. Fetch Staff
+        const allStaff = await readUsers.getAllTeachersTherapists();
+        setTeachers(allStaff.filter((u) => u.role === "Teacher"));
+        setTherapists(allStaff.filter((u) => u.role === "Therapist"));
+      } catch (error) {
+        console.error("Error loading step 9:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
 
     if (data.oneOnOneServices) setOneOnOneServices(data.oneOnOneServices);
     if (data.groupClassServices) setGroupClassServices(data.groupClassServices);
-  }, [data.oneOnOneServices, data.groupClassServices]);
+  }, [data.backgroundHistory.interventions]); // Refetch if Step 4 changes
+
+  // ... rest of your handlers (handleServiceChange, handleStaffChange, etc.)
 
   // Generic handlers updated to accept "category" (oneOnOne vs groupClass)
   const handleAddService = (category) => {
@@ -195,104 +184,111 @@ export default function Step9Enrollment({ data, onChange }) {
   const selectSuccessStyles = { ...selectStyles, borderColor: "#10b981" };
 
   // Helper to render the table rows to avoid code duplication
-  const renderRows = (list, category) => (
-    <>
-      {list.length > 0 && (
-        <div className="assessment-tools-header">
-          <label>Service</label>
-          <label>Assigned Staff</label>
-        </div>
-      )}
-      {list.map((service, index) => {
-        const qualifiedStaff = getQualifiedStaff(
-          service.serviceName,
-          service.serviceType
-        );
-        const hasError = service.serviceId && qualifiedStaff.length === 0;
-        return (
-          <div
-            className="assessment-tool-row"
-            key={`${category}-${index}`}
-            style={{
-              alignItems: "center",
-            }}
-          >
-            <div className="assessment-tool-field">
-              <select
-                value={service.serviceId}
-                onChange={(e) =>
-                  handleServiceChange(category, index, e.target.value)
-                }
-                style={
-                  service.serviceId && !hasError
-                    ? selectSuccessStyles
-                    : selectStyles
-                }
-              >
-                <option value="">-- Select Service --</option>
-                {services.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} ({s.type})
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="assessment-tool-field">
-              <select
-                value={service.staffId}
-                onChange={(e) =>
-                  handleStaffChange(category, index, e.target.value)
-                }
-                disabled={!service.serviceId}
-                style={
-                  !service.serviceId
-                    ? selectDisabledStyles
-                    : hasError
-                    ? selectErrorStyles
-                    : service.staffId
-                    ? selectSuccessStyles
-                    : selectStyles
-                }
-              >
-                <option value="">
-                  -- Select{" "}
-                  {service.serviceType === "Therapy" ? "Therapist" : "Teacher"}{" "}
-                  --
-                </option>
-                {qualifiedStaff.map((staff) => (
-                  <option key={staff.uid} value={staff.uid}>
-                    {staff.firstName} {staff.lastName}
-                  </option>
-                ))}
-              </select>
-              {hasError && (
-                <small
-                  style={{
-                    color: "#ef4444",
-                    fontSize: "0.75rem",
-                    marginTop: "5px",
-                    display: "block",
-                  }}
-                >
-                  ⚠️ No qualified staff available
-                </small>
-              )}
-            </div>
-            <button
-              type="button"
-              className="remove-entry-btn"
-              onClick={() => handleRemoveService(category, index)}
-              style={{
-                marginTop: "0px",
-              }}
-            >
-              ✕
-            </button>
+  // Helper to render the table rows to avoid code duplication
+  const renderRows = (list, category) => {
+    // Determine which type we want to show for this specific section
+    const allowedType = category === "oneOnOne" ? "Therapy" : "Class";
+
+    return (
+      <>
+        {list.length > 0 && (
+          <div className="assessment-tools-header">
+            <label>Service</label>
+            <label>Assigned Staff</label>
           </div>
-        );
-      })}
-    </>
-  );
+        )}
+        {list.map((service, index) => {
+          const qualifiedStaff = getQualifiedStaff(
+            service.serviceName,
+            service.serviceType
+          );
+          const hasError = service.serviceId && qualifiedStaff.length === 0;
+
+          return (
+            <div
+              className="assessment-tool-row"
+              key={`${category}-${index}`}
+              style={{ alignItems: "center" }}
+            >
+              <div className="assessment-tool-field">
+                <select
+                  value={service.serviceId}
+                  onChange={(e) =>
+                    handleServiceChange(category, index, e.target.value)
+                  }
+                  style={
+                    service.serviceId && !hasError
+                      ? selectSuccessStyles
+                      : selectStyles
+                  }
+                >
+                  <option value="">-- Select {allowedType} --</option>
+                  {/* FILTER: Only show services matching the section type */}
+                  {services
+                    .filter((s) => s.type === allowedType)
+                    .map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              <div className="assessment-tool-field">
+                <select
+                  value={service.staffId}
+                  onChange={(e) =>
+                    handleStaffChange(category, index, e.target.value)
+                  }
+                  disabled={!service.serviceId}
+                  style={
+                    !service.serviceId
+                      ? selectDisabledStyles
+                      : hasError
+                      ? selectErrorStyles
+                      : service.staffId
+                      ? selectSuccessStyles
+                      : selectStyles
+                  }
+                >
+                  <option value="">
+                    -- Select{" "}
+                    {allowedType === "Therapy" ? "Therapist" : "Teacher"} --
+                  </option>
+                  {qualifiedStaff.map((staff) => (
+                    <option key={staff.uid} value={staff.uid}>
+                      {staff.firstName} {staff.lastName}
+                    </option>
+                  ))}
+                </select>
+                {hasError && (
+                  <small
+                    style={{
+                      color: "#ef4444",
+                      fontSize: "0.75rem",
+                      marginTop: "5px",
+                      display: "block",
+                    }}
+                  >
+                    ⚠️ No qualified staff available
+                  </small>
+                )}
+              </div>
+
+              <button
+                type="button"
+                className="remove-entry-btn"
+                onClick={() => handleRemoveService(category, index)}
+                style={{ marginTop: "0px" }}
+              >
+                ✕
+              </button>
+            </div>
+          );
+        })}
+      </>
+    );
+  };
 
   return (
     <div className="form-section">
