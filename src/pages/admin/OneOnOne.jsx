@@ -149,7 +149,7 @@ const OneOnOne = () => {
         {level === "services" && (
           <>
             <div className="ooo-header">
-              <div className="000-title">
+              <div className="ooo-title">
                 <h1>ONE-ON-ONE SERVICES</h1>
                 <p className="ooo-subtitle">Manage parent accounts and student registration</p>
               </div>

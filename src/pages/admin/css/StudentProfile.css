@@ -1,7 +1,7 @@
 /* ============================================================
    GLOBAL LAYOUT
 ============================================================ */
-.ooo-container {
+.sp-container {
   display: flex;
   background: #f0f2f5;
   min-height: 100vh;
@@ -9,7 +9,7 @@
   overflow-y: auto; /* Add this - was missing */
 }
 
-.ooo-main {
+.sp-main {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -20,8 +20,12 @@
 /* ============================================================
    HEADER + FILTER BAR
 ============================================================ */
-.ooo-header {
-  background: white;
+.sp-header {
+  background: #f0f2f5;
+  background-image: url("../../../images/little-lions-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   padding: 40px 40px;
   border-bottom: 1px solid #e0e0e0;
   display: flex;
@@ -61,9 +65,12 @@
   transform: translateY(-50%);
   color: #999;
   font-size: 14px;
+  border: solid #FFCB10 2px;
+  background-color: #FFCB10;
+  border-radius: 5px;
 }
 
-.ooo-search {
+.sp-search {
   width: 100%;
   padding: 10px 15px 10px 40px;
   border-radius: 8px;
@@ -73,15 +80,15 @@
   transition: all 0.2s;
 }
 
-.ooo-search:focus {
+.sp-search:focus {
   background: white;
   border-color: #4a90e2;
   outline: none;
   box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
 }
 
-.ooo-filter-select {
-  padding: 10px 15px;
+.sp-filter-select {
+  padding: 10px 40px 10px 15px; /* space for arrow */
   border-radius: 8px;
   border: 1px solid #ddd;
   background: white;
@@ -90,26 +97,48 @@
   cursor: pointer;
   min-width: 160px;
   outline: none;
+
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
 
-.ooo-filter-select:focus {
+.filter-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.filter-wrapper::after {
+  content: "▼";               /* arrow shape */
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #FFCB10;             /* 🔹 arrow color */
+  font-size: 18px;            /* 🔹 arrow size */
+  pointer-events: none;       /* keeps select clickable */
+}
+
+
+
+.sp-filter-select:focus {
   border-color: #4a90e2;
 }
 
 /* ============================================================
    STUDENT GRID (COMPACT NAME TAG STYLE)
 ============================================================ */
-.ooo-content-area {
+.sp-content-area {
   padding: 40px;
 }
 
-.ooo-grid {
+.sp-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 25px;
 }
 
-.ooo-card {
+.sp-card {
   background: white;
   border-radius: 12px;
   overflow: hidden;
@@ -121,14 +150,14 @@
   cursor: pointer;
 }
 
-.ooo-card:hover {
+.sp-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
   border-color: #4a90e2;
 }
 
 /* The Image Box - Shortened */
-.ooo-card-image-box {
+.sp-card-image-box {
   width: 100%;
   height: 180px; /* Reduced from 220px */
   background: #f0f0f0;
@@ -136,14 +165,14 @@
   overflow: hidden;
 }
 
-.ooo-photo {
+.sp-photo {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.ooo-photo-placeholder {
+.sp-photo-placeholder {
   width: 100%;
   height: 100%;
   background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
@@ -156,7 +185,7 @@
 }
 
 /* The Info Body - Tighter Padding */
-.ooo-card-body {
+.sp-card-body {
   padding: 10px 15px 15px 15px; /* Reduced top padding */
   text-align: center;
   background: white;
@@ -166,7 +195,7 @@
   justify-content: center;
 }
 
-.ooo-name {
+.sp-name {
   font-size: 17px;
   font-weight: 700;
   color: #2c3e50;
@@ -175,7 +204,7 @@
 
 /* Age removed */
 
-.ooo-badges {
+.sp-badges {
   display: flex;
   gap: 6px;
   justify-content: center;
@@ -243,7 +272,7 @@
     grid-template-columns: 1fr;
   }
 
-  .ooo-header {
+  .sp-header {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -254,7 +283,7 @@
   }
 
   .search-wrapper,
-  .ooo-filter-select {
+  .sp-filter-select {
     width: 100%;
   }
 }
