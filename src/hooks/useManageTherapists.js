@@ -9,12 +9,30 @@ const useManageTherapists = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
+  // Generate password with format: 3 letters + 3 numbers
+  const generatePassword = () => {
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    const numbers = '0123456789';
+    
+    let password = '';
+    // Add 3 random letters
+    for (let i = 0; i < 3; i++) {
+      password += letters.charAt(Math.floor(Math.random() * letters.length));
+    }
+    // Add 3 random numbers
+    for (let i = 0; i < 3; i++) {
+      password += numbers.charAt(Math.floor(Math.random() * numbers.length));
+    }
+    
+    return password;
+  };
+
   const [newTherapist, setNewTherapist] = useState({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
-    password: 'Welcome123!',
+    password: generatePassword(),
     specializations: []
   });
 
@@ -59,8 +77,12 @@ const useManageTherapists = () => {
     try {
       await authService.createTherapistAccount(newTherapist.email, newTherapist.password, newTherapist);
       setNewTherapist({ 
-        firstName: '', lastName: '', email: '', phone: '', 
-        password: 'Welcome123!', specializations: [] 
+        firstName: '', 
+        lastName: '', 
+        email: '', 
+        phone: '', 
+        password: generatePassword(), 
+        specializations: [] 
       });
       fetchData(); 
       alert('Therapist created successfully');
