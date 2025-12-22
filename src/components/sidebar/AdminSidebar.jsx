@@ -2,6 +2,26 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import "./AdminSidebar.css";
+import SP_Icon from "../../images/sp-icon.svg";
+import ooo_Icon from "../../images/1on1-icon.svg";
+import group_Icon from "../../images/group-class-icon.svg";
+import enroll_Icon from "../../images/enroll-icon.svg";
+import admin_Icon from "../../images/admin-icon.svg";
+import teacher_Icon from "../../images/teacher-icon.svg";
+import therapist_Icon1 from "../../images/therapist-icon/therapist1.svg";
+import therapist_Icon2 from "../../images/therapist-icon/therapist2.svg";
+import parent_Icon from "../../images/parent-icon.svg";
+
+const ICONS = {
+  SP: SP_Icon,
+  OOO: ooo_Icon,
+  Group: group_Icon,
+  Enroll: enroll_Icon,
+  Admin: admin_Icon,
+  Teacher: teacher_Icon,
+  Therapist: therapist_Icon1, therapist_Icon2,
+  Parent: parent_Icon,
+};
 
 const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
   const { currentUser, logout } = useAuth();
@@ -76,19 +96,24 @@ const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
             className={`menu-item ${isActive("/admin/StudentProfile") ? "active" : ""}`}
             onClick={() => navigate("/admin/StudentProfile")}
           >
-            👤 STUDENT PROFILE
+            {/* Icon pasted directly from figma*/}
+            <img src={ICONS.SP} className="menu-icon" alt="SP" />
+            <span className="menu-label">STUDENT PROFILE</span>
           </div>
+
           <div
             className={`menu-item ${isActive("/admin/one-on-one") ? "active" : ""}`}
             onClick={() => navigate("/admin/one-on-one")}
           >
-            👥 1 : 1 SERVICES
+            <img src={ICONS.OOO} className="menu-icon" alt="One On One" />
+            <span className="menu-label">1 : 1 SERVICES</span> 
           </div>
           <div
             className={`menu-item ${isActive("/admin/play-group") ? "active" : ""}`}
             onClick={() => navigate("/admin/play-group")}
           >
-            👥 PLAY GROUP
+            <img src={ICONS.Group} className="menu-icon" alt="Group class" />
+            <span className="menu-label">PLAY GROUP</span>
           </div>
 
           {/* RESTRICTED: Enroll Students*/}
@@ -97,7 +122,8 @@ const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
               className={`menu-item ${isActive("/admin/enrollment") ? "active" : ""}`}
               onClick={() => navigate("/admin/enrollment")}
             >
-              ➕ ENROLL STUDENT
+              <img src={ICONS.Enroll} className="menu-icon" alt="Enroll" />
+              <span className="menu-label">ENROLL STUDENT</span>
             </div>
           )}
         </div>
@@ -109,7 +135,8 @@ const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
             className={`menu-item ${isActive("/admin/enroll-child") ? "active" : ""}`}
             onClick={() => navigate("/admin/enroll-child")}
           >
-            ➕ PARENT
+            <img src={ICONS.Parent} className="menu-icon" alt="Parent" />
+            <span className="menu-label">PARENT</span>
           </div>
 
           {/* RESTRICTED: Add Admin (Only for Super Admin) */}
@@ -118,7 +145,8 @@ const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
               className={`menu-item ${isActive("/admin/manage-admins") ? "active" : ""}`}
               onClick={() => navigate("/admin/manage-admins")}
             >
-              ➕ ADMIN
+              <img src={ICONS.Admin} className="menu-icon" alt="Admin" />
+              <span className="menu-label">ADMIN</span>
             </div>
           )}
 
@@ -126,19 +154,22 @@ const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
             className={`menu-item ${isActive("/admin/manage-teachers") ? "active" : ""}`}
             onClick={() => navigate("/admin/manage-teachers")}
           >
-            ➕ TEACHER
+            <img src={ICONS.Teacher} className="menu-icon" alt="Teacher" />
+            <span className="menu-label">TEACHER</span>
           </div>
           <div
             className={`menu-item ${isActive("/admin/manage-therapists") ? "active" : ""}`}
             onClick={() => navigate("/admin/manage-therapists")}
           >
-            ➕ THERAPIST
+            <img src={ICONS.Therapist} className="menu-icon" alt="Therapist" />
+            <span className="menu-label">THERAPIST</span>
           </div>
           <div
             className={`menu-item ${isActive("/admin/manage-parents") ? "active" : ""}`}
             onClick={() => navigate("/admin/manage-parents")}
           >
-            ➕ PARENTS
+            <img src={ICONS.Parent} className="menu-icon" alt="Parent" />
+            <span className="menu-label">PARENTS</span> 
           </div>
         </div>
 
