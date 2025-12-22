@@ -1,5 +1,4 @@
-// EnrollStudentFormModal.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./EnrollStudentFormModal.css";
 import Step1IdentifyingData from "./components/Step1IdentifyingData";
 import Step2ReasonForReferral from "./components/Step2ReasonForReferral";
@@ -13,98 +12,97 @@ import Step9ServiceEnrollment from "./components/Step9ServiceEnrollment";
 import manageChildren from "../enrollmentDatabase/manageChildren";
 import manageAssessment from "../enrollmentDatabase/manageAssessment";
 
+// Define the clean slate outside the component
+const INITIAL_STUDENT_STATE = {
+  firstName: "",
+  middleName: "",
+  lastName: "",
+  nickname: "",
+  dateOfBirth: "",
+  gender: "",
+  relationshipToClient: "biological child",
+  photoUrl: "",
+  active: true,
+  address: "",
+  school: "",
+  gradeLevel: "",
+  assessmentDates: new Date().toISOString().split("T")[0],
+  examiner: "",
+  ageAtAssessment: "",
+  services: [],
+  classes: [],
+  reasonForReferral: "",
+  purposeOfAssessment: [],
+  backgroundHistory: {
+    familyBackground: "",
+    familyRelationships: "",
+    dailyLifeActivities: "",
+    medicalHistory: "",
+    developmentalBackground: [{ devBgTitle: "", devBgInfo: "" }],
+    schoolHistory: "",
+    clinicalDiagnosis: "",
+    interventions: [],
+    strengthsAndInterests: "",
+    socialSkills: "",
+  },
+  behaviorDuringAssessment: "",
+  assessmentTools: [{ tool: "", details: "", result: "", recommendation: "" }],
+  assessmentSummary: "",
+};
+
 export default function EnrollStudentFormModal({
   show,
   onClose,
   onSave,
   selectedParent,
+  editingStudent, // Data passed from parent when clicking an ASSESSING student
 }) {
   const [formStep, setFormStep] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
+  const [studentInput, setStudentInput] = useState(INITIAL_STUDENT_STATE);
 
-  // Helper to get today's date in YYYY-MM-DD format
-  const getTodayDate = () => new Date().toISOString().split("T")[0];
-
-  const [studentInput, setStudentInput] = useState({
-    // STEP 1: IDENTIFYING DATA (Matches your JSON Step 1)
-    firstName: "",
-    middleName: "",
-    lastName: "",
-    nickname: "",
-    dateOfBirth: "",
-    gender: "",
-    relationshipToClient: "biological child",
-    photoUrl: "",
-    active: true,
-    address: "",
-    school: "",
-    gradeLevel: "",
-    assessmentDates: getTodayDate(), // Changed from assessmentDate to match JSON
-    examiner: "",
-    ageAtAssessment: "", // Changed from age to match JSON
-
-    // STEP 9 DATA (Moved to top as per your request)
-    services: [], // Array of objects: { serviceId, serviceName, teacherId, teacherName }
-    classes: [], // Array of objects: { classId, className, teacherId, teacherName }
-
-    // STEP 2: REASON FOR REFERRAL
-    reasonForReferral: "",
-
-    // STEP 3: PURPOSE OF ASSESSMENT
-    purposeOfAssessment: [], // Array of strings
-
-    // STEP 4: BACKGROUND HISTORY
-    backgroundHistory: {
-      familyBackground: "",
-      familyRelationships: "",
-      dailyLifeActivities: "",
-      medicalHistory: "",
-      developmentalBackground: [{ devBgTitle: "", devBgInfo: "" }],
-      schoolHistory: "",
-      clinicalDiagnosis: "",
-      interventions: [], // Array of objects: { type, frequency }
-      strengthsAndInterests: "",
-      socialSkills: "",
-    },
-
-    // STEP 5: BEHAVIOR DURING ASSESSMENT
-    behaviorDuringAssessment: "",
-
-    // STEPS 6, 7, 8: ASSESSMENT TOOLS, RESULTS, RECOMMENDATIONS
-    assessmentTools: [
-      {
-        tool: "", // Step 6: Tool name
-        details: "", // Step 6: Tool details
-        result: "", // Step 7: Assessment result for this tool
-        recommendation: "", // Step 8: Recommendation for this tool
-      },
-    ],
-
-    // STEP 8: OVERALL SUMMARY (single input, not per tool)
-    assessmentSummary: "",
-  });
+  // --- AUTO-FILL LOGIC ---
+  useEffect(() => {
+    if (show) {
+      if (editingStudent) {
+        // We are editing: Merge existing data with INITIAL_STATE to ensure no fields are undefined
+        setStudentInput({
+          ...INITIAL_STUDENT_STATE,
+          ...editingStudent,
+          backgroundHistory: {
+            ...INITIAL_STUDENT_STATE.backgroundHistory,
+            ...(editingStudent.backgroundHistory || {}),
+          },
+          // Ensure arrays are preserved
+          assessmentTools:
+            editingStudent.assessmentTools ||
+            INITIAL_STUDENT_STATE.assessmentTools,
+          purposeOfAssessment: editingStudent.purposeOfAssessment || [],
+        });
+      } else {
+        // We are creating new: Reset to empty
+        setStudentInput(INITIAL_STUDENT_STATE);
+      }
+      setFormStep(1); // Reset to first step whenever modal opens
+    }
+  }, [show, editingStudent]);
 
   if (!show) return null;
 
-  //Age Calculator
-  // Add this helper function inside your Modal or a utility file
+  // --- HELPER FUNCTIONS ---
   const calculateAge = (dob) => {
     if (!dob) return "";
     const birthDate = new Date(dob);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
     return age >= 0 ? age.toString() : "";
   };
 
-  // Inside your handleInputChange in EnrollStudentFormModal:
   const handleInputChange = (field, value) => {
     setStudentInput((prev) => {
       const updated = { ...prev, [field]: value };
-      // Auto-calculate age if DOB changes
       if (field === "dateOfBirth") {
         updated.ageAtAssessment = calculateAge(value);
       }
@@ -116,27 +114,22 @@ export default function EnrollStudentFormModal({
     setStudentInput((prev) => ({
       ...prev,
       [category]:
-        field === null
-          ? value
-          : {
-              ...prev[category],
-              [field]: value,
-            },
+        field === null ? value : { ...prev[category], [field]: value },
     }));
   };
 
   const handleSave = async (isFinalized) => {
     setIsSaving(true);
     try {
-      const childId = studentInput.childId || crypto.randomUUID();
+      // Use existing ID if editing, otherwise generate new
+      const childId =
+        studentInput.childId || studentInput.id || crypto.randomUUID();
 
-      // Create/Update assessment (Steps 2-8)
       const assessmentId = await manageAssessment.createOrUpdateAssessment(
         childId,
         studentInput
       );
 
-      // Create/Update child (Step 1 & 9) with assessmentId link
       const savedChild = await manageChildren.createOrUpdateChild(
         selectedParent.id,
         {
@@ -147,20 +140,12 @@ export default function EnrollStudentFormModal({
         }
       );
 
-      // Update parent component state
       onSave(savedChild);
-
-      // Close modal
       onClose();
-
-      alert(
-        isFinalized
-          ? "Student enrolled successfully!"
-          : "Student data saved! Status: ASSESSING"
-      );
+      alert(isFinalized ? "Student enrolled successfully!" : "Progress saved!");
     } catch (error) {
       console.error("Save error:", error);
-      alert("Failed to save student. Please try again.");
+      alert("Failed to save student.");
     } finally {
       setIsSaving(false);
     }
@@ -168,10 +153,8 @@ export default function EnrollStudentFormModal({
 
   const handleNextOrSave = async () => {
     if (formStep === 9) {
-      // Final step - mark as ENROLLED
       await handleSave(true);
     } else {
-      // Move to next step without saving
       setFormStep(formStep + 1);
     }
   };
