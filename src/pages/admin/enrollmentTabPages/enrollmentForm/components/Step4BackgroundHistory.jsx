@@ -3,17 +3,16 @@ import readServices from "../../enrollmentDatabase/readServices";
 
 export default function Step4BackgroundHistory({ data, onChange }) {
   const [serviceOptions, setServiceOptions] = useState([]);
+
   useEffect(() => {
     const loadServices = async () => {
       const services = await readServices.getAllServices();
-      console.log("SERVICES FROM FIRESTORE:", services);
       setServiceOptions(services);
-      console.log("hello");
     };
-
     loadServices();
   }, []);
 
+  // --- Developmental Background Handlers ---
   const handleAddDevBg = () => {
     const newList = [
       ...data.backgroundHistory.developmentalBackground,
@@ -34,7 +33,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
     onChange("backgroundHistory", "developmentalBackground", newList);
   };
 
-  // Add Intervention
+  // --- Intervention Handlers ---
   const handleAddInterventionType = (type) => {
     const newInts = [
       ...data.backgroundHistory.interventions,
@@ -43,7 +42,6 @@ export default function Step4BackgroundHistory({ data, onChange }) {
     onChange("backgroundHistory", "interventions", newInts);
   };
 
-  // Remove Intervention
   const handleRemoveInterventionType = (index) => {
     const newInts = data.backgroundHistory.interventions.filter(
       (_, i) => i !== index
@@ -51,11 +49,101 @@ export default function Step4BackgroundHistory({ data, onChange }) {
     onChange("backgroundHistory", "interventions", newInts);
   };
 
+  const handleInterventionChange = (index, field, value) => {
+    const newInts = [...data.backgroundHistory.interventions];
+    newInts[index] = { ...newInts[index], [field]: value };
+    onChange("backgroundHistory", "interventions", newInts);
+  };
+
+  // --- Helper to render intervention entries by type ---
+  const renderInterventionsByType = (type, label) => {
+    return (
+      <div style={{ marginBottom: "20px" }}>
+        <h4 style={{ fontSize: "0.9rem", marginBottom: "8px" }}>{label}</h4>
+        {data.backgroundHistory.interventions
+          .map((int, idx) => ({ ...int, originalIndex: idx }))
+          .filter((int) => int.serviceType === type)
+          .map((int) => (
+            <div
+              key={int.originalIndex}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "15px",
+                marginBottom: "10px",
+              }}
+            >
+              {/* Service Dropdown */}
+              <div style={{ flex: 2 }}>
+                <select
+                  style={{ width: "100%" }}
+                  value={int.name}
+                  onChange={(e) =>
+                    handleInterventionChange(
+                      int.originalIndex,
+                      "name",
+                      e.target.value
+                    )
+                  }
+                >
+                  <option value="" disabled>
+                    Select {label}
+                  </option>
+                  {serviceOptions
+                    .filter((service) => service.type === type)
+                    .map((service) => (
+                      <option key={service.id} value={service.name}>
+                        {service.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              {/* Frequency Input */}
+              <div style={{ flex: 1 }}>
+                <input
+                  type="text"
+                  placeholder="e.g. 2x weekly"
+                  value={int.frequency}
+                  onChange={(e) =>
+                    handleInterventionChange(
+                      int.originalIndex,
+                      "frequency",
+                      e.target.value
+                    )
+                  }
+                  required
+                />
+              </div>
+
+              {/* Remove Button */}
+              <button
+                type="button"
+                className="remove-entry-btn"
+                onClick={() => handleRemoveInterventionType(int.originalIndex)}
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+
+        {/* Add Button */}
+        <button
+          type="button"
+          className="add-point-btn"
+          onClick={() => handleAddInterventionType(type)}
+        >
+          + Add {label}
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className="form-section">
       <h3 className="section-title">IV. BACKGROUND HISTORY</h3>
 
-      {/* 1. Family Background */}
+      {/* Family Background */}
       <div className="input-group">
         <label>Family Background</label>
         <textarea
@@ -69,7 +157,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
         />
       </div>
 
-      {/* 2. Family Relationships */}
+      {/* Family Relationships */}
       <div className="input-group">
         <label>Family Relationships</label>
         <textarea
@@ -83,7 +171,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
         />
       </div>
 
-      {/* 3. Daily Life & Activities */}
+      {/* Daily Life & Activities */}
       <div className="input-group">
         <label>Daily Life & Activities</label>
         <textarea
@@ -97,7 +185,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
         />
       </div>
 
-      {/* 4. Medical History */}
+      {/* Medical History */}
       <div className="input-group">
         <label>Medical History</label>
         <textarea
@@ -111,10 +199,9 @@ export default function Step4BackgroundHistory({ data, onChange }) {
         />
       </div>
 
-      {/* 5. Developmental Background (Dynamic) */}
+      {/* Developmental Background */}
       <div className="form-section-group input-group">
         <label>Developmental Background</label>
-
         {data.backgroundHistory.developmentalBackground.map((item, index) => (
           <div className="dev-bg-entry" key={index}>
             <div className="dev-bg-header">
@@ -144,7 +231,6 @@ export default function Step4BackgroundHistory({ data, onChange }) {
                   required
                 />
               </div>
-
               <div className="input-group" style={{ marginBottom: 0 }}>
                 <label>Details</label>
                 <textarea
@@ -166,7 +252,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
         </button>
       </div>
 
-      {/* 6. School History */}
+      {/* School History */}
       <div className="input-group">
         <label>School History</label>
         <textarea
@@ -180,7 +266,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
         />
       </div>
 
-      {/* 7. Clinical Diagnosis */}
+      {/* Clinical Diagnosis */}
       <div className="input-group highlight-box">
         <label>Clinical Diagnosis</label>
         <textarea
@@ -194,172 +280,14 @@ export default function Step4BackgroundHistory({ data, onChange }) {
         />
       </div>
 
-      {/* 8. Interventions */}
+      {/* Interventions */}
       <div className="form-section-group input-group">
         <label>Therapies / Interventions</label>
-
-        {/* ===================== */}
-        {/* 1 ON 1 SERVICES */}
-        {/* ===================== */}
-        <div style={{ marginBottom: "20px" }}>
-          <h4 style={{ fontSize: "0.9rem", marginBottom: "8px" }}>
-            1 on 1 Services
-          </h4>
-
-          {data.backgroundHistory.interventions
-            .filter((int) => int.serviceType === "Therapy")
-            .map((int, index) => (
-              <div
-                key={index}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "15px",
-                  marginBottom: "10px",
-                }}
-              >
-                {/* Service Dropdown */}
-                <div style={{ flex: 2 }}>
-                  <select
-                    style={{ width: "100%" }}
-                    value={int.name}
-                    onChange={(e) => {
-                      const newInts = [...data.backgroundHistory.interventions];
-                      newInts[index].name = e.target.value;
-                      onChange("backgroundHistory", "interventions", newInts);
-                    }}
-                  >
-                    <option value="" disabled>
-                      Select 1 on 1 Service
-                    </option>
-                    {serviceOptions
-                      .filter((service) => service.type === "Therapy")
-                      .map((service) => (
-                        <option key={service.id} value={service.name}>
-                          {service.name}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-
-                {/* Frequency Input */}
-                <div style={{ flex: 1 }}>
-                  <input
-                    type="text"
-                    placeholder="e.g. 2x weekly"
-                    value={int.frequency}
-                    onChange={(e) => {
-                      const newInts = [...data.backgroundHistory.interventions];
-                      newInts[index].frequency = e.target.value;
-                      onChange("backgroundHistory", "interventions", newInts);
-                    }}
-                    required
-                  />
-                </div>
-
-                {/* Remove Button */}
-                <button
-                  type="button"
-                  className="remove-entry-btn"
-                  onClick={() => handleRemoveInterventionType(index)}
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
-
-          {/* Add 1 on 1 Service Button */}
-          <button
-            type="button"
-            className="add-point-btn"
-            onClick={() => handleAddInterventionType("Therapy")}
-          >
-            + Add 1 on 1 Service
-          </button>
-        </div>
-
-        {/* ===================== */}
-        {/* GROUP CLASSES */}
-        {/* ===================== */}
-        <div>
-          <h4 style={{ fontSize: "0.9rem", marginBottom: "8px" }}>
-            Group Classes
-          </h4>
-
-          {data.backgroundHistory.interventions
-            .filter((int) => int.serviceType === "Class")
-            .map((int, index) => (
-              <div
-                key={index}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "15px",
-                  marginBottom: "10px",
-                }}
-              >
-                {/* Service Dropdown */}
-                <div style={{ flex: 2 }}>
-                  <select
-                    style={{ width: "100%" }}
-                    value={int.name}
-                    onChange={(e) => {
-                      const newInts = [...data.backgroundHistory.interventions];
-                      newInts[index].name = e.target.value;
-                      onChange("backgroundHistory", "interventions", newInts);
-                    }}
-                  >
-                    <option value="" disabled>
-                      Select Group Class
-                    </option>
-                    {serviceOptions
-                      .filter((service) => service.type === "Class")
-                      .map((service) => (
-                        <option key={service.id} value={service.name}>
-                          {service.name}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-
-                {/* Frequency Input */}
-                <div style={{ flex: 1 }}>
-                  <input
-                    type="text"
-                    placeholder="e.g. 2x weekly"
-                    value={int.frequency}
-                    onChange={(e) => {
-                      const newInts = [...data.backgroundHistory.interventions];
-                      newInts[index].frequency = e.target.value;
-                      onChange("backgroundHistory", "interventions", newInts);
-                    }}
-                    required
-                  />
-                </div>
-
-                {/* Remove Button */}
-                <button
-                  type="button"
-                  className="remove-entry-btn"
-                  onClick={() => handleRemoveInterventionType(index)}
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
-
-          {/* Add Group Class Button */}
-          <button
-            type="button"
-            className="add-point-btn"
-            onClick={() => handleAddInterventionType("Class")}
-          >
-            + Add Group Class
-          </button>
-        </div>
+        {renderInterventionsByType("Therapy", "1 on 1 Services")}
+        {renderInterventionsByType("Class", "Group Classes")}
       </div>
 
-      {/* 9. Strengths & Interests */}
+      {/* Strengths & Interests */}
       <div className="input-group">
         <label>Strengths & Interests</label>
         <textarea
@@ -377,7 +305,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
         />
       </div>
 
-      {/* 10. Social Skills */}
+      {/* Social Skills */}
       <div className="input-group">
         <label>Social Skills</label>
         <textarea
