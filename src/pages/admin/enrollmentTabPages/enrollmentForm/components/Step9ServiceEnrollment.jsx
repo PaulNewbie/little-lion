@@ -18,17 +18,23 @@ export default function Step9Enrollment({ data, onChange }) {
         // 1. Fetch all services from DB
         const allDbServices = await readServices.getAllServices();
 
-        // 2. Get the names of interventions saved in Step 4
+        // 2. Get the serviceIds of interventions saved in Step 4
         const savedInterventions = data.backgroundHistory?.interventions || [];
-        const savedNames = savedInterventions.map((item) => item.name);
-
-        // 3. Filter services to only show what was saved in Step 4
-        const filtered = allDbServices.filter((service) =>
-          savedNames.includes(service.name)
+        const savedServiceIds = savedInterventions.map(
+          (item) => item.serviceId
         );
+
+        console.log("Saved intervention IDs from Step 4:", savedServiceIds);
+
+        // 3. Filter services by ID (not name) to only show what was saved in Step 4
+        const filtered = allDbServices.filter((service) =>
+          savedServiceIds.includes(service.id)
+        );
+
+        console.log("Filtered services for Step 9:", filtered);
         setServices(filtered);
 
-        // 4. Fetch Staff - CORRECTED: Now gets users with proper role and specializations
+        // 4. Fetch Staff
         const allStaff = await readUsers.getAllTeachersTherapists();
 
         // Separate by role
@@ -93,11 +99,20 @@ export default function Step9Enrollment({ data, onChange }) {
     const isTherapy = service.type === "Therapy";
     const staffList = isTherapy ? therapists : teachers;
 
+    // CORRECTED: Match staff by checking if their specializations array
+    // includes the service NAME (since staff.specializations stores names)
     const qualified = staffList.find((staff) =>
       staff.specializations?.includes(service.name)
     );
 
-    console.log("Service selected:", service.name);
+    console.log("Service selected:", service.name, "ID:", service.id);
+    console.log(
+      "Looking in staff list:",
+      staffList.map((s) => ({
+        name: `${s.firstName} ${s.lastName}`,
+        specializations: s.specializations,
+      }))
+    );
     console.log("Qualified staff found:", qualified);
 
     const list =
@@ -105,14 +120,13 @@ export default function Step9Enrollment({ data, onChange }) {
     const updated = list.map((s, i) =>
       i === index
         ? {
-            serviceId: service.id,
-            serviceName: service.name,
+            serviceId: service.id, // Store the ID
+            serviceName: service.name, // Store the name for display
             serviceType: service.type, // "Therapy" or "Class"
             staffId: qualified?.uid || "",
             staffName: qualified
               ? `${qualified.firstName} ${qualified.lastName}`
               : "",
-            // We'll add staffRole in manageChildren based on serviceType
           }
         : s
     );
@@ -159,7 +173,8 @@ export default function Step9Enrollment({ data, onChange }) {
     if (!serviceName || !serviceType) return [];
     const staffList = serviceType === "Therapy" ? therapists : teachers;
 
-    // CORRECTED: Filter staff who have this service in their specializations
+    // Filter staff who have this service NAME in their specializations
+    // (Staff specializations store service names, not IDs)
     const qualified = staffList.filter((staff) =>
       staff.specializations?.includes(serviceName)
     );
@@ -235,6 +250,7 @@ export default function Step9Enrollment({ data, onChange }) {
                   }
                 >
                   <option value="">-- Select {allowedType} --</option>
+                  {/* Filter by TYPE, use ID as value, display NAME */}
                   {services
                     .filter((s) => s.type === allowedType)
                     .map((s) => (
@@ -337,7 +353,13 @@ export default function Step9Enrollment({ data, onChange }) {
           Teachers loaded: {teachers.length} | Therapists loaded:{" "}
           {therapists.length}
           <br />
-          Services available: {services.map((s) => s.name).join(", ")}
+          Services available:{" "}
+          {services.map((s) => `${s.name} (${s.id})`).join(", ")}
+          <br />
+          Interventions from Step 4:{" "}
+          {data.backgroundHistory?.interventions
+            ?.map((i) => `${i.name} (${i.serviceId})`)
+            .join(", ") || "None"}
         </div>
       )}
 
