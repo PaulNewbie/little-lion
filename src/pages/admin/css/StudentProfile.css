@@ -1,20 +1,30 @@
 /* ============================================================
    GLOBAL LAYOUT
 ============================================================ */
-.sp-container {
+.sp-container{
   display: flex;
+  height: 100vh;         /* IMPORTANT: real height */
+  overflow: hidden;      /* prevent double scrollbars */
   background: #f0f2f5;
-  min-height: 100vh;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  overflow-y: auto; /* Add this - was missing */
 }
 
-.sp-main {
+/* Make the content area scroll */
+.sp-main{
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  overflow-y: auto; /* Changed from no overflow specification to auto */
+  min-height: 0;         /* IMPORTANT for flex children to scroll */
+  overflow-y: auto;      /* ✅ the only main scrollbar */
+}
+
+/* ✅ NEW: wrapper so footer sits at bottom when content is short,
+   but moves to bottom of content when content is long */
+.sp-page{
+  flex: 1;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ============================================================
@@ -118,8 +128,6 @@
   font-size: 18px;            /* 🔹 arrow size */
   pointer-events: none;       /* keeps select clickable */
 }
-
-
 
 .sp-filter-select:focus {
   border-color: #4a90e2;
@@ -248,14 +256,15 @@
 /* ============================================================
    PROFILE PAGE (Existing styles + Split Row)
 ============================================================ */
-.profile-wrapper {
+.profile-wrapper{
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   padding: 30px 40px 60px 40px;
-  overflow-y: auto; /* Add this */
-  flex: 1; /* Add this */
+  overflow: visible;     /* ✅ stop fighting with sp-main */
+  flex: 0;               /* optional */
 }
+
 .services-split-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -593,4 +602,114 @@
 .activity-image-preview:hover {
   transform: scale(1.05);
   z-index: 10;
+}
+
+/* ============================================================
+   ✅ FOOTER (ONLY FOR STUDENT PROFILE PAGE)
+============================================================ */
+.sp-footer{
+  margin-top: auto;              /* ✅ pushes footer to bottom when short */
+  padding: 16px 40px;
+  border-top: 1px solid #e5e7eb;
+  background: #0052A1;
+}
+
+.sp-footer-inner{
+  max-width: 1200px;
+  margin: 0 auto;
+  margin-left: 180px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: #FFCB10;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.sp-footer-sep{
+  opacity: 0.6;
+}
+
+/* ===== Activity Calendar View ===== */
+.calendar-view-container {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.day-details-section {
+  flex: 1;
+}
+
+.calendar-section {
+  width: 350px;
+  flex-shrink: 0;
+}
+
+/* ===== Record cards ===== */
+.record-card {
+  padding: 15px;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.record-header {
+  margin-bottom: 6px;
+}
+
+/* ===== Student reaction tags ===== */
+.reaction-tag {
+  margin-right: 5px;
+  font-size: 12px;
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ===== Therapy strengths & weaknesses ===== */
+.therapy-strength {
+  background: #f0fdf4;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #bbf7d0;
+}
+
+.therapy-weakness {
+  background: #fef2f2;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #fecaca;
+}
+
+/* ===== Activity images ===== */
+.activity-image-preview {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+}
+
+/* ===== Modal overlay ===== */
+.add-service-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* ===== Modal box ===== */
+.add-service-modal {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 400px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
 }
