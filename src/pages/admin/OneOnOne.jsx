@@ -95,7 +95,8 @@ const OneOnOne = () => {
           therapists,
           selectedService,
           selectedServiceFromOneOnOne: selectedService,
-          fromOneOnOne: true
+          fromOneOnOne: true,
+          scrollToCalendar: true
         } 
       });
 
