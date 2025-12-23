@@ -10,6 +10,7 @@ import { useAuth } from "./hooks/useAuth";
 
 // Auth Components
 import LoginPage from "./pages/auth/LoginPage";
+import LandingPage from "./pages/auth/LandingPage";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import ChangePassword from "./pages/auth/ChangePassword";
 
@@ -70,12 +71,11 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/change-password" element={<ChangePassword />} />
       <Route
-        path="/login"
+        path="/"
         element={
           currentUser ? (
             <Navigate
               to={
-                // FIX 1: Add check for super_admin here
                 currentUser.role === "admin" ||
                 currentUser.role === "super_admin"
                   ? "/admin/StudentProfile"
@@ -88,7 +88,29 @@ const AppRoutes = () => {
               replace
             />
           ) : (
-            <LoginPage />
+            <LandingPage />
+          )
+        }
+      />
+      <Route
+        path="/login"
+        element={
+          currentUser ? (
+            <Navigate
+              to={
+                currentUser.role === "admin" ||
+                currentUser.role === "super_admin"
+                  ? "/admin/StudentProfile"
+                  : currentUser.role === "teacher"
+                  ? "/teacher/dashboard"
+                  : currentUser.role === "therapist"
+                  ? "/therapist/dashboard"
+                  : "/parent/dashboard"
+              }
+              replace
+            />
+          ) : (
+            <LandingPage />
           )
         }
       />
