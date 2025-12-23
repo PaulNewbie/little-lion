@@ -125,19 +125,29 @@ export default function EnrollStudentFormModal({
       const childId =
         studentInput.childId || studentInput.id || crypto.randomUUID();
 
+      // Save assessment data first
       const assessmentId = await manageAssessment.createOrUpdateAssessment(
         childId,
         studentInput
       );
 
+      // IMPORTANT: Include Step 9 enrollment data
+      const childDataToSave = {
+        ...studentInput,
+        childId,
+        assessmentId,
+        status: isFinalized ? "ENROLLED" : "ASSESSING",
+
+        // Step 9 data (these come from the form state)
+        oneOnOneServices: studentInput.oneOnOneServices || [],
+        groupClassServices: studentInput.groupClassServices || [],
+      };
+
+      console.log("Saving child with enrollment data:", childDataToSave);
+
       const savedChild = await manageChildren.createOrUpdateChild(
         selectedParent.id,
-        {
-          ...studentInput,
-          childId,
-          assessmentId,
-          status: isFinalized ? "ENROLLED" : "ASSESSING",
-        }
+        childDataToSave
       );
 
       onSave(savedChild);
@@ -145,7 +155,7 @@ export default function EnrollStudentFormModal({
       alert(isFinalized ? "Student enrolled successfully!" : "Progress saved!");
     } catch (error) {
       console.error("Save error:", error);
-      alert("Failed to save student.");
+      alert("Failed to save student: " + error.message);
     } finally {
       setIsSaving(false);
     }

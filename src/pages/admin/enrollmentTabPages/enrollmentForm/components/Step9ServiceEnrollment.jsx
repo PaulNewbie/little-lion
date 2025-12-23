@@ -19,20 +19,27 @@ export default function Step9Enrollment({ data, onChange }) {
         const allDbServices = await readServices.getAllServices();
 
         // 2. Get the names of interventions saved in Step 4
-        // Based on your Step 4 code, they are in: data.backgroundHistory.interventions
         const savedInterventions = data.backgroundHistory?.interventions || [];
         const savedNames = savedInterventions.map((item) => item.name);
 
-        // 3. Filter the dropdown options to ONLY show what was saved in Step 4
+        // 3. Filter services to only show what was saved in Step 4
         const filtered = allDbServices.filter((service) =>
           savedNames.includes(service.name)
         );
         setServices(filtered);
 
-        // 4. Fetch Staff
+        // 4. Fetch Staff - CORRECTED: Now gets users with proper role and specializations
         const allStaff = await readUsers.getAllTeachersTherapists();
-        setTeachers(allStaff.filter((u) => u.role === "Teacher"));
-        setTherapists(allStaff.filter((u) => u.role === "Therapist"));
+
+        // Separate by role
+        const teachersList = allStaff.filter((u) => u.role === "teacher");
+        const therapistsList = allStaff.filter((u) => u.role === "therapist");
+
+        setTeachers(teachersList);
+        setTherapists(therapistsList);
+
+        console.log("Teachers loaded:", teachersList);
+        console.log("Therapists loaded:", therapistsList);
       } catch (error) {
         console.error("Error loading step 9:", error);
       } finally {
@@ -44,11 +51,8 @@ export default function Step9Enrollment({ data, onChange }) {
 
     if (data.oneOnOneServices) setOneOnOneServices(data.oneOnOneServices);
     if (data.groupClassServices) setGroupClassServices(data.groupClassServices);
-  }, [data.backgroundHistory.interventions]); // Refetch if Step 4 changes
+  }, [data.backgroundHistory?.interventions]);
 
-  // ... rest of your handlers (handleServiceChange, handleStaffChange, etc.)
-
-  // Generic handlers updated to accept "category" (oneOnOne vs groupClass)
   const handleAddService = (category) => {
     const newService = {
       serviceId: "",
@@ -88,9 +92,13 @@ export default function Step9Enrollment({ data, onChange }) {
 
     const isTherapy = service.type === "Therapy";
     const staffList = isTherapy ? therapists : teachers;
+
     const qualified = staffList.find((staff) =>
       staff.specializations?.includes(service.name)
     );
+
+    console.log("Service selected:", service.name);
+    console.log("Qualified staff found:", qualified);
 
     const list =
       category === "oneOnOne" ? oneOnOneServices : groupClassServices;
@@ -99,11 +107,12 @@ export default function Step9Enrollment({ data, onChange }) {
         ? {
             serviceId: service.id,
             serviceName: service.name,
-            serviceType: service.type,
+            serviceType: service.type, // "Therapy" or "Class"
             staffId: qualified?.uid || "",
             staffName: qualified
               ? `${qualified.firstName} ${qualified.lastName}`
               : "",
+            // We'll add staffRole in manageChildren based on serviceType
           }
         : s
     );
@@ -124,6 +133,8 @@ export default function Step9Enrollment({ data, onChange }) {
     const isTherapy = service.serviceType === "Therapy";
     const staffList = isTherapy ? therapists : teachers;
     const staff = staffList.find((s) => s.uid === staffId);
+
+    console.log("Staff changed to:", staff);
 
     const updated = list.map((s, i) =>
       i === index
@@ -147,12 +158,16 @@ export default function Step9Enrollment({ data, onChange }) {
   const getQualifiedStaff = (serviceName, serviceType) => {
     if (!serviceName || !serviceType) return [];
     const staffList = serviceType === "Therapy" ? therapists : teachers;
-    return staffList.filter((staff) =>
+
+    // CORRECTED: Filter staff who have this service in their specializations
+    const qualified = staffList.filter((staff) =>
       staff.specializations?.includes(serviceName)
     );
+
+    console.log(`Qualified staff for ${serviceName}:`, qualified);
+    return qualified;
   };
 
-  // Styles from your original code
   const selectStyles = {
     width: "100%",
     padding: "10px 35px 10px 12px",
@@ -183,10 +198,7 @@ export default function Step9Enrollment({ data, onChange }) {
   };
   const selectSuccessStyles = { ...selectStyles, borderColor: "#10b981" };
 
-  // Helper to render the table rows to avoid code duplication
-  // Helper to render the table rows to avoid code duplication
   const renderRows = (list, category) => {
-    // Determine which type we want to show for this specific section
     const allowedType = category === "oneOnOne" ? "Therapy" : "Class";
 
     return (
@@ -223,7 +235,6 @@ export default function Step9Enrollment({ data, onChange }) {
                   }
                 >
                   <option value="">-- Select {allowedType} --</option>
-                  {/* FILTER: Only show services matching the section type */}
                   {services
                     .filter((s) => s.type === allowedType)
                     .map((s) => (
@@ -270,7 +281,7 @@ export default function Step9Enrollment({ data, onChange }) {
                       display: "block",
                     }}
                   >
-                    ⚠️ No qualified staff available
+                    ⚠️ No qualified staff available for {service.serviceName}
                   </small>
                 )}
               </div>
@@ -290,6 +301,16 @@ export default function Step9Enrollment({ data, onChange }) {
     );
   };
 
+  if (loading) {
+    return (
+      <div className="form-section">
+        <p style={{ textAlign: "center", padding: "2rem", color: "#64748b" }}>
+          Loading staff and services...
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="form-section">
       <h3>IX. ENROLLMENT</h3>
@@ -300,7 +321,26 @@ export default function Step9Enrollment({ data, onChange }) {
         student.
       </p>
 
-      {/* SECTION 1: 1 ON 1 SERVICE */}
+      {/* Debug Info - Remove in production */}
+      {process.env.NODE_ENV === "development" && (
+        <div
+          style={{
+            background: "#f0f9ff",
+            padding: "10px",
+            marginBottom: "20px",
+            borderRadius: "6px",
+            fontSize: "12px",
+          }}
+        >
+          <strong>Debug Info:</strong>
+          <br />
+          Teachers loaded: {teachers.length} | Therapists loaded:{" "}
+          {therapists.length}
+          <br />
+          Services available: {services.map((s) => s.name).join(", ")}
+        </div>
+      )}
+
       <div style={{ marginBottom: "30px" }}>
         <h4
           style={{ fontSize: "1rem", color: "#334155", marginBottom: "15px" }}
@@ -325,7 +365,6 @@ export default function Step9Enrollment({ data, onChange }) {
         }}
       />
 
-      {/* SECTION 2: GROUP CLASS */}
       <div style={{ marginBottom: "30px" }}>
         <h4
           style={{ fontSize: "1rem", color: "#334155", marginBottom: "15px" }}

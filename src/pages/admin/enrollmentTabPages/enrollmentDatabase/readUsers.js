@@ -3,21 +3,36 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 
 const readUsers = {
   async getAllTeachersTherapists() {
-    const usersRef = collection(db, "users");
+    try {
+      const usersRef = collection(db, "users");
 
-    const q = query(usersRef, where("type", "in", ["Teacher", "Therapist"]));
-    const snapshot = await getDocs(q);
+      // Query for both teachers and therapists
+      const q = query(usersRef, where("role", "in", ["teacher", "therapist"]));
 
-    return snapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        userId: doc.id,
-        firstName: data.firstName || "",
-        lastName: data.lastName || "",
-        fullName: `${data.firstName || ""} ${data.lastName || ""}`,
-        role: data.role,
-      };
-    });
+      const snapshot = await getDocs(q);
+
+      const users = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          uid: doc.id, // CORRECTED: Use 'uid' consistently
+          firstName: data.firstName || "",
+          lastName: data.lastName || "",
+          middleName: data.middleName || "",
+          fullName: `${data.firstName || ""} ${data.lastName || ""}`.trim(),
+          role: data.role,
+          specializations: data.specializations || [], // CORRECTED: Ensure array exists
+          email: data.email || "",
+          phone: data.phone || "",
+          active: data.active !== false, // Default to true if not specified
+        };
+      });
+
+      console.log("Fetched staff from Firebase:", users);
+      return users;
+    } catch (error) {
+      console.error("Error in getAllTeachersTherapists:", error);
+      throw error;
+    }
   },
 };
 

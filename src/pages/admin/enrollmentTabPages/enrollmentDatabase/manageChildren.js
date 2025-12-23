@@ -1,18 +1,49 @@
 import { db } from "../../../../config/firebase";
-import { 
-  collection, 
-  doc, 
-  setDoc, 
-  getDocs, 
-  query, 
-  where, 
-  serverTimestamp 
+import {
+  collection,
+  doc,
+  setDoc,
+  getDocs,
+  query,
+  where,
+  serverTimestamp,
 } from "firebase/firestore";
 
 const manageChildren = {
   // 1. Create or Update Child
   async createOrUpdateChild(parentId, data) {
     const childId = data.childId || crypto.randomUUID();
+
+    // Process services and classes from Step 9
+    const processedServices = (data.oneOnOneServices || []).map((service) => ({
+      serviceId: service.serviceId,
+      serviceName: service.serviceName,
+      serviceType: service.serviceType,
+      staffId: service.staffId,
+      staffName: service.staffName,
+      staffRole: service.serviceType === "Therapy" ? "therapist" : "teacher",
+    }));
+
+    const processedClasses = (data.groupClassServices || []).map((service) => ({
+      serviceId: service.serviceId,
+      serviceName: service.serviceName,
+      serviceType: service.serviceType,
+      staffId: service.staffId,
+      staffName: service.staffName,
+      staffRole: "teacher", // Classes are always taught by teachers
+    }));
+
+    // Extract unique staff IDs for quick lookup
+    const therapistIds = processedServices
+      .filter((s) => s.staffRole === "therapist")
+      .map((s) => s.staffId);
+
+    const teacherIds = [
+      ...processedServices
+        .filter((s) => s.staffRole === "teacher")
+        .map((s) => s.staffId),
+      ...processedClasses.map((s) => s.staffId),
+    ];
 
     const childPayload = {
       // STEP 1: IDENTIFYING DATA
@@ -24,7 +55,7 @@ const manageChildren = {
       gender: data.gender,
       relationshipToClient: data.relationshipToClient,
       photoUrl: data.photoUrl,
-      active: data.active,
+      active: data.active !== false, // Default to true
       address: data.address,
       school: data.school,
       gradeLevel: data.gradeLevel,
@@ -32,18 +63,25 @@ const manageChildren = {
       examiner: data.examiner,
       ageAtAssessment: data.ageAtAssessment,
 
-      // STEP 9: SERVICE ENROLLMENT
-      services: data.services,
-      classes: data.classes,
+      // STEP 9: SERVICE ENROLLMENT (NEW FORMAT)
+      services: processedServices, // 1-on-1 Therapy Services
+      classes: processedClasses, // Group Classes
+
+      // Quick lookup arrays for queries
+      therapistIds: [...new Set(therapistIds)], // Remove duplicates
+      teacherIds: [...new Set(teacherIds)], // Remove duplicates
 
       // 🔗 LINK TO ASSESSMENT
       assessmentId: data.assessmentId || null,
 
-      parentId, // This links the child to the parent
-      status: data.status,
+      parentId, // Link to parent
+      status: data.status || "ENROLLED",
       updatedAt: serverTimestamp(),
       createdAt: serverTimestamp(),
     };
+
+    console.log("Saving child with services:", childPayload.services);
+    console.log("Saving child with classes:", childPayload.classes);
 
     // Save to Firestore
     await setDoc(doc(db, "children", childId), childPayload, {
@@ -53,11 +91,11 @@ const manageChildren = {
     return { id: childId, ...childPayload };
   },
 
-  // ✅ 2. ADD THIS FUNCTION: Fetch Children for a Specific Parent
+  // ✅ 2. Fetch Children for a Specific Parent
   async getChildrenByParent(parentId) {
     try {
       const q = query(
-        collection(db, "children"), 
+        collection(db, "children"),
         where("parentId", "==", parentId)
       );
 
@@ -71,7 +109,7 @@ const manageChildren = {
       console.error("Error fetching children:", error);
       return [];
     }
-  }
+  },
 };
 
 export default manageChildren;
