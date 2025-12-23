@@ -18,6 +18,23 @@ const TherapistDashboard = () => {
   const [selectedStudentForModal, setSelectedStudentForModal] = useState(null);
   const [availableServices, setAvailableServices] = useState([]);
 
+  // ✅ NEW: Profile Completion Check
+  useEffect(() => {
+    // Only check after currentUser is loaded and they're not already on the profile page
+    if (currentUser && currentUser.profileCompleted === false) {
+      const timer = setTimeout(() => {
+        const shouldComplete = window.confirm(
+          "📋 Complete your professional profile to help parents know you better.\n\nWould you like to do it now?"
+        );
+        if (shouldComplete) {
+          navigate('/therapist/profile');
+        }
+      }, 1000); // Small delay so dashboard loads first
+      
+      return () => clearTimeout(timer);
+    }
+  }, [currentUser, navigate]);
+
   useEffect(() => {
     const fetchMyStudents = async () => {
       if (!currentUser?.uid) return;
@@ -104,7 +121,44 @@ const TherapistDashboard = () => {
           <span style={{ fontSize: '1.75rem' }}>🦁</span>
           <span style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1e293b' }}>Little Lion</span>
         </div>
-        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          {/* ✅ NEW: Profile Button */}
+          <button 
+            onClick={() => navigate('/therapist/profile')} 
+            style={{ 
+              background: 'none', 
+              border: '2px solid #6d28d9', 
+              color: '#6d28d9', 
+              padding: '0.5rem 1rem', 
+              borderRadius: '0.5rem', 
+              cursor: 'pointer', 
+              fontWeight: '600', 
+              fontSize: '0.875rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = '#f5f3ff';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+          >
+            👤 My Profile
+            {/* ✅ Show indicator if profile incomplete */}
+            {currentUser?.profileCompleted === false && (
+              <span style={{
+                width: '8px',
+                height: '8px',
+                backgroundColor: '#ef4444',
+                borderRadius: '50%',
+                display: 'inline-block'
+              }}></span>
+            )}
+          </button>
+
           <button onClick={() => navigate('/staff/inquiries')} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '1.5rem', padding: '0.5rem' }}>📬</button>
           <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600', padding: '0.5rem 1rem', borderRadius: '0.5rem' }}>Sign Out</button>
         </div>
@@ -120,6 +174,46 @@ const TherapistDashboard = () => {
         </div>
 
         {error && <div style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1.5rem' }}>{error}</div>}
+
+        {/* ✅ NEW: Profile Completion Banner */}
+        {currentUser?.profileCompleted === false && (
+          <div style={{
+            backgroundColor: '#fef3c7',
+            border: '2px solid #fbbf24',
+            borderRadius: '1rem',
+            padding: '1.5rem',
+            marginBottom: '2rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            boxShadow: '0 4px 6px rgba(251, 191, 36, 0.1)'
+          }}>
+            <div>
+              <h3 style={{ margin: '0 0 0.5rem 0', color: '#92400e', fontSize: '1.125rem', fontWeight: '700' }}>
+                📋 Complete Your Profile
+              </h3>
+              <p style={{ margin: 0, color: '#78350f', fontSize: '0.9375rem' }}>
+                Help parents know you better by adding your credentials, bio, and certifications.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/therapist/profile')}
+              style={{
+                padding: '0.75rem 1.5rem',
+                backgroundColor: '#fbbf24',
+                color: '#78350f',
+                border: 'none',
+                borderRadius: '0.5rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                fontSize: '0.9375rem'
+              }}
+            >
+              Complete Now →
+            </button>
+          </div>
+        )}
 
         {/* Stats & Search */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>

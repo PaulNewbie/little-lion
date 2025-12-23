@@ -73,7 +73,8 @@ async createTherapistAccount(email, password, therapistData) {
         role: 'therapist',
         specializations: therapistData.specializations || [],
         active: true,
-        mustChangePassword: true, // <--- ADD THIS LINE
+        mustChangePassword: true,
+        profileCompleted: false, 
         createdAt: new Date().toISOString()
       });
 

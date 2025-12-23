@@ -32,6 +32,7 @@ import PlayGroupActivity from "./pages/teacher/PlayGroupActivity";
 // Therapist Components
 import TherapistDashboard from "./pages/therapist/TherapistDashboard";
 import TherapySessionForm from "./pages/therapist/TherapySessionForm";
+import TherapistProfile from './pages/therapist/TherapistProfile';
 
 // Parent Components
 import ParentDashboard from "./pages/parent/ParentDashboard";
@@ -188,6 +189,17 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+
+      {/* THERAPIST PROFILE section */}
+      <Route 
+        path="/therapist/profile" 
+        element={
+          <ProtectedRoute allowedRoles={['therapist']}>
+            <TherapistProfile />
+          </ProtectedRoute>
+        } 
+      />
+
       {/* PARENT ROUTES */}
       <Route
         path="/parent/dashboard"
