@@ -59,7 +59,7 @@ async createParentAccount(email, password, parentData) {
   }
 
   // 3. Create Therapist Account
-async createTherapistAccount(email, password, therapistData) {
+  async createTherapistAccount(email, password, therapistData) {
     let tempApp = null;
     try {
       tempApp = initializeApp(firebaseConfig, 'tempApp-Therapist-' + Date.now());

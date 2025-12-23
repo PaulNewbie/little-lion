@@ -1,44 +1,48 @@
-const uploadImage = async (file, folderPath = 'little-lions/uploads') => {
-  if (!file) return null;
+import axios from 'axios';
 
-  const cloudName = "dlfjnz8xq";
-  const uploadPreset = "little-lions";
+const CLOUDINARY_CLOUD_NAME = 'dlfjnz8xq'; 
+const CLOUDINARY_UPLOAD_PRESET = 'little-lions'; 
 
-  if (!cloudName || !uploadPreset) {
-    throw new Error('Cloudinary configuration is missing.');
-  }
+class CloudinaryService {
+  // Existing image upload
+  async uploadImage(file, folder = 'little-lions/general') {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    formData.append('folder', folder);
 
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('upload_preset', uploadPreset);
-  
-  // Dynamic folder path
-  formData.append('folder', folderPath);
-
-  try {
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-      {
-        method: 'POST',
-        body: formData,
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error?.message || 'Image upload failed');
+    try {
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, 
+        formData
+      );
+      return response.data.secure_url;
+    } catch (error) {
+      console.error('Cloudinary Image Upload Error:', error);
+      throw error;
     }
-
-    const data = await response.json();
-    return data.secure_url;
-  } catch (error) {
-    console.error('Error uploading image:', error);
-    throw error;
   }
-};
 
-const cloudinaryService = {
-  uploadImage
-};
+  // ✅ NEW: Generic file upload (Supports PDF, Docs, Images)
+  async uploadFile(file, folder = 'little-lions/documents') {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    formData.append('folder', folder);
+    
+    // Note: We use 'auto' resource type to handle both images and PDFs
+    try {
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, 
+        formData
+      );
+      return response.data.secure_url;
+    } catch (error) {
+      console.error('Cloudinary File Upload Error:', error);
+      throw error;
+    }
+  }
+}
 
-export default cloudinaryService;
+const cloudinaryServiceInstance = new CloudinaryService();
+export default cloudinaryServiceInstance;
