@@ -604,32 +604,6 @@
   z-index: 10;
 }
 
-/* ============================================================
-   ✅ FOOTER (ONLY FOR STUDENT PROFILE PAGE)
-============================================================ */
-.sp-footer{
-  margin-top: auto;              /* ✅ pushes footer to bottom when short */
-  padding: 16px 40px;
-  border-top: 1px solid #e5e7eb;
-  background: #0052A1;
-}
-
-.sp-footer-inner{
-  max-width: 1200px;
-  margin: 0 auto;
-  margin-left: 180px;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  color: #FFCB10;
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.sp-footer-sep{
-  opacity: 0.6;
-}
-
 /* ===== Activity Calendar View ===== */
 .calendar-view-container {
   display: flex;

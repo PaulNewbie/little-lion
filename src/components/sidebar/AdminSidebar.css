@@ -14,7 +14,7 @@
   transform: translateX(-100%);
   transition: transform 0.3s ease;
   z-index: 1000;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 .sidebar.open {

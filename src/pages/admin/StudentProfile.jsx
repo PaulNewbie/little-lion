@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
+import GeneralFooter from "../../components/footer/generalfooter";
 import childService from "../../services/childService";
 import activityService from "../../services/activityService";
 import servicesService from "../../services/servicesService";
@@ -9,6 +10,8 @@ import useManageTeachers from "../../hooks/useManageTeachers";
 import useManageTherapists from "../../hooks/useManageTherapists";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./css/StudentProfile.css";
+
+
 
 /* ================================================================
    CALENDAR & ACTIVITY VIEW COMPONENT
@@ -668,16 +671,8 @@ const StudentProfile = () => {
             </div>
           )}
 
-          {/* ✅ FOOTER (always visible on this page, for both views) */}
-          <footer className="sp-footer">
-            <div className="sp-footer-inner">
-              <span>Little Lions Learning and Development Center</span>
-              <span>littlelionsldc@gmail.com</span>
-              <span>(+63) 9677900903</span>
-              <span className="sp-footer-sep">•</span>
-              <span>Student Profile</span>
-            </div>
-          </footer>
+          <GeneralFooter pageLabel="Student Profile" />
+
         </div>
       </div>
 
