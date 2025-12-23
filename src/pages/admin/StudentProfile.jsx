@@ -352,14 +352,16 @@ const StudentProfile = () => {
   const legacyServices = studentToDisplay?.services || [];
 
   return (
-    <div className="ooo-container">
+    <div className="sp-container">
+      {/* Pass forceActive to sidebar if fromOneOnOne */}
       <AdminSidebar forceActive={fromOneOnOne ? "/admin/one-on-one" : null} />
 
-      <div className="ooo-main">
+      <div className="sp-main">
+
         {/* --- VIEW 1: STUDENT LIST --- */}
         {currentLevel === "student-list" && (
           <>
-            <div className="ooo-header">
+            <div className="sp-header">
               <div className="header-title">
                 <h1>STUDENT PROFILES</h1>
                 <p className="header-subtitle">Manage enrolled students and view activities</p>
@@ -367,10 +369,20 @@ const StudentProfile = () => {
               <div className="filter-actions">
                 <div className="search-wrapper">
                   <span className="search-icon">🔍</span>
-                  <input type="text" className="ooo-search" placeholder="Search by name..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                  <input
+                    type="text"
+                    className="sp-search"
+                    placeholder="Search by name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
                 </div>
                 <div className="filter-wrapper">
-                  <select className="ooo-filter-select" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+                  <select
+                    className="sp-filter-select"
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value)}
+                  >
                     <option value="all">All Students</option>
                     <option value="therapy">Therapy Services</option>
                     <option value="group">Group Classes</option>
@@ -380,22 +392,31 @@ const StudentProfile = () => {
               </div>
             </div>
 
-            <div className="ooo-content-area">
+            <div className="sp-content-area">
               {filteredStudents.length === 0 ? (
                 <div className="empty-state"><p>No students found matching your criteria.</p></div>
               ) : (
-                <div className="ooo-grid">
+                <div className="sp-grid">
                   {filteredStudents.map((student) => {
                      const hasTherapy = (student.therapyServices?.length > 0) || (student.services?.length > 0);
                      const hasGroup = student.groupClasses?.length > 0;
                      return (
-                      <div key={student.id} className="ooo-card" onClick={() => handleSelectStudent(student)}>
-                        <div className="ooo-card-image-box">
-                          {student.photoUrl ? <img src={student.photoUrl} alt="" className="ooo-photo" /> : <div className="ooo-photo-placeholder">{student.firstName[0]}</div>}
+                      <div
+                        key={student.id}
+                        className="sp-card"
+                        onClick={() => handleSelectStudent(student)}
+                      >
+                        <div className="sp-card-image-box">
+                          {student.photoUrl ? (
+                            <img src={student.photoUrl} alt="" className="sp-photo" />
+                          ) : (
+                            <div className="sp-photo-placeholder">{student.firstName[0]}</div>
+                          )}
                         </div>
-                        <div className="ooo-card-body">
-                          <h3 className="ooo-name">{student.firstName} {student.lastName}</h3>
-                          <div className="ooo-badges">
+
+                        <div className="sp-card-body">
+                          <h3 className="sp-name">{student.firstName} {student.lastName}</h3>
+                          <div className="sp-badges">
                             {hasTherapy && <span className="badge badge-therapy">Therapy</span>}
                             {hasGroup && <span className="badge badge-group">Group</span>}
                             {!hasTherapy && !hasGroup && <span className="badge badge-none">New</span>}
@@ -589,9 +610,6 @@ const StudentProfile = () => {
         </div>
       )}
 
-      <footer className="footer">
-        <p>© 2025 Little Lions Learning & Development Center. All rights reserved.</p>
-      </footer>
     </div>
   );
 };

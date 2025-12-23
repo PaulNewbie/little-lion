@@ -62,12 +62,14 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background-color: #ffd700;
+  border: 3px solid #ffd700; /* 👈 color only on border */
+  background-color: transparent; /* 👈 no fill */
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
 }
+
 
 .role-label {
   font-size: 12px;
@@ -77,7 +79,46 @@
 .profile-name {
   font-size: 20px;
   font-weight: bold;
+  color: #0052A1;
 }
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  color: #374151;
+}
+
+.menu-icon {
+  width: 25px;
+  height: 25px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* ACTIVE STATE */
+.menu-item.active {
+  color: #ffffff;
+}
+
+.menu-item.active .menu-icon {
+  filter: brightness(0) invert(1);
+}
+
+/* default text color (optional) */
+.menu-item .menu-label{
+  color: #374151;
+}
+
+/* ✅ ACTIVE: force label to white */
+.menu-item.active .menu-label{
+  color: #ffffff !important;
+}
+
+
+
 
 .menu-section {
   margin-bottom: 30px;
@@ -109,7 +150,7 @@
 }
 
 .menu-item.active {
-  background-color: #e0e0e0;
+  background-color: #FFCB10;
   font-weight: bold;
   color: #000;
 }
