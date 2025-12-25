@@ -21,7 +21,7 @@ const manageChildren = {
       serviceType: service.serviceType,
       staffId: service.staffId,
       staffName: service.staffName,
-      staffRole: service.serviceType === "Therapy" ? "therapist" : "teacher",
+      staffRole: "therapist",
     }));
 
     const processedClasses = (data.groupClassServices || []).map((service) => ({
