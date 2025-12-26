@@ -678,54 +678,70 @@ const StudentProfile = () => {
 
       {/* --- ADD SERVICE MODAL --- */}
       {isAddModalOpen && (
-        <div>
-          <div>
-            <h3>Enroll in {addServiceType}</h3>
+        <div className="add-service-overlay">
+          <div className="add-service-modal">
+            <h3 className="modal-title">
+              {addServiceType === "Therapy" ? "🧠" : "👥"} Enroll in {addServiceType}
+            </h3>
+            
+            <p className="modal-subtitle">
+              Select a service and assign a staff member to this student.
+            </p>
 
-            <div>
-              <label>
-                Select Service:
-              </label>
+            <div className="modal-form-body">
+              <div className="form-group">
+                <label>Select Service</label>
+                <div className="select-wrapper">
+                  <select
+                    className="modal-select"
+                    value={addForm.serviceId}
+                    onChange={(e) => setAddForm({ ...addForm, serviceId: e.target.value })}
+                  >
+                    <option value="">-- Choose Service --</option>
+                    {availableServices.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} {s.className ? `(${s.className})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
-              <select
-                value={addForm.serviceId}
-                onChange={(e) => setAddForm({ ...addForm, serviceId: e.target.value })}
-              >
-                <option value="">-- Choose Service --</option>
-                {availableServices.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} {s.className ? `(${s.className})` : ""}
-                  </option>
-                ))}
-              </select>
+              <div className="form-group">
+                <label>
+                  Assign {addServiceType === "Therapy" ? "Therapist" : "Teacher"}
+                </label>
+                <div className="select-wrapper">
+                  <select
+                    className="modal-select"
+                    value={addForm.staffId}
+                    onChange={(e) => setAddForm({ ...addForm, staffId: e.target.value })}
+                  >
+                    <option value="">-- Choose Staff --</option>
+                    {(addServiceType === "Therapy" ? therapists : teachers).map((staff) => (
+                      <option key={staff.uid || staff.id} value={staff.uid || staff.id}>
+                        {staff.firstName} {staff.lastName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label>
-                Assign {addServiceType === "Therapy" ? "Therapist" : "Teacher"}:
-              </label>
-
-              <select
-                value={addForm.staffId}
-                onChange={(e) => setAddForm({ ...addForm, staffId: e.target.value })}
+            <div className="modal-actions">
+              <button 
+                className="btn-cancel" 
+                onClick={() => setIsAddModalOpen(false)}
               >
-                <option value="">-- Choose Staff --</option>
-                {(addServiceType === "Therapy" ? therapists : teachers).map((staff) => (
-                  <option key={staff.uid || staff.id} value={staff.uid || staff.id}>
-                    {staff.firstName} {staff.lastName}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <button onClick={() => setIsAddModalOpen(false)}>Cancel</button>
+                Cancel
+              </button>
 
               <button
+                className="btn-confirm"
                 onClick={handleAddSubmit}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Saving..." : "Confirm"}
+                {isSubmitting ? "Saving..." : "Confirm Enrollment"}
               </button>
             </div>
           </div>
