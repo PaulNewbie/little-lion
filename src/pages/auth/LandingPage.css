@@ -1,0 +1,566 @@
+.landing-page {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+}
+
+/* Landing Header */
+.landing-header {
+  width: 100%;
+  /* Black with 40% transparency */
+  background-color: rgba(0, 0, 0, 0.1); 
+  padding: 5px 20px;
+  
+  /* Pulls the hero image up to the top of the screen */
+  position: absolute; 
+  top: 0;
+  left: 0;
+  z-index: 10;
+  
+  /* Optional: adds a 'frosted' look to the dark header */
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  
+  /* Ensures white text is readable on the dark background */
+  color: #ffffff;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  position: relative;
+  min-height: auto;
+}
+.logo-circle {
+  width: 50px;
+  height: 50px;
+  background-color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.logo-img {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+}
+
+.header-title {
+  color: white;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: 0.3px;
+  text-align: center;
+}
+
+/* Hero Section */
+.hero-section {
+  width: 100%;
+  flex: 1;
+  background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
+    url('https://images.pexels.com/photos/7334320/pexels-photo-7334320.jpeg?auto=compress&cs=tinysrgb&w=1600&h=600&fit=crop') center/cover;
+  background-attachment: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  min-height: 600px;
+}
+
+.hero-overlay {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Hero Content Layout */
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.welcome-text {
+  /* Pulls 'Welcome to the' closer to the bent text */
+  margin-bottom: -70px; 
+  z-index: 10;
+}
+
+/* Curved SVG Styling */
+.portal-curved-svg {
+  width: 100%;
+  max-width: 900px; /* Adjust based on your screen size */
+  height: auto;
+  overflow: visible;
+}
+
+.curved-portal-title {
+  fill: #ffffff;
+  font-family: 'Arial Black', sans-serif;
+  font-size: 24px; /* Your requested size */
+  font-weight: 900;
+  text-transform: uppercase;
+  /* letter-spacing: 2px; */
+  filter: drop-shadow(4px 4px 6px rgba(0, 0, 0, 0.9));
+
+}
+
+/* Thanks and Login Section */
+.thanks-login-section {
+  width: 100%;
+  background-color: #FFDE59; /* Theme Yellow */
+  
+  /* Create the arc at the top */
+  /* ellipse at 50% width, 100% height */
+  clip-path: ellipse(70% 100% at 50% 100%); 
+  
+  /* Pull the section up to overlap the hero image */
+  margin-top: -300px; 
+  padding: 160px 20px 80px;
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 5;
+}
+
+/* Ensure the Portal Title curves with the arc */
+.portal-title {
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-transform: uppercase;
+  text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.9);
+  
+  /* This helps the text appear to follow the curve */
+  transform: translateY(-20px); 
+}
+
+/* Adjust the Thanks content to be centered and prominent */
+.thanks-content {
+  text-align: center;
+  max-width: 800px;
+  margin-bottom: 50px;
+}
+
+.thanks-title {
+  font-size: 3rem;
+  font-weight: 900;
+  color: #000;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+
+.thanks-message {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  color: #333;
+}
+/* Login Card */
+.login-card {
+  flex: 1;
+  display: flex;
+  background-color: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: slideInUp 0.8s ease-out;
+}
+
+.login-image {
+  flex: 1;
+  overflow: hidden;
+  min-height: 400px;
+}
+
+.child-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.login-form-wrapper {
+  flex: 1;
+  padding: 50px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background-color: white;
+}
+
+.login-welcome-title {
+  text-align: center;
+  color: #003d7a;
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0 0 40px;
+  letter-spacing: 2px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.login-label {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.9rem;
+  text-transform: capitalize;
+}
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  width: 20px;
+  height: 20px;
+  color: #ffd700;
+  stroke-width: 2;
+  pointer-events: none;
+}
+
+.login-input {
+  width: 100%;
+  padding: 12px 12px 12px 40px;
+  border: 2px solid #ffd700;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  background-color: #f9f9f9;
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: #003d7a;
+  background-color: white;
+  box-shadow: 0 0 8px rgba(0, 61, 122, 0.2);
+}
+
+.login-input:disabled {
+  background-color: #f0f0f0;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.forgot-password-link {
+  text-align: right;
+}
+
+.forgot-password-button {
+  background: none;
+  color: #003d7a;
+  border: none;
+  padding: 0;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.forgot-password-button:hover:not(:disabled) {
+  color: #ffd700;
+}
+
+.forgot-password-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.login-button {
+  padding: 14px;
+  background-color: #003d7a;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-top: 10px;
+}
+
+.login-button:hover:not(:disabled) {
+  background-color: #002a56;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 61, 122, 0.3);
+}
+
+.login-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.login-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Landing Footer */
+.landing-footer {
+  width: 100%;
+  background-color: #404040;
+  padding: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-logo {
+  width: 50px;
+  height: 50px;
+  background-color: #ffd700;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-logo-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+/* Animations */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+  .thanks-section {
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  .login-card {
+    flex-direction: column;
+  }
+
+  .login-image {
+    min-height: 300px;
+  }
+
+  .login-form-wrapper {
+    padding: 40px 30px;
+  }
+
+  .thanks-title {
+    font-size: 2.5rem;
+  }
+
+  .thanks-message {
+    font-size: 1rem;
+  }
+
+  .portal-title {
+    font-size: 2.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-title {
+    font-size: 1.2rem;
+  }
+
+  .welcome-subtitle {
+    font-size: 1.2rem;
+  }
+
+  .portal-title {
+    font-size: 2.2rem;
+    letter-spacing: 2px;
+  }
+
+  .thanks-section {
+    flex-direction: column;
+  }
+
+  .login-card {
+    flex-direction: column;
+  }
+
+  .login-image {
+    min-height: 250px;
+  }
+
+  .login-form-wrapper {
+    padding: 30px 20px;
+  }
+
+  .login-welcome-title {
+    font-size: 1.6rem;
+  }
+
+  .thanks-title {
+    font-size: 2rem;
+  }
+
+  .thanks-message {
+    font-size: 0.95rem;
+  }
+
+  .login-form {
+    gap: 18px;
+  }
+
+  .thanks-login-section {
+    padding: 40px 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-header {
+    padding: 10px 15px;
+  }
+
+  .header-content {
+    gap: 10px;
+  }
+
+  .logo-circle {
+    width: 40px;
+    height: 40px;
+  }
+
+  .logo-img {
+    width: 35px;
+    height: 35px;
+  }
+
+  .header-title {
+    font-size: 0.9rem;
+  }
+
+  .hero-section {
+    min-height: 300px;
+    padding: 20px;
+  }
+
+  .welcome-subtitle {
+    font-size: 1rem;
+  }
+
+  .portal-title {
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+  }
+
+  .thanks-login-section {
+    padding: 30px 10px;
+  }
+
+  .thanks-section {
+    gap: 20px;
+  }
+
+  .login-card {
+    border-radius: 10px;
+  }
+
+  .login-image {
+    min-height: 200px;
+  }
+
+  .login-form-wrapper {
+    padding: 20px;
+  }
+
+  .login-welcome-title {
+    font-size: 1.3rem;
+    margin-bottom: 25px;
+  }
+
+  .thanks-title {
+    font-size: 1.5rem;
+  }
+
+  .thanks-message {
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  .login-form {
+    gap: 15px;
+  }
+
+  .login-label {
+    font-size: 0.8rem;
+  }
+
+  .login-input {
+    padding: 10px 10px 10px 35px;
+    font-size: 0.9rem;
+  }
+
+  .input-icon {
+    width: 18px;
+    height: 18px;
+    left: 8px;
+  }
+
+  .login-button {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+
+  .footer-logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .footer-logo-img {
+    width: 30px;
+    height: 30px;
+  }
+}
