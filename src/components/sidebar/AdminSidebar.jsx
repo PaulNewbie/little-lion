@@ -131,13 +131,6 @@ const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
         {/* User Management */}
         <div className="menu-section">
           <div className="section-title">USER MANAGEMENT</div>
-          <div
-            className={`menu-item ${isActive("/admin/enroll-child") ? "active" : ""}`}
-            onClick={() => navigate("/admin/enroll-child")}
-          >
-            <img src={ICONS.Parent} className="menu-icon" alt="Parent" />
-            <span className="menu-label">PARENT</span>
-          </div>
 
           {/* RESTRICTED: Add Admin (Only for Super Admin) */}
           {isSuperAdmin && (
@@ -164,13 +157,7 @@ const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
             <img src={ICONS.Therapist} className="menu-icon" alt="Therapist" />
             <span className="menu-label">THERAPIST</span>
           </div>
-          <div
-            className={`menu-item ${isActive("/admin/manage-parents") ? "active" : ""}`}
-            onClick={() => navigate("/admin/manage-parents")}
-          >
-            <img src={ICONS.Parent} className="menu-icon" alt="Parent" />
-            <span className="menu-label">PARENTS</span> 
-          </div>
+
         </div>
 
         <button className="logout-btn" onClick={handleLogout}>

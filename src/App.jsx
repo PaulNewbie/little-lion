@@ -17,12 +17,10 @@ import ChangePassword from "./pages/auth/ChangePassword";
 // Admin Components
 import OneOnOne from "./pages/admin/OneOnOne";
 import PlayGroup from "./pages/admin/PlayGroup";
-import EnrollChild from "./pages/admin/EnrollChild";
 import ManageTeachers from "./pages/admin/ManageTeachers";
 import ManageTherapists from "./pages/admin/ManageTherapists";
 import EnrollStudent from "./pages/admin/enrollmentTabPages/EnrollStudent";
 import ManageAdmins from "./pages/admin/ManageAdmins";
-import ManageParents from "./pages/admin/ManageParents.jsx";
 import StudentProfile from "./pages/admin/StudentProfile";
 
 // Teacher Components
@@ -129,19 +127,9 @@ const AppRoutes = () => {
       } />
       <Route path="/admin/dashboard" element={<Navigate to="/admin/StudentProfile" replace />} />
       <Route path="/admin/play-group" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><PlayGroup /></ProtectedRoute>} />
-      <Route path="/admin/enroll-child" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><EnrollChild /></ProtectedRoute>} />
       <Route path="/admin/manage-teachers" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><ManageTeachers /></ProtectedRoute>} />
       <Route path="/admin/manage-therapists" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><ManageTherapists /></ProtectedRoute>} />
       
-      {/* Note: Check if you want super_admin to access ManageParents as well. Assuming yes, added it here. */}
-      <Route
-        path="/admin/manage-parents"
-        element={
-          <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
-            <ManageParents />
-          </ProtectedRoute>
-        }
-      />
 
       <Route
         path="/admin/enrollment"

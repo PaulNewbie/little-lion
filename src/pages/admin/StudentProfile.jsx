@@ -320,9 +320,14 @@ const StudentProfile = () => {
 
     let matchesFilter = true;
     const hasTherapy =
-      (student.therapyServices && student.therapyServices.length > 0) ||
-      (student.services && student.services.length > 0);
-    const hasGroup = student.groupClasses && student.groupClasses.length > 0;
+      (student.therapyServices?.length > 0) ||
+      (student.services?.length > 0) ||
+      (student.oneOnOneServices?.length > 0);
+
+    const hasGroup =
+      (student.groupClasses?.length > 0) ||
+      (student.groupClassServices?.length > 0) ||
+      (student.classes?.length > 0); 
 
     if (filterType === "therapy") matchesFilter = hasTherapy;
     else if (filterType === "group") matchesFilter = hasGroup;
@@ -428,14 +433,15 @@ const StudentProfile = () => {
   const combinedStaff = [...(teachers || []), ...(therapists || [])];
 
   const therapyServices = [
-    ...(studentToDisplay?.therapyServices || []),
-    ...(studentToDisplay?.services || []), 
-    ...(studentToDisplay?.oneOnOneServices || []) 
+    ...(studentToDisplay?.therapyServices || []), // Old manual add
+    ...(studentToDisplay?.services || []),        // Enrollment Form saves here! (That's why it worked)
+    ...(studentToDisplay?.oneOnOneServices || []) // Just in case
   ];
 
   const groupServices = [
-    ...(studentToDisplay?.groupClasses || []),
-    ...(studentToDisplay?.groupClassServices || []) 
+    ...(studentToDisplay?.groupClasses || []),       // Old manual add
+    ...(studentToDisplay?.groupClassServices || []), // Just in case
+    ...(studentToDisplay?.classes || [])             // (Enrollment Form saves here)
   ];
   const legacyServices = studentToDisplay?.services || [];
 
@@ -495,8 +501,13 @@ const StudentProfile = () => {
                     {filteredStudents.map((student) => {
                       const hasTherapy =
                         (student.therapyServices?.length > 0) ||
-                        (student.services?.length > 0);
-                      const hasGroup = student.groupClasses?.length > 0;
+                        (student.services?.length > 0) ||
+                        (student.oneOnOneServices?.length > 0);
+
+                      const hasGroup =
+                        (student.groupClasses?.length > 0) ||
+                        (student.groupClassServices?.length > 0) ||
+                        (student.classes?.length > 0);
 
                       return (
                         <div
