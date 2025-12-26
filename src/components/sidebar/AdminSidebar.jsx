@@ -113,7 +113,7 @@ const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
             onClick={() => navigate("/admin/play-group")}
           >
             <img src={ICONS.Group} className="menu-icon" alt="Group class" />
-            <span className="menu-label">PLAY GROUP</span>
+            <span className="menu-label">GROUP CLASSES</span>
           </div>
 
           {/* RESTRICTED: Enroll Students*/}

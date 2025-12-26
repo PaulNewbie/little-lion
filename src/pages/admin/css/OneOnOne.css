@@ -1,17 +1,51 @@
 /* ================================================================
    GLOBAL CONTAINER
 ================================================================ */
-.ooo-container {
-  display: flex;
-  min-height: 100vh;
-  font-family: Arial, sans-serif;
-  background-color: #f5f5f5;
+:root {
+  --sidebar-w: 10px; /* ✅ change if your sidebar width is different */
 }
 
+.ooo-container {
+  display: flex;
+  height: 100vh;
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+  overflow: hidden; /* prevent double scrollbars */
+}
+
+/* ✅ Main area MUST be offset because sidebar is position:fixed */
 .ooo-main {
   flex: 1;
-  padding: 2rem;
+  height: 100vh;
   overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* ================================================================
+   Make scrollbar visible (when content overflows)
+================================================================ */
+/* Firefox */
+.ooo-main {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 82, 161, 0.55) rgba(0, 0, 0, 0.08);
+}
+
+/* Chrome / Edge / Safari */
+.ooo-main::-webkit-scrollbar {
+  width: 10px;
+}
+.ooo-main::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+}
+.ooo-main::-webkit-scrollbar-thumb {
+  background: rgba(0, 82, 161, 0.55);
+  border-radius: 10px;
+}
+.ooo-main::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 82, 161, 0.75);
 }
 
 /* ================================================================
@@ -40,8 +74,6 @@
   font-size: 14px;
 }
 
-
-
 .ooo-header .back-arrow {
   position: absolute; /* keeps back arrow on the left */
   margin-bottom: 45px;
@@ -58,7 +90,7 @@
   color: #0052A1;
   font-weight: bold;
   margin-bottom: 25px;
-  margin-left: 1rem;
+  margin-left: 3rem;
 }
 
 /* ================================================================
@@ -68,6 +100,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1rem;
+  justify-content: center; /* ✅ centers the cards */
+  margin-left: 20px;
 }
 
 .ooo-card {
@@ -119,142 +153,8 @@
 }
 
 /* ================================================================
-   STUDENT PROFILE
+   MODAL
 ================================================================ */
-.profile-wrapper {
-  background-color: #fff;
-  padding: 2rem;
-  border-radius: 8px;
-}
-
-.profile-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
-}
-
-.profile-3col {
-  display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
-}
-
-.profile-photo-frame {
-  flex: 0 0 200px;
-  width: 200px;
-  height: 200px;
-  border-radius: 8px;
-  overflow: hidden;
-  background-color: #eee;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.profile-photo-frame img.profile-photo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.profile-info {
-  flex: 1;
-}
-
-.profile-fullname {
-  font-size: 1.8rem;
-  margin-bottom: 1rem;
-}
-
-.profile-details {
-  display: flex;
-  gap: 2rem;
-  margin-bottom: 1.5rem;
-}
-
-.profile-left p,
-.profile-right p {
-  margin: 0.2rem 0;
-}
-
-.profile-left .icon {
-  margin-right: 0.5rem;
-}
-
-/* ================================================================
-   SERVICES & ACTIVITIES
-================================================================ */
-.services-header {
-  font-size: 1.2rem;
-  margin: 1.5rem 0 0.5rem;
-}
-
-.services-list .service-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.service-left {
-  display: flex;
-  align-items: center;
-}
-
-.service-icon {
-  margin-right: 0.5rem;
-}
-
-/* ================================================================
-   SELECTED SERVICE INFO (COLLAPSIBLE)
-================================================================ */
-.service-date-list {
-  margin-top: 1rem;
-}
-
-.service-date-block {
-  margin-bottom: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  background-color: #fafafa;
-}
-
-.service-date-header {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.service-date-header:hover {
-  background-color: #eee;
-}
-
-.arrow-icon {
-  font-size: 0.8rem;
-}
-
-.service-info-card {
-  padding: 0.5rem 1rem;
-  border-top: 1px solid #ddd;
-  background-color: #fff;
-}
-
-.service-info-card .label {
-  font-weight: bold;
-  margin-right: 0.5rem;
-}
-
-/* Highlight the current service in Services Availed */
-.services-list .service-row.highlight {
-  background-color: #fffae6; /* light yellow */
-  border-left: 4px solid #ffc107; /* yellow accent */
-  padding-left: 0.5rem;
-  border-radius: 4px;
-}
-
-
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -276,14 +176,8 @@
 }
 
 @keyframes modalPop {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
 .modal-form input,
@@ -313,25 +207,31 @@
   cursor: pointer;
 }
 
+/* ================================================================
+   FLOATING BUTTON
+   (Use position: fixed so it follows viewport of .ooo-main)
+================================================================ */
 .floating-add-btn {
-align-items: center;
-background-color: #FFCB10;
-border: none;
-border-radius: 50px;
-bottom: 60px; /* moved up to avoid footer */
-box-shadow: 0 4px 15px #4ecdc466;
-color: #fff;
-cursor: pointer;
-display: flex;
-font-size: 16px;
-font-weight: 700;
-gap: 12px;
-padding: 12px 28px;
-position: absolute;
-right: 40px;
-transition: transform .2s, background-color .2s, box-shadow .2s;
-z-index: 999;
+  align-items: center;
+  background-color: #FFCB10;
+  border: none;
+  border-radius: 50px;
 
+  /* ✅ fixed feels better with a scrolling main area */
+  position: fixed;
+  right: 40px;
+  bottom: 70px;
+
+  box-shadow: 0 4px 15px #4ecdc466;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  font-size: 16px;
+  font-weight: 700;
+  gap: 12px;
+  padding: 12px 28px;
+  transition: transform .2s, background-color .2s, box-shadow .2s;
+  z-index: 999;
 }
 
 .floating-add-btn:hover {
@@ -339,3 +239,19 @@ z-index: 999;
   box-shadow: 0 8px 22px rgba(0,0,0,0.2);
 }
 
+/* ================================================================
+   FOOTER LAYOUT (works inside a scrolling .ooo-main)
+================================================================ */
+.ooo-page {
+  min-height: 100%;             /* ✅ not 100vh (because .ooo-main already is 100vh) */
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ooo-content {
+  flex: 1 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}

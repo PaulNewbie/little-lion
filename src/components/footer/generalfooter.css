@@ -1,0 +1,26 @@
+/* ============================================================
+   GLOBAL APP FOOTER
+============================================================ */
+
+.app-footer{
+  margin-top: auto;              /* ✅ pushes footer down when content is short */
+  padding: 16px 40px;
+  border-top: 1px solid #e5e7eb;
+  background: #0052A1;
+}
+
+.app-footer-inner{
+  max-width: 1200px;
+  margin: 0 auto;
+  margin-left: 180px;            /* aligns with admin sidebar */
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: #FFCB10;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.app-footer-sep{
+  opacity: 0.6;
+}
