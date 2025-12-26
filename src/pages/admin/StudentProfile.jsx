@@ -427,8 +427,16 @@ const StudentProfile = () => {
   // Combine lists for the calendar view lookup
   const combinedStaff = [...(teachers || []), ...(therapists || [])];
 
-  const therapyServices = studentToDisplay?.therapyServices || [];
-  const groupServices = studentToDisplay?.groupClasses || [];
+  const therapyServices = [
+    ...(studentToDisplay?.therapyServices || []),
+    ...(studentToDisplay?.services || []), 
+    ...(studentToDisplay?.oneOnOneServices || []) 
+  ];
+
+  const groupServices = [
+    ...(studentToDisplay?.groupClasses || []),
+    ...(studentToDisplay?.groupClassServices || []) 
+  ];
   const legacyServices = studentToDisplay?.services || [];
 
   return (
@@ -595,9 +603,12 @@ const StudentProfile = () => {
                         </p>
                       )}
 
-                      {[...therapyServices, ...legacyServices].map((service, i) => {
+                      {therapyServices.map((service, i) => {
                         const sName = service.serviceName;
                         const isSelected = selectedService === sName;
+                        
+                        // Check all possible name fields
+                        const displayName = service.therapistName || service.teacherName || service.staffName || "—";
 
                         return (
                           <div
@@ -610,7 +621,7 @@ const StudentProfile = () => {
                             </div>
                             <div>
                               <span className="teacher-name">
-                                {service.therapistName || service.teacherName || "—"}
+                                {displayName} 
                               </span>
                               {isSelected && <span className="selected-check">✔</span>}
                             </div>
@@ -637,6 +648,9 @@ const StudentProfile = () => {
                       {groupServices.map((service, i) => {
                         const sName = service.className || service.serviceName;
                         const isSelected = selectedService === sName;
+                        
+                        // Check teacherName AND staffName
+                        const displayName = service.teacherName || service.staffName || "—";
 
                         return (
                           <div
@@ -648,7 +662,7 @@ const StudentProfile = () => {
                               <span className="service-icon">👥</span>{sName}
                             </div>
                             <div>
-                              <span className="teacher-name">{service.teacherName || "—"}</span>
+                              <span className="teacher-name">{displayName}</span>
                               {isSelected && <span className="selected-check">✔</span>}
                             </div>
                           </div>
