@@ -8,6 +8,7 @@ import authService from "../../../services/authService";
 // Firebase services
 import manageParents from "./enrollmentDatabase/manageParents";
 import manageChildren from "./enrollmentDatabase/manageChildren";
+import manageAssessment from "./enrollmentDatabase/manageAssessment";
 
 function generatePassword() {
   // 🔐 Password generator: 3 letters + 3 digits (ALL CAPS)
@@ -15,7 +16,7 @@ function generatePassword() {
   const digits = "0123456789";
 
   let password = "";
- 
+
   for (let i = 0; i < 3; i++) {
     password += letters[Math.floor(Math.random() * letters.length)];
   }
@@ -38,6 +39,9 @@ export default function EnrollStudent() {
   const [showParentForm, setShowParentForm] = useState(false);
   const [showEnrollForm, setShowEnrollForm] = useState(false);
 
+  // NEW: State for editing existing student
+  const [editingStudent, setEditingStudent] = useState(null);
+
   // Form State for Parent
   const [parentInput, setParentInput] = useState({
     firstName: "",
@@ -56,7 +60,7 @@ export default function EnrollStudent() {
   const handleParentSubmit = async (e) => {
     e.preventDefault();
 
-  try {
+    try {
       // 1. Separate email and password
       const { email, password, ...profileData } = parentInput;
 
@@ -64,7 +68,7 @@ export default function EnrollStudent() {
       // ⚠️ PASS 'password' INSIDE THE 3RD ARGUMENT TO STORE IT IN FIRESTORE
       const user = await authService.createParentAccount(email, password, {
         ...profileData,
-        password: password // <--- ADD THIS to save it in the database
+        password: password, // <--- ADD THIS to save it in the database
       });
 
       // 3. Update the UI list
@@ -90,8 +94,9 @@ export default function EnrollStudent() {
       });
 
       // 5. Alert the admin with the password just to be sure
-      alert(`Parent account created!\n\nEmail: ${email}\nPassword: ${password}\n\nPlease copy this now.`);
-      
+      alert(
+        `Parent account created!\n\nEmail: ${email}\nPassword: ${password}\n\nPlease copy this now.`
+      );
     } catch (error) {
       console.error("Creation Error:", error);
       alert(`Failed to create parent: ${error.message}`);
@@ -140,9 +145,53 @@ export default function EnrollStudent() {
     }
   }, [selectedParent]);
 
+  // NEW: Handle student click - if ASSESSING, load and edit
+  const handleStudentClick = async (student) => {
+    if (student.status === "ASSESSING") {
+      try {
+        // Fetch the full assessment data
+        const assessmentData = await manageAssessment.getAssessment(
+          student.assessmentId
+        );
+
+        // Combine child data with assessment data
+        const fullStudentData = {
+          ...student,
+          ...assessmentData,
+        };
+
+        setEditingStudent(fullStudentData);
+        setShowEnrollForm(true);
+      } catch (error) {
+        console.error("Failed to load assessment data:", error);
+        alert("Failed to load student assessment data. Please try again.");
+      }
+    }
+    // If status is ENROLLED, do nothing or show a view-only modal
+  };
+
   const handleEnrollmentSave = (savedChild) => {
     // Update local state with saved child from Firebase
-    setAllStudents((prev) => [...prev, savedChild]);
+    setAllStudents((prev) => {
+      const existingIndex = prev.findIndex((c) => c.id === savedChild.id);
+      if (existingIndex >= 0) {
+        // Update existing student
+        const updated = [...prev];
+        updated[existingIndex] = savedChild;
+        return updated;
+      } else {
+        // Add new student
+        return [...prev, savedChild];
+      }
+    });
+
+    // Clear editing state
+    setEditingStudent(null);
+  };
+
+  const handleCloseEnrollForm = () => {
+    setShowEnrollForm(false);
+    setEditingStudent(null);
   };
 
   const filteredParents = allParents.filter((p) =>
@@ -218,7 +267,25 @@ export default function EnrollStudent() {
                     </p>
                   ) : (
                     allStudents.map((s) => (
-                      <div key={s.id} className="service-row">
+                      <div
+                        key={s.id}
+                        className="service-row"
+                        onClick={() => handleStudentClick(s)}
+                        style={{
+                          cursor:
+                            s.status === "ASSESSING" ? "pointer" : "default",
+                          transition: "background-color 0.2s",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (s.status === "ASSESSING") {
+                            e.currentTarget.style.backgroundColor =
+                              "rgba(0, 123, 255, 0.05)";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }}
+                      >
                         <div className="service-left">
                           👶 {s.lastName}, {s.firstName}{" "}
                           {s.nickname ? `"${s.nickname}"` : ""}
@@ -229,6 +296,7 @@ export default function EnrollStudent() {
                           }`}
                         >
                           {s.status || "ENROLLED"}
+                          {s.status === "ASSESSING" && " ✏️"}
                         </div>
                       </div>
                     ))
@@ -360,9 +428,10 @@ export default function EnrollStudent() {
         {selectedParent && (
           <EnrollStudentFormModal
             show={showEnrollForm}
-            onClose={() => setShowEnrollForm(false)}
+            onClose={handleCloseEnrollForm}
             selectedParent={selectedParent}
             onSave={handleEnrollmentSave}
+            editingStudent={editingStudent}
           />
         )}
       </div>

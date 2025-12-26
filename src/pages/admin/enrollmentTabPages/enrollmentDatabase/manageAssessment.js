@@ -1,6 +1,6 @@
 // enrollmentDatabase/manageAssessment.js
 import { db } from "../../../../config/firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 
 const manageAssessment = {
   async createOrUpdateAssessment(childId, data) {
@@ -29,14 +29,33 @@ const manageAssessment = {
       assessmentSummary: data.assessmentSummary,
 
       updatedAt: serverTimestamp(),
-      createdAt: serverTimestamp(),
     };
+
+    // Only set createdAt for new assessments (when assessmentId doesn't exist in data)
+    if (!data.assessmentId) {
+      assessmentPayload.createdAt = serverTimestamp();
+    }
 
     await setDoc(doc(db, "assessments", assessmentId), assessmentPayload, {
       merge: true,
     });
 
     return assessmentId;
+  },
+
+  async getAssessment(assessmentId) {
+    if (!assessmentId) {
+      throw new Error("Assessment ID is required");
+    }
+
+    const assessmentRef = doc(db, "assessments", assessmentId);
+    const assessmentSnap = await getDoc(assessmentRef);
+
+    if (!assessmentSnap.exists()) {
+      throw new Error("Assessment not found");
+    }
+
+    return assessmentSnap.data();
   },
 };
 

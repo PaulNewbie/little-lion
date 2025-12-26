@@ -1,65 +1,64 @@
 import React, { useState, useEffect } from "react";
+import readUsers from "../../enrollmentDatabase/readUsers";
+import readServices from "../../enrollmentDatabase/readServices";
 
 export default function Step9Enrollment({ data, onChange }) {
   const [services, setServices] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [therapists, setTherapists] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // State split into two parts
   const [oneOnOneServices, setOneOnOneServices] = useState([]);
   const [groupClassServices, setGroupClassServices] = useState([]);
 
   useEffect(() => {
-    // Mock data - Replace with actual API calls
-    setServices([
-      { id: "1", name: "Speech Therapy", type: "Therapy" },
-      { id: "2", name: "Occupational Therapy", type: "Therapy" },
-      { id: "3", name: "Physical Therapy", type: "Therapy" },
-      { id: "4", name: "Behavioral Management", type: "Class" },
-      { id: "5", name: "SPED One-on-One", type: "Class" },
-    ]);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // 1. Fetch all services from DB
+        const allDbServices = await readServices.getAllServices();
 
-    setTeachers([
-      {
-        uid: "t1",
-        firstName: "John",
-        lastName: "Doe",
-        specializations: ["Behavioral Management", "SPED One-on-One"],
-      },
-      {
-        uid: "t2",
-        firstName: "Jane",
-        lastName: "Smith",
-        specializations: ["SPED One-on-One"],
-      },
-    ]);
+        // 2. Get the serviceIds of interventions saved in Step 4
+        const savedInterventions = data.backgroundHistory?.interventions || [];
+        const savedServiceIds = savedInterventions.map(
+          (item) => item.serviceId
+        );
 
-    setTherapists([
-      {
-        uid: "th1",
-        firstName: "Dr. Maria",
-        lastName: "Garcia",
-        specializations: ["Speech Therapy"],
-      },
-      {
-        uid: "th2",
-        firstName: "Dr. Robert",
-        lastName: "Lee",
-        specializations: ["Occupational Therapy", "Speech Therapy"],
-      },
-      {
-        uid: "th3",
-        firstName: "Dr. Sarah",
-        lastName: "Johnson",
-        specializations: ["Physical Therapy"],
-      },
-    ]);
+        console.log("Saved intervention IDs from Step 4:", savedServiceIds);
+
+        // 3. Filter services by ID (not name) to only show what was saved in Step 4
+        const filtered = allDbServices.filter((service) =>
+          savedServiceIds.includes(service.id)
+        );
+
+        console.log("Filtered services for Step 9:", filtered);
+        setServices(filtered);
+
+        // 4. Fetch Staff
+        const allStaff = await readUsers.getAllTeachersTherapists();
+
+        // Separate by role
+        const teachersList = allStaff.filter((u) => u.role === "teacher");
+        const therapistsList = allStaff.filter((u) => u.role === "therapist");
+
+        setTeachers(teachersList);
+        setTherapists(therapistsList);
+
+        console.log("Teachers loaded:", teachersList);
+        console.log("Therapists loaded:", therapistsList);
+      } catch (error) {
+        console.error("Error loading step 9:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
 
     if (data.oneOnOneServices) setOneOnOneServices(data.oneOnOneServices);
     if (data.groupClassServices) setGroupClassServices(data.groupClassServices);
-  }, [data.oneOnOneServices, data.groupClassServices]);
+  }, [data.backgroundHistory?.interventions]);
 
-  // Generic handlers updated to accept "category" (oneOnOne vs groupClass)
   const handleAddService = (category) => {
     const newService = {
       serviceId: "",
@@ -99,18 +98,31 @@ export default function Step9Enrollment({ data, onChange }) {
 
     const isTherapy = service.type === "Therapy";
     const staffList = isTherapy ? therapists : teachers;
+
+    // CORRECTED: Match staff by checking if their specializations array
+    // includes the service NAME (since staff.specializations stores names)
     const qualified = staffList.find((staff) =>
       staff.specializations?.includes(service.name)
     );
+
+    console.log("Service selected:", service.name, "ID:", service.id);
+    console.log(
+      "Looking in staff list:",
+      staffList.map((s) => ({
+        name: `${s.firstName} ${s.lastName}`,
+        specializations: s.specializations,
+      }))
+    );
+    console.log("Qualified staff found:", qualified);
 
     const list =
       category === "oneOnOne" ? oneOnOneServices : groupClassServices;
     const updated = list.map((s, i) =>
       i === index
         ? {
-            serviceId: service.id,
-            serviceName: service.name,
-            serviceType: service.type,
+            serviceId: service.id, // Store the ID
+            serviceName: service.name, // Store the name for display
+            serviceType: service.type, // "Therapy" or "Class"
             staffId: qualified?.uid || "",
             staffName: qualified
               ? `${qualified.firstName} ${qualified.lastName}`
@@ -136,6 +148,8 @@ export default function Step9Enrollment({ data, onChange }) {
     const staffList = isTherapy ? therapists : teachers;
     const staff = staffList.find((s) => s.uid === staffId);
 
+    console.log("Staff changed to:", staff);
+
     const updated = list.map((s, i) =>
       i === index
         ? {
@@ -158,12 +172,17 @@ export default function Step9Enrollment({ data, onChange }) {
   const getQualifiedStaff = (serviceName, serviceType) => {
     if (!serviceName || !serviceType) return [];
     const staffList = serviceType === "Therapy" ? therapists : teachers;
-    return staffList.filter((staff) =>
+
+    // Filter staff who have this service NAME in their specializations
+    // (Staff specializations store service names, not IDs)
+    const qualified = staffList.filter((staff) =>
       staff.specializations?.includes(serviceName)
     );
+
+    console.log(`Qualified staff for ${serviceName}:`, qualified);
+    return qualified;
   };
 
-  // Styles from your original code
   const selectStyles = {
     width: "100%",
     padding: "10px 35px 10px 12px",
@@ -194,105 +213,119 @@ export default function Step9Enrollment({ data, onChange }) {
   };
   const selectSuccessStyles = { ...selectStyles, borderColor: "#10b981" };
 
-  // Helper to render the table rows to avoid code duplication
-  const renderRows = (list, category) => (
-    <>
-      {list.length > 0 && (
-        <div className="assessment-tools-header">
-          <label>Service</label>
-          <label>Assigned Staff</label>
-        </div>
-      )}
-      {list.map((service, index) => {
-        const qualifiedStaff = getQualifiedStaff(
-          service.serviceName,
-          service.serviceType
-        );
-        const hasError = service.serviceId && qualifiedStaff.length === 0;
-        return (
-          <div
-            className="assessment-tool-row"
-            key={`${category}-${index}`}
-            style={{
-              alignItems: "center",
-            }}
-          >
-            <div className="assessment-tool-field">
-              <select
-                value={service.serviceId}
-                onChange={(e) =>
-                  handleServiceChange(category, index, e.target.value)
-                }
-                style={
-                  service.serviceId && !hasError
-                    ? selectSuccessStyles
-                    : selectStyles
-                }
-              >
-                <option value="">-- Select Service --</option>
-                {services.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} ({s.type})
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="assessment-tool-field">
-              <select
-                value={service.staffId}
-                onChange={(e) =>
-                  handleStaffChange(category, index, e.target.value)
-                }
-                disabled={!service.serviceId}
-                style={
-                  !service.serviceId
-                    ? selectDisabledStyles
-                    : hasError
-                    ? selectErrorStyles
-                    : service.staffId
-                    ? selectSuccessStyles
-                    : selectStyles
-                }
-              >
-                <option value="">
-                  -- Select{" "}
-                  {service.serviceType === "Therapy" ? "Therapist" : "Teacher"}{" "}
-                  --
-                </option>
-                {qualifiedStaff.map((staff) => (
-                  <option key={staff.uid} value={staff.uid}>
-                    {staff.firstName} {staff.lastName}
-                  </option>
-                ))}
-              </select>
-              {hasError && (
-                <small
-                  style={{
-                    color: "#ef4444",
-                    fontSize: "0.75rem",
-                    marginTop: "5px",
-                    display: "block",
-                  }}
-                >
-                  ⚠️ No qualified staff available
-                </small>
-              )}
-            </div>
-            <button
-              type="button"
-              className="remove-entry-btn"
-              onClick={() => handleRemoveService(category, index)}
-              style={{
-                marginTop: "0px",
-              }}
-            >
-              ✕
-            </button>
+  const renderRows = (list, category) => {
+    const allowedType = category === "oneOnOne" ? "Therapy" : "Class";
+
+    return (
+      <>
+        {list.length > 0 && (
+          <div className="assessment-tools-header">
+            <label>Service</label>
+            <label>Assigned Staff</label>
           </div>
-        );
-      })}
-    </>
-  );
+        )}
+        {list.map((service, index) => {
+          const qualifiedStaff = getQualifiedStaff(
+            service.serviceName,
+            service.serviceType
+          );
+          const hasError = service.serviceId && qualifiedStaff.length === 0;
+
+          return (
+            <div
+              className="assessment-tool-row"
+              key={`${category}-${index}`}
+              style={{ alignItems: "center" }}
+            >
+              <div className="assessment-tool-field">
+                <select
+                  value={service.serviceId}
+                  onChange={(e) =>
+                    handleServiceChange(category, index, e.target.value)
+                  }
+                  style={
+                    service.serviceId && !hasError
+                      ? selectSuccessStyles
+                      : selectStyles
+                  }
+                >
+                  <option value="">-- Select {allowedType} --</option>
+                  {/* Filter by TYPE, use ID as value, display NAME */}
+                  {services
+                    .filter((s) => s.type === allowedType)
+                    .map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              <div className="assessment-tool-field">
+                <select
+                  value={service.staffId}
+                  onChange={(e) =>
+                    handleStaffChange(category, index, e.target.value)
+                  }
+                  disabled={!service.serviceId}
+                  style={
+                    !service.serviceId
+                      ? selectDisabledStyles
+                      : hasError
+                      ? selectErrorStyles
+                      : service.staffId
+                      ? selectSuccessStyles
+                      : selectStyles
+                  }
+                >
+                  <option value="">
+                    -- Select{" "}
+                    {allowedType === "Therapy" ? "Therapist" : "Teacher"} --
+                  </option>
+                  {qualifiedStaff.map((staff) => (
+                    <option key={staff.uid} value={staff.uid}>
+                      {staff.firstName} {staff.lastName}
+                    </option>
+                  ))}
+                </select>
+                {hasError && (
+                  <small
+                    style={{
+                      color: "#ef4444",
+                      fontSize: "0.75rem",
+                      marginTop: "5px",
+                      display: "block",
+                    }}
+                  >
+                    ⚠️ No qualified staff available for {service.serviceName}
+                  </small>
+                )}
+              </div>
+
+              <button
+                type="button"
+                className="remove-entry-btn"
+                onClick={() => handleRemoveService(category, index)}
+                style={{ marginTop: "0px" }}
+              >
+                ✕
+              </button>
+            </div>
+          );
+        })}
+      </>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="form-section">
+        <p style={{ textAlign: "center", padding: "2rem", color: "#64748b" }}>
+          Loading staff and services...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="form-section">
@@ -304,7 +337,32 @@ export default function Step9Enrollment({ data, onChange }) {
         student.
       </p>
 
-      {/* SECTION 1: 1 ON 1 SERVICE */}
+      {/* Debug Info - Remove in production */}
+      {process.env.NODE_ENV === "development" && (
+        <div
+          style={{
+            background: "#f0f9ff",
+            padding: "10px",
+            marginBottom: "20px",
+            borderRadius: "6px",
+            fontSize: "12px",
+          }}
+        >
+          <strong>Debug Info:</strong>
+          <br />
+          Teachers loaded: {teachers.length} | Therapists loaded:{" "}
+          {therapists.length}
+          <br />
+          Services available:{" "}
+          {services.map((s) => `${s.name} (${s.id})`).join(", ")}
+          <br />
+          Interventions from Step 4:{" "}
+          {data.backgroundHistory?.interventions
+            ?.map((i) => `${i.name} (${i.serviceId})`)
+            .join(", ") || "None"}
+        </div>
+      )}
+
       <div style={{ marginBottom: "30px" }}>
         <h4
           style={{ fontSize: "1rem", color: "#334155", marginBottom: "15px" }}
@@ -329,7 +387,6 @@ export default function Step9Enrollment({ data, onChange }) {
         }}
       />
 
-      {/* SECTION 2: GROUP CLASS */}
       <div style={{ marginBottom: "30px" }}>
         <h4
           style={{ fontSize: "1rem", color: "#334155", marginBottom: "15px" }}
