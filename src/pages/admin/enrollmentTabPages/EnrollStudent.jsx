@@ -7,7 +7,8 @@ import authService from "../../../services/authService";
 
 // Firebase services
 import manageParents from "./enrollmentDatabase/manageParents";
-import manageChildren from "./enrollmentDatabase/manageChildren";
+// import manageChildren from "../enrollmentDatabase/manageChildren"; // Old Import
+import childService from "../../../services/childService"; // New Import 
 import manageAssessment from "./enrollmentDatabase/manageAssessment";
 
 function generatePassword() {
@@ -126,7 +127,7 @@ export default function EnrollStudent() {
 
       const fetchChildren = async () => {
         try {
-          const childrenFromDB = await manageChildren.getChildrenByParent(
+          const childrenFromDB = await childService.getChildrenByParentId(
             selectedParent.id
           );
           setAllStudents(childrenFromDB);

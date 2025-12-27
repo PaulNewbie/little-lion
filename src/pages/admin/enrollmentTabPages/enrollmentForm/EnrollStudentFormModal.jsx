@@ -9,7 +9,8 @@ import Step6AssessmentTools from "./components/Step6AssessmentTools";
 import Step7AssessmentResults from "./components/Step7AssessmentResults";
 import Step8SummaryRecommendations from "./components/Step8SummaryRecommendations";
 import Step9ServiceEnrollment from "./components/Step9ServiceEnrollment";
-import manageChildren from "../enrollmentDatabase/manageChildren";
+// import manageChildren from "../enrollmentDatabase/manageChildren"; // Old Import
+import childService from "../../../../services/childService"; // New Import 
 import manageAssessment from "../enrollmentDatabase/manageAssessment";
 
 // Define the clean slate outside the component
@@ -145,7 +146,7 @@ export default function EnrollStudentFormModal({
 
       console.log("Saving child with enrollment data:", childDataToSave);
 
-      const savedChild = await manageChildren.createOrUpdateChild(
+      const savedChild = await childService.createOrUpdateChild(
         selectedParent.id,
         childDataToSave
       );

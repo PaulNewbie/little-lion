@@ -1,70 +1,116 @@
 import { 
   collection, 
-  addDoc, 
   doc, 
+  setDoc,      
   updateDoc, 
   arrayUnion,
   query,
   where,
-  getDocs
+  getDocs,
+  serverTimestamp 
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
-/**
- * @typedef {Object} ServiceAssignment
- * @property {string} serviceId - The ID of the service from the 'services' collection
- * @property {string} serviceName - The name of the service (e.g., 'Speech Therapy')
- * @property {string} [therapistId] - UID of the therapist (for 1:1)
- * @property {string} [therapistName] - Name of the therapist
- * @property {string} [teacherId] - UID of the teacher (for classes)
- * @property {string} [teacherName] - Name of the teacher
- */
-
-/**
- * @typedef {Object} ChildData
- * @property {string} firstName
- * @property {string} lastName
- * @property {string} dateOfBirth - ISO Date string (YYYY-MM-DD)
- * @property {string} gender - 'male' | 'female' | 'select'
- * @property {string} [medicalInfo] - Optional medical notes
- * @property {string} [photoUrl] - URL to profile image
- * @property {ServiceAssignment[]} [therapyServices] - List of 1:1 therapies
- * @property {ServiceAssignment[]} [groupClasses] - List of group classes
- */
-
 class ChildService {
+
+  /* ============================================================================
+     SECTION 1: CORE ENROLLMENT (Merged from manageChildren.js)
+     This is the robust logic used by your Admin Enrollment Wizard.
+  ============================================================================ */
+
   /**
-   * Enrolls a new child and links them to a parent.
-   * @param {ChildData} childData - The full child profile object
-   * @param {string} parentId - The UID of the parent user
-   * @returns {Promise<string>} The ID of the newly created child document
+   * Creates or Updates a Child Profile with full enrollment data.
+   * This handles standardizing services, staff IDs, and linking to the parent.
+   * * @param {string} parentId - The UID of the parent
+   * @param {object} data - The full form data object (identifying info + services)
    */
-async enrollChild(childData, parentId) {
-    try {
-      const therapistIds = childData.therapyServices?.map(s => s.therapistId).filter(Boolean) || [];
-      const teacherIds = childData.groupClasses?.map(s => s.teacherId).filter(Boolean) || [];
+  async createOrUpdateChild(parentId, data) {
+    const childId = data.childId || crypto.randomUUID();
 
-      const childRef = await addDoc(collection(db, 'children'), {
-        ...childData,
-        parentIds: [parentId],
-        therapistIds,
-        teacherIds,
-        createdAt: new Date().toISOString(),
-        active: true
-      });
+    // 1. Process 1-on-1 Services (Standardize Naming)
+    const processedServices = (data.oneOnOneServices || []).map((service) => ({
+      serviceId: service.serviceId,
+      serviceName: service.serviceName,
+      type: "Therapy",              // Standardized Type
+      staffId: service.staffId,     // Standardized ID
+      staffName: service.staffName, // Standardized Name
+      staffRole: "therapist",       // Standardized Role
+    }));
 
-      const parentRef = doc(db, 'users', parentId);
-      await updateDoc(parentRef, {
-        childrenIds: arrayUnion(childRef.id)
-      });
+    // 2. Process Group Classes (Standardize Naming)
+    const processedClasses = (data.groupClassServices || []).map((service) => ({
+      serviceId: service.serviceId,
+      serviceName: service.serviceName,
+      type: "Class",                // Standardized Type
+      staffId: service.staffId,     // Standardized ID
+      staffName: service.staffName, // Standardized Name
+      staffRole: "teacher",         // Standardized Role
+    }));
 
-      return childRef.id;
-    } catch (error) {
-      throw new Error('Failed to enroll child: ' + error.message);
-    }
+    // 3. Create Quick-Lookup Arrays (For Queries)
+    // Extract unique staff IDs so we can query "where therapistIds contains X"
+    const therapistIds = processedServices.map((s) => s.staffId);
+    
+    const teacherIds = [
+      ...processedServices.filter((s) => s.staffRole === "teacher").map((s) => s.staffId),
+      ...processedClasses.map((s) => s.staffId),
+    ];
+
+    // 4. Construct the Payload
+    const childPayload = {
+      // --- Identifying Data ---
+      firstName: data.firstName,
+      middleName: data.middleName,
+      lastName: data.lastName,
+      nickname: data.nickname,
+      dateOfBirth: data.dateOfBirth,
+      gender: data.gender,
+      relationshipToClient: data.relationshipToClient,
+      photoUrl: data.photoUrl,
+      active: data.active !== false,
+      address: data.address,
+      school: data.school,
+      gradeLevel: data.gradeLevel,
+      
+      // --- Assessment Data ---
+      assessmentDates: data.assessmentDates,
+      examiner: data.examiner,
+      ageAtAssessment: data.ageAtAssessment,
+      assessmentId: data.assessmentId || null,
+
+      // --- SERVICE ENROLLMENT (Single Source of Truth) ---
+      // We combine both lists into one 'enrolledServices' array
+      enrolledServices: [ ...processedServices, ...processedClasses ],
+
+      // --- Lookup Arrays ---
+      therapistIds: [...new Set(therapistIds)], // Remove duplicates
+      teacherIds: [...new Set(teacherIds)],     // Remove duplicates
+
+      // --- Metadata ---
+      parentId, 
+      status: data.status || "ENROLLED",
+      updatedAt: serverTimestamp(),
+      createdAt: data.createdAt || serverTimestamp(), 
+      // (If it's an update, we might want to preserve original creation date, 
+      // but if data.createdAt is undefined, it's new)
+    };
+
+    console.log("🦁 Saving Child Profile via ChildService:", childPayload);
+
+    // 5. Save to Firestore (Merge prevents overwriting missing fields)
+    await setDoc(doc(db, "children", childId), childPayload, {
+      merge: true,
+    });
+
+    return { id: childId, ...childPayload };
   }
 
-  // 2. Get children for a specific parent
+  /* ============================================================================
+     SECTION 2: DATA FETCHING (Existing ChildService Logic)
+     Used by Dashboards and Lists.
+  ============================================================================ */
+
+  // Get children for a specific parent
   async getChildrenByParentId(parentId) {
     try {
       const q = query(collection(db, 'children'), where('parentId', '==', parentId));
@@ -75,21 +121,8 @@ async enrollChild(childData, parentId) {
     }
   }
 
-  // 3. Get children enrolled in a specific service (For Teachers)
-  async getChildrenByService(serviceType) {
-    try {
-      const querySnapshot = await getDocs(collection(db, 'children'));
-      const allChildren = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      return allChildren.filter(child => 
-        child.services && child.services.some(s => s.serviceName === serviceType)
-      );
-    } catch (error) {
-      throw new Error('Failed to fetch assigned children: ' + error.message);
-    }
-  }
-
-  // 4.  Gel specific who enroll for = Teacher Dashboard
-async getChildrenByTeacherId(teacherId) {
+  // Get children assigned to a specific TEACHER
+  async getChildrenByTeacherId(teacherId) {
     try {
       const q = query(
         collection(db, 'children'), 
@@ -103,7 +136,7 @@ async getChildrenByTeacherId(teacherId) {
     }
   }
 
-  // 5. Get children assigned to a specific THERAPIST
+  // Get children assigned to a specific THERAPIST
   async getChildrenByTherapistId(therapistId) {
     try {
       const q = query(
@@ -118,6 +151,7 @@ async getChildrenByTeacherId(teacherId) {
     }
   }
 
+  // Get All Children (Admin)
   async getAllChildren() {
     try {
       const querySnapshot = await getDocs(collection(db, 'children'));
@@ -127,32 +161,22 @@ async getChildrenByTeacherId(teacherId) {
     }
   }
 
-  // 7. Add a service to an existing child
-  /**
-   * Adds a specific service to an existing child.
-   * @param {string} childId 
-   * @param {ServiceAssignment} serviceData 
-   */
-  async addServiceToChild(childId, serviceData) {
-    try {
-      const childRef = doc(db, 'children', childId);
-      await updateDoc(childRef, {
-        services: arrayUnion(serviceData)
-      });
-    } catch (error) {
-      throw new Error('Failed to assign service: ' + error.message);
-    }
-  }
-  
+  /* ============================================================================
+     SECTION 3: SERVICE MODIFICATION (Unified Logic)
+     Used by Manual Add Buttons in Profile.
+  ============================================================================ */
+
   async assignService(childId, serviceData) {
     try {
       const childRef = doc(db, 'children', childId);
       
-      // Standardize the object structure
+      // Standardize the object structure to match 'createOrUpdateChild' format
       const standardizedService = {
         serviceId: serviceData.serviceId,
         serviceName: serviceData.serviceName,
-        type: serviceData.type || 'Therapy', // 'Therapy' or 'Class'
+        type: serviceData.type || 'Therapy', 
+        
+        // Handle varying naming conventions from inputs
         staffId: serviceData.staffId || serviceData.therapistId || serviceData.teacherId,
         staffName: serviceData.staffName || serviceData.therapistName || serviceData.teacherName,
         staffRole: serviceData.staffRole || (serviceData.teacherId ? 'teacher' : 'therapist')
@@ -162,7 +186,7 @@ async getChildrenByTeacherId(teacherId) {
         enrolledServices: arrayUnion(standardizedService)
       };
 
-      // Maintain the quick-lookup arrays (Keep these! They are useful for querying)
+      // Maintain the quick-lookup arrays
       if (standardizedService.staffRole === 'therapist') {
         updates.therapistIds = arrayUnion(standardizedService.staffId);
       } else if (standardizedService.staffRole === 'teacher') {
@@ -175,7 +199,7 @@ async getChildrenByTeacherId(teacherId) {
     }
   }
 
-  // DEPRECATED WRAPPERS (Keep these so your old code doesn't break immediately)
+  // Wrappers for backward compatibility
   async assignTherapyService(childId, data) {
     return this.assignService(childId, { ...data, type: 'Therapy', staffRole: 'therapist' });
   }
