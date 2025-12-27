@@ -11,21 +11,21 @@ import useManageTherapists from "../../hooks/useManageTherapists";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./css/StudentProfile.css";
 
-
-
 /* ================================================================
    CALENDAR & ACTIVITY VIEW COMPONENT
 ================================================================ */
 const ActivityCalendarView = ({ activities, teachers, selectedServiceName }) => {
   const [date, setDate] = useState(new Date());
 
+  // Reset date to today when switching services so you don't get lost
   useEffect(() => {
     setDate(new Date());
   }, [selectedServiceName]);
 
   const getActivitiesForDate = (selectedDate) => {
     return activities.filter((act) => {
-      const actDate = new Date(act.date);
+      // Ensure we handle both Firestore timestamps and ISO strings
+      const actDate = new Date(act.date); 
       return (
         actDate.getDate() === selectedDate.getDate() &&
         actDate.getMonth() === selectedDate.getMonth() &&
@@ -62,9 +62,7 @@ const ActivityCalendarView = ({ activities, teachers, selectedServiceName }) => 
   };
 
   return (
-    <div
-      className="calendar-view-container"
-    >
+    <div className="calendar-view-container">
       <div className="day-details-section">
         <h3 className="date-heading">
           {date.toLocaleDateString("en-US", {
@@ -81,20 +79,21 @@ const ActivityCalendarView = ({ activities, teachers, selectedServiceName }) => 
         ) : (
           <div className="daily-records-list">
             {selectedActivities.map((rec, i) => {
+              // Teacher Observations are saved as 'therapy_session' type now
+              // but we can distinguish them by 'authorRole' or 'sessionType' if needed
               const isTherapy =
                 rec.type === "therapy_session" ||
                 rec._collection === "therapy_sessions";
 
               return (
-                <div
-                  key={i}
-                  className="record-card"
-                >
+                <div key={i} className="record-card">
                   <div className="record-header">
-                    <span
-                      className="record-type"
-                    >
+                    <span className="record-type">
                       {rec.serviceName || rec.serviceType || "Activity"}
+                    </span>
+                    {/* Optional: Show who wrote it */}
+                    <span style={{ fontSize: "0.8rem", color: "#666" }}>
+                      {new Date(rec.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
 
@@ -105,12 +104,11 @@ const ActivityCalendarView = ({ activities, teachers, selectedServiceName }) => 
                       getTeacherName(rec.teacherId || rec.authorId)}
                   </p>
 
+                  {/* MOOD / REACTION (Common to both) */}
                   {rec.studentReaction && rec.studentReaction.length > 0 && (
-                    <div>
+                    <div style={{ margin: "8px 0" }}>
                       {rec.studentReaction.map((m, idx) => (
-                        <span
-                          key={idx}
-                        >
+                        <span key={idx} style={{ marginRight: "8px", background: "#f0f9ff", padding: "4px 8px", borderRadius: "12px", fontSize: "0.85rem" }}>
                           {getEmojiForMood(m)} {m}
                         </span>
                       ))}
@@ -123,30 +121,32 @@ const ActivityCalendarView = ({ activities, teachers, selectedServiceName }) => 
 
                   {isTherapy ? (
                     <>
+                      {/* Clinical / Observation Fields */}
                       {rec.sessionNotes && (
                         <p>
                           <span className="label">Notes:</span>{" "}
                           {rec.sessionNotes}
                         </p>
                       )}
-                      <div>
+                      
+                      <div style={{ display: 'grid', gap: '8px', marginTop: '8px' }}>
                         {rec.strengths && (
-                          <div>
-                            <span>
-                              💪 Strengths:
+                          <div style={{ background: '#f0fdf4', padding: '8px', borderRadius: '4px' }}>
+                            <span style={{ color: '#166534', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                              💪 Strengths
                             </span>
-                            <p>
+                            <p style={{ margin: '4px 0 0', fontSize: '0.9rem' }}>
                               {rec.strengths}
                             </p>
                           </div>
                         )}
 
                         {rec.weaknesses && (
-                          <div>
-                            <span>
-                              🔻 Improvements:
+                          <div style={{ background: '#fef2f2', padding: '8px', borderRadius: '4px' }}>
+                            <span style={{ color: '#991b1b', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                              🔻 Improvements
                             </span>
-                            <p>
+                            <p style={{ margin: '4px 0 0', fontSize: '0.9rem' }}>
                               {rec.weaknesses}
                             </p>
                           </div>
@@ -154,13 +154,14 @@ const ActivityCalendarView = ({ activities, teachers, selectedServiceName }) => 
                       </div>
 
                       {rec.homeActivities && (
-                        <div>
+                        <div style={{ marginTop: '8px' }}>
                           <span className="label">🏠 Home Plan:</span>{" "}
-                          {rec.homeActivities}
+                          <span style={{ fontSize: '0.9rem' }}>{rec.homeActivities}</span>
                         </div>
                       )}
                     </>
                   ) : (
+                    /* Generic / Legacy Activity Fields */
                     <>
                       <p>
                         <span className="label">Description:</span>{" "}
@@ -176,7 +177,7 @@ const ActivityCalendarView = ({ activities, teachers, selectedServiceName }) => 
                   )}
 
                   {rec.photoUrls && rec.photoUrls.length > 0 && (
-                    <div>
+                    <div style={{ marginTop: '10px' }}>
                       {rec.photoUrls.map((url, imgIdx) => (
                         <img
                           className="activity-image-preview"
@@ -250,7 +251,7 @@ const StudentProfile = () => {
 
   // ADD SERVICE MODAL STATE
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [addServiceType, setAddServiceType] = useState(null); // 'Therapy' or 'Class'
+  const [addServiceType, setAddServiceType] = useState(null); 
   const [availableServices, setAvailableServices] = useState([]);
   const [addForm, setAddForm] = useState({ serviceId: "", staffId: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -261,7 +262,6 @@ const StudentProfile = () => {
       const data = await childService.getAllChildren();
       setStudents(data);
 
-      // If we are currently viewing a student, refresh their data object
       if (selectedStudent) {
         const updated = data.find((s) => s.id === selectedStudent.id);
         if (updated) setSelectedStudent(updated);
@@ -320,13 +320,13 @@ const StudentProfile = () => {
 
     let matchesFilter = true;
     const hasTherapy =
+      (student.enrolledServices?.some(s => s.type === 'Therapy')) ||
       (student.therapyServices?.length > 0) ||
-      (student.services?.length > 0) ||
-      (student.oneOnOneServices?.length > 0);
+      (student.services?.length > 0);
 
     const hasGroup =
+      (student.enrolledServices?.some(s => s.type === 'Class')) ||
       (student.groupClasses?.length > 0) ||
-      (student.groupClassServices?.length > 0) ||
       (student.classes?.length > 0); 
 
     if (filterType === "therapy") matchesFilter = hasTherapy;
@@ -387,27 +387,36 @@ const StudentProfile = () => {
         (s) => s.id === addForm.serviceId
       );
 
+      // Unified Assign Call
+      // We rely on childService.assignService which we fixed in previous steps
+      // But we call the wrappers for safety if you still have them, or directly if not.
+      // Here we assume standard structure.
+      
+      const assignData = {
+        serviceId: selectedServiceObj.id,
+        serviceName: selectedServiceObj.name,
+        // Common fields
+        staffId: addForm.staffId,
+        staffName: '', // Will fill below
+      };
+
       if (addServiceType === "Therapy") {
         const staff = therapists.find((t) => (t.uid || t.id) === addForm.staffId);
         if (!staff) throw new Error("Selected therapist not found.");
-
-        const assignData = {
-          serviceId: selectedServiceObj.id,
-          serviceName: selectedServiceObj.name,
-          therapistId: staff.uid || staff.id,
-          therapistName: `${staff.firstName} ${staff.lastName}`,
-        };
+        assignData.staffName = `${staff.firstName} ${staff.lastName}`;
+        assignData.type = 'Therapy';
+        assignData.staffRole = 'therapist';
+        
+        // Use the new Unified method directly if available, or the wrapper
         await childService.assignTherapyService(selectedStudent.id, assignData);
+
       } else {
         const staff = teachers.find((t) => (t.uid || t.id) === addForm.staffId);
         if (!staff) throw new Error("Selected teacher not found.");
+        assignData.staffName = `${staff.firstName} ${staff.lastName}`;
+        assignData.type = 'Class';
+        assignData.staffRole = 'teacher';
 
-        const assignData = {
-          serviceId: selectedServiceObj.id,
-          serviceName: selectedServiceObj.name,
-          teacherId: staff.uid || staff.id,
-          teacherName: `${staff.firstName} ${staff.lastName}`,
-        };
         await childService.assignGroupClass(selectedStudent.id, assignData);
       }
 
@@ -422,35 +431,40 @@ const StudentProfile = () => {
     }
   };
 
-  if (loading || loadingTeachers) return <div>Loading...</div>;
+  if (loading || loadingTeachers) return <div className="loading-spinner">Loading...</div>;
 
   const studentToDisplay = selectedStudentFromOneOnOne || selectedStudent;
   const activitiesToDisplay = selectedStudentFromOneOnOne
     ? activitiesFromOneOnOne
     : studentActivities;
 
-  // Combine lists for the calendar view lookup
   const combinedStaff = [...(teachers || []), ...(therapists || [])];
 
+  // MERGE ALL SERVICE SOURCES
   const allEnrolled = [
-    ...(studentToDisplay?.enrolledServices || []), // The new standard
-    ...(studentToDisplay?.therapyServices || []),  // Legacy support
-    ...(studentToDisplay?.services || []),         // Legacy support
-    ...(studentToDisplay?.groupClasses || [])      // Legacy support
+    ...(studentToDisplay?.enrolledServices || []),
+    ...(studentToDisplay?.therapyServices || []),
+    ...(studentToDisplay?.services || []),
+    ...(studentToDisplay?.groupClasses || []),
+    ...(studentToDisplay?.classes || [])
   ];
 
-  // Filter for display
-  const therapyServices = allEnrolled.filter(s => s.type === 'Therapy' || s.staffRole === 'therapist');
-  const groupServices = allEnrolled.filter(s => s.type === 'Class' || s.staffRole === 'teacher');
+  // FILTER LISTS
+  const therapyServices = allEnrolled.filter(s => 
+    s.type === 'Therapy' || s.staffRole === 'therapist' || s.therapistId
+  );
+  
+  const groupServices = allEnrolled.filter(s => 
+    s.type === 'Class' || s.staffRole === 'teacher' || s.teacherId
+  );
 
   return (
     <div className="sp-container">
-      {/* Pass forceActive to sidebar if fromOneOnOne */}
       <AdminSidebar forceActive={fromOneOnOne ? "/admin/one-on-one" : null} />
 
       <div className="sp-main">
-        {/* ✅ WRAPPER so footer works on both views */}
         <div className="sp-page">
+          
           {/* --- VIEW 1: STUDENT LIST --- */}
           {currentLevel === "student-list" && (
             <>
@@ -498,13 +512,13 @@ const StudentProfile = () => {
                   <div className="sp-grid">
                     {filteredStudents.map((student) => {
                       const hasTherapy =
+                        (student.enrolledServices?.some(s => s.type === 'Therapy')) ||
                         (student.therapyServices?.length > 0) ||
-                        (student.services?.length > 0) ||
-                        (student.oneOnOneServices?.length > 0);
+                        (student.services?.length > 0);
 
                       const hasGroup =
+                        (student.enrolledServices?.some(s => s.type === 'Class')) ||
                         (student.groupClasses?.length > 0) ||
-                        (student.groupClassServices?.length > 0) ||
                         (student.classes?.length > 0);
 
                       return (
@@ -529,15 +543,9 @@ const StudentProfile = () => {
                             </h3>
 
                             <div className="sp-badges">
-                              {hasTherapy && (
-                                <span className="badge badge-therapy">Therapy</span>
-                              )}
-                              {hasGroup && (
-                                <span className="badge badge-group">Group</span>
-                              )}
-                              {!hasTherapy && !hasGroup && (
-                                <span className="badge badge-none">New</span>
-                              )}
+                              {hasTherapy && <span className="badge badge-therapy">Therapy</span>}
+                              {hasGroup && <span className="badge badge-group">Group</span>}
+                              {!hasTherapy && !hasGroup && <span className="badge badge-none">New</span>}
                             </div>
                           </div>
                         </div>
@@ -562,11 +570,7 @@ const StudentProfile = () => {
               <div className="profile-3col">
                 <div className="profile-photo-frame">
                   {studentToDisplay.photoUrl ? (
-                    <img
-                      src={studentToDisplay.photoUrl}
-                      alt=""
-                      className="profile-photo"
-                    />
+                    <img src={studentToDisplay.photoUrl} alt="" className="profile-photo" />
                   ) : (
                     <span>No Photo</span>
                   )}
@@ -579,10 +583,7 @@ const StudentProfile = () => {
 
                   <div className="profile-details">
                     <div className="profile-left">
-                      <p>
-                        <span className="icon">🏥</span> <b>Medical:</b>{" "}
-                        {studentToDisplay.medicalInfo || "None"}
-                      </p>
+                      <p><span className="icon">🏥</span> <b>Medical:</b> {studentToDisplay.medicalInfo || "None"}</p>
                     </div>
                     <div className="profile-right">
                       <p><b>Age:</b> {calculateAge(studentToDisplay.dateOfBirth)}</p>
@@ -598,26 +599,18 @@ const StudentProfile = () => {
                   {/* --- THERAPY SECTION --- */}
                   <div className="content-section">
                     <div>
-                      <h2 className="services-header">
-                        THERAPY SERVICES
-                      </h2>
-
+                      <h2 className="services-header">THERAPY SERVICES</h2>
                       <button onClick={() => handleOpenAddModal("Therapy")}>+ Add</button>
                     </div>
 
                     <div className="services-list">
-                      {therapyServices.length === 0 && (
-                        <p>
-                          No therapy services enrolled.
-                        </p>
-                      )}
+                      {therapyServices.length === 0 && <p>No therapy services enrolled.</p>}
 
                       {therapyServices.map((service, i) => {
-                        const sName = service.serviceName;
+                        // ✅ FIX: Prioritize serviceName, match Teacher Dashboard logic
+                        const sName = service.serviceName || service.className;
                         const isSelected = selectedService === sName;
-                        
-                        // Check all possible name fields
-                        const displayName = service.therapistName || service.teacherName || service.staffName || "—";
+                        const displayName = service.staffName || service.therapistName || service.teacherName || "—";
 
                         return (
                           <div
@@ -629,9 +622,7 @@ const StudentProfile = () => {
                               <span className="service-icon">🧠</span>{sName}
                             </div>
                             <div>
-                              <span className="teacher-name">
-                                {displayName} 
-                              </span>
+                              <span className="teacher-name">{displayName}</span>
                               {isSelected && <span className="selected-check">✔</span>}
                             </div>
                           </div>
@@ -643,23 +634,17 @@ const StudentProfile = () => {
                   {/* --- GROUP CLASS SECTION --- */}
                   <div className="content-section">
                     <div>
-                      <h2 className="services-header">
-                        GROUP CLASS SERVICES
-                      </h2>
-
+                      <h2 className="services-header">GROUP CLASS SERVICES</h2>
                       <button onClick={() => handleOpenAddModal("Class")}>+ Add</button>
                     </div>
                     <div className="services-list">
-                      {groupServices.length === 0 && (
-                        <p>No group classes enrolled.</p>
-                      )}
+                      {groupServices.length === 0 && <p>No group classes enrolled.</p>}
 
                       {groupServices.map((service, i) => {
-                        const sName = service.className || service.serviceName;
+                        // ✅ FIX: Prioritize serviceName here too!
+                        const sName = service.serviceName || service.className;
                         const isSelected = selectedService === sName;
-                        
-                        // Check teacherName AND staffName
-                        const displayName = service.teacherName || service.staffName || "—";
+                        const displayName = service.staffName || service.teacherName || "—";
 
                         return (
                           <div
@@ -684,7 +669,12 @@ const StudentProfile = () => {
                 {selectedService && (
                   <div ref={calendarRef}>
                     <ActivityCalendarView
-                      activities={activitiesToDisplay.filter((a) => a.serviceName === selectedService)}
+                      // ✅ FIX: Check multiple fields in case "Post Group Activity" saves it differently
+                      activities={activitiesToDisplay.filter((a) => 
+                        a.serviceName === selectedService || 
+                        a.className === selectedService || 
+                        a.serviceType === selectedService
+                      )}
                       teachers={combinedStaff}
                       selectedServiceName={selectedService}
                     />
@@ -695,7 +685,6 @@ const StudentProfile = () => {
           )}
 
           <GeneralFooter pageLabel="Student Profile" />
-
         </div>
       </div>
 
@@ -706,10 +695,7 @@ const StudentProfile = () => {
             <h3 className="modal-title">
               {addServiceType === "Therapy" ? "🧠" : "👥"} Enroll in {addServiceType}
             </h3>
-            
-            <p className="modal-subtitle">
-              Select a service and assign a staff member to this student.
-            </p>
+            <p className="modal-subtitle">Select a service and assign a staff member.</p>
 
             <div className="modal-form-body">
               <div className="form-group">
@@ -731,9 +717,7 @@ const StudentProfile = () => {
               </div>
 
               <div className="form-group">
-                <label>
-                  Assign {addServiceType === "Therapy" ? "Therapist" : "Teacher"}
-                </label>
+                <label>Assign {addServiceType === "Therapy" ? "Therapist" : "Teacher"}</label>
                 <div className="select-wrapper">
                   <select
                     className="modal-select"
@@ -752,18 +736,8 @@ const StudentProfile = () => {
             </div>
 
             <div className="modal-actions">
-              <button 
-                className="btn-cancel" 
-                onClick={() => setIsAddModalOpen(false)}
-              >
-                Cancel
-              </button>
-
-              <button
-                className="btn-confirm"
-                onClick={handleAddSubmit}
-                disabled={isSubmitting}
-              >
+              <button className="btn-cancel" onClick={() => setIsAddModalOpen(false)}>Cancel</button>
+              <button className="btn-confirm" onClick={handleAddSubmit} disabled={isSubmitting}>
                 {isSubmitting ? "Saving..." : "Confirm Enrollment"}
               </button>
             </div>
