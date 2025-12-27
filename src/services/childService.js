@@ -74,9 +74,18 @@ class ChildService {
       gradeLevel: data.gradeLevel,
       
       // --- Assessment Data ---
-      assessmentDates: data.assessmentDates,
-      examiner: data.examiner,
-      ageAtAssessment: data.ageAtAssessment,
+      assessmentDates: data.assessmentDates || [],
+      examiner: data.examiner || "",
+      ageAtAssessment: data.ageAtAssessment || "",
+      
+      // Saving the Narrative Fields (Steps 2-5 & 8)
+      reasonForReferral: data.reasonForReferral || "",
+      purposeOfAssessment: data.purposeOfAssessment || [],
+      backgroundHistory: data.backgroundHistory || {}, // Stores the big object from Step 4
+      behaviorDuringAssessment: data.behaviorDuringAssessment || "",
+      assessmentSummary: data.assessmentSummary || "", // Step 8 Summary
+      
+      assessmentTools: data.assessmentTools || [], // Contains Tools, Results, AND Recommendations
       assessmentId: data.assessmentId || null,
 
       // --- SERVICE ENROLLMENT (Single Source of Truth) ---

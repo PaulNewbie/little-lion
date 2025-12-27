@@ -910,3 +910,105 @@
   border-radius: 8px;
   border: 1px dashed #ccc;
 }
+
+/* === ASSESSMENT REPORT STYLES === */
+.report-main-title {
+  text-align: center;
+  color: #2c3e50;
+  border-bottom: 3px solid #FFCB10;
+  padding-bottom: 15px;
+  margin-bottom: 25px;
+}
+
+.report-meta-grid {
+  display: flex;
+  justify-content: space-around;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  margin-bottom: 30px;
+}
+
+.meta-item .label {
+  font-weight: bold;
+  color: #4a90e2;
+  margin-right: 5px;
+}
+
+.report-section {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid #eee;
+}
+
+.report-heading {
+  margin-top: 0;
+  color: #2c3e50;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+  font-size: 16px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.sub-section h4 {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.report-text {
+  line-height: 1.6;
+  color: #444;
+  white-space: pre-line; /* Preserves paragraphs in textareas */
+}
+
+.report-list {
+  padding-left: 20px;
+}
+.report-list li {
+  margin-bottom: 8px;
+  color: #444;
+}
+
+/* Tool Cards */
+.tool-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  overflow: hidden;
+}
+.tool-header {
+  background: #f8f9fa;
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #eee;
+}
+.tool-header h4 {
+  margin: 0;
+  color: #2c3e50;
+}
+.tool-body {
+  padding: 15px;
+}
+.result-box {
+  background: #fffdf0;
+  padding: 10px;
+  border-left: 3px solid #FFCB10;
+  margin-top: 10px;
+}
+.recommendation-box {
+  background: #eaf4ff;
+  padding: 10px;
+  border-left: 3px solid #4a90e2;
+  margin-top: 10px;
+}

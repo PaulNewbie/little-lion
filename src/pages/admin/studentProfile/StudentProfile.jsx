@@ -240,7 +240,7 @@ const StudentProfile = () => {
 
               {/* ✅ NEW: ASSESSMENT HISTORY SECTION */}
               {showAssessment && (
-                 <AssessmentHistory assessmentTools={selectedStudent.assessmentTools} />
+                 <AssessmentHistory data={selectedStudent} />
               )}
 
               {/* SERVICES & CALENDAR */}
