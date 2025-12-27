@@ -5,7 +5,7 @@ import 'react-calendar/dist/Calendar.css';
 // Services
 import childService from '../../services/childService';
 import activityService from '../../services/activityService';
-import servicesService from '../../services/servicesService';
+import servicesService from '../../services/offeringsService';
 import cloudinaryService from '../../services/cloudinaryService';
 
 // Components & Styles

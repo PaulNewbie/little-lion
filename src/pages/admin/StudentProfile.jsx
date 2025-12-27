@@ -5,7 +5,7 @@ import AdminSidebar from "../../components/sidebar/AdminSidebar";
 import GeneralFooter from "../../components/footer/generalfooter";
 import childService from "../../services/childService";
 import activityService from "../../services/activityService";
-import servicesService from "../../services/servicesService";
+import servicesService from "../../services/offeringsService";
 import useManageTeachers from "../../hooks/useManageTeachers";
 import useManageTherapists from "../../hooks/useManageTherapists";
 import { useLocation, useNavigate } from "react-router-dom";

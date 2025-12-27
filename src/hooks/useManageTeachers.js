@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import userService from '../services/userService';
 import authService from '../services/authService';
-import servicesService from '../services/servicesService';
+import servicesService from '../services/offeringsService';
 
 const useManageTeachers = () => {
   const [teachers, setTeachers] = useState([]);
