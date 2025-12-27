@@ -46,20 +46,36 @@ const TeacherDashboard = () => {
         const classesMap = {};
 
         myStudents.forEach(student => {
-          if (student.groupClasses) {
-            student.groupClasses.forEach(svc => {
-              if (svc.teacherId === currentUser.uid) {
-                if (!classesMap[svc.serviceName]) {
-                  classesMap[svc.serviceName] = {
-                    name: svc.serviceName,
-                    serviceId: svc.serviceId, // Assuming ID is consistent
-                    students: []
-                  };
-                }
-                classesMap[svc.serviceName].students.push(student);
+          // 1. Combine both array sources
+          const allClasses = [
+            ...(student.groupClasses || []),
+            ...(student.classes || [])
+          ];
+
+          // 2. Iterate the combined list
+          allClasses.forEach(svc => {
+            // Note: Enrollment form uses 'staffId', Manual uses 'teacherId'
+            const assignedId = svc.teacherId || svc.staffId;
+
+            if (assignedId === currentUser.uid) {
+              // Use 'className' or 'serviceName' depending on source
+              const className = svc.serviceName || svc.className; 
+
+              if (!classesMap[className]) {
+                classesMap[className] = {
+                  name: className,
+                  serviceId: svc.serviceId,
+                  students: []
+                };
               }
-            });
-          }
+              
+              // Prevent duplicates if student is in multiple lists
+              const isAlreadyIn = classesMap[className].students.some(s => s.id === student.id);
+              if (!isAlreadyIn) {
+                classesMap[className].students.push(student);
+              }
+            }
+          });
         });
 
         setMyClasses(Object.values(classesMap));

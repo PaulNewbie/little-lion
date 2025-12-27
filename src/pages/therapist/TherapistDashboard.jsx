@@ -65,7 +65,17 @@ const TherapistDashboard = () => {
 
   // Helper: Get ALL services assigned to me for this student
   const getMyServices = (student) => {
-    return student.therapyServices?.filter(s => s.therapistId === currentUser.uid) || [];
+    // 1. Combine both array sources
+    const allServices = [
+      ...(student.therapyServices || []),
+      ...(student.services || []) 
+    ];
+
+    // 2. Filter for the current therapist
+    // Note: Enrollment form uses 'staffId', Manual uses 'therapistId'. Check both.
+    return allServices.filter(s => 
+      (s.therapistId === currentUser.uid) || (s.staffId === currentUser.uid)
+    );
   };
 
   const handleStartSessionClick = (student) => {

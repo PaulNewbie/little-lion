@@ -235,9 +235,7 @@ const OneOnOne = () => {
                             </p>
                             <p className="ooo-sub">
                               Therapist:{" "}
-                              {serviceInfo?.therapistName
-                                ? serviceInfo.therapistName
-                                : "Not assigned"}
+                              {serviceInfo?.therapistName || serviceInfo?.staffName || "Not assigned"}
                             </p>
                           </div>
                         </div>
