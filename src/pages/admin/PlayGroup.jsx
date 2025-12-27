@@ -5,13 +5,13 @@ import 'react-calendar/dist/Calendar.css';
 // Services
 import childService from '../../services/childService';
 import activityService from '../../services/activityService';
-import servicesService from '../../services/offeringsService';
+import offeringsService from '../../services/offeringsService';
 import cloudinaryService from '../../services/cloudinaryService';
 
 // Components & Styles
 import AdminSidebar from '../../components/sidebar/AdminSidebar';
 import './css/PlayGroup.css';
-import './css/StudentProfile.css'; 
+import './studentProfile/StudentProfile.css'; 
 
 const PlayGroup = () => {
   // Navigation: 'service-list' | 'service-dashboard'
@@ -43,7 +43,7 @@ const PlayGroup = () => {
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const servicesData = await servicesService.getServicesByType('Class');
+        const servicesData = await offeringsService.getServicesByType('Class');
         setServices(servicesData);
       } catch (err) {
         console.error("Error loading services:", err);
@@ -140,14 +140,14 @@ const PlayGroup = () => {
         imageUrl = await cloudinaryService.uploadImage(serviceImage, 'little-lions/services');
       }
 
-      await servicesService.createService({ 
+      await offeringsService.createService({ 
         name: newServiceData.name, 
         description: newServiceData.description,
         type: 'Class',
         imageUrl: imageUrl
       });
       
-      const updated = await servicesService.getServicesByType('Class');
+      const updated = await offeringsService.getServicesByType('Class');
       setServices(updated);
       
       setNewServiceData({ name: '', description: '' });

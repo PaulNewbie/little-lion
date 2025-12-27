@@ -803,3 +803,110 @@
   background-color: #a0c4eb;
   cursor: not-allowed;
 }
+
+
+/* ============================================================
+   ASSESSMENT HISTORY SECTION
+============================================================ */
+.assessment-history-container {
+  margin-top: 30px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 25px;
+  border: 1px solid #e9ecef;
+}
+
+.history-title {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 18px;
+  color: #2c3e50;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.history-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.history-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  border: 1px solid #e0e0e0;
+  overflow: hidden;
+}
+
+.history-header {
+  background: #f0f4f8;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.history-number {
+  background: #4a90e2;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.history-tool-name {
+  margin: 0;
+  font-size: 16px;
+  color: #34495e;
+  font-weight: 700;
+}
+
+.history-body {
+  padding: 20px;
+}
+
+.history-section {
+  margin-bottom: 15px;
+}
+
+.history-section:last-child {
+  margin-bottom: 0;
+}
+
+.history-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.history-text {
+  margin: 0;
+  font-size: 15px;
+  color: #444;
+  line-height: 1.5;
+}
+
+.result-text {
+  background: #fffdf0; /* Slight yellow tint for results */
+  padding: 10px;
+  border-left: 3px solid #FFCB10; /* Little Lion Yellow */
+  border-radius: 0 4px 4px 0;
+}
+
+.assessment-history-empty {
+  text-align: center;
+  padding: 30px;
+  color: #999;
+  font-style: italic;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border: 1px dashed #ccc;
+}

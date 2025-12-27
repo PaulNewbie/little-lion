@@ -21,7 +21,7 @@ import ManageTeachers from "./pages/admin/ManageTeachers";
 import ManageTherapists from "./pages/admin/ManageTherapists";
 import EnrollStudent from "./pages/admin/enrollmentTabPages/EnrollStudent";
 import ManageAdmins from "./pages/admin/ManageAdmins";
-import StudentProfile from "./pages/admin/StudentProfile";
+import StudentProfile from "./pages/admin/studentProfile/StudentProfile";
 
 // Teacher Components
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
