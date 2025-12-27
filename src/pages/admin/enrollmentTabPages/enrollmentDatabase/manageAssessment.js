@@ -1,10 +1,11 @@
 // enrollmentDatabase/manageAssessment.js
 import { db } from "../../../../config/firebase";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { generateUUID } from "../../../../utils/constants";
 
 const manageAssessment = {
   async createOrUpdateAssessment(childId, data) {
-    const assessmentId = data.assessmentId || crypto.randomUUID();
+    const assessmentId = data.assessmentId || generateUUID();
 
     const assessmentPayload = {
       assessmentId,

@@ -10,6 +10,7 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { generateUUID } from '../utils/constants';
 
 class ChildService {
 
@@ -25,7 +26,7 @@ class ChildService {
    * @param {object} data - The full form data object (identifying info + services)
    */
   async createOrUpdateChild(parentId, data) {
-    const childId = data.childId || crypto.randomUUID();
+    const childId = data.childId || generateUUID();
 
     // 1. Process 1-on-1 Services (Standardize Naming)
     const processedServices = (data.oneOnOneServices || []).map((service) => ({

@@ -12,6 +12,7 @@ import Step9ServiceEnrollment from "./components/Step9ServiceEnrollment";
 // import manageChildren from "../enrollmentDatabase/manageChildren"; // Old Import
 import childService from "../../../../services/childService"; // New Import 
 import manageAssessment from "../enrollmentDatabase/manageAssessment";
+import { generateUUID } from "../../../../utils/constants";
 
 // Define the clean slate outside the component
 const INITIAL_STUDENT_STATE = {
@@ -124,7 +125,7 @@ export default function EnrollStudentFormModal({
     try {
       // Use existing ID if editing, otherwise generate new
       const childId =
-        studentInput.childId || studentInput.id || crypto.randomUUID();
+        studentInput.childId || studentInput.id || generateUUID();
 
       // Save assessment data first
       const assessmentId = await manageAssessment.createOrUpdateAssessment(
