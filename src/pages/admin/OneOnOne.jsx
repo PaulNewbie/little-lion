@@ -66,7 +66,10 @@ const OneOnOne = () => {
   =============================== */
   const enrolledStudents = selectedService
     ? students.filter((s) => {
-        const allServices = [...(s.therapyServices || []), ...(s.services || [])];
+        const allServices = s.enrolledServices || [
+          ...(s.therapyServices || []), 
+          ...(s.services || [])
+        ];
         return allServices.some((srv) => srv.serviceName === selectedService.name);
       })
     : [];
@@ -211,10 +214,10 @@ const OneOnOne = () => {
                     </p>
                   ) : (
                     enrolledStudents.map((student) => {
-                      const serviceInfo = [
+                      const serviceInfo = (student.enrolledServices || [
                         ...(student.therapyServices || []),
                         ...(student.services || []),
-                      ].find((s) => s.serviceName === selectedService.name);
+                      ]).find((s) => s.serviceName === selectedService.name);
 
                       return (
                         <div
@@ -235,7 +238,7 @@ const OneOnOne = () => {
                             </p>
                             <p className="ooo-sub">
                               Therapist:{" "}
-                              {serviceInfo?.therapistName || serviceInfo?.staffName || "Not assigned"}
+                              {serviceInfo?.staffName || serviceInfo?.therapistName || "Not assigned"}
                             </p>
                           </div>
                         </div>

@@ -46,35 +46,32 @@ const TeacherDashboard = () => {
         const classesMap = {};
 
         myStudents.forEach(student => {
-          // 1. Combine both array sources
-          const allClasses = [
-            ...(student.groupClasses || []),
-            ...(student.classes || [])
+          // 1. Unified Array Source
+          const allServices = student.enrolledServices || [
+             ...(student.groupClasses || []),
+             ...(student.classes || [])
           ];
 
-          // 2. Iterate the combined list
-          allClasses.forEach(svc => {
-            // Note: Enrollment form uses 'staffId', Manual uses 'teacherId'
-            const assignedId = svc.teacherId || svc.staffId;
-
-            if (assignedId === currentUser.uid) {
-              // Use 'className' or 'serviceName' depending on source
-              const className = svc.serviceName || svc.className; 
-
-              if (!classesMap[className]) {
-                classesMap[className] = {
-                  name: className,
-                  serviceId: svc.serviceId,
-                  students: []
-                };
-              }
-              
-              // Prevent duplicates if student is in multiple lists
-              const isAlreadyIn = classesMap[className].students.some(s => s.id === student.id);
-              if (!isAlreadyIn) {
-                classesMap[className].students.push(student);
-              }
-            }
+          // 2. Filter for Class/Teacher items
+          allServices.forEach(svc => {
+             const assignedId = svc.staffId || svc.teacherId;
+             
+             if (assignedId === currentUser.uid) {
+                const className = svc.serviceName || svc.className;
+                
+                if (!classesMap[className]) {
+                   classesMap[className] = {
+                      name: className,
+                      serviceId: svc.serviceId,
+                      students: []
+                   };
+                }
+                
+                // Avoid duplicates
+                if (!classesMap[className].students.some(s => s.id === student.id)) {
+                   classesMap[className].students.push(student);
+                }
+             }
           });
         });
 

@@ -64,8 +64,10 @@ const manageChildren = {
       ageAtAssessment: data.ageAtAssessment,
 
       // STEP 9: SERVICE ENROLLMENT (NEW FORMAT)
-      services: processedServices, // 1-on-1 Therapy Services
-      classes: processedClasses, // Group Classes
+    enrolledServices: [
+      ...processedServices.map(s => ({ ...s, type: 'Therapy' })), 
+      ...processedClasses.map(s => ({ ...s, type: 'Class' }))
+    ],
 
       // Quick lookup arrays for queries
       therapistIds: [...new Set(therapistIds)], // Remove duplicates

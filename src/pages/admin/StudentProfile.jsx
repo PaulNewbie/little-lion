@@ -432,18 +432,16 @@ const StudentProfile = () => {
   // Combine lists for the calendar view lookup
   const combinedStaff = [...(teachers || []), ...(therapists || [])];
 
-  const therapyServices = [
-    ...(studentToDisplay?.therapyServices || []), // Old manual add
-    ...(studentToDisplay?.services || []),        // Enrollment Form saves here! (That's why it worked)
-    ...(studentToDisplay?.oneOnOneServices || []) // Just in case
+  const allEnrolled = [
+    ...(studentToDisplay?.enrolledServices || []), // The new standard
+    ...(studentToDisplay?.therapyServices || []),  // Legacy support
+    ...(studentToDisplay?.services || []),         // Legacy support
+    ...(studentToDisplay?.groupClasses || [])      // Legacy support
   ];
 
-  const groupServices = [
-    ...(studentToDisplay?.groupClasses || []),       // Old manual add
-    ...(studentToDisplay?.groupClassServices || []), // Just in case
-    ...(studentToDisplay?.classes || [])             // (Enrollment Form saves here)
-  ];
-  const legacyServices = studentToDisplay?.services || [];
+  // Filter for display
+  const therapyServices = allEnrolled.filter(s => s.type === 'Therapy' || s.staffRole === 'therapist');
+  const groupServices = allEnrolled.filter(s => s.type === 'Class' || s.staffRole === 'teacher');
 
   return (
     <div className="sp-container">
@@ -608,7 +606,7 @@ const StudentProfile = () => {
                     </div>
 
                     <div className="services-list">
-                      {therapyServices.length === 0 && legacyServices.length === 0 && (
+                      {therapyServices.length === 0 && (
                         <p>
                           No therapy services enrolled.
                         </p>

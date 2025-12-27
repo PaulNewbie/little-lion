@@ -65,16 +65,15 @@ const TherapistDashboard = () => {
 
   // Helper: Get ALL services assigned to me for this student
   const getMyServices = (student) => {
-    // 1. Combine both array sources
-    const allServices = [
+    // 1. Look at the new standard array first, fallback to legacy
+    const allServices = student.enrolledServices || [
       ...(student.therapyServices || []),
       ...(student.services || []) 
     ];
 
-    // 2. Filter for the current therapist
-    // Note: Enrollment form uses 'staffId', Manual uses 'therapistId'. Check both.
+    // 2. Filter for MY ID
     return allServices.filter(s => 
-      (s.therapistId === currentUser.uid) || (s.staffId === currentUser.uid)
+      (s.staffId === currentUser.uid) || (s.therapistId === currentUser.uid)
     );
   };
 

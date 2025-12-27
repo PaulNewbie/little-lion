@@ -144,45 +144,44 @@ async getChildrenByTeacherId(teacherId) {
     }
   }
   
-  async assignTherapyService(childId, serviceData) {
+  async assignService(childId, serviceData) {
     try {
       const childRef = doc(db, 'children', childId);
       
-      // Updates: Add to therapyServices array AND add therapistId to quick-access list
-      const updates = {
-        therapyServices: arrayUnion(serviceData)
+      // Standardize the object structure
+      const standardizedService = {
+        serviceId: serviceData.serviceId,
+        serviceName: serviceData.serviceName,
+        type: serviceData.type || 'Therapy', // 'Therapy' or 'Class'
+        staffId: serviceData.staffId || serviceData.therapistId || serviceData.teacherId,
+        staffName: serviceData.staffName || serviceData.therapistName || serviceData.teacherName,
+        staffRole: serviceData.staffRole || (serviceData.teacherId ? 'teacher' : 'therapist')
       };
 
-      if (serviceData.therapistId) {
-        updates.therapistIds = arrayUnion(serviceData.therapistId);
+      const updates = {
+        enrolledServices: arrayUnion(standardizedService)
+      };
+
+      // Maintain the quick-lookup arrays (Keep these! They are useful for querying)
+      if (standardizedService.staffRole === 'therapist') {
+        updates.therapistIds = arrayUnion(standardizedService.staffId);
+      } else if (standardizedService.staffRole === 'teacher') {
+        updates.teacherIds = arrayUnion(standardizedService.staffId);
       }
 
       await updateDoc(childRef, updates);
     } catch (error) {
-      throw new Error('Failed to assign therapy: ' + error.message);
+      throw new Error('Failed to assign service: ' + error.message);
     }
   }
 
-  /**
-   * Assigns a Group Class
-   */
-  async assignGroupClass(childId, serviceData) {
-    try {
-      const childRef = doc(db, 'children', childId);
+  // DEPRECATED WRAPPERS (Keep these so your old code doesn't break immediately)
+  async assignTherapyService(childId, data) {
+    return this.assignService(childId, { ...data, type: 'Therapy', staffRole: 'therapist' });
+  }
 
-      // Updates: Add to groupClasses array AND add teacherId to quick-access list
-      const updates = {
-        groupClasses: arrayUnion(serviceData)
-      };
-
-      if (serviceData.teacherId) {
-        updates.teacherIds = arrayUnion(serviceData.teacherId);
-      }
-
-      await updateDoc(childRef, updates);
-    } catch (error) {
-      throw new Error('Failed to assign class: ' + error.message);
-    }
+  async assignGroupClass(childId, data) {
+    return this.assignService(childId, { ...data, type: 'Class', staffRole: 'teacher' });
   }
 }
 
