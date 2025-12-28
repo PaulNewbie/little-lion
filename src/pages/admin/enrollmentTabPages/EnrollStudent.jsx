@@ -2,13 +2,13 @@
 import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../../components/sidebar/AdminSidebar";
 import EnrollStudentFormModal from "./enrollmentForm/EnrollStudentFormModal";
-import "../css/EnrollStudent.css";
+import "./EnrollStudent.css";
 import authService from "../../../services/authService";
 
 // Firebase services
-import manageParents from "./enrollmentDatabase/manageParents";
-import manageChildren from "./enrollmentDatabase/manageChildren";
-import manageAssessment from "./enrollmentDatabase/manageAssessment";
+import childService from "../../../services/childService"; 
+import userService from "../../../services/userService"; 
+import assessmentService from "../../../services/assessmentService"; 
 
 function generatePassword() {
   // 🔐 Password generator: 3 letters + 3 digits (ALL CAPS)
@@ -107,7 +107,7 @@ export default function EnrollStudent() {
   useEffect(() => {
     const fetchParents = async () => {
       try {
-        const parentsFromDB = await manageParents.getParents();
+        const parentsFromDB = await userService.getParents();
         setAllParents(parentsFromDB);
       } catch (error) {
         console.error("Failed to load parents");
@@ -126,7 +126,7 @@ export default function EnrollStudent() {
 
       const fetchChildren = async () => {
         try {
-          const childrenFromDB = await manageChildren.getChildrenByParent(
+          const childrenFromDB = await childService.getChildrenByParent(
             selectedParent.id
           );
           setAllStudents(childrenFromDB);
@@ -150,7 +150,7 @@ export default function EnrollStudent() {
     if (student.status === "ASSESSING") {
       try {
         // Fetch the full assessment data
-        const assessmentData = await manageAssessment.getAssessment(
+        const assessmentData = await assessmentService.getAssessment(
           student.assessmentId
         );
 
