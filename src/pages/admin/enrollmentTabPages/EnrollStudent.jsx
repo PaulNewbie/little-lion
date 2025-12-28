@@ -169,6 +169,9 @@ export default function EnrollStudent() {
       }
     }
     // If status is ENROLLED, do nothing or show a view-only modal
+    else if (student.status === ENROLLED) {
+      //go to student profile page
+    }
   };
 
   const handleEnrollmentSave = (savedChild) => {
@@ -273,15 +276,12 @@ export default function EnrollStudent() {
                         className="service-row"
                         onClick={() => handleStudentClick(s)}
                         style={{
-                          cursor:
-                            s.status === "ASSESSING" ? "pointer" : "default",
+                          cursor: "pointer",
                           transition: "background-color 0.2s",
                         }}
                         onMouseEnter={(e) => {
-                          if (s.status === "ASSESSING") {
-                            e.currentTarget.style.backgroundColor =
-                              "rgba(0, 123, 255, 0.05)";
-                          }
+                          e.currentTarget.style.backgroundColor =
+                            "rgba(0, 123, 255, 0.05)";
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = "transparent";
