@@ -33,8 +33,6 @@ class ActivityService {
         ...activityData,
         type: 'group_activity', 
         createdAt: new Date().toISOString(),
-        type: 'group_activity', 
-        createdAt: new Date().toISOString()
       });
       return docRef.id;
     } catch (error) {

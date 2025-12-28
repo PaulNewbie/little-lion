@@ -7,7 +7,7 @@ import { useAuth } from "./hooks/useAuth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Auth Components
-import LoginPage from "./pages/auth/LoginPage"; // replaced by LandingPage
+// import LoginPage from "./pages/auth/LoginPage"; // replaced by LandingPage
 import LandingPage from "./pages/auth/LandingPage";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import ChangePassword from "./pages/auth/ChangePassword";

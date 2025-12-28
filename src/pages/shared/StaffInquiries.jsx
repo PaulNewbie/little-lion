@@ -68,19 +68,19 @@ const StaffInquiries = () => {
     }
   };
 
-  const handleCloseInquiry = async (inquiryId) => {
-  if (!window.confirm("Are you sure you want to close this inquiry? No more messages can be sent.")) return;
+//   const handleCloseInquiry = async (inquiryId) => {
+//   if (!window.confirm("Are you sure you want to close this inquiry? No more messages can be sent.")) return;
   
-  try {
-    await inquiryService.closeInquiry(inquiryId, `${currentUser.firstName} ${currentUser.lastName}`);
-    // Refresh list
-    const data = await inquiryService.getInquiriesByStaff(currentUser.uid);
-    setInquiries(data);
-    alert("Inquiry closed.");
-  } catch (error) {
-    alert("Failed to close inquiry.");
-  }
-};
+//   try {
+//     await inquiryService.closeInquiry(inquiryId, `${currentUser.firstName} ${currentUser.lastName}`);
+//     // Refresh list
+//     const data = await inquiryService.getInquiriesByStaff(currentUser.uid);
+//     setInquiries(data);
+//     alert("Inquiry closed.");
+//   } catch (error) {
+//     alert("Failed to close inquiry.");
+//   }
+// };
 
   if (loading) return <div style={{padding: '20px'}}>Loading inbox...</div>;
 

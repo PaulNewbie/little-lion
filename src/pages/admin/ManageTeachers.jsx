@@ -4,17 +4,7 @@ import AdminSidebar from "../../components/sidebar/AdminSidebar";
 import "./css/OneOnOne.css";
 
 const ManageTeachers = () => {
-  const {
-    teachers,
-    services,
-    loading,
-    error,
-    newTeacher,
-    handleInputChange,
-    toggleSpecialization,
-    createTeacher,
-    deleteTeacher
-  } = useManageTeachers();
+const { teachers, loading, error, createTeacher, newTeacher, handleInputChange, toggleSpecialization, services } = useManageTeachers();
   
   const [showForm, setShowForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');

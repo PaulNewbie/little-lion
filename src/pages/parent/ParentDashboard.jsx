@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import childService from '../../services/childService';
-import cloudinaryService from '../../services/cloudinaryService'; // ✅ Import Cloudinary Service
+import cloudinaryService from '../../services/cloudinaryService'; 
 import Loading from '../../components/common/Loading';
 import ErrorMessage from '../../components/common/ErrorMessage';
 import TherapistCard from '../shared/TherapistCard';
@@ -13,8 +13,8 @@ const ParentDashboard = () => {
   const navigate = useNavigate();
   
   const [children, setChildren] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [loading] = useState(true);
+  const [error] = useState('');
 
   // UI States
   const [activeTab, setActiveTab] = useState({}); 
@@ -26,22 +26,22 @@ const ParentDashboard = () => {
   const [uploading, setUploading] = useState(false);
 
   // Fetch children
-  const fetchChildren = async () => {
-    if (currentUser?.uid) {
-      try {
-        const data = await childService.getChildrenByParentId(currentUser.uid);
-        setChildren(data);
-      } catch (err) {
-        setError('Failed to load your children profiles.');
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
+const fetchChildren = useCallback(async () => {
+  if (!currentUser) return;
+  try {
+    // Note: Use your actual service call here
+    const data = await childService.getChildrenByParentId(currentUser.uid);
+    setChildren(data);
+  } catch (err) {
+    console.error("Error fetching children:", err);
+    // setError(err.message); // Uncomment if you want to use the error state
+  }
+}, [currentUser]); // Re-create only if user changes
 
+  // 2. Call it in useEffect
   useEffect(() => {
     fetchChildren();
-  }, [currentUser]);
+  }, [fetchChildren]);
 
   const handleLogout = async () => {
     await logout();
