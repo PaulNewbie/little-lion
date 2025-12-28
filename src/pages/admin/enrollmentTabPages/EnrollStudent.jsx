@@ -107,7 +107,7 @@ export default function EnrollStudent() {
   useEffect(() => {
     const fetchParents = async () => {
       try {
-        const parentsFromDB = await userService.getParents();
+        const parentsFromDB = await userService.getUsersByRole('parent');
         setAllParents(parentsFromDB);
       } catch (error) {
         console.error("Failed to load parents");
