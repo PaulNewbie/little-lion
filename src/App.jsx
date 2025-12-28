@@ -9,7 +9,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { useAuth } from "./hooks/useAuth";
 
 // Auth Components
-import LoginPage from "./pages/auth/LoginPage";
+import LoginPage from "./pages/auth/LoginPage"; // replaced by LandingPage
 import LandingPage from "./pages/auth/LandingPage";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import ChangePassword from "./pages/auth/ChangePassword";

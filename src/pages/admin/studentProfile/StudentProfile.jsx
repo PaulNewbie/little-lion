@@ -33,21 +33,22 @@ const StudentProfile = () => {
     filteredStudents,
     studentActivities,
     fetchStudentActivities,
-    refreshData
+    refreshData,
+    parentData // ✅ Destructure the new parent data
   } = useStudentProfileData(location.state);
 
   // 2. UI State
   const [viewMode, setViewMode] = useState(selectedStudent ? "profile" : "list");
   const [selectedService, setSelectedService] = useState("");
-  const [showAssessment, setShowAssessment] = useState(false); // ✅ The Toggle for your new feature
+  const [showAssessment, setShowAssessment] = useState(false);
   const calendarRef = useRef(null);
 
-  // 3. Staff Data (needed for Modal & Calendar)
+  // 3. Staff Data
   const { teachers } = useManageTeachers();
   const { therapists } = useManageTherapists();
   const combinedStaff = [...(teachers || []), ...(therapists || [])];
 
-  // 4. Modal State (Kept here for UI simplicity)
+  // 4. Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addServiceType, setAddServiceType] = useState(null);
   const [availableServices, setAvailableServices] = useState([]);
@@ -59,12 +60,11 @@ const StudentProfile = () => {
     setSelectedStudent(student);
     fetchStudentActivities(student.id);
     setViewMode("profile");
-    setShowAssessment(false); // Reset view
+    setShowAssessment(false);
     setSelectedService("");
   };
 
   const handleBack = () => {
-    // If deep linked, go back to One-on-One, else List
     if (location.state?.fromOneOnOne) {
        navigate("/admin/one-on-one", { state: { ...location.state, level: "students" }});
     } else {
@@ -80,7 +80,6 @@ const StudentProfile = () => {
     }, 100);
   };
 
-  // --- Add Service Logic ---
   const handleOpenAddModal = async (type) => {
     setAddServiceType(type);
     setAddForm({ serviceId: "", staffId: "" });
@@ -113,7 +112,7 @@ const StudentProfile = () => {
 
       await childService.assignService(selectedStudent.id, assignData);
       
-      await refreshData(); // ✅ Refresh the data via Hook
+      await refreshData();
       setIsAddModalOpen(false);
       alert("Service added!");
     } catch (err) {
@@ -125,14 +124,12 @@ const StudentProfile = () => {
 
   if (loading) return <div className="loading-spinner">Loading Student Data...</div>;
 
-  // Helper to calculate Age
   const calculateAge = (dob) => {
     if (!dob) return "N/A";
     const age = Math.abs(new Date(Date.now() - new Date(dob).getTime()).getUTCFullYear() - 1970);
     return isNaN(age) ? "N/A" : age;
   };
 
-  // Helper to filter enrolled services
   const enrolled = [
     ...(selectedStudent?.enrolledServices || []),
     ...(selectedStudent?.therapyServices || []),
@@ -184,7 +181,6 @@ const StudentProfile = () => {
                        </div>
                        <div className="sp-card-body">
                           <h3 className="sp-name">{student.firstName} {student.lastName}</h3>
-                          {/* Badges optional here */}
                        </div>
                     </div>
                   ))}
@@ -210,17 +206,35 @@ const StudentProfile = () => {
                 
                 <div className="profile-info">
                    <h1 className="profile-fullname">{selectedStudent.lastName}, {selectedStudent.firstName}</h1>
+                   
+                   {/* ✅ UPDATED: Student Basics & Address */}
                    <div className="profile-details">
                       <div className="profile-left">
                         <p><span className="icon">🏥</span> <b>Medical:</b> {selectedStudent.medicalInfo || "None"}</p>
+                        <p><span className="icon">📍</span> <b>Address:</b> {selectedStudent.address || "N/A"}</p>
+                        <p><span className="icon">🎓</span> <b>School:</b> {selectedStudent.school || "N/A"}</p>
                       </div>
                       <div className="profile-right">
                         <p><b>Age:</b> {calculateAge(selectedStudent.dateOfBirth)}</p>
                         <p><b>Gender:</b> {selectedStudent.gender}</p>
+                        <p><b>Grade:</b> {selectedStudent.gradeLevel || "N/A"}</p>
                       </div>
                    </div>
 
-                   {/* ✅ THE NEW TOGGLE BUTTON */}
+                   {/* ✅ NEW: Parent / Guardian Info Section */}
+                   {parentData && (
+                     <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #eee', fontSize: '0.95rem' }}>
+                        <p style={{marginBottom: '5px'}}>
+                          <span style={{fontSize:'1.1em'}}>👪</span> <b>Guardian:</b> {parentData.firstName} {parentData.lastName} 
+                          <span style={{color:'#777', fontSize:'0.9em'}}> ({selectedStudent.relationshipToClient || "Parent"})</span>
+                        </p>
+                        <div style={{display:'flex', gap:'15px', flexWrap:'wrap', color:'#555'}}>
+                           <span>📧 {parentData.email}</span>
+                           <span>📞 {parentData.phone}</span>
+                        </div>
+                     </div>
+                   )}
+
                    <div style={{ marginTop: '20px' }}>
                      <button 
                         className="see-more-btn"
@@ -238,12 +252,10 @@ const StudentProfile = () => {
                 </div>
               </div>
 
-              {/* ✅ NEW: ASSESSMENT HISTORY SECTION */}
               {showAssessment && (
                  <AssessmentHistory data={selectedStudent} />
               )}
 
-              {/* SERVICES & CALENDAR */}
               <div className="profile-content-scroll" style={{ marginTop: '30px' }}>
                 <div className="services-split-row">
                    {/* Therapy List */}
@@ -296,7 +308,6 @@ const StudentProfile = () => {
         </div>
       </div>
 
-      {/* MODAL for adding services (Simplified for brevity, same logic as before) */}
       {isAddModalOpen && (
         <div className="add-service-overlay">
            <div className="add-service-modal">

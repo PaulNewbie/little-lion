@@ -1,16 +1,14 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import childService from "../../../../services/childService";
 import activityService from "../../../../services/activityService";
+import userService from "../../../../services/userService"; // Import userService
 
 export const useStudentProfileData = (locationState) => {
   // 1. Initialize State
   const passedStudent = locationState?.student || null;
   const passedActivities = locationState?.activities || [];
 
-  // STATE: We initialize 'students' with the passed student so it's not empty on first render
   const [students, setStudents] = useState(passedStudent ? [passedStudent] : []);
-  
-  // CRITICAL FIX: Track ID instead of the object to prevent infinite loops
   const [selectedStudentId, setSelectedStudentId] = useState(passedStudent?.id || null);
   const [loading, setLoading] = useState(true);
   
@@ -20,6 +18,9 @@ export const useStudentProfileData = (locationState) => {
   
   // Activity Data
   const [studentActivities, setStudentActivities] = useState(passedActivities);
+  
+  // NEW: Parent Data State
+  const [parentData, setParentData] = useState(null);
 
   // 2. Derived State: Find the full object from the ID
   const selectedStudent = useMemo(() => {
@@ -27,7 +28,7 @@ export const useStudentProfileData = (locationState) => {
     return students.find(s => s.id === selectedStudentId) || passedStudent || null;
   }, [students, selectedStudentId, passedStudent]);
 
-  // 3. Fetch All Students (Now decoupled from selectedStudent)
+  // 3. Fetch All Students
   const fetchStudents = useCallback(async () => {
     setLoading(true);
     try {
@@ -44,14 +45,12 @@ export const useStudentProfileData = (locationState) => {
   const fetchStudentActivities = useCallback(async (studentId) => {
     try {
       const activities = await activityService.getActivitiesByChild(studentId);
-      
       const enhancedActivities = activities.map((act) => ({
         ...act,
         participatingStudentsNames: act.participatingStudentIds
           ? act.participatingStudentIds.map(() => "Student") 
           : [act.studentName],
       }));
-
       enhancedActivities.sort((a, b) => new Date(b.date) - new Date(a.date));
       setStudentActivities(enhancedActivities);
     } catch (error) {
@@ -59,6 +58,24 @@ export const useStudentProfileData = (locationState) => {
       setStudentActivities([]);
     }
   }, []);
+
+  // NEW: Fetch Parent Data when selectedStudent changes
+  useEffect(() => {
+    const fetchParent = async () => {
+      if (selectedStudent?.parentId) {
+        try {
+          const parent = await userService.getUserById(selectedStudent.parentId);
+          setParentData(parent);
+        } catch (error) {
+          console.error("Error fetching parent data:", error);
+          setParentData(null);
+        }
+      } else {
+        setParentData(null);
+      }
+    };
+    fetchParent();
+  }, [selectedStudent]);
 
   // 5. Filter Logic
   const filteredStudents = useMemo(() => {
@@ -85,13 +102,11 @@ export const useStudentProfileData = (locationState) => {
   // 6. Initial Load Effect
   useEffect(() => {
     fetchStudents();
-    // If we have a passed student (from One-on-One), fetch their activities immediately
     if (passedStudent && passedActivities.length === 0) {
        fetchStudentActivities(passedStudent.id);
     }
   }, [fetchStudents, passedStudent, passedActivities.length, fetchStudentActivities]);
 
-  // Helper wrapper to match the old interface
   const handleSetSelectedStudent = (student) => {
     setSelectedStudentId(student ? student.id : null);
   };
@@ -99,8 +114,8 @@ export const useStudentProfileData = (locationState) => {
   return {
     students,
     loading,
-    selectedStudent, // This is now the derived object
-    setSelectedStudent: handleSetSelectedStudent, // Passing the wrapper
+    selectedStudent,
+    setSelectedStudent: handleSetSelectedStudent,
     searchTerm,
     setSearchTerm,
     filterType,
@@ -108,6 +123,7 @@ export const useStudentProfileData = (locationState) => {
     filteredStudents,
     studentActivities,
     fetchStudentActivities,
-    refreshData: fetchStudents
+    refreshData: fetchStudents,
+    parentData // Export this so the UI can use it
   };
 };
