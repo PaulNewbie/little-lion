@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from "react";
-import readServices from "../../enrollmentDatabase/readServices";
+
+// import readServices from "../../enrollmentDatabase/readServices"; old import duplicated
+import offeringsService from "../../../../../services/offeringsService";
 
 export default function Step4BackgroundHistory({ data, onChange }) {
   const [serviceOptions, setServiceOptions] = useState([]);
 
   useEffect(() => {
     const loadServices = async () => {
-      const services = await readServices.getAllServices();
+      const services = await offeringsService.getAllServices();
       setServiceOptions(services);
     };
     loadServices();
   }, []);
 
-  // --- Developmental Background Handlers ---
+ // --- Developmental Background Handlers ---
   const handleAddDevBg = () => {
     const newList = [
       ...data.backgroundHistory.developmentalBackground,

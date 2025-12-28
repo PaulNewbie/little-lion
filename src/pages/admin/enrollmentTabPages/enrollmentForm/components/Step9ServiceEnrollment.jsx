@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
-import readUsers from "../../enrollmentDatabase/readUsers";
-import readServices from "../../enrollmentDatabase/readServices";
+// import readUsers from "../../enrollmentDatabase/readUsers"; old import duplicated
+// import readServices from "../../enrollmentDatabase/readServices"; old import duplicated
+
+import userService from "../../../../../services/userService";
+import offeringsService from "../../../../../services/offeringsService";
 
 export default function Step9Enrollment({ data, onChange }) {
   const [services, setServices] = useState([]);
@@ -16,7 +19,7 @@ export default function Step9Enrollment({ data, onChange }) {
       try {
         setLoading(true);
         // 1. Fetch all services from DB
-        const allDbServices = await readServices.getAllServices();
+        const allDbServices = await offeringsService.getAllServices();
 
         // 2. Get the serviceIds of interventions saved in Step 4
         const savedInterventions = data.backgroundHistory?.interventions || [];
@@ -35,7 +38,7 @@ export default function Step9Enrollment({ data, onChange }) {
         setServices(filtered);
 
         // 4. Fetch Staff
-        const allStaff = await readUsers.getAllTeachersTherapists();
+        const allStaff = await userService.getAllTeachersTherapists();
 
         // Separate by role
         const teachersList = allStaff.filter((u) => u.role === "teacher");
@@ -102,7 +105,9 @@ export default function Step9Enrollment({ data, onChange }) {
     // CORRECTED: Match staff by checking if their specializations array
     // includes the service NAME (since staff.specializations stores names)
     const qualified = staffList.find((staff) =>
-      staff.specializations?.includes(service.name)
+      staff.specializations?.some(
+        (spec) => spec.trim().toLowerCase() === service.name.trim().toLowerCase()
+      )
     );
 
     console.log("Service selected:", service.name, "ID:", service.id);
@@ -176,7 +181,9 @@ export default function Step9Enrollment({ data, onChange }) {
     // Filter staff who have this service NAME in their specializations
     // (Staff specializations store service names, not IDs)
     const qualified = staffList.filter((staff) =>
-      staff.specializations?.includes(serviceName)
+      staff.specializations?.some(
+        (spec) => spec.trim().toLowerCase() === serviceName.trim().toLowerCase()
+      )
     );
 
     console.log(`Qualified staff for ${serviceName}:`, qualified);

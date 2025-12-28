@@ -10,8 +10,8 @@ import Step7AssessmentResults from "./components/Step7AssessmentResults";
 import Step8SummaryRecommendations from "./components/Step8SummaryRecommendations";
 import Step9ServiceEnrollment from "./components/Step9ServiceEnrollment";
 // import manageChildren from "../enrollmentDatabase/manageChildren"; // Old Import
-import childService from "../../../../services/childService"; // New Import 
-import manageAssessment from "../enrollmentDatabase/manageAssessment";
+import childService from "../../../../services/childService"; 
+import assessmentService from "../../../../services/assessmentService"; // Replaces manageAssessment
 import { generateUUID } from "../../../../utils/constants";
 
 // Define the clean slate outside the component
@@ -128,7 +128,7 @@ export default function EnrollStudentFormModal({
         studentInput.childId || studentInput.id || generateUUID();
 
       // Save assessment data first
-      const assessmentId = await manageAssessment.createOrUpdateAssessment(
+      const assessmentId = await assessmentService.createOrUpdateAssessment(
         childId,
         studentInput
       );
@@ -148,7 +148,7 @@ export default function EnrollStudentFormModal({
       console.log("Saving child with enrollment data:", childDataToSave);
 
       const savedChild = await childService.createOrUpdateChild(
-        selectedParent.id,
+        selectedParent.uid || selectedParent.id,
         childDataToSave
       );
 
