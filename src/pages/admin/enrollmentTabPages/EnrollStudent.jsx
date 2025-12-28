@@ -6,9 +6,9 @@ import "./EnrollStudent.css";
 import authService from "../../../services/authService";
 
 // Firebase services
-import childService from "../../../services/childService"; 
-import userService from "../../../services/userService"; 
-import assessmentService from "../../../services/assessmentService"; 
+import childService from "../../../services/childService";
+import userService from "../../../services/userService";
+import assessmentService from "../../../services/assessmentService";
 
 function generatePassword() {
   // 🔐 Password generator: 3 letters + 3 digits (ALL CAPS)
@@ -107,7 +107,7 @@ export default function EnrollStudent() {
   useEffect(() => {
     const fetchParents = async () => {
       try {
-        const parentsFromDB = await userService.getUsersByRole('parent');
+        const parentsFromDB = await userService.getUsersByRole("parent");
         setAllParents(parentsFromDB);
       } catch (error) {
         console.error("Failed to load parents");
@@ -156,7 +156,7 @@ export default function EnrollStudent() {
 
         // Combine child data with assessment data
         const fullStudentData = {
-          ...student,   //this is from the children table
+          ...student, //this is from the children table
           ...assessmentData, // this is form assessment table
         };
 
@@ -370,6 +370,20 @@ export default function EnrollStudent() {
                       }
                     />
                   </div>
+                  <div className="input-group">
+                    <label>Phone Number</label>
+                    <input
+                      type="text"
+                      required
+                      value={parentInput.phone}
+                      onChange={(e) =>
+                        setParentInput({
+                          ...parentInput,
+                          phone: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
                 </div>
                 <div className="input-group">
                   <label>Email Address</label>
@@ -382,17 +396,7 @@ export default function EnrollStudent() {
                     }
                   />
                 </div>
-                <div className="input-group">
-                  <label>Phone Number</label>
-                  <input
-                    type="text"
-                    required
-                    value={parentInput.phone}
-                    onChange={(e) =>
-                      setParentInput({ ...parentInput, phone: e.target.value })
-                    }
-                  />
-                </div>
+
                 <div className="input-group">
                   <label>Password</label>
                   <input
