@@ -1,5 +1,6 @@
 // EnrollStudent.jsx
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../../components/sidebar/AdminSidebar";
 import EnrollStudentFormModal from "./enrollmentForm/EnrollStudentFormModal";
 import "./EnrollStudent.css";
@@ -55,6 +56,8 @@ export default function EnrollStudent() {
   // Students from Firebase
   const [allStudents, setAllStudents] = useState([]);
   const [isLoadingChildren, setIsLoadingChildren] = useState(false);
+
+  const navigate = useNavigate();
 
   // --- Handlers ---
   const handleParentSubmit = async (e) => {
@@ -169,8 +172,14 @@ export default function EnrollStudent() {
       }
     }
     // If status is ENROLLED, do nothing or show a view-only modal
-    else if (student.status === ENROLLED) {
+    else if (student.status === "ENROLLED") {
       //go to student profile page
+      navigate("/admin/StudentProfile", {
+        state: {
+          studentId: student.id,
+          fromEnrollment: true,
+        },
+      });
     }
   };
 

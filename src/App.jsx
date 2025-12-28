@@ -24,7 +24,7 @@ import ManageTeachers from "./pages/admin/ManageTeachers";
 import ManageTherapists from "./pages/admin/ManageTherapists";
 import EnrollStudent from "./pages/admin/enrollmentTabPages/EnrollStudent";
 import ManageAdmins from "./pages/admin/ManageAdmins";
-import StudentProfile from "./pages/admin/student-profile/StudentProfile";
+import StudentProfile from "./pages/admin/studentProfile/StudentProfile";
 
 // Teacher Components
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
@@ -57,7 +57,7 @@ const AppRoutes = () => {
     switch (role) {
       case "super_admin":
       case "admin":
-        return "/admin/student-profile"; // Consistent with login redirect
+        return "/admin/StudentProfile"; // Consistent with login redirect
       case "teacher":
         return "/teacher/dashboard";
       case "therapist":
@@ -80,7 +80,7 @@ const AppRoutes = () => {
               to={
                 currentUser.role === "admin" ||
                 currentUser.role === "super_admin"
-                  ? "/admin/student-profile"
+                  ? "/admin/StudentProfile"
                   : currentUser.role === "teacher"
                   ? "/teacher/dashboard"
                   : currentUser.role === "therapist"
@@ -102,7 +102,7 @@ const AppRoutes = () => {
               to={
                 currentUser.role === "admin" ||
                 currentUser.role === "super_admin"
-                  ? "/admin/student-profile"
+                  ? "/admin/StudentProfile"
                   : currentUser.role === "teacher"
                   ? "/teacher/dashboard"
                   : currentUser.role === "therapist"
@@ -122,7 +122,7 @@ const AppRoutes = () => {
 
       {/* FIX 2: Added 'super_admin' to allowedRoles for StudentProfile */}
       <Route
-        path="/admin/student-profile"
+        path="/admin/StudentProfile"
         element={
           <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
             <StudentProfile />
@@ -140,7 +140,7 @@ const AppRoutes = () => {
       />
       <Route
         path="/admin/dashboard"
-        element={<Navigate to="/admin/student-profile" replace />}
+        element={<Navigate to="/admin/StudentProfile" replace />}
       />
       <Route
         path="/admin/play-group"
