@@ -13,7 +13,7 @@ import useManageTherapists from "../../../hooks/useManageTherapists";
 
 // Local Feature Imports
 import { useStudentProfileData } from "./hooks/useStudentProfileData";
-import AssessmentHistory from "./components/AssessmentHistory";
+import AssessmentHistory from "../../shared/AssessmentHistory";
 import ActivityCalendar from "./components/ActivityCalendar";
 import "./StudentProfile.css";
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import useManageTherapists from '../../hooks/useManageTherapists';
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
-import TherapistCard from '../../components/common/TherapistCard'; // ✅ Import the card
+import TherapistCard from '../shared/TherapistCard'; // ✅ Import the card
 import "./css/OneOnOne.css";
 
 const ManageTherapists = () => {

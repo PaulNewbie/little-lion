@@ -39,7 +39,7 @@ import ParentInquiries from "./pages/parent/ParentInquiries";
 import NewInquiry from "./pages/parent/NewInquiry";
 
 // Staff Shared Components
-import StaffInquiries from "./components/common/StaffInquiries";
+import StaffInquiries from "./pages/shared/StaffInquiries";
 
 // Common Components
 import Loading from "./components/common/Loading";

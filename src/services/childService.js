@@ -217,6 +217,24 @@ class ChildService {
   async assignGroupClass(childId, data) {
     return this.assignService(childId, { ...data, type: 'Class', staffRole: 'teacher' });
   }
+
+  /**
+   * Updates specific fields of a child's profile (e.g. photo, address).
+   * @param {string} childId 
+   * @param {object} updates - Object containing fields to update
+   */
+  async updateChildProfile(childId, updates) {
+    try {
+      const childRef = doc(db, 'children', childId);
+      // Ensure we don't accidentally overwrite critical fields if they weren't passed
+      await updateDoc(childRef, {
+        ...updates,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      throw new Error('Failed to update child profile: ' + error.message);
+    }
+  }
 }
 
 const childServiceInstance = new ChildService();

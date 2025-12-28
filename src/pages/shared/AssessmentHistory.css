@@ -1,0 +1,154 @@
+/* Shared Styles for Assessment History Report */
+
+.assessment-history-container {
+  margin-top: 30px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 25px;
+  border: 1px solid #e9ecef;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header Section */
+.history-top-header {
+  margin-bottom: 25px;
+}
+
+.report-main-title {
+  text-align: center;
+  color: #2c3e50;
+  border-bottom: 3px solid #FFCB10; /* Little Lion Yellow */
+  padding-bottom: 15px;
+  margin-bottom: 25px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.report-meta-grid {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 15px;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.meta-item {
+  font-size: 14px;
+  color: #333;
+}
+
+.meta-item .label {
+  font-weight: bold;
+  color: #4a90e2;
+  margin-right: 5px;
+}
+
+/* Sections */
+.report-section {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid #eee;
+}
+
+.report-heading {
+  margin-top: 0;
+  color: #2c3e50;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+  font-size: 16px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.report-text {
+  line-height: 1.6;
+  color: #444;
+  white-space: pre-line;
+  margin: 0;
+}
+
+/* Sub-sections */
+.sub-section {
+  margin-bottom: 20px;
+}
+.sub-section:last-child { margin-bottom: 0; }
+
+.sub-section h4 {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.report-list {
+  padding-left: 20px;
+  margin: 0;
+}
+
+.report-list li {
+  margin-bottom: 6px;
+  color: #444;
+  line-height: 1.5;
+}
+
+/* Tool Cards */
+.tools-list {
+  display: grid;
+  gap: 15px;
+}
+
+.tool-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.tool-header {
+  background: #f8f9fa;
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.tool-index {
+  font-weight: bold;
+  color: #4a90e2;
+}
+
+.tool-header h4 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 15px;
+}
+
+.tool-body {
+  padding: 15px;
+}
+
+.result-box {
+  background: #fffdf0;
+  padding: 10px;
+  border-left: 3px solid #FFCB10;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.recommendation-box {
+  background: #eaf4ff;
+  padding: 10px;
+  border-left: 3px solid #4a90e2;
+  margin-top: 10px;
+  font-size: 14px;
+}
