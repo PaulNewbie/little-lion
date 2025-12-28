@@ -75,7 +75,7 @@ export default function EnrollStudent() {
       setAllParents((prev) => [
         ...prev,
         {
-          id: user.uid,
+          uid: user.uid,
           firstName: parentInput.firstName,
           middleName: parentInput.middleName,
           lastName: parentInput.lastName,
@@ -125,13 +125,14 @@ export default function EnrollStudent() {
       setIsLoadingChildren(true);
 
       const fetchChildren = async () => {
+        console.log("Selected Parent:", selectedParent);
         try {
-          const childrenFromDB = await childService.getChildrenByParent(
-            selectedParent.id
+          const childrenFromDB = await childService.getChildrenByParentId(
+            selectedParent.uid
           );
           setAllStudents(childrenFromDB);
         } catch (error) {
-          console.error("Failed to load children");
+          console.error("Failed to load children", error);
         } finally {
           setIsLoadingChildren(false);
         }
@@ -229,7 +230,7 @@ export default function EnrollStudent() {
             <div className="ooo-grid">
               {filteredParents.map((p) => (
                 <div
-                  key={p.id}
+                  key={p.uid}
                   className="ooo-card"
                   onClick={() => setSelectedParent(p)}
                 >
