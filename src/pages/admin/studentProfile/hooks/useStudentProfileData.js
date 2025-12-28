@@ -1,10 +1,14 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query"; // ✅ Import this
+// 1. Add useQueryClient
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import childService from "../../../../services/childService";
 import activityService from "../../../../services/activityService";
 import userService from "../../../../services/userService";
 
 export const useStudentProfileData = (locationState) => {
+  // 2. Initialize QueryClient
+  const queryClient = useQueryClient();
+
   const passedStudent = locationState?.student || null;
   const passedActivities = locationState?.activities || [];
 
@@ -12,21 +16,18 @@ export const useStudentProfileData = (locationState) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
 
-  // 1. ✅ CACHED: Fetch All Students
-  // If we already have this data in cache from the Dashboard, it won't even fetch!
+  // --- CACHED QUERIES ---
+
   const { data: students = [], isLoading: loadingStudents } = useQuery({
     queryKey: ["students"],
     queryFn: () => childService.getAllChildren(),
-    initialData: passedStudent ? [passedStudent] : undefined, // Show passed student immediately
+    initialData: passedStudent ? [passedStudent] : undefined,
   });
 
-  // 2. ✅ CACHED: Fetch Activities (Dependent Query)
-  // This ONLY runs when `selectedStudentId` is not null
   const { data: studentActivities = [] } = useQuery({
     queryKey: ["activities", selectedStudentId],
     queryFn: async () => {
       const activities = await activityService.getActivitiesByChild(selectedStudentId);
-      // Process data right here
       return activities
         .map((act) => ({
           ...act,
@@ -36,11 +37,11 @@ export const useStudentProfileData = (locationState) => {
         }))
         .sort((a, b) => new Date(b.date) - new Date(a.date));
     },
-    enabled: !!selectedStudentId, // ⚠️ Wait until we have an ID
+    enabled: !!selectedStudentId,
     initialData: passedActivities.length > 0 ? passedActivities : undefined,
   });
 
-  // 3. ✅ CACHED: Fetch Parent Data
+  // Derived State
   const selectedStudent = useMemo(() => {
     if (!selectedStudentId) return null;
     return students.find((s) => s.id === selectedStudentId) || passedStudent;
@@ -52,25 +53,27 @@ export const useStudentProfileData = (locationState) => {
     enabled: !!selectedStudent?.parentId,
   });
 
-  // 4. Filter Logic (Standard React, no changes needed here)
   const filteredStudents = useMemo(() => {
     return students.filter((student) => {
       const fullName = `${student.firstName} ${student.lastName}`.toLowerCase();
       const matchesSearch = fullName.includes(searchTerm.toLowerCase());
-      
-      const hasTherapy = student.oneOnOneServices?.length > 0; // Simplified check based on new data structure
-      const hasGroup = student.groupClassServices?.length > 0;
+      const hasTherapy = student.enrolledServices?.some((s) => s.type === "Therapy") || student.therapyServices?.length > 0;
+      const hasGroup = student.enrolledServices?.some((s) => s.type === "Class") || student.groupClasses?.length > 0;
 
       if (filterType === "therapy") return matchesSearch && hasTherapy;
       if (filterType === "group") return matchesSearch && hasGroup;
       if (filterType === "none") return matchesSearch && !hasTherapy && !hasGroup;
-
       return matchesSearch;
     });
   }, [students, searchTerm, filterType]);
 
   const handleSetSelectedStudent = (student) => {
     setSelectedStudentId(student ? student.id : null);
+  };
+
+  // 3. NEW: Refresh Function (Fixes 'refreshData' crash)
+  const refreshData = () => {
+    return queryClient.invalidateQueries({ queryKey: ["students"] });
   };
 
   return {
@@ -85,5 +88,7 @@ export const useStudentProfileData = (locationState) => {
     filteredStudents,
     studentActivities,
     parentData,
+    refreshData, // ✅ Now it exists!
+    // fetchStudentActivities is intentionally REMOVED
   };
 };

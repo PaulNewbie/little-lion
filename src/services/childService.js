@@ -7,7 +7,7 @@ import {
   query,
   where,
   getDocs,
-  serverTimestamp 
+  serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { generateUUID } from '../utils/constants';

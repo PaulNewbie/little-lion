@@ -7,11 +7,31 @@ import {
   updateDoc, 
   deleteDoc, 
   query, 
-  where 
+  where,
+  arrayUnion
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 class UserService {
+  
+  /**
+  * Adds a specialization to a staff member's profile if it doesn't exist.
+   * @param {string} uid - The staff member's User ID
+   * @param {string} specialization - The name of the service (e.g. "Speech Therapy")
+   */
+  async addSpecialization(uid, specialization) {
+    try {
+      const userRef = doc(db, 'users', uid);
+      await updateDoc(userRef, {
+        specializations: arrayUnion(specialization)
+      });
+    } catch (error) {
+      console.error("Failed to update staff specialization:", error);
+      // We don't throw here because this is a "secondary" action. 
+      // If it fails, we don't want to crash the whole enrollment process.
+    }
+  }
+
   // --- BASIC CRUD ---
 
   // Create or Overwrite User (Used by Auth Services)
@@ -71,7 +91,7 @@ class UserService {
     }
   }
 
-  // --- QUERIES ---
+  // ----------------------- QUERIES ------------------------
 
   // Get Users by Role (Replaces getAllTeachers, getAllTherapists, getAllParents)
   async getUsersByRole(role) {

@@ -1,17 +1,12 @@
 import React, { useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
-// Global Shared Components
 import AdminSidebar from "../../../components/sidebar/AdminSidebar";
 import GeneralFooter from "../../../components/footer/generalfooter";
-
-// Services & Hooks
 import childService from "../../../services/childService";
 import offeringsService from "../../../services/offeringsService";
+import userService from "../../../services/userService";
 import useManageTeachers from "../../../hooks/useManageTeachers";
 import useManageTherapists from "../../../hooks/useManageTherapists";
-
-// Local Feature Imports
 import { useStudentProfileData } from "./hooks/useStudentProfileData";
 import AssessmentHistory from "../../shared/AssessmentHistory";
 import ActivityCalendar from "./components/ActivityCalendar";
@@ -20,8 +15,8 @@ import "./StudentProfile.css";
 const StudentProfile = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  
-  // 1. THE CUSTOM HOOK (The Brain)
+
+  // 1. THE CUSTOM HOOK
   const {
     loading,
     selectedStudent,
@@ -33,7 +28,7 @@ const StudentProfile = () => {
     filteredStudents,
     studentActivities,
     refreshData,
-    parentData // ✅ Destructure the new parent data
+    parentData 
   } = useStudentProfileData(location.state);
 
   // 2. UI State
@@ -57,6 +52,7 @@ const StudentProfile = () => {
   // --- Handlers ---
   const handleSelectStudent = (student) => {
     setSelectedStudent(student);
+    // fetchStudentActivities(student.id); // ❌ REMOVED: React Query handles this now
     setViewMode("profile");
     setShowAssessment(false);
     setSelectedService("");
@@ -97,6 +93,8 @@ const StudentProfile = () => {
       const serviceObj = availableServices.find(s => s.id === addForm.serviceId);
       const isTherapy = addServiceType === "Therapy";
       const staffList = isTherapy ? therapists : teachers;
+      
+      // Fix Key Warning: Use uid OR id
       const staffObj = staffList.find(s => (s.uid || s.id) === addForm.staffId);
       
       const assignData = {
@@ -108,11 +106,16 @@ const StudentProfile = () => {
         staffRole: isTherapy ? 'therapist' : 'teacher'
       };
 
+      // 1. Assign to Student
       await childService.assignService(selectedStudent.id, assignData);
       
+      // ✅ 2. UPDATE STAFF SPECIALIZATION (The Fix)
+      // This ensures the staff member "learns" this skill in the database
+      await userService.addSpecialization(addForm.staffId, serviceObj.name);
+
       await refreshData();
       setIsAddModalOpen(false);
-      alert("Service added!");
+      alert("Service added and Staff updated!");
     } catch (err) {
       alert("Failed: " + err.message);
     } finally {
@@ -199,13 +202,19 @@ const StudentProfile = () => {
 
               <div className="profile-3col">
                 <div className="profile-photo-frame">
-                   <img src={selectedStudent.photoUrl} className="profile-photo" alt="profile"/>
+                   {/* ✅ FIX IMAGE WARNING: Handle empty src */}
+                   {selectedStudent.photoUrl ? (
+                     <img src={selectedStudent.photoUrl} className="profile-photo" alt="profile"/>
+                   ) : (
+                     <div className="profile-photo-placeholder" style={{width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'3rem', background:'#eee'}}>
+                       {selectedStudent.firstName[0]}
+                     </div>
+                   )}
                 </div>
                 
                 <div className="profile-info">
                    <h1 className="profile-fullname">{selectedStudent.lastName}, {selectedStudent.firstName}</h1>
                    
-                   {/* ✅ UPDATED: Student Basics & Address */}
                    <div className="profile-details">
                       <div className="profile-left">
                         <p><span className="icon">🏥</span> <b>Medical:</b> {selectedStudent.medicalInfo || "None"}</p>
@@ -219,7 +228,6 @@ const StudentProfile = () => {
                       </div>
                    </div>
 
-                   {/* ✅ NEW: Parent / Guardian Info Section */}
                    {parentData && (
                      <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #eee', fontSize: '0.95rem' }}>
                         <p style={{marginBottom: '5px'}}>
@@ -256,7 +264,6 @@ const StudentProfile = () => {
 
               <div className="profile-content-scroll" style={{ marginTop: '30px' }}>
                 <div className="services-split-row">
-                   {/* Therapy List */}
                    <div className="content-section">
                       <div style={{display:'flex', justifyContent:'space-between'}}>
                          <h2 className="services-header">Therapy Services</h2>
@@ -272,7 +279,6 @@ const StudentProfile = () => {
                       </div>
                    </div>
                    
-                   {/* Group List */}
                    <div className="content-section">
                       <div style={{display:'flex', justifyContent:'space-between'}}>
                          <h2 className="services-header">Group Classes</h2>
@@ -317,7 +323,8 @@ const StudentProfile = () => {
                  </select>
                  <select className="modal-select" style={{marginTop:'10px'}} onChange={e => setAddForm({...addForm, staffId: e.target.value})}>
                     <option value="">Select Staff...</option>
-                    {(addServiceType === 'Therapy' ? therapists : teachers).map(t => <option key={t.id} value={t.uid || t.id}>{t.firstName} {t.lastName}</option>)}
+                    {/* ✅ FIX KEY WARNING: Use t.uid || t.id */}
+                    {(addServiceType === 'Therapy' ? therapists : teachers).map(t => <option key={t.uid || t.id} value={t.uid || t.id}>{t.firstName} {t.lastName}</option>)}
                  </select>
               </div>
               <div className="modal-actions">
