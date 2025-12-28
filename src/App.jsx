@@ -1,12 +1,10 @@
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { useAuth } from "./hooks/useAuth";
+
+// For Caching
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Auth Components
 import LoginPage from "./pages/auth/LoginPage"; // replaced by LandingPage
@@ -261,13 +259,27 @@ const AppRoutes = () => {
   );
 };
 
+// cache configuration
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // Data stays "fresh" for 5 minutes
+      cacheTime: 1000 * 60 * 30, // Keep in memory for 30 minutes
+      refetchOnWindowFocus: false, // Don't refresh just because I clicked the window
+      retry: 1, // Only retry failed requests once
+    },
+  },
+});
+
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </Router>
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </Router>
+    </QueryClientProvider>
   );
 }
 

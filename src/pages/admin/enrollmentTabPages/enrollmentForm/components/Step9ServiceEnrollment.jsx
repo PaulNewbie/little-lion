@@ -1,67 +1,42 @@
-import React, { useState, useEffect } from "react";
-// import readUsers from "../../enrollmentDatabase/readUsers"; old import duplicated
-// import readServices from "../../enrollmentDatabase/readServices"; old import duplicated
-
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import userService from "../../../../../services/userService";
 import offeringsService from "../../../../../services/offeringsService";
 
 export default function Step9Enrollment({ data, onChange }) {
-  const [services, setServices] = useState([]);
-  const [teachers, setTeachers] = useState([]);
-  const [therapists, setTherapists] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Local state for the form selections
+  const [oneOnOneServices, setOneOnOneServices] = useState(data.oneOnOneServices || []);
+  const [groupClassServices, setGroupClassServices] = useState(data.groupClassServices || []);
 
-  const [oneOnOneServices, setOneOnOneServices] = useState([]);
-  const [groupClassServices, setGroupClassServices] = useState([]);
+  // 1. CACHED: Fetch All Services (Only fetches once globally)
+  const { data: allDbServices = [] } = useQuery({
+    queryKey: ['services'],
+    queryFn: () => offeringsService.getAllServices(),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        // 1. Fetch all services from DB
-        const allDbServices = await offeringsService.getAllServices();
+  // 2. CACHED: Fetch All Staff (Only fetches once globally)
+  const { data: allStaff = [], isLoading } = useQuery({
+    queryKey: ['staff'],
+    queryFn: () => userService.getAllStaff(),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
-        // 2. Get the serviceIds of interventions saved in Step 4
-        const savedInterventions = data.backgroundHistory?.interventions || [];
-        const savedServiceIds = savedInterventions.map(
-          (item) => item.serviceId
-        );
+  // --- Derived Data (Filters instantly without useEffect) ---
+   // REMOVED: useEffect runs on every single mount, causing unnecessary database reads and loading spinners every time the modal opens.
+   // ADDED: useQuery caches this data instantly, so if you open this modal again, it loads from memory without hitting the database.
 
-        console.log("Saved intervention IDs from Step 4:", savedServiceIds);
+  // Filter services to only show the ones selected in Step 4
+  const services = allDbServices.filter((service) => {
+    const savedInterventions = data.backgroundHistory?.interventions || [];
+    const savedServiceIds = savedInterventions.map((i) => i.serviceId);
+    return savedServiceIds.includes(service.id);
+  });
 
-        // 3. Filter services by ID (not name) to only show what was saved in Step 4
-        const filtered = allDbServices.filter((service) =>
-          savedServiceIds.includes(service.id)
-        );
+  const teachers = allStaff.filter((u) => u.role === "teacher");
+  const therapists = allStaff.filter((u) => u.role === "therapist");
 
-        console.log("Filtered services for Step 9:", filtered);
-        setServices(filtered);
-
-        // 4. Fetch Staff
-       const allStaff = await userService.getAllStaff(); 
-       // const allStaff = await userService.getAllTeachersTherapists(); (old from readUsers) - (new userService)
-
-        // Separate by role
-        const teachersList = allStaff.filter((u) => u.role === "teacher");
-        const therapistsList = allStaff.filter((u) => u.role === "therapist");
-
-        setTeachers(teachersList);
-        setTherapists(therapistsList);
-
-        console.log("Teachers loaded:", teachersList);
-        console.log("Therapists loaded:", therapistsList);
-      } catch (error) {
-        console.error("Error loading step 9:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-
-    if (data.oneOnOneServices) setOneOnOneServices(data.oneOnOneServices);
-    if (data.groupClassServices) setGroupClassServices(data.groupClassServices);
-  }, [data.backgroundHistory?.interventions]);
+  // --- Handlers ---
 
   const handleAddService = (category) => {
     const newService = {
@@ -83,8 +58,7 @@ export default function Step9Enrollment({ data, onChange }) {
   };
 
   const handleRemoveService = (category, index) => {
-    const list =
-      category === "oneOnOne" ? oneOnOneServices : groupClassServices;
+    const list = category === "oneOnOne" ? oneOnOneServices : groupClassServices;
     const updated = list.filter((_, i) => i !== index);
 
     if (category === "oneOnOne") {
@@ -96,6 +70,7 @@ export default function Step9Enrollment({ data, onChange }) {
     }
   };
 
+  // ✅ ROBUST: Case-Insensitive Logic
   const handleServiceChange = (category, index, serviceId) => {
     const service = services.find((s) => s.id === serviceId);
     if (!service) return;
@@ -103,32 +78,21 @@ export default function Step9Enrollment({ data, onChange }) {
     const isTherapy = service.type === "Therapy";
     const staffList = isTherapy ? therapists : teachers;
 
-    // CORRECTED: Match staff by checking if their specializations array
-    // includes the service NAME (since staff.specializations stores names)
+    // Robust Match: Lowercase comparison to fix "Speech Therapy" vs "speech therapy"
     const qualified = staffList.find((staff) =>
       staff.specializations?.some(
         (spec) => spec.trim().toLowerCase() === service.name.trim().toLowerCase()
       )
     );
 
-    console.log("Service selected:", service.name, "ID:", service.id);
-    console.log(
-      "Looking in staff list:",
-      staffList.map((s) => ({
-        name: `${s.firstName} ${s.lastName}`,
-        specializations: s.specializations,
-      }))
-    );
-    console.log("Qualified staff found:", qualified);
-
-    const list =
-      category === "oneOnOne" ? oneOnOneServices : groupClassServices;
+    const list = category === "oneOnOne" ? oneOnOneServices : groupClassServices;
     const updated = list.map((s, i) =>
       i === index
         ? {
-            serviceId: service.id, // Store the ID
-            serviceName: service.name, // Store the name for display
-            serviceType: service.type, // "Therapy" or "Class"
+            serviceId: service.id,
+            serviceName: service.name,
+            serviceType: service.type,
+            // Auto-select staff if only one matches, or if we found a robust match
             staffId: qualified?.uid || "",
             staffName: qualified
               ? `${qualified.firstName} ${qualified.lastName}`
@@ -147,14 +111,11 @@ export default function Step9Enrollment({ data, onChange }) {
   };
 
   const handleStaffChange = (category, index, staffId) => {
-    const list =
-      category === "oneOnOne" ? oneOnOneServices : groupClassServices;
+    const list = category === "oneOnOne" ? oneOnOneServices : groupClassServices;
     const service = list[index];
     const isTherapy = service.serviceType === "Therapy";
     const staffList = isTherapy ? therapists : teachers;
     const staff = staffList.find((s) => s.uid === staffId);
-
-    console.log("Staff changed to:", staff);
 
     const updated = list.map((s, i) =>
       i === index
@@ -175,22 +136,20 @@ export default function Step9Enrollment({ data, onChange }) {
     }
   };
 
+  // ✅ ROBUST: Case-Insensitive Logic for Dropdown
   const getQualifiedStaff = (serviceName, serviceType) => {
     if (!serviceName || !serviceType) return [];
     const staffList = serviceType === "Therapy" ? therapists : teachers;
 
-    // Filter staff who have this service NAME in their specializations
-    // (Staff specializations store service names, not IDs)
     const qualified = staffList.filter((staff) =>
       staff.specializations?.some(
         (spec) => spec.trim().toLowerCase() === serviceName.trim().toLowerCase()
       )
     );
-
-    console.log(`Qualified staff for ${serviceName}:`, qualified);
     return qualified;
   };
 
+  // --- Styles ---
   const selectStyles = {
     width: "100%",
     padding: "10px 35px 10px 12px",
@@ -258,7 +217,6 @@ export default function Step9Enrollment({ data, onChange }) {
                   }
                 >
                   <option value="">-- Select {allowedType} --</option>
-                  {/* Filter by TYPE, use ID as value, display NAME */}
                   {services
                     .filter((s) => s.type === allowedType)
                     .map((s) => (
@@ -325,7 +283,8 @@ export default function Step9Enrollment({ data, onChange }) {
     );
   };
 
-  if (loading) {
+  // 3. Simple Loading State
+  if (isLoading) {
     return (
       <div className="form-section">
         <p style={{ textAlign: "center", padding: "2rem", color: "#64748b" }}>
@@ -345,7 +304,7 @@ export default function Step9Enrollment({ data, onChange }) {
         student.
       </p>
 
-      {/* Debug Info - Remove in production */}
+      {/* Debug Info: Remove this before deploying to production if you want */}
       {process.env.NODE_ENV === "development" && (
         <div
           style={{
@@ -361,13 +320,8 @@ export default function Step9Enrollment({ data, onChange }) {
           Teachers loaded: {teachers.length} | Therapists loaded:{" "}
           {therapists.length}
           <br />
-          Services available:{" "}
+          Services available (Step 4 match):{" "}
           {services.map((s) => `${s.name} (${s.id})`).join(", ")}
-          <br />
-          Interventions from Step 4:{" "}
-          {data.backgroundHistory?.interventions
-            ?.map((i) => `${i.name} (${i.serviceId})`)
-            .join(", ") || "None"}
         </div>
       )}
 

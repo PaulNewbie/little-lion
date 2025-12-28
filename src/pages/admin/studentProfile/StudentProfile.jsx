@@ -32,7 +32,6 @@ const StudentProfile = () => {
     setFilterType,
     filteredStudents,
     studentActivities,
-    fetchStudentActivities,
     refreshData,
     parentData // ✅ Destructure the new parent data
   } = useStudentProfileData(location.state);
@@ -58,7 +57,6 @@ const StudentProfile = () => {
   // --- Handlers ---
   const handleSelectStudent = (student) => {
     setSelectedStudent(student);
-    fetchStudentActivities(student.id);
     setViewMode("profile");
     setShowAssessment(false);
     setSelectedService("");

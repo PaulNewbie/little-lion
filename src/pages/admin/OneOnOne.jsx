@@ -1,34 +1,52 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query"; // ✅ Import React Query
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
 import GeneralFooter from "../../components/footer/generalfooter";
 import childService from "../../services/childService";
-import activityService from "../../services/activityService";
-import { db } from "../../config/firebase";
-import { collection, getDocs, addDoc } from "firebase/firestore";
+import offeringsService from "../../services/offeringsService"; // ✅ Use centralized service
 import useManageTherapists from "../../hooks/useManageTherapists";
+import { db } from "../../config/firebase";
+import { collection, addDoc } from "firebase/firestore";
 import "./css/OneOnOne.css";
 
 const OneOnOne = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const queryClient = useQueryClient(); // ✅ To refresh data after adding service
+  const { therapists } = useManageTherapists();
+
   const [level, setLevel] = useState("services");
-  const [services, setServices] = useState([]);
-  const [students, setStudents] = useState([]);
   const [selectedService, setSelectedService] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [showAddServiceModal, setShowAddServiceModal] = useState(false);
+  
+  // Form State
   const [newService, setNewService] = useState({
     name: "",
     description: "",
     type: "Therapy",
   });
 
-  const { therapists } = useManageTherapists();
-  const navigate = useNavigate();
-  const location = useLocation();
+  // 1. ✅ CACHED: Fetch Students (Instant if loaded in Dashboard)
+  const { data: students = [], isLoading: loadingStudents } = useQuery({
+    queryKey: ['students'],
+    queryFn: () => childService.getAllChildren(),
+    staleTime: 1000 * 60 * 5,
+  });
 
-  /* ===============================
-     CHECK IF COMING BACK FROM STUDENTPROFILE
-  =============================== */
+  // 2. ✅ CACHED: Fetch Services
+  const { data: allServices = [], isLoading: loadingServices } = useQuery({
+    queryKey: ['services'],
+    queryFn: () => offeringsService.getAllServices(),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // Derived state: Filter out 'Class' types for this page
+  const services = allServices.filter((s) => s.type !== "Class");
+  
+  const loading = loadingStudents || loadingServices;
+
+  // Check if coming back from StudentProfile
   useEffect(() => {
     if (location.state?.returnToService) {
       setSelectedService(location.state.returnToService);
@@ -36,41 +54,17 @@ const OneOnOne = () => {
     }
   }, [location.state]);
 
-  /* ===============================
-     FETCH SERVICES + STUDENTS
-  =============================== */
-  const fetchServicesAndStudents = async () => {
-    try {
-      const serviceSnap = await getDocs(collection(db, "services"));
-
-      const serviceList = serviceSnap.docs
-        .map((doc) => ({ id: doc.id, ...doc.data() }))
-        .filter((service) => service.type !== "Class");
-
-      const studentList = await childService.getAllChildren();
-      setServices(serviceList);
-      setStudents(studentList);
-    } catch (err) {
-      console.error("Error loading services:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchServicesAndStudents();
-  }, []);
-
-  /* ===============================
-     FILTER STUDENTS ENROLLED IN SELECTED SERVICE
-  =============================== */
+  // Derived state: Filter students for the selected service
   const enrolledStudents = selectedService
     ? students.filter((s) => {
         const allServices = s.enrolledServices || [
           ...(s.therapyServices || []), 
           ...(s.services || [])
         ];
-        return allServices.some((srv) => srv.serviceName === selectedService.name);
+        // Robust check for service name match
+        return allServices.some((srv) => 
+          srv.serviceName?.trim().toLowerCase() === selectedService.name?.trim().toLowerCase()
+        );
       })
     : [];
 
@@ -82,34 +76,20 @@ const OneOnOne = () => {
     setLevel("students");
   };
 
-  const handleSelectStudent = async (student) => {
-    try {
-      const activities = await activityService.getActivitiesByChild(student.id);
-
-      const enhancedActivities = activities.map((doc) => ({
-        ...doc,
-        participatingStudentsNames: doc.participatingStudentIds
-          ? doc.participatingStudentIds.map((id) => {
-              const s = students.find((st) => st.id === id);
-              return s ? `${s.firstName} ${s.lastName}` : id;
-            })
-          : [doc.studentName || student.firstName],
-      }));
-
-      navigate("/admin/StudentProfile", {
-        state: {
-          student,
-          activities: enhancedActivities,
-          therapists,
-          selectedService,
-          selectedServiceFromOneOnOne: selectedService,
-          fromOneOnOne: true,
-          scrollToCalendar: true,
-        },
-      });
-    } catch (err) {
-      console.error(err);
-    }
+  // ✅ OPTIMIZED: Navigate IMMEDIATELY. 
+  // Don't fetch activities here. The StudentProfile page will fetch them using useQuery.
+  const handleSelectStudent = (student) => {
+    navigate("/admin/StudentProfile", {
+      state: {
+        student,
+        // activities: [], // Remove this, let the Profile page fetch it
+        therapists,
+        selectedService,
+        selectedServiceFromOneOnOne: selectedService,
+        fromOneOnOne: true,
+        scrollToCalendar: true,
+      },
+    });
   };
 
   const goBack = () => {
@@ -127,39 +107,35 @@ const OneOnOne = () => {
   const createService = async (e) => {
     e.preventDefault();
     try {
-      const docRef = await addDoc(collection(db, "services"), {
+      await addDoc(collection(db, "services"), {
         ...newService,
         active: true,
         createdAt: new Date(),
       });
 
-      if (newService.type !== "Class") {
-        setServices((prev) => [...prev, { id: docRef.id, ...newService }]);
-      }
+      // ✅ REFRESH: Tell React Query to fetch the new list
+      queryClient.invalidateQueries({ queryKey: ['services'] });
 
       setShowAddServiceModal(false);
       setNewService({ name: "", description: "", type: "Therapy" });
-
-      const studentList = await childService.getAllChildren();
-      setStudents(studentList);
+      alert("Service added successfully!");
     } catch (err) {
       console.error("Error creating service:", err);
+      alert("Failed to add service.");
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div className="loading-container">Loading...</div>;
 
   /* ===============================
-     RENDER
+     RENDER (Same as before)
   =============================== */
   return (
     <div className="ooo-container">
       <AdminSidebar forceActive="/admin/one-on-one" />
 
       <div className="ooo-main">
-        {/* ✅ WRAPPER so footer behaves correctly (same pattern as StudentProfile) */}
         <div className="ooo-page">
-          {/* ✅ All page content */}
           <div className="ooo-content">
             {level === "services" && (
               <>
@@ -249,6 +225,7 @@ const OneOnOne = () => {
               </>
             )}
 
+            {/* MODAL REMAINS THE SAME */}
             {showAddServiceModal && (
               <div
                 className="modal-overlay"
@@ -271,13 +248,7 @@ const OneOnOne = () => {
                       onChange={handleServiceInputChange}
                     />
                     <div style={{ margin: "15px 0" }}>
-                      <label
-                        style={{
-                          display: "block",
-                          marginBottom: "5px",
-                          fontWeight: "bold",
-                        }}
-                      >
+                      <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
                         Service Type:
                       </label>
                       <select
@@ -293,10 +264,7 @@ const OneOnOne = () => {
                     </div>
 
                     <div className="modal-actions">
-                      <button
-                        type="button"
-                        onClick={() => setShowAddServiceModal(false)}
-                      >
+                      <button type="button" onClick={() => setShowAddServiceModal(false)}>
                         Cancel
                       </button>
                       <button type="submit">Add Service</button>

@@ -1,33 +1,48 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+// 1. Import Query hooks
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import userService from '../services/userService';
 import authService from '../services/authService';
 import servicesService from '../services/offeringsService';
 
 const useManageTeachers = () => {
-  const [teachers, setTeachers] = useState([]);
-  const [services, setServices] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // 2. Initialize the Client (to control the cache)
+  const queryClient = useQueryClient();
+
   const [error, setError] = useState(null);
-  
-  // Generate password with format: 3 letters + 3 numbers
+
+  // --- QUERY 1: Fetch Teachers (Cached) ---
+  const { 
+    data: teachers = [], 
+    isLoading: loadingTeachers 
+  } = useQuery({
+    queryKey: ['teachers'], // Unique Key
+    queryFn: () => userService.getUsersByRole('teacher'),
+    staleTime: 1000 * 60 * 5, // 5 minutes fresh
+  });
+
+  // --- QUERY 2: Fetch Class Services (Cached) ---
+  const { 
+    data: services = [], 
+    isLoading: loadingServices 
+  } = useQuery({
+    queryKey: ['services', 'Class'], // Specific key for Class services
+    queryFn: () => servicesService.getServicesByType('Class'),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const loading = loadingTeachers || loadingServices;
+
+  // ... (Keep Password Generator Logic) ...
   const generatePassword = () => {
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
     const numbers = '0123456789';
-    
     let password = '';
-    // Add 3 random letters
-    for (let i = 0; i < 3; i++) {
-      password += letters.charAt(Math.floor(Math.random() * letters.length));
-    }
-    // Add 3 random numbers
-    for (let i = 0; i < 3; i++) {
-      password += numbers.charAt(Math.floor(Math.random() * numbers.length));
-    }
-    
+    for (let i = 0; i < 3; i++) password += letters.charAt(Math.floor(Math.random() * letters.length));
+    for (let i = 0; i < 3; i++) password += numbers.charAt(Math.floor(Math.random() * numbers.length));
     return password;
   };
 
-  // Form State
   const [newTeacher, setNewTeacher] = useState({
     firstName: '',
     lastName: '',
@@ -36,27 +51,6 @@ const useManageTeachers = () => {
     password: generatePassword(),
     specializations: []
   });
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const [tData, sData] = await Promise.all([
-        userService.getUsersByRole('teacher'),
-        // CHANGED: Fetch ONLY 'Class' type services for Teachers
-        servicesService.getServicesByType('Class') 
-      ]);
-      setTeachers(tData);
-      setServices(sData);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -72,11 +66,17 @@ const useManageTeachers = () => {
     });
   };
 
+  // --- ACTIONS (Create / Delete) ---
+  
   const createTeacher = async (e) => {
     e.preventDefault();
     setError(null);
     try {
       await authService.createTeacherAccount(newTeacher.email, newTeacher.password, newTeacher);
+      
+      // ✅ MAGIC: Tell React Query to re-fetch 'teachers' instantly
+      await queryClient.invalidateQueries({ queryKey: ['teachers'] });
+
       setNewTeacher({ 
         firstName: '', 
         lastName: '', 
@@ -85,7 +85,6 @@ const useManageTeachers = () => {
         password: generatePassword(), 
         specializations: [] 
       });
-      fetchData(); 
       alert('Teacher created successfully');
     } catch (err) {
       setError(err.message);
@@ -96,7 +95,10 @@ const useManageTeachers = () => {
     if (!window.confirm('Are you sure?')) return;
     try {
       await userService.deleteUser(id);
-      fetchData();
+      
+      // ✅ MAGIC: Auto-refresh list after delete
+      await queryClient.invalidateQueries({ queryKey: ['teachers'] });
+      
     } catch (err) {
       setError(err.message);
     }

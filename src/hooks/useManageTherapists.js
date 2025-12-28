@@ -1,29 +1,42 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query'; // ✅ Imports
 import userService from '../services/userService';
 import authService from '../services/authService';
 import servicesService from '../services/offeringsService';
 
 const useManageTherapists = () => {
-  const [therapists, setTherapists] = useState([]);
-  const [services, setServices] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient(); // ✅ Query Client
   const [error, setError] = useState(null);
-  
-  // Generate password with format: 3 letters + 3 numbers
+
+  // --- QUERY 1: Fetch Therapists ---
+  const { 
+    data: therapists = [], 
+    isLoading: loadingTherapists 
+  } = useQuery({
+    queryKey: ['therapists'], 
+    queryFn: () => userService.getUsersByRole('therapist'),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // --- QUERY 2: Fetch Therapy Services ---
+  const { 
+    data: services = [], 
+    isLoading: loadingServices 
+  } = useQuery({
+    queryKey: ['services', 'Therapy'], 
+    queryFn: () => servicesService.getServicesByType('Therapy'),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const loading = loadingTherapists || loadingServices;
+
+  // ... (Keep Password Generator) ...
   const generatePassword = () => {
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
     const numbers = '0123456789';
-    
     let password = '';
-    // Add 3 random letters
-    for (let i = 0; i < 3; i++) {
-      password += letters.charAt(Math.floor(Math.random() * letters.length));
-    }
-    // Add 3 random numbers
-    for (let i = 0; i < 3; i++) {
-      password += numbers.charAt(Math.floor(Math.random() * numbers.length));
-    }
-    
+    for (let i = 0; i < 3; i++) password += letters.charAt(Math.floor(Math.random() * letters.length));
+    for (let i = 0; i < 3; i++) password += numbers.charAt(Math.floor(Math.random() * numbers.length));
     return password;
   };
 
@@ -35,27 +48,6 @@ const useManageTherapists = () => {
     password: generatePassword(),
     specializations: []
   });
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const [tData, sData] = await Promise.all([
-        userService.getUsersByRole('therapist'),
-        // CHANGED: Fetch ONLY 'Therapy' type services for Therapists
-        servicesService.getServicesByType('Therapy')
-      ]);
-      setTherapists(tData);
-      setServices(sData);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -71,11 +63,17 @@ const useManageTherapists = () => {
     });
   };
 
+  // --- ACTIONS ---
+
   const createTherapist = async (e) => {
     e.preventDefault();
     setError(null);
     try {
       await authService.createTherapistAccount(newTherapist.email, newTherapist.password, newTherapist);
+      
+      // ✅ Refresh the list
+      await queryClient.invalidateQueries({ queryKey: ['therapists'] });
+
       setNewTherapist({ 
         firstName: '', 
         lastName: '', 
@@ -84,7 +82,6 @@ const useManageTherapists = () => {
         password: generatePassword(), 
         specializations: [] 
       });
-      fetchData(); 
       alert('Therapist created successfully');
     } catch (err) {
       setError(err.message);
@@ -94,8 +91,11 @@ const useManageTherapists = () => {
   const deleteTherapist = async (id) => {
     if (!window.confirm('Are you sure?')) return;
     try {
-      await userService.deleteUser(id); 
-      fetchData();
+      await userService.deleteUser(id);
+      
+      // ✅ Refresh the list
+      await queryClient.invalidateQueries({ queryKey: ['therapists'] });
+      
     } catch (err) {
       setError(err.message);
     }

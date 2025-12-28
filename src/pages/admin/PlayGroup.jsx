@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+
+// 1. Import React Query
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Services
 import childService from '../../services/childService';
@@ -14,19 +17,11 @@ import './css/PlayGroup.css';
 import './studentProfile/StudentProfile.css'; 
 
 const PlayGroup = () => {
+  const queryClient = useQueryClient();
+
   // Navigation: 'service-list' | 'service-dashboard'
   const [currentView, setCurrentView] = useState('service-list');
   
-  // Data State
-  const [services, setServices] = useState([]);
-  const [allActivities, setAllActivities] = useState([]); 
-  const [allChildren, setAllChildren] = useState([]);
-  
-  // Loading States
-  const [loadingServices, setLoadingServices] = useState(true);
-  const [loadingDashboard, setLoadingDashboard] = useState(false);
-  const [uploading, setUploading] = useState(false);
-
   // Selection State
   const [selectedService, setSelectedService] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -38,54 +33,47 @@ const PlayGroup = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newServiceData, setNewServiceData] = useState({ name: '', description: '' });
   const [serviceImage, setServiceImage] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
-  // --- 1. INITIAL LOAD (Only Services) ---
-  useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        const servicesData = await offeringsService.getServicesByType('Class');
-        setServices(servicesData);
-      } catch (err) {
-        console.error("Error loading services:", err);
-      } finally {
-        setLoadingServices(false);
-      }
-    };
-    fetchServices();
-  }, []);
+  // --- 1. ✅ CACHED: Fetch Play Group Services ---
+  const { data: services = [], isLoading: loadingServices } = useQuery({
+    queryKey: ['services', 'Class'], // Specific cache for Classes
+    queryFn: () => offeringsService.getServicesByType('Class'),
+    staleTime: 1000 * 60 * 5,
+  });
 
-  // --- 2. LAZY LOAD DASHBOARD DATA ---
-  const handleServiceSelect = async (service) => {
+  // --- 2. ✅ CACHED: Fetch All Students (Shared with Dashboard/OneOnOne) ---
+  // This is likely ALREADY loaded, so it will be instant!
+  const { data: allChildren = [], isLoading: loadingChildren } = useQuery({
+    queryKey: ['students'], 
+    queryFn: () => childService.getAllChildren(),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // --- 3. ✅ CACHED: Fetch All Activities ---
+  const { data: allActivities = [], isLoading: loadingActivities } = useQuery({
+    queryKey: ['activities', 'playgroup'],
+    queryFn: () => activityService.getAllPlayGroupActivities(),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // Combined Loading State
+  const isLoading = loadingServices || loadingChildren || loadingActivities;
+
+  // --- DASHBOARD LOGIC (Instant Switch) ---
+  const handleServiceSelect = (service) => {
     setSelectedService(service);
     setCurrentView('service-dashboard');
     setSelectedDate(new Date()); 
     setSelectedStudentForPhotos(null);
-
-    // Only fetch if we haven't loaded them yet to save bandwidth
-    if (allChildren.length === 0 || allActivities.length === 0) {
-      setLoadingDashboard(true);
-      try {
-        const [activitiesData, childrenData] = await Promise.all([
-          // Strictly fetches 'group_activity' type
-          activityService.getAllPlayGroupActivities(),
-          childService.getAllChildren() 
-        ]);
-        setAllActivities(activitiesData);
-        setAllChildren(childrenData);
-      } catch (err) {
-        console.error("Error loading dashboard data:", err);
-      } finally {
-        setLoadingDashboard(false);
-      }
-    }
+    // No fetching needed here! Data is already live.
   };
 
-  // --- HELPERS ---
+  // --- HELPERS (Derived Data) ---
   const getServiceActivities = () => {
     if (!selectedService) return [];
     
     // Strict Filter: Only show activities that match the selected Class Name
-    // matches either 'className' (New Standard) or 'serviceType' (Legacy)
     return allActivities.filter(act => 
       (act.className === selectedService.name) || 
       (act.serviceType === selectedService.name)
@@ -147,8 +135,8 @@ const PlayGroup = () => {
         imageUrl: imageUrl
       });
       
-      const updated = await offeringsService.getServicesByType('Class');
-      setServices(updated);
+      // ✅ MAGIC: Auto-refresh the list
+      await queryClient.invalidateQueries({ queryKey: ['services', 'Class'] });
       
       setNewServiceData({ name: '', description: '' });
       setServiceImage(null);
@@ -171,7 +159,10 @@ const PlayGroup = () => {
     setSelectedStudentForPhotos(null); 
   };
 
-  if (loadingServices) return <div className="pg-loading">Loading Play Group Services...</div>;
+  // Simplified Loading Screen
+  if (isLoading && services.length === 0) {
+    return <div className="pg-loading">Loading Play Group Data...</div>;
+  }
 
   return (
     <div className="ooo-container">
@@ -207,7 +198,7 @@ const PlayGroup = () => {
                       <p>{service.description || "No description provided."}</p>
                     </div>
                   ))}
-                  {services.length === 0 && (
+                  {services.length === 0 && !isLoading && (
                     <p className="pg-empty">No Play Group services found. Add one to get started!</p>
                   )}
                 </div>
@@ -233,92 +224,89 @@ const PlayGroup = () => {
               </div>
             </div>
 
-            {loadingDashboard ? (
-              <div className="pg-loading"><p>Loading Class Data...</p></div>
-            ) : (
-              <div className="pg-split-layout">
-                {/* LEFT SIDE: Students & Photos */}
-                <div className="pg-left-panel">
-                  {selectedStudentForPhotos ? (
-                    <>
-                      <div className="pg-panel-header">
-                        <div className="pg-panel-header-left">
-                          <button className="pg-mini-back-btn" onClick={() => setSelectedStudentForPhotos(null)}>←</button>
-                          <div style={{display:'flex', flexDirection:'column'}}>
-                             <h2>{selectedStudentForPhotos.firstName}'s Photos</h2>
-                             <span className="pg-subtitle-date">{selectedDate.toLocaleDateString()}</span>
-                          </div>
+            {/* Content is ALREADY loaded, so no loading spinner needed here! */}
+            <div className="pg-split-layout">
+              {/* LEFT SIDE: Students & Photos */}
+              <div className="pg-left-panel">
+                {selectedStudentForPhotos ? (
+                  <>
+                    <div className="pg-panel-header">
+                      <div className="pg-panel-header-left">
+                        <button className="pg-mini-back-btn" onClick={() => setSelectedStudentForPhotos(null)}>←</button>
+                        <div style={{display:'flex', flexDirection:'column'}}>
+                           <h2>{selectedStudentForPhotos.firstName}'s Photos</h2>
+                           <span className="pg-subtitle-date">{selectedDate.toLocaleDateString()}</span>
                         </div>
                       </div>
-                      <div className="pg-inner-scroll">
-                        <div className="pg-photo-grid">
-                          {getStudentPhotos().map((url, idx) => (
-                            <div key={idx} className="pg-photo-card" onClick={() => window.open(url, '_blank')}>
-                               <img src={url} alt="Activity" />
-                            </div>
-                          ))}
-                          {getStudentPhotos().length === 0 && <p className="pg-no-data">No photos found.</p>}
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="pg-panel-header">
-                        <h2>Students Present</h2>
-                        <span className="pg-date-label">
-                          {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                        </span>
-                      </div>
-                      <div className="pg-students-list">
-                        {getPresentChildren().length > 0 ? (
-                          getPresentChildren().map(child => (
-                            <div key={child.id} className="pg-student-row" onClick={() => setSelectedStudentForPhotos(child)}>
-                              <img src={child.photoUrl || "https://via.placeholder.com/40"} alt="child" className="pg-student-thumb" />
-                              <div className="pg-student-info">
-                                <span className="pg-student-name">{child.firstName} {child.lastName}</span>
-                                <span className="pg-status-badge">Present</span>
-                              </div>
-                              <span className="pg-arrow">›</span>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="pg-no-data">
-                            <p>No students recorded for this date.</p>
-                            <small>Select a date with a green dot on the calendar.</small>
+                    </div>
+                    <div className="pg-inner-scroll">
+                      <div className="pg-photo-grid">
+                        {getStudentPhotos().map((url, idx) => (
+                          <div key={idx} className="pg-photo-card" onClick={() => window.open(url, '_blank')}>
+                             <img src={url} alt="Activity" />
                           </div>
-                        )}
+                        ))}
+                        {getStudentPhotos().length === 0 && <p className="pg-no-data">No photos found.</p>}
                       </div>
-                    </>
-                  )}
-                </div>
-
-                {/* RIGHT SIDE: Calendar */}
-                <div className="pg-right-panel">
-                   <div className="pg-panel-header"><h2>Schedule</h2></div>
-                   <div className="pg-calendar-wrapper">
-                      <Calendar 
-                        onChange={handleDateChange} 
-                        value={selectedDate}
-                        tileClassName={({ date, view }) => {
-                          if (view === 'month') {
-                            const offset = date.getTimezoneOffset();
-                            const localDate = new Date(date.getTime() - (offset * 60 * 1000));
-                            const dStr = localDate.toISOString().split('T')[0];
-                            if (getActivityDates().includes(dStr)) return 'has-activity-dot'; 
-                          }
-                        }}
-                      />
-                      <div className="pg-calendar-legend">
-                        <span className="dot-legend"></span> Activities Recorded
-                      </div>
-                   </div>
-                </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="pg-panel-header">
+                      <h2>Students Present</h2>
+                      <span className="pg-date-label">
+                        {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    </div>
+                    <div className="pg-students-list">
+                      {getPresentChildren().length > 0 ? (
+                        getPresentChildren().map(child => (
+                          <div key={child.id} className="pg-student-row" onClick={() => setSelectedStudentForPhotos(child)}>
+                            <img src={child.photoUrl || "https://via.placeholder.com/40"} alt="child" className="pg-student-thumb" />
+                            <div className="pg-student-info">
+                              <span className="pg-student-name">{child.firstName} {child.lastName}</span>
+                              <span className="pg-status-badge">Present</span>
+                            </div>
+                            <span className="pg-arrow">›</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="pg-no-data">
+                          <p>No students recorded for this date.</p>
+                          <small>Select a date with a green dot on the calendar.</small>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
-            )}
+
+              {/* RIGHT SIDE: Calendar */}
+              <div className="pg-right-panel">
+                 <div className="pg-panel-header"><h2>Schedule</h2></div>
+                 <div className="pg-calendar-wrapper">
+                    <Calendar 
+                      onChange={handleDateChange} 
+                      value={selectedDate}
+                      tileClassName={({ date, view }) => {
+                        if (view === 'month') {
+                          const offset = date.getTimezoneOffset();
+                          const localDate = new Date(date.getTime() - (offset * 60 * 1000));
+                          const dStr = localDate.toISOString().split('T')[0];
+                          if (getActivityDates().includes(dStr)) return 'has-activity-dot'; 
+                        }
+                      }}
+                    />
+                    <div className="pg-calendar-legend">
+                      <span className="dot-legend"></span> Activities Recorded
+                    </div>
+                 </div>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* === ADD SERVICE MODAL === */}
+        {/* === ADD SERVICE MODAL (Keep existing logic) === */}
         {showAddModal && (
           <div className="pg-modal-overlay" onClick={() => !uploading && setShowAddModal(false)}>
             <div className="pg-modal-form-card" onClick={e => e.stopPropagation()}>
