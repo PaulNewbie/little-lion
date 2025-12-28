@@ -38,7 +38,8 @@ export default function Step9Enrollment({ data, onChange }) {
         setServices(filtered);
 
         // 4. Fetch Staff
-        const allStaff = await userService.getAllTeachersTherapists();
+       const allStaff = await userService.getAllStaff(); 
+       // const allStaff = await userService.getAllTeachersTherapists(); (old from readUsers) - (new userService)
 
         // Separate by role
         const teachersList = allStaff.filter((u) => u.role === "teacher");
