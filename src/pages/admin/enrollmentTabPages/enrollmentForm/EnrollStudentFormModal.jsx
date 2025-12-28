@@ -123,49 +123,49 @@ export default function EnrollStudentFormModal({
   // ✅ NEW: Validation function for each step
   const validateCurrentStep = () => {
     switch (formStep) {
-      // case 1:
-      //   return !!(
-      //     studentInput.firstName &&
-      //     studentInput.lastName &&
-      //     studentInput.gender &&
-      //     studentInput.dateOfBirth &&
-      //     studentInput.assessmentDates &&
-      //     studentInput.examiner
-      //   );
-      // case 2:
-      //   return !!studentInput.reasonForReferral;
-      // case 3:
-      //   return studentInput.purposeOfAssessment?.length > 0;
-      // case 4:
-      //   return !!(
-      //     studentInput.backgroundHistory?.familyBackground &&
-      //     studentInput.backgroundHistory?.familyRelationships &&
-      //     studentInput.backgroundHistory?.dailyLifeActivities &&
-      //     studentInput.backgroundHistory?.medicalHistory &&
-      //     studentInput.backgroundHistory?.developmentalBackground?.length > 0 &&
-      //     studentInput.backgroundHistory?.developmentalBackground.every(
-      //       (devBack) => devBack.devBgTitle && devBack.devBgInfo
-      //     ) &&
-      //     studentInput.backgroundHistory?.schoolHistory &&
-      //     studentInput.backgroundHistory?.clinicalDiagnosis &&
-      //     studentInput.backgroundHistory?.interventions?.length > 0 &&
-      //     studentInput.backgroundHistory?.interventions.every(
-      //       (intervention) => intervention.name && intervention.frequency
-      //     ) &&
-      //     studentInput.backgroundHistory?.strengthsAndInterests &&
-      //     studentInput.backgroundHistory?.socialSkills
-      //   );
-      // case 5:
-      //   return !!studentInput.behaviorDuringAssessment;
-      // case 6:
-      //   return (
-      //     studentInput.assessmentTools?.length > 0 &&
-      //     studentInput.assessmentTools.every(
-      //       (tool) => tool.tool && tool.details
-      //     )
-      //   );
-      // case 7:
-      //   return studentInput.assessmentTools?.every((tool) => tool.result);
+      case 1:
+        return !!(
+          studentInput.firstName &&
+          studentInput.lastName &&
+          studentInput.gender &&
+          studentInput.dateOfBirth &&
+          studentInput.assessmentDates &&
+          studentInput.examiner
+        );
+      case 2:
+        return !!studentInput.reasonForReferral;
+      case 3:
+        return studentInput.purposeOfAssessment?.length > 0;
+      case 4:
+        return !!(
+          studentInput.backgroundHistory?.familyBackground &&
+          studentInput.backgroundHistory?.familyRelationships &&
+          studentInput.backgroundHistory?.dailyLifeActivities &&
+          studentInput.backgroundHistory?.medicalHistory &&
+          studentInput.backgroundHistory?.developmentalBackground?.length > 0 &&
+          studentInput.backgroundHistory?.developmentalBackground.every(
+            (devBack) => devBack.devBgTitle && devBack.devBgInfo
+          ) &&
+          studentInput.backgroundHistory?.schoolHistory &&
+          studentInput.backgroundHistory?.clinicalDiagnosis &&
+          studentInput.backgroundHistory?.interventions?.length > 0 &&
+          studentInput.backgroundHistory?.interventions.every(
+            (intervention) => intervention.name && intervention.frequency
+          ) &&
+          studentInput.backgroundHistory?.strengthsAndInterests &&
+          studentInput.backgroundHistory?.socialSkills
+        );
+      case 5:
+        return !!studentInput.behaviorDuringAssessment;
+      case 6:
+        return (
+          studentInput.assessmentTools?.length > 0 &&
+          studentInput.assessmentTools.every(
+            (tool) => tool.tool && tool.details
+          )
+        );
+      case 7:
+        return studentInput.assessmentTools?.every((tool) => tool.result);
       case 8:
         return (
           !!studentInput.assessmentSummary &&
