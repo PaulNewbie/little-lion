@@ -1,6 +1,6 @@
 // EnrollStudent.jsx
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import AdminSidebar from "../../../components/sidebar/AdminSidebar";
 import EnrollStudentFormModal from "./enrollmentForm/EnrollStudentFormModal";
 import "./EnrollStudent.css";
@@ -58,6 +58,7 @@ export default function EnrollStudent() {
   const [isLoadingChildren, setIsLoadingChildren] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   // --- Handlers ---
   const handleParentSubmit = async (e) => {
@@ -105,6 +106,13 @@ export default function EnrollStudent() {
       alert(`Failed to create parent: ${error.message}`);
     }
   };
+
+  //setSelectedParent when going  back to enrollment from studentProfile
+  useEffect(() => {
+    if (location.state?.selectedParent) {
+      setSelectedParent(location.state.selectedParent);
+    }
+  }, [location.state]);
 
   // Get parents from db
   useEffect(() => {
@@ -178,6 +186,7 @@ export default function EnrollStudent() {
         state: {
           studentId: student.id,
           fromEnrollment: true,
+          parent: selectedParent,
         },
       });
     }

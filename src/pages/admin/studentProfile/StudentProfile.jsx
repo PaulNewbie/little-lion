@@ -18,6 +18,7 @@ const StudentProfile = () => {
 
   const studentIdFromEnrollment = location.state?.studentId;
   const fromEnrollment = location.state?.fromEnrollment;
+  const parentFromEnrollment = location.state?.parent;
 
   // 1. THE CUSTOM HOOK
   const {
@@ -75,7 +76,11 @@ const StudentProfile = () => {
         state: { ...location.state, level: "students" },
       });
     } else if (fromEnrollment) {
-      navigate("/admin/enrollment");
+      navigate("/admin/enrollment", {
+        state: {
+          selectedParent: parentFromEnrollment,
+        },
+      });
     } else {
       setSelectedStudent(null);
       setViewMode("list");
