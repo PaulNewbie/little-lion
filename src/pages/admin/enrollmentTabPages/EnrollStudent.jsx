@@ -477,7 +477,11 @@ export default function EnrollStudent() {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="create-btn">
+                <button
+                  type="submit"
+                  className="create-btn"
+                  onClick={handleParentSubmit}
+                >
                   Create Account
                 </button>
               </div>
