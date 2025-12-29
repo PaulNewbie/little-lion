@@ -36,6 +36,9 @@ export default function EnrollStudent() {
   const [selectedParent, setSelectedParent] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const [parentPhoto, setParentPhoto] = useState(null);
+  const [parentPhotoPreview, setParentPhotoPreview] = useState(null);
+
   // Modal Toggle
   const [showParentForm, setShowParentForm] = useState(false);
   const [showEnrollForm, setShowEnrollForm] = useState(false);
@@ -344,8 +347,10 @@ export default function EnrollStudent() {
         {showParentForm && (
           <div className="modalOverlay">
             <div className="modal">
-              <h2 className="services-header">New Parent / Guardian Account</h2>
-              <form onSubmit={handleParentSubmit}>
+              <h2 className="services-header create-parent-header">
+                New Parent / Guardian Account
+              </h2>
+              <form className="parent-form" onSubmit={handleParentSubmit}>
                 <div className="form-row">
                   <div className="input-group">
                     <label>First Name</label>
@@ -389,6 +394,7 @@ export default function EnrollStudent() {
                       }
                     />
                   </div>
+
                   <div className="input-group">
                     <label>Phone Number</label>
                     <input
@@ -404,6 +410,38 @@ export default function EnrollStudent() {
                     />
                   </div>
                 </div>
+                <div className="input-group">
+                  <label>Profile Picture</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        setParentPhoto(file);
+                        setParentPhotoPreview(URL.createObjectURL(file));
+                      }
+                    }}
+                  />
+                </div>
+
+                {/* Preview */}
+                {parentPhotoPreview && (
+                  <div style={{ marginTop: "10px", textAlign: "center" }}>
+                    <img
+                      src={parentPhotoPreview}
+                      alt="Preview"
+                      style={{
+                        width: "100px",
+                        height: "100px",
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                        border: "2px solid #ccc",
+                      }}
+                    />
+                  </div>
+                )}
+
                 <div className="input-group">
                   <label>Email Address</label>
                   <input
@@ -430,19 +468,19 @@ export default function EnrollStudent() {
                     }
                   />
                 </div>
-                <div className="modalActions">
-                  <button
-                    type="button"
-                    className="cancel-btn"
-                    onClick={() => setShowParentForm(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button type="submit" className="create-btn">
-                    Create Account
-                  </button>
-                </div>
               </form>
+              <div className="modalActions">
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={() => setShowParentForm(false)}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="create-btn">
+                  Create Account
+                </button>
+              </div>
             </div>
           </div>
         )}

@@ -41,9 +41,28 @@
   background: white;
   width: 100%;
   max-width: 500px;
+  height: 90vh;
+
   border-radius: 24px;
-  padding: 35px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+  display: flex;
+  flex-direction: column;
+}
+
+.parent-form {
+  flex: 1; /*⬅ takes available height*/
+  overflow-y: auto; /* ⬅ enables scrolling */
+  padding: 0 25px; /* optional: prevents scrollbar overlap */
+}
+
+.create-parent-header {
+  padding: 25px;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 2;
+  border-radius: 24px 24px 0 0;
 }
 
 /* ==========================================================================
@@ -91,6 +110,11 @@
   justify-content: flex-end;
   gap: 12px;
   margin-top: 10px;
+  padding: 25px;
+  position: sticky;
+  bottom: 0;
+  background-color: #ffffff;
+  border-radius: 0 0 24px 24px;
 }
 
 .create-btn,
