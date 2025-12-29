@@ -131,7 +131,7 @@ export default function Step1IdentifyingData({ data, onChange }) {
         </div>
       </div>
 
-      {/* PAIR 6: Grade Level and Assessment Date */}
+      {/* PAIR 6: Grade Level and Upload picture */}
       <div className="form-row">
         <div className="input-group">
           <label>Grade Level</label>
@@ -156,6 +156,33 @@ export default function Step1IdentifyingData({ data, onChange }) {
           )}
         </div>
         <div className="input-group">
+          <label>Student Profile Picture</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => onChange("profilePicture", e.target.files[0])}
+          />
+
+          {/* Optional Preview */}
+          {data.profilePicture && (
+            <img
+              src={URL.createObjectURL(data.profilePicture)}
+              alt="Profile Preview"
+              style={{
+                marginTop: "10px",
+                width: "100px",
+                height: "100px",
+                objectFit: "cover",
+                borderRadius: "16px",
+              }}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* FINAL ROW: Assessment Date and Examiner */}
+      <div className="form-row">
+        <div className="input-group">
           <label>Date of Assessment</label>
           <input
             type="date"
@@ -163,10 +190,6 @@ export default function Step1IdentifyingData({ data, onChange }) {
             onChange={(e) => onChange("assessmentDates", e.target.value)} // User can still edit
           />
         </div>
-      </div>
-
-      {/* FINAL ROW: Examiner */}
-      <div className="form-row">
         <div className="input-group">
           <label>Examiner</label>
           <input
