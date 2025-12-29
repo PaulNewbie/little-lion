@@ -141,19 +141,10 @@ export default function Step1IdentifyingData({ data, onChange }) {
           >
             <option value="">Select Level</option>
             <option value="Nursery">Nursery</option>
-            <option value="Kinder 1">Kinder 1</option>
-            <option value="Kinder 2">Kinder 2</option>
-            <option value="High School">High School</option>
+            <option value="Kinder 1">Kindergraten</option>
+            <option value="Kinder 1">Elementary</option>
             <option value="Others">Others</option>
           </select>
-          {data.gradeLevel === "Others" && (
-            <input
-              type="text"
-              placeholder="Specify Grade"
-              onChange={(e) => onChange("gradeLevel", e.target.value)}
-              className="mt-2"
-            />
-          )}
         </div>
         <div className="input-group">
           <label>Student Profile Picture</label>
