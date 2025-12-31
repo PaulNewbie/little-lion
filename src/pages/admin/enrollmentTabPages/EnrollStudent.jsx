@@ -318,7 +318,7 @@ export default function EnrollStudent() {
                           }`}
                         >
                           {s.status || "ENROLLED"}
-                          {s.status === "ASSESSING" && " ✏️"}
+                          {s.status === "ASSESSING" && "✏️"}
                         </div>
                       </div>
                     ))
