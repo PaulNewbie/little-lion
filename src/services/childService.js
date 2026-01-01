@@ -27,30 +27,28 @@ class ChildService {
   async createOrUpdateChild(parentId, data) {
     const childId = data.childId || generateUUID();
 
-    // 1. Process 1-on-1 Services (Standardize Naming)
+    // 1. Process 1-on-1 Services
     const processedServices = (data.oneOnOneServices || []).map((service) => ({
       serviceId: service.serviceId,
       serviceName: service.serviceName,
-      type: "Therapy", // Standardized Type
-      staffId: service.staffId, // Standardized ID
-      staffName: service.staffName, // Standardized Name
-      staffRole: "therapist", // Standardized Role
+      type: "Therapy",
+      staffId: service.staffId,
+      staffName: service.staffName,
+      staffRole: "therapist",
     }));
 
-    // 2. Process Group Classes (Standardize Naming)
+    // 2. Process Group Classes
     const processedClasses = (data.groupClassServices || []).map((service) => ({
       serviceId: service.serviceId,
       serviceName: service.serviceName,
-      type: "Class", // Standardized Type
-      staffId: service.staffId, // Standardized ID
-      staffName: service.staffName, // Standardized Name
-      staffRole: "teacher", // Standardized Role
+      type: "Class",
+      staffId: service.staffId,
+      staffName: service.staffName,
+      staffRole: "teacher",
     }));
 
-    // 3. Create Quick-Lookup Arrays (For Queries)
-    // Extract unique staff IDs so we can query "where therapistIds contains X"
+    // 3. Create Quick-Lookup Arrays
     const therapistIds = processedServices.map((s) => s.staffId);
-
     const teacherIds = [
       ...processedServices
         .filter((s) => s.staffRole === "teacher")
@@ -58,7 +56,7 @@ class ChildService {
       ...processedClasses.map((s) => s.staffId),
     ];
 
-    // 4. Construct the Payload
+    // 4. Construct the Payload (CLEANED - Assessment fields removed)
     const childPayload = {
       // --- Identifying Data ---
       firstName: data.firstName,
@@ -74,44 +72,31 @@ class ChildService {
       school: data.school,
       gradeLevel: data.gradeLevel,
 
-      // --- Assessment Data ---
+      // --- Identification/Linkage ---
       assessmentDates: data.assessmentDates || [],
       examiner: data.examiner || "",
       ageAtAssessment: data.ageAtAssessment || "",
+      assessmentId: data.assessmentId || null, // THE ONLY LINK TO THE OTHER COLLECTION
 
-      // Saving the Narrative Fields (Steps 2-5 & 8)
-      reasonForReferral: data.reasonForReferral || "",
-      purposeOfAssessment: data.purposeOfAssessment || [],
-      backgroundHistory: data.backgroundHistory || {}, // Stores the big object from Step 4
-      behaviorDuringAssessment: data.behaviorDuringAssessment || "",
-      assessmentSummary: data.assessmentSummary || "", // Step 8 Summary
-
-      assessmentTools: data.assessmentTools || [], // Contains Tools, Results, AND Recommendations
-      assessmentId: data.assessmentId || null,
-
-      // --- SERVICE ENROLLMENT (Single Source of Truth) ---
-      // We combine both lists into one 'enrolledServices' array
+      // --- SERVICE ENROLLMENT ---
       enrolledServices: [...processedServices, ...processedClasses],
 
       // --- Lookup Arrays ---
-      therapistIds: [...new Set(therapistIds)], // Remove duplicates
-      teacherIds: [...new Set(teacherIds)], // Remove duplicates
+      therapistIds: [...new Set(therapistIds)],
+      teacherIds: [...new Set(teacherIds)],
 
       // --- Metadata ---
       parentId,
       status: data.status || "ENROLLED",
       updatedAt: serverTimestamp(),
       createdAt: data.createdAt || serverTimestamp(),
-      // (If it's an update, we might want to preserve original creation date,
-      // but if data.createdAt is undefined, it's new)
     };
 
-    console.log("🦁 Saving Child Profile via ChildService:", childPayload);
+    console.log("🦁 Saving CLEAN Child Profile:", childPayload);
 
-    // 5. Save to Firestore (Merge prevents overwriting missing fields)
-    await setDoc(doc(db, "children", childId), childPayload, {
-      merge: true,
-    });
+    // 5. Save to Firestore
+    // REMOVED { merge: true } to ensure old assessment fields are deleted from this collection
+    await setDoc(doc(db, "children", childId), childPayload);
 
     return { id: childId, ...childPayload };
   }

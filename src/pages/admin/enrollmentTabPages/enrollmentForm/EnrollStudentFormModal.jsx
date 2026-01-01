@@ -13,7 +13,6 @@ import childService from "../../../../services/childService";
 import assessmentService from "../../../../services/assessmentService";
 import { generateUUID } from "../../../../utils/constants";
 
-// Define the clean slate outside the component
 const INITIAL_STUDENT_STATE = {
   firstName: "",
   middleName: "",
@@ -30,8 +29,8 @@ const INITIAL_STUDENT_STATE = {
   assessmentDates: new Date().toISOString().split("T")[0],
   examiner: "",
   ageAtAssessment: "",
-  services: [],
-  classes: [],
+  oneOnOneServices: [],
+  groupClassServices: [],
   reasonForReferral: "",
   purposeOfAssessment: [],
   backgroundHistory: {
@@ -61,11 +60,8 @@ export default function EnrollStudentFormModal({
   const [formStep, setFormStep] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
   const [studentInput, setStudentInput] = useState(INITIAL_STUDENT_STATE);
-
-  // ✅ NEW: Close confirmation modal state
   const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
 
-  // --- AUTO-FILL LOGIC ---
   useEffect(() => {
     if (show) {
       if (editingStudent) {
@@ -91,7 +87,6 @@ export default function EnrollStudentFormModal({
 
   if (!show) return null;
 
-  // --- HELPER FUNCTIONS ---
   const calculateAge = (dob) => {
     if (!dob) return "";
     const birthDate = new Date(dob);
@@ -120,7 +115,6 @@ export default function EnrollStudentFormModal({
     }));
   };
 
-  // ✅ NEW: Validation function for each step
   const validateCurrentStep = () => {
     switch (formStep) {
       case 1:
@@ -172,20 +166,16 @@ export default function EnrollStudentFormModal({
           studentInput.assessmentTools?.every((tool) => tool.recommendation)
         );
       case 9:
-        // ✅ Step 9 should allow at least ONE service (either therapy OR class)
         const hasTherapy =
           studentInput.oneOnOneServices?.length > 0 &&
           studentInput.oneOnOneServices.every(
             (service) => service.serviceId && service.staffId
           );
-
         const hasClasses =
           studentInput.groupClassServices?.length > 0 &&
           studentInput.groupClassServices.every(
             (class_) => class_.serviceId && class_.staffId
           );
-
-        // Student needs at least ONE type of service
         return hasTherapy || hasClasses;
       default:
         return true;
@@ -195,22 +185,59 @@ export default function EnrollStudentFormModal({
   const handleSave = async (isFinalized) => {
     setIsSaving(true);
     try {
+      // 1. Ensure we have a childId
       const childId = studentInput.childId || studentInput.id || generateUUID();
 
-      const assessmentId = await assessmentService.createOrUpdateAssessment(
-        childId,
-        studentInput
-      );
-
-      const childDataToSave = {
-        ...studentInput,
-        childId,
-        assessmentId,
-        status: isFinalized ? "ENROLLED" : "ASSESSING",
-        oneOnOneServices: studentInput.oneOnOneServices || [],
-        groupClassServices: studentInput.groupClassServices || [],
+      // 2. Prepare Assessment Data (Steps 2-8)
+      // We include the 'id' here so your service knows to update the existing doc
+      const assessmentDataToSave = {
+        id: studentInput.assessmentId || null,
+        reasonForReferral: studentInput.reasonForReferral,
+        purposeOfAssessment: studentInput.purposeOfAssessment,
+        backgroundHistory: studentInput.backgroundHistory,
+        behaviorDuringAssessment: studentInput.behaviorDuringAssessment,
+        assessmentTools: studentInput.assessmentTools,
+        assessmentSummary: studentInput.assessmentSummary,
       };
 
+      // 3. Save Assessment using your exact service signature
+      const assessmentId = await assessmentService.createOrUpdateAssessment(
+        childId,
+        assessmentDataToSave
+      );
+
+      // 4. Update state so subsequent "Save Progress" clicks use the same assessmentId
+      setStudentInput((prev) => ({
+        ...prev,
+        assessmentId,
+        childId,
+      }));
+
+      // 5. Prepare Child Data (Steps 1 and 9)
+      const childDataToSave = {
+        firstName: studentInput.firstName,
+        middleName: studentInput.middleName,
+        lastName: studentInput.lastName,
+        nickname: studentInput.nickname,
+        dateOfBirth: studentInput.dateOfBirth,
+        gender: studentInput.gender,
+        relationshipToClient: studentInput.relationshipToClient,
+        photoUrl: studentInput.photoUrl,
+        active: studentInput.active,
+        address: studentInput.address,
+        school: studentInput.school,
+        gradeLevel: studentInput.gradeLevel,
+        assessmentDates: studentInput.assessmentDates,
+        examiner: studentInput.examiner,
+        ageAtAssessment: studentInput.ageAtAssessment,
+        oneOnOneServices: studentInput.oneOnOneServices || [],
+        groupClassServices: studentInput.groupClassServices || [],
+        status: isFinalized ? "ENROLLED" : "ASSESSING",
+        assessmentId, // Link to the assessment document
+        childId, // Ensure childId is consistent
+      };
+
+      // 6. Save Child
       const savedChild = await childService.createOrUpdateChild(
         selectedParent.uid || selectedParent.id,
         childDataToSave
@@ -228,12 +255,10 @@ export default function EnrollStudentFormModal({
   };
 
   const handleNextOrSave = async () => {
-    // ✅ Validate before proceeding
     if (!validateCurrentStep()) {
       alert("Please fill in all required fields before proceeding.");
       return;
     }
-
     if (formStep === 9) {
       await handleSave(true);
     } else {
@@ -241,16 +266,11 @@ export default function EnrollStudentFormModal({
     }
   };
 
-  // ✅ NEW: Close confirmation handlers
-  const handleCloseClick = () => {
-    setShowCloseConfirmation(true);
-  };
-
+  const handleCloseClick = () => setShowCloseConfirmation(true);
   const handleConfirmClose = () => {
     setShowCloseConfirmation(false);
     onClose();
   };
-
   const handleSaveAndClose = async () => {
     setShowCloseConfirmation(false);
     await handleSave(false);
@@ -275,7 +295,6 @@ export default function EnrollStudentFormModal({
   return (
     <div className="modalOverlay">
       <div className="multi-step-modal">
-        {/* HEADER */}
         <div className="modal-header-sticky">
           <div className="modal-header-flex">
             <h2>
@@ -300,7 +319,6 @@ export default function EnrollStudentFormModal({
           </div>
         </div>
 
-        {/* SCROLLABLE CONTENT */}
         <div className="enroll-form-scroll">
           {formStep === 1 && (
             <Step1IdentifyingData
@@ -358,7 +376,6 @@ export default function EnrollStudentFormModal({
           )}
         </div>
 
-        {/* FOOTER */}
         <div className="modalActions sticky-footer">
           <div className="left-actions">
             <button
@@ -405,7 +422,6 @@ export default function EnrollStudentFormModal({
         </div>
       </div>
 
-      {/* ✅ NEW: Close Confirmation Modal */}
       {showCloseConfirmation && (
         <div className="modalOverlay" style={{ zIndex: 1001 }}>
           <div
@@ -417,7 +433,6 @@ export default function EnrollStudentFormModal({
                 <h2 style={{ fontSize: "1.25rem" }}>⚠️ Unsaved Changes</h2>
               </div>
             </div>
-
             <div className="enroll-form-scroll" style={{ padding: "2rem" }}>
               <p
                 style={{
@@ -428,7 +443,6 @@ export default function EnrollStudentFormModal({
               >
                 You have unsaved changes. What would you like to do?
               </p>
-
               <div
                 style={{
                   display: "flex",
@@ -452,7 +466,6 @@ export default function EnrollStudentFormModal({
                 >
                   💾 Save Progress & Close
                 </button>
-
                 <button
                   onClick={handleConfirmClose}
                   style={{
@@ -468,7 +481,6 @@ export default function EnrollStudentFormModal({
                 >
                   🗑️ Discard Changes & Close
                 </button>
-
                 <button
                   onClick={() => setShowCloseConfirmation(false)}
                   style={{
