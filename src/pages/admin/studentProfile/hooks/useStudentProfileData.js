@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import childService from "../../../../services/childService";
 import activityService from "../../../../services/activityService";
 import userService from "../../../../services/userService";
+import assessmentService from "../../../../services/assessmentService";
 
 export const useStudentProfileData = (locationState) => {
   const queryClient = useQueryClient();
@@ -56,6 +57,22 @@ export const useStudentProfileData = (locationState) => {
     enabled: !!selectedStudent?.parentId,
   });
 
+  // ================= ASSESSMENT (from assessments collection) =================
+  const {
+    data: assessmentData = null,
+    isLoading: isAssessmentLoading,
+    error: assessmentError,
+  } = useQuery({
+    queryKey: ["assessment", selectedStudent?.assessmentId],
+    queryFn: async () => {
+      if (!selectedStudent?.assessmentId) return null;
+      return await assessmentService.getAssessment(
+        selectedStudent.assessmentId
+      );
+    },
+    enabled: !!selectedStudent?.assessmentId,
+  });
+
   // ================= FILTER =================
   const filteredStudents = useMemo(() => {
     return students.filter((s) => {
@@ -78,8 +95,14 @@ export const useStudentProfileData = (locationState) => {
   }, [students, searchTerm, filterType]);
 
   // ================= HELPERS =================
-  const refreshData = () =>
+  const refreshData = () => {
     queryClient.invalidateQueries({ queryKey: ["students"] });
+    if (selectedStudent?.assessmentId) {
+      queryClient.invalidateQueries({
+        queryKey: ["assessment", selectedStudent.assessmentId],
+      });
+    }
+  };
 
   return {
     loading: isLoading,
@@ -93,6 +116,9 @@ export const useStudentProfileData = (locationState) => {
     filteredStudents,
     studentActivities,
     parentData,
+    assessmentData,
+    isAssessmentLoading,
+    assessmentError,
     refreshData,
   };
 };

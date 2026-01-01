@@ -1,8 +1,10 @@
 import React from "react";
 import "./AssessmentHistory.css"; // Import the shared CSS
 
-const AssessmentHistory = ({ data }) => {
-  if (!data) return null;
+const AssessmentHistory = ({ childData, assessmentData }) => {
+  if (!childData && !assessmentData) return null;
+
+  const merged = { ...(childData || {}), ...(assessmentData || {}) };
 
   const {
     reasonForReferral,
@@ -13,8 +15,8 @@ const AssessmentHistory = ({ data }) => {
     assessmentSummary,
     examiner,
     assessmentDates,
-    ageAtAssessment
-  } = data;
+    ageAtAssessment,
+  } = merged;
 
   const bg = backgroundHistory || {};
 
@@ -23,21 +25,27 @@ const AssessmentHistory = ({ data }) => {
       <div className="history-top-header">
         <h2 className="report-main-title">ASSESSMENT REPORT</h2>
         <div className="report-meta-grid">
-           <div className="meta-item">
-             <span className="label">Examiner:</span> {examiner || "N/A"}
-           </div>
-           <div className="meta-item">
-             <span className="label">Date(s):</span> {Array.isArray(assessmentDates) ? assessmentDates.join(", ") : assessmentDates || "N/A"}
-           </div>
-           <div className="meta-item">
-             <span className="label">Age at Assessment:</span> {ageAtAssessment || "N/A"}
-           </div>
+          <div className="meta-item">
+            <span className="label">Examiner:</span> {examiner || "N/A"}
+          </div>
+          <div className="meta-item">
+            <span className="label">Date(s):</span>{" "}
+            {Array.isArray(assessmentDates)
+              ? assessmentDates.join(", ")
+              : assessmentDates || "N/A"}
+          </div>
+          <div className="meta-item">
+            <span className="label">Age at Assessment:</span>{" "}
+            {ageAtAssessment || "N/A"}
+          </div>
         </div>
       </div>
 
       <section className="report-section">
         <h3 className="report-heading">II. REASON FOR REFERRAL</h3>
-        <p className="report-text">{reasonForReferral || "No information provided."}</p>
+        <p className="report-text">
+          {reasonForReferral || "No information provided."}
+        </p>
       </section>
 
       <section className="report-section">
@@ -65,13 +73,18 @@ const AssessmentHistory = ({ data }) => {
         </div>
         <div className="sub-section">
           <h4>C. Developmental History</h4>
-          {bg.developmentalBackground && bg.developmentalBackground.length > 0 ? (
+          {bg.developmentalBackground &&
+          bg.developmentalBackground.length > 0 ? (
             <ul className="report-list">
               {bg.developmentalBackground.map((item, i) => (
-                <li key={i}><strong>{item.devBgTitle}:</strong> {item.devBgInfo}</li>
+                <li key={i}>
+                  <strong>{item.devBgTitle}:</strong> {item.devBgInfo}
+                </li>
               ))}
             </ul>
-          ) : <p className="report-text">N/A</p>}
+          ) : (
+            <p className="report-text">N/A</p>
+          )}
         </div>
         <div className="sub-section">
           <h4>D. School History</h4>
@@ -85,7 +98,9 @@ const AssessmentHistory = ({ data }) => {
 
       <section className="report-section">
         <h3 className="report-heading">V. BEHAVIOR DURING ASSESSMENT</h3>
-        <p className="report-text">{behaviorDuringAssessment || "No information provided."}</p>
+        <p className="report-text">
+          {behaviorDuringAssessment || "No information provided."}
+        </p>
       </section>
 
       <section className="report-section">
@@ -95,29 +110,39 @@ const AssessmentHistory = ({ data }) => {
             {assessmentTools.map((item, index) => (
               <div key={index} className="tool-card">
                 <div className="tool-header">
-                   <span className="tool-index">{String.fromCharCode(65 + index)}.</span>
-                   <h4>{item.tool}</h4>
+                  <span className="tool-index">
+                    {String.fromCharCode(65 + index)}.
+                  </span>
+                  <h4>{item.tool}</h4>
                 </div>
                 <div className="tool-body">
-                   <p><strong>Details:</strong> {item.details}</p>
-                   <div className="result-box">
-                      <strong>Findings:</strong><p>{item.result || "No results recorded."}</p>
-                   </div>
-                   {item.recommendation && (
-                     <div className="recommendation-box">
-                        <strong>Specific Recommendation:</strong><p>{item.recommendation}</p>
-                     </div>
-                   )}
+                  <p>
+                    <strong>Details:</strong> {item.details}
+                  </p>
+                  <div className="result-box">
+                    <strong>Findings:</strong>
+                    <p>{item.result || "No results recorded."}</p>
+                  </div>
+                  {item.recommendation && (
+                    <div className="recommendation-box">
+                      <strong>Specific Recommendation:</strong>
+                      <p>{item.recommendation}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
           </div>
-        ) : <p className="report-text">No assessment tools recorded.</p>}
+        ) : (
+          <p className="report-text">No assessment tools recorded.</p>
+        )}
       </section>
 
       <section className="report-section">
         <h3 className="report-heading">VIII. SUMMARY AND RECOMMENDATIONS</h3>
-        <p className="report-text">{assessmentSummary || "No summary provided."}</p>
+        <p className="report-text">
+          {assessmentSummary || "No summary provided."}
+        </p>
       </section>
     </div>
   );

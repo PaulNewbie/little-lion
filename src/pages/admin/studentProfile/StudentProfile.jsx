@@ -10,6 +10,7 @@ import useManageTherapists from "../../../hooks/useManageTherapists";
 import { useStudentProfileData } from "./hooks/useStudentProfileData";
 import AssessmentHistory from "../../shared/AssessmentHistory";
 import ActivityCalendar from "./components/ActivityCalendar";
+import Loading from "../../../components/common/Loading";
 import "./StudentProfile.css";
 
 const StudentProfile = () => {
@@ -33,6 +34,8 @@ const StudentProfile = () => {
     studentActivities,
     refreshData,
     parentData,
+    assessmentData,
+    isAssessmentLoading,
   } = useStudentProfileData(location.state);
 
   // 2. UI State
@@ -372,7 +375,15 @@ const StudentProfile = () => {
                 </div>
               </div>
 
-              {showAssessment && <AssessmentHistory data={selectedStudent} />}
+              {showAssessment &&
+                (isAssessmentLoading ? (
+                  <Loading />
+                ) : (
+                  <AssessmentHistory
+                    childData={selectedStudent}
+                    assessmentData={assessmentData}
+                  />
+                ))}
 
               <div
                 className="profile-content-scroll"

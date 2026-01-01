@@ -13,6 +13,7 @@ import childService from "../../../../services/childService";
 import assessmentService from "../../../../services/assessmentService";
 import { generateUUID } from "../../../../utils/constants";
 
+// Define the clean slate outside the component
 const INITIAL_STUDENT_STATE = {
   firstName: "",
   middleName: "",
