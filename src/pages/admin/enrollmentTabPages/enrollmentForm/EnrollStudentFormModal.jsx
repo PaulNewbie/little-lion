@@ -78,7 +78,10 @@ export default function EnrollStudentFormModal({
       case 2:
         return !!data.reasonForReferral;
       case 3:
-        return data.purposeOfAssessment?.length > 0;
+        return !!(
+          data.purposeOfAssessment?.length > 0 &&
+          data.purposeOfAssessment.every((purpose) => purpose)
+        );
       case 4:
         return !!(
           data.backgroundHistory?.familyBackground &&
