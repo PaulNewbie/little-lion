@@ -275,10 +275,10 @@ export default function EnrollStudentFormModal({
   };
 
   const handleNextOrSave = async () => {
-    if (!validateCurrentStep()) {
-      alert("Please fill in all required fields before proceeding.");
-      return;
-    }
+    // if (!validateCurrentStep()) {
+    //   alert("Please fill in all required fields before proceeding.");
+    //   return;
+    // }
     if (formStep === 9) {
       await handleSave(true);
     } else {
