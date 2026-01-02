@@ -34,12 +34,14 @@ export default function Step3PurposeOfAssessment({ data, onChange }) {
               onChange={(e) => handlePurposeChange(index, e.target.value)}
               required
             />
-            <button
-              className="remove-row-btn"
-              onClick={() => handleRemovePurpose(index)}
-            >
-              ×
-            </button>
+            {data.purposeOfAssessment.length > 1 && (
+              <button
+                className="remove-row-btn"
+                onClick={() => handleRemovePurpose(index)}
+              >
+                ×
+              </button>
+            )}
           </div>
         ))}
       </div>
