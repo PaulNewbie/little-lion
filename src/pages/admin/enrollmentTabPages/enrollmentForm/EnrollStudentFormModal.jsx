@@ -9,9 +9,8 @@ import Step6AssessmentTools from "./components/Step6AssessmentTools";
 import Step7AssessmentResults from "./components/Step7AssessmentResults";
 import Step8SummaryRecommendations from "./components/Step8SummaryRecommendations";
 import Step9ServiceEnrollment from "./components/Step9ServiceEnrollment";
-// import manageChildren from "../enrollmentDatabase/manageChildren"; // Old Import
-import childService from "../../../../services/childService"; 
-import assessmentService from "../../../../services/assessmentService"; // Replaces manageAssessment
+import childService from "../../../../services/childService";
+import assessmentService from "../../../../services/assessmentService";
 import { generateUUID } from "../../../../utils/constants";
 
 // Define the clean slate outside the component
@@ -31,8 +30,8 @@ const INITIAL_STUDENT_STATE = {
   assessmentDates: new Date().toISOString().split("T")[0],
   examiner: "",
   ageAtAssessment: "",
-  services: [],
-  classes: [],
+  oneOnOneServices: [],
+  groupClassServices: [],
   reasonForReferral: "",
   purposeOfAssessment: [],
   backgroundHistory: {
@@ -57,17 +56,16 @@ export default function EnrollStudentFormModal({
   onClose,
   onSave,
   selectedParent,
-  editingStudent, // Data passed from parent when clicking an ASSESSING student
+  editingStudent,
 }) {
   const [formStep, setFormStep] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
   const [studentInput, setStudentInput] = useState(INITIAL_STUDENT_STATE);
+  const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
 
-  // --- AUTO-FILL LOGIC ---
   useEffect(() => {
     if (show) {
       if (editingStudent) {
-        // We are editing: Merge existing data with INITIAL_STATE to ensure no fields are undefined
         setStudentInput({
           ...INITIAL_STUDENT_STATE,
           ...editingStudent,
@@ -75,23 +73,21 @@ export default function EnrollStudentFormModal({
             ...INITIAL_STUDENT_STATE.backgroundHistory,
             ...(editingStudent.backgroundHistory || {}),
           },
-          // Ensure arrays are preserved
           assessmentTools:
             editingStudent.assessmentTools ||
             INITIAL_STUDENT_STATE.assessmentTools,
           purposeOfAssessment: editingStudent.purposeOfAssessment || [],
         });
       } else {
-        // We are creating new: Reset to empty
         setStudentInput(INITIAL_STUDENT_STATE);
       }
-      setFormStep(1); // Reset to first step whenever modal opens
+      setFormStep(1);
+      setShowCloseConfirmation(false);
     }
   }, [show, editingStudent]);
 
   if (!show) return null;
 
-  // --- HELPER FUNCTIONS ---
   const calculateAge = (dob) => {
     if (!dob) return "";
     const birthDate = new Date(dob);
@@ -120,33 +116,129 @@ export default function EnrollStudentFormModal({
     }));
   };
 
+  const validateCurrentStep = () => {
+    switch (formStep) {
+      case 1:
+        return !!(
+          studentInput.firstName &&
+          studentInput.lastName &&
+          studentInput.gender &&
+          studentInput.dateOfBirth &&
+          studentInput.assessmentDates &&
+          studentInput.examiner
+        );
+      case 2:
+        return !!studentInput.reasonForReferral;
+      case 3:
+        return studentInput.purposeOfAssessment?.length > 0;
+      case 4:
+        return !!(
+          studentInput.backgroundHistory?.familyBackground &&
+          studentInput.backgroundHistory?.familyRelationships &&
+          studentInput.backgroundHistory?.dailyLifeActivities &&
+          studentInput.backgroundHistory?.medicalHistory &&
+          studentInput.backgroundHistory?.developmentalBackground?.length > 0 &&
+          studentInput.backgroundHistory?.developmentalBackground.every(
+            (devBack) => devBack.devBgTitle && devBack.devBgInfo
+          ) &&
+          studentInput.backgroundHistory?.schoolHistory &&
+          studentInput.backgroundHistory?.clinicalDiagnosis &&
+          studentInput.backgroundHistory?.interventions?.length > 0 &&
+          studentInput.backgroundHistory?.interventions.every(
+            (intervention) => intervention.name && intervention.frequency
+          ) &&
+          studentInput.backgroundHistory?.strengthsAndInterests &&
+          studentInput.backgroundHistory?.socialSkills
+        );
+      case 5:
+        return !!studentInput.behaviorDuringAssessment;
+      case 6:
+        return (
+          studentInput.assessmentTools?.length > 0 &&
+          studentInput.assessmentTools.every(
+            (tool) => tool.tool && tool.details
+          )
+        );
+      case 7:
+        return studentInput.assessmentTools?.every((tool) => tool.result);
+      case 8:
+        return (
+          !!studentInput.assessmentSummary &&
+          studentInput.assessmentTools?.every((tool) => tool.recommendation)
+        );
+      case 9:
+        const hasTherapy =
+          studentInput.oneOnOneServices?.length > 0 &&
+          studentInput.oneOnOneServices.every(
+            (service) => service.serviceId && service.staffId
+          );
+        const hasClasses =
+          studentInput.groupClassServices?.length > 0 &&
+          studentInput.groupClassServices.every(
+            (class_) => class_.serviceId && class_.staffId
+          );
+        return hasTherapy || hasClasses;
+      default:
+        return true;
+    }
+  };
+
   const handleSave = async (isFinalized) => {
     setIsSaving(true);
     try {
-      // Use existing ID if editing, otherwise generate new
-      const childId =
-        studentInput.childId || studentInput.id || generateUUID();
+      // 1. Ensure we have a childId
+      const childId = studentInput.childId || studentInput.id || generateUUID();
 
-      // Save assessment data first
-      const assessmentId = await assessmentService.createOrUpdateAssessment(
-        childId,
-        studentInput
-      );
-
-      // IMPORTANT: Include Step 9 enrollment data
-      const childDataToSave = {
-        ...studentInput,
-        childId,
-        assessmentId,
-        status: isFinalized ? "ENROLLED" : "ASSESSING",
-
-        // Step 9 data (these come from the form state)
-        oneOnOneServices: studentInput.oneOnOneServices || [],
-        groupClassServices: studentInput.groupClassServices || [],
+      // 2. Prepare Assessment Data (Steps 2-8)
+      // We include the 'id' here so your service knows to update the existing doc
+      const assessmentDataToSave = {
+        id: studentInput.assessmentId || null,
+        reasonForReferral: studentInput.reasonForReferral,
+        purposeOfAssessment: studentInput.purposeOfAssessment,
+        backgroundHistory: studentInput.backgroundHistory,
+        behaviorDuringAssessment: studentInput.behaviorDuringAssessment,
+        assessmentTools: studentInput.assessmentTools,
+        assessmentSummary: studentInput.assessmentSummary,
       };
 
-      console.log("Saving child with enrollment data:", childDataToSave);
+      // 3. Save Assessment using your exact service signature
+      const assessmentId = await assessmentService.createOrUpdateAssessment(
+        childId,
+        assessmentDataToSave
+      );
 
+      // 4. Update state so subsequent "Save Progress" clicks use the same assessmentId
+      setStudentInput((prev) => ({
+        ...prev,
+        assessmentId,
+        childId,
+      }));
+
+      // 5. Prepare Child Data (Steps 1 and 9)
+      const childDataToSave = {
+        firstName: studentInput.firstName,
+        middleName: studentInput.middleName,
+        lastName: studentInput.lastName,
+        nickname: studentInput.nickname,
+        dateOfBirth: studentInput.dateOfBirth,
+        gender: studentInput.gender,
+        relationshipToClient: studentInput.relationshipToClient,
+        photoUrl: studentInput.photoUrl,
+        active: studentInput.active,
+        address: studentInput.address,
+        school: studentInput.school,
+        gradeLevel: studentInput.gradeLevel,
+        assessmentDates: studentInput.assessmentDates,
+        examiner: studentInput.examiner,
+        ageAtAssessment: studentInput.ageAtAssessment,
+        oneOnOneServices: studentInput.oneOnOneServices || [],
+        groupClassServices: studentInput.groupClassServices || [],
+        status: isFinalized ? "ENROLLED" : "ASSESSING",
+        assessmentId, // Link to the assessment document
+        childId, // Ensure childId is consistent
+      };
+
+      // 6. Save Child
       const savedChild = await childService.createOrUpdateChild(
         selectedParent.uid || selectedParent.id,
         childDataToSave
@@ -164,11 +256,26 @@ export default function EnrollStudentFormModal({
   };
 
   const handleNextOrSave = async () => {
+    if (!validateCurrentStep()) {
+      alert("Please fill in all required fields before proceeding.");
+      return;
+    }
     if (formStep === 9) {
       await handleSave(true);
     } else {
       setFormStep(formStep + 1);
     }
+  };
+
+  const handleCloseClick = () => setShowCloseConfirmation(true);
+  const handleConfirmClose = () => {
+    setShowCloseConfirmation(false);
+    onClose();
+  };
+  const handleSaveAndClose = async () => {
+    setShowCloseConfirmation(false);
+    await handleSave(false);
+    onClose();
   };
 
   const getStepTitle = () => {
@@ -189,7 +296,6 @@ export default function EnrollStudentFormModal({
   return (
     <div className="modalOverlay">
       <div className="multi-step-modal">
-        {/* HEADER */}
         <div className="modal-header-sticky">
           <div className="modal-header-flex">
             <h2>
@@ -197,8 +303,9 @@ export default function EnrollStudentFormModal({
             </h2>
             <button
               className="close-x-btn"
-              onClick={onClose}
+              onClick={handleCloseClick}
               disabled={isSaving}
+              type="button"
             >
               ×
             </button>
@@ -213,7 +320,6 @@ export default function EnrollStudentFormModal({
           </div>
         </div>
 
-        {/* SCROLLABLE CONTENT */}
         <div className="enroll-form-scroll">
           {formStep === 1 && (
             <Step1IdentifyingData
@@ -271,20 +377,21 @@ export default function EnrollStudentFormModal({
           )}
         </div>
 
-        {/* FOOTER */}
         <div className="modalActions sticky-footer">
           <div className="left-actions">
             <button
               className="save-draft-btn"
               onClick={() => handleSave(false)}
               disabled={isSaving}
+              type="button"
             >
               {isSaving ? "Saving..." : "Save Progress"}
             </button>
             <button
               className="cancel-btn-alt"
-              onClick={onClose}
+              onClick={handleCloseClick}
               disabled={isSaving}
+              type="button"
             >
               Cancel
             </button>
@@ -295,6 +402,7 @@ export default function EnrollStudentFormModal({
                 className="cancel-btn"
                 onClick={() => setFormStep(formStep - 1)}
                 disabled={isSaving}
+                type="button"
               >
                 Back
               </button>
@@ -303,6 +411,7 @@ export default function EnrollStudentFormModal({
               className="create-btn"
               onClick={handleNextOrSave}
               disabled={isSaving}
+              type="button"
             >
               {isSaving
                 ? "Saving..."
@@ -313,6 +422,86 @@ export default function EnrollStudentFormModal({
           </div>
         </div>
       </div>
+
+      {showCloseConfirmation && (
+        <div className="modalOverlay" style={{ zIndex: 1001 }}>
+          <div
+            className="multi-step-modal"
+            style={{ maxWidth: "450px", maxHeight: "auto" }}
+          >
+            <div className="modal-header-sticky">
+              <div className="modal-header-flex">
+                <h2 style={{ fontSize: "1.25rem" }}>⚠️ Unsaved Changes</h2>
+              </div>
+            </div>
+            <div className="enroll-form-scroll" style={{ padding: "2rem" }}>
+              <p
+                style={{
+                  margin: "0 0 1.5rem 0",
+                  color: "#64748b",
+                  lineHeight: "1.6",
+                }}
+              >
+                You have unsaved changes. What would you like to do?
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.75rem",
+                }}
+              >
+                <button
+                  onClick={handleSaveAndClose}
+                  disabled={isSaving}
+                  style={{
+                    padding: "0.875rem 1.5rem",
+                    backgroundColor: "#10b981",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "0.5rem",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    fontSize: "0.9375rem",
+                  }}
+                >
+                  💾 Save Progress & Close
+                </button>
+                <button
+                  onClick={handleConfirmClose}
+                  style={{
+                    padding: "0.875rem 1.5rem",
+                    backgroundColor: "#ef4444",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "0.5rem",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    fontSize: "0.9375rem",
+                  }}
+                >
+                  🗑️ Discard Changes & Close
+                </button>
+                <button
+                  onClick={() => setShowCloseConfirmation(false)}
+                  style={{
+                    padding: "0.875rem 1.5rem",
+                    backgroundColor: "#f1f5f9",
+                    color: "#334155",
+                    border: "none",
+                    borderRadius: "0.5rem",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    fontSize: "0.9375rem",
+                  }}
+                >
+                  ← Continue Editing
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -19,7 +19,7 @@ const OneOnOne = () => {
   const [level, setLevel] = useState("services");
   const [selectedService, setSelectedService] = useState(null);
   const [showAddServiceModal, setShowAddServiceModal] = useState(false);
-  
+
   // Form State
   const [newService, setNewService] = useState({
     name: "",
@@ -29,21 +29,21 @@ const OneOnOne = () => {
 
   // 1. ✅ CACHED: Fetch Students (Instant if loaded in Dashboard)
   const { data: students = [], isLoading: loadingStudents } = useQuery({
-    queryKey: ['students'],
+    queryKey: ["students"],
     queryFn: () => childService.getAllChildren(),
     staleTime: 1000 * 60 * 5,
   });
 
   // 2. ✅ CACHED: Fetch Services
   const { data: allServices = [], isLoading: loadingServices } = useQuery({
-    queryKey: ['services'],
+    queryKey: ["services"],
     queryFn: () => offeringsService.getAllServices(),
     staleTime: 1000 * 60 * 5,
   });
 
   // Derived state: Filter out 'Class' types for this page
   const services = allServices.filter((s) => s.type !== "Class");
-  
+
   const loading = loadingStudents || loadingServices;
 
   // Check if coming back from StudentProfile
@@ -58,12 +58,14 @@ const OneOnOne = () => {
   const enrolledStudents = selectedService
     ? students.filter((s) => {
         const allServices = s.enrolledServices || [
-          ...(s.therapyServices || []), 
-          ...(s.services || [])
+          ...(s.therapyServices || []),
+          ...(s.services || []),
         ];
         // Robust check for service name match
-        return allServices.some((srv) => 
-          srv.serviceName?.trim().toLowerCase() === selectedService.name?.trim().toLowerCase()
+        return allServices.some(
+          (srv) =>
+            srv.serviceName?.trim().toLowerCase() ===
+            selectedService.name?.trim().toLowerCase()
         );
       })
     : [];
@@ -76,10 +78,10 @@ const OneOnOne = () => {
     setLevel("students");
   };
 
-  // ✅ OPTIMIZED: Navigate IMMEDIATELY. 
+  // ✅ OPTIMIZED: Navigate IMMEDIATELY.
   // Don't fetch activities here. The StudentProfile page will fetch them using useQuery.
   const handleSelectStudent = (student) => {
-    navigate("/admin/StudentProfile", {
+    navigate("/admin/studentprofile", {
       state: {
         student,
         // activities: [], // Remove this, let the Profile page fetch it
@@ -114,7 +116,7 @@ const OneOnOne = () => {
       });
 
       // ✅ REFRESH: Tell React Query to fetch the new list
-      queryClient.invalidateQueries({ queryKey: ['services'] });
+      queryClient.invalidateQueries({ queryKey: ["services"] });
 
       setShowAddServiceModal(false);
       setNewService({ name: "", description: "", type: "Therapy" });
@@ -165,7 +167,9 @@ const OneOnOne = () => {
                       <div className="ooo-card-info">
                         <h3>{service.name}</h3>
                         {service.type && (
-                          <small style={{ color: "#888" }}>({service.type})</small>
+                          <small style={{ color: "#888" }}>
+                            ({service.type})
+                          </small>
                         )}
                       </div>
                     </div>
@@ -190,10 +194,12 @@ const OneOnOne = () => {
                     </p>
                   ) : (
                     enrolledStudents.map((student) => {
-                      const serviceInfo = (student.enrolledServices || [
-                        ...(student.therapyServices || []),
-                        ...(student.services || []),
-                      ]).find((s) => s.serviceName === selectedService.name);
+                      const serviceInfo = (
+                        student.enrolledServices || [
+                          ...(student.therapyServices || []),
+                          ...(student.services || []),
+                        ]
+                      ).find((s) => s.serviceName === selectedService.name);
 
                       return (
                         <div
@@ -214,7 +220,9 @@ const OneOnOne = () => {
                             </p>
                             <p className="ooo-sub">
                               Therapist:{" "}
-                              {serviceInfo?.staffName || serviceInfo?.therapistName || "Not assigned"}
+                              {serviceInfo?.staffName ||
+                                serviceInfo?.therapistName ||
+                                "Not assigned"}
                             </p>
                           </div>
                         </div>
@@ -248,7 +256,13 @@ const OneOnOne = () => {
                       onChange={handleServiceInputChange}
                     />
                     <div style={{ margin: "15px 0" }}>
-                      <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+                      <label
+                        style={{
+                          display: "block",
+                          marginBottom: "5px",
+                          fontWeight: "bold",
+                        }}
+                      >
                         Service Type:
                       </label>
                       <select
@@ -264,7 +278,10 @@ const OneOnOne = () => {
                     </div>
 
                     <div className="modal-actions">
-                      <button type="button" onClick={() => setShowAddServiceModal(false)}>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddServiceModal(false)}
+                      >
                         Cancel
                       </button>
                       <button type="submit">Add Service</button>

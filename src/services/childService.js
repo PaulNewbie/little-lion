@@ -1,19 +1,18 @@
-import { 
-  collection, 
-  doc, 
-  setDoc,      
-  updateDoc, 
+import {
+  collection,
+  doc,
+  setDoc,
+  updateDoc,
   arrayUnion,
   query,
   where,
   getDocs,
-  serverTimestamp
-} from 'firebase/firestore';
-import { db } from '../config/firebase';
-import { generateUUID } from '../utils/constants';
+  serverTimestamp,
+} from "firebase/firestore";
+import { db } from "../config/firebase";
+import { generateUUID } from "../utils/constants";
 
 class ChildService {
-
   /* ============================================================================
      SECTION 1: CORE ENROLLMENT (Merged from manageChildren.js)
      This is the robust logic used by your Admin Enrollment Wizard.
@@ -28,36 +27,36 @@ class ChildService {
   async createOrUpdateChild(parentId, data) {
     const childId = data.childId || generateUUID();
 
-    // 1. Process 1-on-1 Services (Standardize Naming)
+    // 1. Process 1-on-1 Services
     const processedServices = (data.oneOnOneServices || []).map((service) => ({
       serviceId: service.serviceId,
       serviceName: service.serviceName,
-      type: "Therapy",              // Standardized Type
-      staffId: service.staffId,     // Standardized ID
-      staffName: service.staffName, // Standardized Name
-      staffRole: "therapist",       // Standardized Role
+      type: "Therapy",
+      staffId: service.staffId,
+      staffName: service.staffName,
+      staffRole: "therapist",
     }));
 
-    // 2. Process Group Classes (Standardize Naming)
+    // 2. Process Group Classes
     const processedClasses = (data.groupClassServices || []).map((service) => ({
       serviceId: service.serviceId,
       serviceName: service.serviceName,
-      type: "Class",                // Standardized Type
-      staffId: service.staffId,     // Standardized ID
-      staffName: service.staffName, // Standardized Name
-      staffRole: "teacher",         // Standardized Role
+      type: "Class",
+      staffId: service.staffId,
+      staffName: service.staffName,
+      staffRole: "teacher",
     }));
 
-    // 3. Create Quick-Lookup Arrays (For Queries)
-    // Extract unique staff IDs so we can query "where therapistIds contains X"
+    // 3. Create Quick-Lookup Arrays
     const therapistIds = processedServices.map((s) => s.staffId);
-    
     const teacherIds = [
-      ...processedServices.filter((s) => s.staffRole === "teacher").map((s) => s.staffId),
+      ...processedServices
+        .filter((s) => s.staffRole === "teacher")
+        .map((s) => s.staffId),
       ...processedClasses.map((s) => s.staffId),
     ];
 
-    // 4. Construct the Payload
+    // 4. Construct the Payload (CLEANED - Assessment fields removed)
     const childPayload = {
       // --- Identifying Data ---
       firstName: data.firstName,
@@ -72,45 +71,32 @@ class ChildService {
       address: data.address,
       school: data.school,
       gradeLevel: data.gradeLevel,
-      
-      // --- Assessment Data ---
+
+      // --- Identification/Linkage ---
       assessmentDates: data.assessmentDates || [],
       examiner: data.examiner || "",
       ageAtAssessment: data.ageAtAssessment || "",
-      
-      // Saving the Narrative Fields (Steps 2-5 & 8)
-      reasonForReferral: data.reasonForReferral || "",
-      purposeOfAssessment: data.purposeOfAssessment || [],
-      backgroundHistory: data.backgroundHistory || {}, // Stores the big object from Step 4
-      behaviorDuringAssessment: data.behaviorDuringAssessment || "",
-      assessmentSummary: data.assessmentSummary || "", // Step 8 Summary
-      
-      assessmentTools: data.assessmentTools || [], // Contains Tools, Results, AND Recommendations
-      assessmentId: data.assessmentId || null,
+      assessmentId: data.assessmentId || null, // THE ONLY LINK TO THE OTHER COLLECTION
 
-      // --- SERVICE ENROLLMENT (Single Source of Truth) ---
-      // We combine both lists into one 'enrolledServices' array
-      enrolledServices: [ ...processedServices, ...processedClasses ],
+      // --- SERVICE ENROLLMENT ---
+      enrolledServices: [...processedServices, ...processedClasses],
 
       // --- Lookup Arrays ---
-      therapistIds: [...new Set(therapistIds)], // Remove duplicates
-      teacherIds: [...new Set(teacherIds)],     // Remove duplicates
+      therapistIds: [...new Set(therapistIds)],
+      teacherIds: [...new Set(teacherIds)],
 
       // --- Metadata ---
-      parentId, 
+      parentId,
       status: data.status || "ENROLLED",
       updatedAt: serverTimestamp(),
-      createdAt: data.createdAt || serverTimestamp(), 
-      // (If it's an update, we might want to preserve original creation date, 
-      // but if data.createdAt is undefined, it's new)
+      createdAt: data.createdAt || serverTimestamp(),
     };
 
-    console.log("🦁 Saving Child Profile via ChildService:", childPayload);
+    console.log("🦁 Saving CLEAN Child Profile:", childPayload);
 
-    // 5. Save to Firestore (Merge prevents overwriting missing fields)
-    await setDoc(doc(db, "children", childId), childPayload, {
-      merge: true,
-    });
+    // 5. Save to Firestore
+    // REMOVED { merge: true } to ensure old assessment fields are deleted from this collection
+    await setDoc(doc(db, "children", childId), childPayload);
 
     return { id: childId, ...childPayload };
   }
@@ -123,11 +109,14 @@ class ChildService {
   // Get children for a specific parent
   async getChildrenByParentId(parentId) {
     try {
-      const q = query(collection(db, 'children'), where('parentId', '==', parentId));
+      const q = query(
+        collection(db, "children"),
+        where("parentId", "==", parentId)
+      );
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
-      throw new Error('Failed to fetch children: ' + error.message);
+      throw new Error("Failed to fetch children: " + error.message);
     }
   }
 
@@ -135,14 +124,14 @@ class ChildService {
   async getChildrenByTeacherId(teacherId) {
     try {
       const q = query(
-        collection(db, 'children'), 
-        where('teacherIds', 'array-contains', teacherId),
-        where('active', '==', true)
+        collection(db, "children"),
+        where("teacherIds", "array-contains", teacherId),
+        where("active", "==", true)
       );
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
-      throw new Error('Failed to fetch your class students: ' + error.message);
+      throw new Error("Failed to fetch your class students: " + error.message);
     }
   }
 
@@ -150,24 +139,26 @@ class ChildService {
   async getChildrenByTherapistId(therapistId) {
     try {
       const q = query(
-        collection(db, 'children'), 
-        where('therapistIds', 'array-contains', therapistId),
-        where('active', '==', true)
+        collection(db, "children"),
+        where("therapistIds", "array-contains", therapistId),
+        where("active", "==", true)
       );
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
-      throw new Error('Failed to fetch your therapy students: ' + error.message);
+      throw new Error(
+        "Failed to fetch your therapy students: " + error.message
+      );
     }
   }
 
   // Get All Children (Admin)
   async getAllChildren() {
     try {
-      const querySnapshot = await getDocs(collection(db, 'children'));
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const querySnapshot = await getDocs(collection(db, "children"));
+      return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
-      throw new Error('Failed to fetch all children: ' + error.message);
+      throw new Error("Failed to fetch all children: " + error.message);
     }
   }
 
@@ -178,61 +169,77 @@ class ChildService {
 
   async assignService(childId, serviceData) {
     try {
-      const childRef = doc(db, 'children', childId);
-      
+      const childRef = doc(db, "children", childId);
+
       // Standardize the object structure to match 'createOrUpdateChild' format
       const standardizedService = {
         serviceId: serviceData.serviceId,
         serviceName: serviceData.serviceName,
-        type: serviceData.type || 'Therapy', 
-        
+        type: serviceData.type || "Therapy",
+
         // Handle varying naming conventions from inputs
-        staffId: serviceData.staffId || serviceData.therapistId || serviceData.teacherId,
-        staffName: serviceData.staffName || serviceData.therapistName || serviceData.teacherName,
-        staffRole: serviceData.staffRole || (serviceData.teacherId ? 'teacher' : 'therapist')
+        staffId:
+          serviceData.staffId ||
+          serviceData.therapistId ||
+          serviceData.teacherId,
+        staffName:
+          serviceData.staffName ||
+          serviceData.therapistName ||
+          serviceData.teacherName,
+        staffRole:
+          serviceData.staffRole ||
+          (serviceData.teacherId ? "teacher" : "therapist"),
       };
 
       const updates = {
-        enrolledServices: arrayUnion(standardizedService)
+        enrolledServices: arrayUnion(standardizedService),
       };
 
       // Maintain the quick-lookup arrays
-      if (standardizedService.staffRole === 'therapist') {
+      if (standardizedService.staffRole === "therapist") {
         updates.therapistIds = arrayUnion(standardizedService.staffId);
-      } else if (standardizedService.staffRole === 'teacher') {
+      } else if (standardizedService.staffRole === "teacher") {
         updates.teacherIds = arrayUnion(standardizedService.staffId);
       }
 
       await updateDoc(childRef, updates);
     } catch (error) {
-      throw new Error('Failed to assign service: ' + error.message);
+      throw new Error("Failed to assign service: " + error.message);
     }
   }
 
   // Wrappers for backward compatibility
   async assignTherapyService(childId, data) {
-    return this.assignService(childId, { ...data, type: 'Therapy', staffRole: 'therapist' });
+    return this.assignService(childId, {
+      ...data,
+      type: "Therapy",
+      staffRole: "therapist",
+    });
   }
 
   async assignGroupClass(childId, data) {
-    return this.assignService(childId, { ...data, type: 'Class', staffRole: 'teacher' });
+    return this.assignService(childId, {
+      ...data,
+      type: "Class",
+      staffRole: "teacher",
+    });
   }
 
   /**
    * Updates specific fields of a child's profile (e.g. photo, address).
-   * @param {string} childId 
+   * @param {string} childId
    * @param {object} updates - Object containing fields to update
    */
   async updateChildProfile(childId, updates) {
     try {
-      const childRef = doc(db, 'children', childId);
+      const childRef = doc(db, "children", childId);
       // Ensure we don't accidentally overwrite critical fields if they weren't passed
       await updateDoc(childRef, {
         ...updates,
-        updatedAt: serverTimestamp()
+        updatedAt: serverTimestamp(),
       });
     } catch (error) {
-      throw new Error('Failed to update child profile: ' + error.message);
+      throw new Error("Failed to update child profile: " + error.message);
     }
   }
 }

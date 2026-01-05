@@ -3,32 +3,30 @@ import { db } from "../config/firebase";
 import { generateUUID } from "../utils/constants";
 
 class AssessmentService {
-  async createOrUpdateAssessment(childId, data) {
-    const assessmentId = data.assessmentId || generateUUID();
+  // assessmentService.js
+  // assessmentService.js
+  async createOrUpdateAssessment(childId, assessmentData) {
+    try {
+      // If assessmentData already has an .id, use it. Otherwise, generate a new one.
+      const assessmentId = assessmentData.id || generateUUID();
 
-    const assessmentPayload = {
-      assessmentId,
-      childId,
-      // Mapping fields directly to ensure clean data
-      reasonForReferral: data.reasonForReferral || "",
-      purposeOfAssessment: data.purposeOfAssessment || [],
-      backgroundHistory: data.backgroundHistory || {},
-      behaviorDuringAssessment: data.behaviorDuringAssessment || "",
-      assessmentTools: data.assessmentTools || [],
-      assessmentSummary: data.assessmentSummary || "",
-      updatedAt: serverTimestamp(),
-    };
+      const assessmentRef = doc(db, "assessments", assessmentId);
 
-    // Only set createdAt for new assessments
-    if (!data.assessmentId) {
-      assessmentPayload.createdAt = serverTimestamp();
+      const payload = {
+        ...assessmentData,
+        id: assessmentId, // Ensure the ID is saved inside the document
+        childId,
+        updatedAt: serverTimestamp(),
+        createdAt: assessmentData.createdAt || serverTimestamp(),
+      };
+
+      // Use merge: true so saving "Progress" doesn't delete data from other steps
+      await setDoc(assessmentRef, payload, { merge: true });
+      return assessmentId;
+    } catch (error) {
+      console.error("Error in assessmentService:", error);
+      throw error;
     }
-
-    await setDoc(doc(db, "assessments", assessmentId), assessmentPayload, {
-      merge: true,
-    });
-
-    return assessmentId;
   }
 
   async getAssessment(assessmentId) {

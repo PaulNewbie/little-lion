@@ -1,5 +1,10 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { useAuth } from "./hooks/useAuth";
 
@@ -28,7 +33,7 @@ import PlayGroupActivity from "./pages/teacher/PlayGroupActivity";
 // Therapist Components
 import TherapistDashboard from "./pages/therapist/TherapistDashboard";
 import TherapySessionForm from "./pages/therapist/TherapySessionForm";
-import TherapistProfile from './pages/therapist/TherapistProfile';
+import TherapistProfile from "./pages/therapist/TherapistProfile";
 
 // Parent Components
 import ParentDashboard from "./pages/parent/ParentDashboard";
@@ -116,18 +121,51 @@ const AppRoutes = () => {
       {/* 1. Shared Admin Routes (Accessible by admin AND super_admin) */}
 
       {/* FIX 2: Added 'super_admin' to allowedRoles for StudentProfile */}
-      <Route path="/admin/StudentProfile" element={ <ProtectedRoute allowedRoles={['admin', 'super_admin']}><StudentProfile /></ProtectedRoute>}/>
-      
-      <Route path="/admin/one-on-one" element={
-        <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
-           <OneOnOne />
-        </ProtectedRoute>
-      } />
-      <Route path="/admin/dashboard" element={<Navigate to="/admin/StudentProfile" replace />} />
-      <Route path="/admin/play-group" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><PlayGroup /></ProtectedRoute>} />
-      <Route path="/admin/manage-teachers" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><ManageTeachers /></ProtectedRoute>} />
-      <Route path="/admin/manage-therapists" element={<ProtectedRoute allowedRoles={['admin', 'super_admin']}><ManageTherapists /></ProtectedRoute>} />
-      
+      <Route
+        path="/admin/StudentProfile"
+        element={
+          <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
+            <StudentProfile />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/one-on-one"
+        element={
+          <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
+            <OneOnOne />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/dashboard"
+        element={<Navigate to="/admin/StudentProfile" replace />}
+      />
+      <Route
+        path="/admin/play-group"
+        element={
+          <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
+            <PlayGroup />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/manage-teachers"
+        element={
+          <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
+            <ManageTeachers />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/manage-therapists"
+        element={
+          <ProtectedRoute allowedRoles={["admin", "super_admin"]}>
+            <ManageTherapists />
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="/admin/enrollment"
@@ -165,25 +203,39 @@ const AppRoutes = () => {
       />
 
       {/* THERAPIST ROUTES */}
-      <Route path="/therapist/dashboard" element={<ProtectedRoute allowedRoles={['therapist']}><TherapistDashboard /></ProtectedRoute>} />
-      <Route path="/therapist/session/:studentId" element={<ProtectedRoute allowedRoles={['therapist']}><TherapySessionForm /></ProtectedRoute>} />
-      <Route 
-        path="/therapist/session-form" 
+      <Route
+        path="/therapist/dashboard"
+        element={
+          <ProtectedRoute allowedRoles={["therapist"]}>
+            <TherapistDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/therapist/session/:studentId"
+        element={
+          <ProtectedRoute allowedRoles={["therapist"]}>
+            <TherapySessionForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/therapist/session-form"
         element={
           <ProtectedRoute role="therapist">
             <TherapySessionForm />
           </ProtectedRoute>
-        } 
+        }
       />
 
       {/* THERAPIST PROFILE section */}
-      <Route 
-        path="/therapist/profile" 
+      <Route
+        path="/therapist/profile"
         element={
-          <ProtectedRoute allowedRoles={['therapist']}>
+          <ProtectedRoute allowedRoles={["therapist"]}>
             <TherapistProfile />
           </ProtectedRoute>
-        } 
+        }
       />
 
       {/* PARENT ROUTES */}

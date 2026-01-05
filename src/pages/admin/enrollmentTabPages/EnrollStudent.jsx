@@ -1,20 +1,31 @@
+// EnrollStudent.jsx
 import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import AdminSidebar from "../../../components/sidebar/AdminSidebar";
 import EnrollStudentFormModal from "./enrollmentForm/EnrollStudentFormModal";
 import "./EnrollStudent.css";
 import authService from "../../../services/authService";
 
-// ✅ CHANGE 1: Import New Services
+// Firebase services
 import childService from "../../../services/childService";
-import userService from "../../../services/userService"; // Replaces manageParents
-import assessmentService from "../../../services/assessmentService"; // Replaces manageAssessment
+import userService from "../../../services/userService";
+import assessmentService from "../../../services/assessmentService";
 
 function generatePassword() {
+  // 🔐 Password generator: 3 letters + 3 digits (ALL CAPS)
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const digits = "0123456789";
+
   let password = "";
-  for (let i = 0; i < 3; i++) password += letters[Math.floor(Math.random() * letters.length)];
-  for (let i = 0; i < 3; i++) password += digits[Math.floor(Math.random() * digits.length)];
+
+  for (let i = 0; i < 3; i++) {
+    password += letters[Math.floor(Math.random() * letters.length)];
+  }
+
+  for (let i = 0; i < 3; i++) {
+    password += digits[Math.floor(Math.random() * digits.length)];
+  }
+
   return password;
 }
 
@@ -24,9 +35,18 @@ export default function EnrollStudent() {
   const [allParents, setAllParents] = useState([]);
   const [selectedParent, setSelectedParent] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const [parentPhoto, setParentPhoto] = useState(null);
+  const [parentPhotoPreview, setParentPhotoPreview] = useState(null);
+
+  // Modal Toggle
   const [showParentForm, setShowParentForm] = useState(false);
   const [showEnrollForm, setShowEnrollForm] = useState(false);
+
+  // NEW: State for editing existing student
   const [editingStudent, setEditingStudent] = useState(null);
+
+  // Form State for Parent
   const [parentInput, setParentInput] = useState({
     firstName: "",
     middleName: "",
@@ -35,29 +55,41 @@ export default function EnrollStudent() {
     phone: "",
     password: generatedPassword,
   });
+
+  // Students from Firebase
   const [allStudents, setAllStudents] = useState([]);
   const [isLoadingChildren, setIsLoadingChildren] = useState(false);
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // --- Handlers ---
   const handleParentSubmit = async (e) => {
     e.preventDefault();
+
     try {
+      // 1. Separate email and password
       const { email, password, ...profileData } = parentInput;
+
+      // 2. Create the account
+      // ⚠️ PASS 'password' INSIDE THE 3RD ARGUMENT TO STORE IT IN FIRESTORE
       const user = await authService.createParentAccount(email, password, {
         ...profileData,
-        password: password,
+        password: password, // <--- ADD THIS to save it in the database
       });
 
+      // 3. Update the UI list
       setAllParents((prev) => [
         ...prev,
         {
-          id: user.uid,
+          uid: user.uid,
           firstName: parentInput.firstName,
           middleName: parentInput.middleName,
           lastName: parentInput.lastName,
         },
       ]);
 
+      // 4. Reset Form
       setShowParentForm(false);
       setParentInput({
         firstName: "",
@@ -65,16 +97,27 @@ export default function EnrollStudent() {
         lastName: "",
         email: "",
         phone: "",
-        password: generatePassword(),
+        password: generatePassword(), // Generate a NEW password for the next user
       });
-      alert(`Parent account created!\n\nEmail: ${email}\nPassword: ${password}\n\nPlease copy this now.`);
+
+      // 5. Alert the admin with the password just to be sure
+      alert(
+        `Parent account created!\n\nEmail: ${email}\nPassword: ${password}\n\nPlease copy this now.`
+      );
     } catch (error) {
       console.error("Creation Error:", error);
       alert(`Failed to create parent: ${error.message}`);
     }
   };
 
-  // ✅ CHANGE 2: Use userService to get parents
+  //setSelectedParent when going  back to enrollment from studentProfile
+  useEffect(() => {
+    if (location.state?.selectedParent) {
+      setSelectedParent(location.state.selectedParent);
+    }
+  }, [location.state]);
+
+  // Get parents from db
   useEffect(() => {
     const fetchParents = async () => {
       try {
@@ -84,41 +127,54 @@ export default function EnrollStudent() {
         console.error("Failed to load parents");
       }
     };
+
     fetchParents();
   }, []);
 
+  // Get students when parent is selected - WITH IMMEDIATE CLEAR
   useEffect(() => {
     if (selectedParent) {
+      // ✅ CLEAR IMMEDIATELY when parent changes
       setAllStudents([]);
       setIsLoadingChildren(true);
+
       const fetchChildren = async () => {
+        console.log("Selected Parent:", selectedParent);
         try {
-          // Note: userService uses 'uid', so we check both just in case
-          const parentId = selectedParent.uid || selectedParent.id;
-          const childrenFromDB = await childService.getChildrenByParentId(parentId);
+          const childrenFromDB = await childService.getChildrenByParentId(
+            selectedParent.uid
+          );
           setAllStudents(childrenFromDB);
         } catch (error) {
-          console.error("Failed to load children");
+          console.error("Failed to load children", error);
         } finally {
           setIsLoadingChildren(false);
         }
       };
+
       fetchChildren();
     } else {
+      // Clear when going back to parent list
       setAllStudents([]);
       setIsLoadingChildren(false);
     }
   }, [selectedParent]);
 
-  // ✅ CHANGE 3: Use assessmentService to get assessment
+  // NEW: Handle student click - if ASSESSING, load and edit
   const handleStudentClick = async (student) => {
     if (student.status === "ASSESSING") {
       try {
-        const assessmentData = await assessmentService.getAssessment(student.assessmentId);
+        // Fetch the full assessment data
+        const assessmentData = await assessmentService.getAssessment(
+          student.assessmentId
+        );
+
+        // Combine child data with assessment data
         const fullStudentData = {
-          ...student,
-          ...assessmentData,
+          ...student, //this is from the children table
+          ...assessmentData, // this is form assessment table
         };
+
         setEditingStudent(fullStudentData);
         setShowEnrollForm(true);
       } catch (error) {
@@ -126,19 +182,35 @@ export default function EnrollStudent() {
         alert("Failed to load student assessment data. Please try again.");
       }
     }
+    // If status is ENROLLED, do nothing or show a view-only modal
+    else if (student.status === "ENROLLED") {
+      //go to student profile page
+      navigate("/admin/StudentProfile", {
+        state: {
+          studentId: student.id,
+          fromEnrollment: true,
+          parent: selectedParent,
+        },
+      });
+    }
   };
 
   const handleEnrollmentSave = (savedChild) => {
+    // Update local state with saved child from Firebase
     setAllStudents((prev) => {
       const existingIndex = prev.findIndex((c) => c.id === savedChild.id);
       if (existingIndex >= 0) {
+        // Update existing student
         const updated = [...prev];
         updated[existingIndex] = savedChild;
         return updated;
       } else {
+        // Add new student
         return [...prev, savedChild];
       }
     });
+
+    // Clear editing state
     setEditingStudent(null);
   };
 
@@ -182,7 +254,7 @@ export default function EnrollStudent() {
             <div className="ooo-grid">
               {filteredParents.map((p) => (
                 <div
-                  key={p.uid || p.id}
+                  key={p.uid}
                   className="ooo-card"
                   onClick={() => setSelectedParent(p)}
                 >
@@ -225,15 +297,12 @@ export default function EnrollStudent() {
                         className="service-row"
                         onClick={() => handleStudentClick(s)}
                         style={{
-                          cursor:
-                            s.status === "ASSESSING" ? "pointer" : "default",
+                          cursor: "pointer",
                           transition: "background-color 0.2s",
                         }}
                         onMouseEnter={(e) => {
-                          if (s.status === "ASSESSING") {
-                            e.currentTarget.style.backgroundColor =
-                              "rgba(0, 123, 255, 0.05)";
-                          }
+                          e.currentTarget.style.backgroundColor =
+                            "rgba(0, 123, 255, 0.05)";
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = "transparent";
@@ -249,7 +318,7 @@ export default function EnrollStudent() {
                           }`}
                         >
                           {s.status || "ENROLLED"}
-                          {s.status === "ASSESSING" && " ✏️"}
+                          {s.status === "ASSESSING" && "✏️"}
                         </div>
                       </div>
                     ))
@@ -274,44 +343,148 @@ export default function EnrollStudent() {
           </button>
         )}
 
-        {/* PARENT FORM MODAL */}
+        {/* NEW PARENT ACCOUNT MODAL */}
         {showParentForm && (
           <div className="modalOverlay">
             <div className="modal">
-              <h2 className="services-header">New Parent / Guardian Account</h2>
-              <form onSubmit={handleParentSubmit}>
-                {/* (Keep existing inputs) */}
+              <h2 className="services-header create-parent-header">
+                New Parent / Guardian Account
+              </h2>
+              <form className="parent-form" onSubmit={handleParentSubmit}>
                 <div className="form-row">
                   <div className="input-group">
                     <label>First Name</label>
-                    <input type="text" required value={parentInput.firstName} onChange={(e) => setParentInput({...parentInput, firstName: e.target.value})} />
+                    <input
+                      type="text"
+                      required
+                      value={parentInput.firstName}
+                      onChange={(e) =>
+                        setParentInput({
+                          ...parentInput,
+                          firstName: e.target.value,
+                        })
+                      }
+                    />
                   </div>
                   <div className="input-group">
                     <label>Middle Name</label>
-                    <input type="text" required value={parentInput.middleName} onChange={(e) => setParentInput({...parentInput, middleName: e.target.value})} />
+                    <input
+                      type="text"
+                      required
+                      value={parentInput.middleName}
+                      onChange={(e) =>
+                        setParentInput({
+                          ...parentInput,
+                          middleName: e.target.value,
+                        })
+                      }
+                    />
                   </div>
                   <div className="input-group">
                     <label>Last Name</label>
-                    <input type="text" required value={parentInput.lastName} onChange={(e) => setParentInput({...parentInput, lastName: e.target.value})} />
+                    <input
+                      type="text"
+                      required
+                      value={parentInput.lastName}
+                      onChange={(e) =>
+                        setParentInput({
+                          ...parentInput,
+                          lastName: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label>Phone Number</label>
+                    <input
+                      type="text"
+                      required
+                      value={parentInput.phone}
+                      onChange={(e) =>
+                        setParentInput({
+                          ...parentInput,
+                          phone: e.target.value,
+                        })
+                      }
+                    />
                   </div>
                 </div>
                 <div className="input-group">
-                  <label>Email Address</label>
-                  <input type="email" required value={parentInput.email} onChange={(e) => setParentInput({ ...parentInput, email: e.target.value })} />
+                  <label>Profile Picture</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        setParentPhoto(file);
+                        setParentPhotoPreview(URL.createObjectURL(file));
+                      }
+                    }}
+                  />
                 </div>
+
+                {/* Preview */}
+                {parentPhotoPreview && (
+                  <div style={{ marginTop: "10px", textAlign: "center" }}>
+                    <img
+                      src={parentPhotoPreview}
+                      alt="Preview"
+                      style={{
+                        width: "100px",
+                        height: "100px",
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                        border: "2px solid #ccc",
+                      }}
+                    />
+                  </div>
+                )}
+
                 <div className="input-group">
-                  <label>Phone Number</label>
-                  <input type="text" required value={parentInput.phone} onChange={(e) => setParentInput({ ...parentInput, phone: e.target.value })} />
+                  <label>Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    value={parentInput.email}
+                    onChange={(e) =>
+                      setParentInput({ ...parentInput, email: e.target.value })
+                    }
+                  />
                 </div>
+
                 <div className="input-group">
                   <label>Password</label>
-                  <input type="text" required value={parentInput.password} onChange={(e) => setParentInput({ ...parentInput, password: e.target.value })} />
-                </div>
-                <div className="modalActions">
-                  <button type="button" className="cancel-btn" onClick={() => setShowParentForm(false)}>Cancel</button>
-                  <button type="submit" className="create-btn">Create Account</button>
+                  <input
+                    type="text"
+                    required
+                    value={parentInput.password}
+                    onChange={(e) =>
+                      setParentInput({
+                        ...parentInput,
+                        password: e.target.value,
+                      })
+                    }
+                  />
                 </div>
               </form>
+              <div className="modalActions">
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={() => setShowParentForm(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="create-btn"
+                  onClick={handleParentSubmit}
+                >
+                  Create Account
+                </button>
+              </div>
             </div>
           </div>
         )}

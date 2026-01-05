@@ -51,7 +51,7 @@ const useManageAdmins = () => {
     } catch (err) {
       setError(err.message);
     }
-  };
+  }; 
 
   const deleteAdmin = async (id) => {
     if (!window.confirm('Are you sure you want to delete this admin?')) return;

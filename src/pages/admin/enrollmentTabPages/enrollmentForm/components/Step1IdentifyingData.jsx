@@ -131,7 +131,7 @@ export default function Step1IdentifyingData({ data, onChange }) {
         </div>
       </div>
 
-      {/* PAIR 6: Grade Level and Assessment Date */}
+      {/* PAIR 6: Grade Level and Upload picture */}
       <div className="form-row">
         <div className="input-group">
           <label>Grade Level</label>
@@ -141,20 +141,38 @@ export default function Step1IdentifyingData({ data, onChange }) {
           >
             <option value="">Select Level</option>
             <option value="Nursery">Nursery</option>
-            <option value="Kinder 1">Kinder 1</option>
-            <option value="Kinder 2">Kinder 2</option>
-            <option value="High School">High School</option>
+            <option value="Kinder 1">Kindergraten</option>
+            <option value="Kinder 1">Elementary</option>
             <option value="Others">Others</option>
           </select>
-          {data.gradeLevel === "Others" && (
-            <input
-              type="text"
-              placeholder="Specify Grade"
-              onChange={(e) => onChange("gradeLevel", e.target.value)}
-              className="mt-2"
+        </div>
+        <div className="input-group">
+          <label>Student Profile Picture</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => onChange("profilePicture", e.target.files[0])}
+          />
+
+          {/* Optional Preview */}
+          {data.profilePicture && (
+            <img
+              src={URL.createObjectURL(data.profilePicture)}
+              alt="Profile Preview"
+              style={{
+                marginTop: "10px",
+                width: "100px",
+                height: "100px",
+                objectFit: "cover",
+                borderRadius: "16px",
+              }}
             />
           )}
         </div>
+      </div>
+
+      {/* FINAL ROW: Assessment Date and Examiner */}
+      <div className="form-row">
         <div className="input-group">
           <label>Date of Assessment</label>
           <input
@@ -163,10 +181,6 @@ export default function Step1IdentifyingData({ data, onChange }) {
             onChange={(e) => onChange("assessmentDates", e.target.value)} // User can still edit
           />
         </div>
-      </div>
-
-      {/* FINAL ROW: Examiner */}
-      <div className="form-row">
         <div className="input-group">
           <label>Examiner</label>
           <input

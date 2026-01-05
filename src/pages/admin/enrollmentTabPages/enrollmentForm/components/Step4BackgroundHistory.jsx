@@ -14,7 +14,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
     loadServices();
   }, []);
 
- // --- Developmental Background Handlers ---
+  // --- Developmental Background Handlers ---
   const handleAddDevBg = () => {
     const newList = [
       ...data.backgroundHistory.developmentalBackground,
@@ -69,6 +69,13 @@ export default function Step4BackgroundHistory({ data, onChange }) {
     onChange("backgroundHistory", "interventions", newInts);
   };
 
+  //helper to get chosen serviceId's by type
+  const getUsedServiceIdsByType = (type) => {
+    return data.backgroundHistory.interventions
+      .filter((int) => int.serviceType === type && int.serviceId)
+      .map((int) => int.serviceId);
+  };
+
   // --- Helper to render intervention entries by type ---
   const renderInterventionsByType = (type, label) => {
     return (
@@ -100,7 +107,17 @@ export default function Step4BackgroundHistory({ data, onChange }) {
                     Select {label}
                   </option>
                   {serviceOptions
-                    .filter((service) => service.type === type)
+                    .filter((service) => {
+                      if (service.type !== type) return false;
+
+                      const usedServiceIds = getUsedServiceIdsByType(type);
+
+                      // Allow the currently selected service
+                      if (service.id === int.serviceId) return true;
+
+                      // Remove already-selected services
+                      return !usedServiceIds.includes(service.id);
+                    })
                     .map((service) => (
                       <option key={service.id} value={service.id}>
                         {service.name}

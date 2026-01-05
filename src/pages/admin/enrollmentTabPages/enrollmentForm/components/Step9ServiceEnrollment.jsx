@@ -5,26 +5,30 @@ import offeringsService from "../../../../../services/offeringsService";
 
 export default function Step9Enrollment({ data, onChange }) {
   // Local state for the form selections
-  const [oneOnOneServices, setOneOnOneServices] = useState(data.oneOnOneServices || []);
-  const [groupClassServices, setGroupClassServices] = useState(data.groupClassServices || []);
+  const [oneOnOneServices, setOneOnOneServices] = useState(
+    data.oneOnOneServices || []
+  );
+  const [groupClassServices, setGroupClassServices] = useState(
+    data.groupClassServices || []
+  );
 
   // 1. CACHED: Fetch All Services (Only fetches once globally)
   const { data: allDbServices = [] } = useQuery({
-    queryKey: ['services'],
+    queryKey: ["services"],
     queryFn: () => offeringsService.getAllServices(),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   // 2. CACHED: Fetch All Staff (Only fetches once globally)
   const { data: allStaff = [], isLoading } = useQuery({
-    queryKey: ['staff'],
+    queryKey: ["staff"],
     queryFn: () => userService.getAllStaff(),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   // --- Derived Data (Filters instantly without useEffect) ---
-   // REMOVED: useEffect runs on every single mount, causing unnecessary database reads and loading spinners every time the modal opens.
-   // ADDED: useQuery caches this data instantly, so if you open this modal again, it loads from memory without hitting the database.
+  // REMOVED: useEffect runs on every single mount, causing unnecessary database reads and loading spinners every time the modal opens.
+  // ADDED: useQuery caches this data instantly, so if you open this modal again, it loads from memory without hitting the database.
 
   // Filter services to only show the ones selected in Step 4
   const services = allDbServices.filter((service) => {
@@ -58,7 +62,8 @@ export default function Step9Enrollment({ data, onChange }) {
   };
 
   const handleRemoveService = (category, index) => {
-    const list = category === "oneOnOne" ? oneOnOneServices : groupClassServices;
+    const list =
+      category === "oneOnOne" ? oneOnOneServices : groupClassServices;
     const updated = list.filter((_, i) => i !== index);
 
     if (category === "oneOnOne") {
@@ -81,11 +86,13 @@ export default function Step9Enrollment({ data, onChange }) {
     // Robust Match: Lowercase comparison to fix "Speech Therapy" vs "speech therapy"
     const qualified = staffList.find((staff) =>
       staff.specializations?.some(
-        (spec) => spec.trim().toLowerCase() === service.name.trim().toLowerCase()
+        (spec) =>
+          spec.trim().toLowerCase() === service.name.trim().toLowerCase()
       )
     );
 
-    const list = category === "oneOnOne" ? oneOnOneServices : groupClassServices;
+    const list =
+      category === "oneOnOne" ? oneOnOneServices : groupClassServices;
     const updated = list.map((s, i) =>
       i === index
         ? {
@@ -111,7 +118,8 @@ export default function Step9Enrollment({ data, onChange }) {
   };
 
   const handleStaffChange = (category, index, staffId) => {
-    const list = category === "oneOnOne" ? oneOnOneServices : groupClassServices;
+    const list =
+      category === "oneOnOne" ? oneOnOneServices : groupClassServices;
     const service = list[index];
     const isTherapy = service.serviceType === "Therapy";
     const staffList = isTherapy ? therapists : teachers;
@@ -180,6 +188,13 @@ export default function Step9Enrollment({ data, onChange }) {
   };
   const selectSuccessStyles = { ...selectStyles, borderColor: "#10b981" };
 
+  const getUsedServiceIdsByCategory = (category) => {
+    const list =
+      category === "oneOnOne" ? oneOnOneServices : groupClassServices;
+
+    return list.filter((s) => s.serviceId).map((s) => s.serviceId);
+  };
+
   const renderRows = (list, category) => {
     const allowedType = category === "oneOnOne" ? "Therapy" : "Class";
 
@@ -218,7 +233,18 @@ export default function Step9Enrollment({ data, onChange }) {
                 >
                   <option value="">-- Select {allowedType} --</option>
                   {services
-                    .filter((s) => s.type === allowedType)
+                    .filter((s) => {
+                      if (s.type !== allowedType) return false;
+
+                      const usedServiceIds =
+                        getUsedServiceIdsByCategory(category);
+
+                      //allow currently selected service
+                      if (s.id === service.serviceId) return true;
+
+                      //eliminate already chosen services
+                      return !usedServiceIds.includes(s.id);
+                    })
                     .map((s) => (
                       <option key={s.id} value={s.id}>
                         {s.name}
