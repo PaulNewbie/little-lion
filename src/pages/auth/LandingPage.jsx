@@ -6,6 +6,7 @@ import ErrorMessage from "../../components/common/ErrorMessage";
 import { ChevronDown } from 'lucide-react'; // 2. Import the arrow icon
 import { ArrowBigDown, Mail, Phone } from 'lucide-react'; // Added Mail and Phone
 import logo from '../../images/logo.png'; 
+import childImage from '../../images/child.png';
 import "./LandingPage.css";
 
 const LandingPage = () => {
@@ -142,7 +143,7 @@ const LandingPage = () => {
           <div className="login-card" ref={loginRef}>
             <div className="login-image">
               <img 
-                src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&h=500&fit=crop" 
+                src={childImage}
                 alt="Child Learning" 
                 className="child-img"
               />
