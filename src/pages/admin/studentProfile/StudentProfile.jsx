@@ -201,6 +201,18 @@ const StudentProfile = () => {
     (s) => s.type === "Class" || s.staffRole === "teacher"
   );
 
+  const getQualifiedStaff = (serviceName, serviceType) => {
+    if (!serviceName || !serviceType) return [];
+
+    const staffList = serviceType === "Therapy" ? therapists : teachers;
+
+    return staffList.filter((staff) =>
+      staff.specializations?.some(
+        (spec) => spec.trim().toLowerCase() === serviceName.trim().toLowerCase()
+      )
+    );
+  };
+
   return (
     <div className="sp-container">
       <AdminSidebar />
@@ -523,17 +535,19 @@ const StudentProfile = () => {
                   setAddForm({ ...addForm, staffId: e.target.value })
                 }
                 value={addForm.staffId}
-                disabled={!availableServices.length}
+                disabled={!addForm.serviceId}
               >
                 <option value="">Select Staff...</option>
-                {/* ✅ FIX KEY WARNING: Use t.uid || t.id */}
-                {(addServiceType === "Therapy" ? therapists : teachers).map(
-                  (t) => (
-                    <option key={t.uid || t.id} value={t.uid || t.id}>
-                      {t.firstName} {t.lastName}
-                    </option>
-                  )
-                )}
+
+                {getQualifiedStaff(
+                  availableServices.find((s) => s.id === addForm.serviceId)
+                    ?.name,
+                  addServiceType
+                ).map((t) => (
+                  <option key={t.uid || t.id} value={t.uid || t.id}>
+                    {t.firstName} {t.lastName}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="modal-actions">
