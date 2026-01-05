@@ -24,7 +24,10 @@ export default function Step3PurposeOfAssessment({ data, onChange }) {
       </div>
 
       <div className="dynamic-list-container">
-        {data.purposeOfAssessment.map((purpose, index) => (
+        {(data.purposeOfAssessment.length > 0
+          ? data.purposeOfAssessment
+          : [""]
+        ).map((purpose, index) => (
           <div className="dynamic-input-row" key={index}>
             <span className="row-index">{index + 1}</span>
             <input
