@@ -1,3 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9,900&display=swap');
+
+
 .landing-page {
   width: 100%;
   min-height: 100vh;
@@ -13,7 +17,7 @@
   width: 100%;
   /* Black with 40% transparency */
   background-color: rgba(0, 0, 0, 0.1); 
-  padding: 5px 20px;
+  padding: 7px 20px;
   
   /* Pulls the hero image up to the top of the screen */
   position: absolute; 
@@ -41,8 +45,8 @@
   min-height: auto;
 }
 .logo-circle {
-  width: 50px;
-  height: 50px;
+  width: 35px;
+  height: 35px;
   background-color: white;
   border-radius: 50%;
   display: flex;
@@ -53,14 +57,14 @@
 }
 
 .logo-img {
-  width: 45px;
-  height: 45px;
+  width: 35px;
+  height: 35px;
   border-radius: 50%;
 }
 
 .header-title {
   color: white;
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   font-weight: 700;
   margin: 0;
   letter-spacing: 0.3px;
@@ -98,27 +102,39 @@
 
 .welcome-text {
   /* Pulls 'Welcome to the' closer to the bent text */
-  margin-bottom: -70px; 
+  margin-top: -50px;
+  margin-bottom: -30px; /* Increased slightly to tuck it into the curve */
   z-index: 10;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.welcome-subtitle {
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 2rem; /* Adjusted for better scale with 36px portal text */
+  text-transform: none; /* Matches 'Welcome to the' casing in your image */
+  margin: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 /* Curved SVG Styling */
 .portal-curved-svg {
   width: 100%;
-  max-width: 900px; /* Adjust based on your screen size */
+  max-width: 1000px; /* Adjust based on your screen size */
   height: auto;
   overflow: visible;
 }
 
 .curved-portal-title {
   fill: #ffffff;
-  font-family: 'Arial Black', sans-serif;
-  font-size: 24px; /* Your requested size */
-  font-weight: 900;
+  font-family: 'Poppins', sans-serif;
+  font-size: 52px; /* Your requested size */
+  font-weight: 1500;
   text-transform: uppercase;
   /* letter-spacing: 2px; */
   filter: drop-shadow(4px 4px 6px rgba(0, 0, 0, 0.9));
-
 }
 
 /* Thanks and Login Section */
@@ -132,7 +148,7 @@
   
   /* Pull the section up to overlap the hero image */
   margin-top: -300px; 
-  padding: 160px 20px 80px;
+  padding: 160px 20px 100px;
   
   display: flex;
   flex-direction: column;
@@ -140,17 +156,49 @@
   position: relative;
   z-index: 5;
 }
+.arrow-container {
+  display: flex;
+  flex-direction: column; /* Stacks text on top of arrow */
+  align-items: center;
+  justify-content: center;
+  /* Adjust this to pull the whole group closer to the eclipse peak */
+  margin-top: -80px; 
+  gap: 8px; /* Adds a clean gap between text and arrow */
+  position: relative;
+  z-index: 10;
+}
 
-/* Ensure the Portal Title curves with the arc */
-.portal-title {
-  font-size: 3.5rem;
-  font-weight: 900;
-  color: #ffffff;
+.arrow-guide-text {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700; /* Make it bold to match the theme */
+  color: #000000;
   text-transform: uppercase;
-  text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.9);
-  
-  /* This helps the text appear to follow the curve */
-  transform: translateY(-20px); 
+  letter-spacing: 0.05em;
+  margin: 0; /* Remove default paragraph margins */
+}
+
+.scroll-arrow-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #000000;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  animation: bounce 2s infinite;
+}
+
+.scroll-arrow-btn:hover {
+  opacity: 0.7;
+}
+
+@keyframes bounce {
+  /* Keep the bounce small so it doesn't hit the white text above */
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-8px); }
+  60% { transform: translateY(-4px); }
 }
 
 /* Adjust the Thanks content to be centered and prominent */
@@ -158,9 +206,15 @@
   text-align: center;
   max-width: 800px;
   margin-bottom: 50px;
+  /* Pull the entire content block up toward the eclipse edge */
+  margin-top: -60px; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .thanks-title {
+  font-family: 'DM Sans', sans-serif;
   font-size: 3rem;
   font-weight: 900;
   color: #000;
@@ -172,9 +226,13 @@
   font-size: 1.2rem;
   line-height: 1.6;
   color: #333;
+  /* This is the secret: limit the width so the text wraps beautifully */
+  max-width: 600px; 
+  margin: 0 auto; /* Centers the text block itself */
 }
 /* Login Card */
 .login-card {
+  width: 100%;
   flex: 1;
   display: flex;
   background-color: white;
@@ -182,12 +240,17 @@
   overflow: hidden;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   animation: slideInUp 0.8s ease-out;
+  margin-right: 300px;
+  
+
 }
 
 .login-image {
   flex: 1;
+  width: 100%;
   overflow: hidden;
   min-height: 400px;
+ 
 }
 
 .child-img {
@@ -203,6 +266,7 @@
   flex-direction: column;
   justify-content: center;
   background-color: white;
+  
 }
 
 .login-welcome-title {
@@ -329,28 +393,53 @@
 
 /* Landing Footer */
 .landing-footer {
+  background-color: #0056b3; /* Deep blue from reference */
+  color: #FFDE59; /* Yellow text to match logo colors */
+  padding: 3px 0;
   width: 100%;
-  background-color: #404040;
-  padding: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.footer-logo {
-  width: 50px;
-  height: 50px;
-  background-color: #ffd700;
-  border-radius: 50%;
+.footer-content {
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
+.footer-info-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Container to create the circle */
+.footer-logo-circle {
+  width: 35px;
+  height: 35px;
+  background-color: white; /* Matches the white circle base in your reference */
+  border-radius: 50%; /* This circles the logo */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden; /* Ensures the image doesn't bleed out of the circle */
+  padding: 4px; /* Space between the logo and the edge of the circle */
+}
+
+/* The actual image inside the circle */
 .footer-logo-img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  width:  35px;
+  height:  35px;
+  object-fit: contain; /* Keeps the logo aspect ratio perfect */
+}
+
+.footer-divider {
+  color: #FFDE59;
+  font-size: 2rem; /* Making the dot slightly larger than the text */
 }
 
 /* Animations */
@@ -454,9 +543,7 @@
     gap: 18px;
   }
 
-  .thanks-login-section {
-    padding: 40px 15px;
-  }
+  
 }
 
 @media (max-width: 480px) {
@@ -555,12 +642,12 @@
   }
 
   .footer-logo {
-    width: 40px;
-    height: 40px;
+    width: 45px;
+    height: 45px;
   }
 
   .footer-logo-img {
-    width: 30px;
-    height: 30px;
+    width: 45px;
+    height: 45px;
   }
 }
