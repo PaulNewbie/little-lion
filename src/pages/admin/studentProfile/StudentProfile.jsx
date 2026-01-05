@@ -105,7 +105,31 @@ const StudentProfile = () => {
     setAddForm({ serviceId: "", staffId: "" });
     try {
       const services = await offeringsService.getServicesByType(type);
-      setAvailableServices(services);
+
+      // Only use interventions from the assessment data
+      const interventionsFromAssessment =
+        assessmentData?.backgroundHistory?.interventions || [];
+
+      const savedServiceIds = [
+        ...new Set(
+          interventionsFromAssessment.map((i) => i.serviceId).filter(Boolean)
+        ),
+      ];
+
+      const filteredServices = services.filter((s) =>
+        savedServiceIds.includes(s.id)
+      );
+
+      if (filteredServices.length === 0) {
+        setAvailableServices([]);
+        // Notify admin in case there are no matching services
+        alert(
+          "No services match the student's recorded interventions. Please review Step IV - Background History."
+        );
+      } else {
+        setAvailableServices(filteredServices);
+      }
+
       setIsAddModalOpen(true);
     } catch (error) {
       alert("Error loading services: " + error.message);
@@ -384,7 +408,6 @@ const StudentProfile = () => {
                     assessmentData={assessmentData}
                   />
                 ))}
-
               <div
                 className="profile-content-scroll"
                 style={{ marginTop: "30px" }}
@@ -468,17 +491,23 @@ const StudentProfile = () => {
           <GeneralFooter pageLabel="Student Profile" />
         </div>
       </div>
-
       {isAddModalOpen && (
         <div className="add-service-overlay">
           <div className="add-service-modal">
             <h3>Enroll in {addServiceType}</h3>
             <div className="modal-form-body">
+              {availableServices.length === 0 ? (
+                <p style={{ color: "#ef4444", marginBottom: "10px" }}>
+                  No services available for this student based on recorded
+                  interventions. Please check Background History.
+                </p>
+              ) : null}
               <select
                 className="modal-select"
                 onChange={(e) =>
                   setAddForm({ ...addForm, serviceId: e.target.value })
                 }
+                value={addForm.serviceId}
               >
                 <option value="">Select Service...</option>
                 {availableServices.map((s) => (
@@ -493,6 +522,8 @@ const StudentProfile = () => {
                 onChange={(e) =>
                   setAddForm({ ...addForm, staffId: e.target.value })
                 }
+                value={addForm.staffId}
+                disabled={!availableServices.length}
               >
                 <option value="">Select Staff...</option>
                 {/* ✅ FIX KEY WARNING: Use t.uid || t.id */}
