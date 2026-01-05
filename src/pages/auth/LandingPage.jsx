@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react"; // 1. Added useRef
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import authService from "../../services/authService";
 import ErrorMessage from "../../components/common/ErrorMessage";
+import { ChevronDown } from 'lucide-react'; // 2. Import the arrow icon
+import { ArrowBigDown, Mail, Phone } from 'lucide-react'; // Added Mail and Phone
 import logo from '../../images/logo.png'; 
 import "./LandingPage.css";
 
@@ -14,6 +16,14 @@ const LandingPage = () => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  
+  // 3. Create a reference for the login section
+  const loginRef = useRef(null);
+
+  // 4. Smooth scroll function
+  const scrollToLogin = () => {
+    loginRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -63,7 +73,6 @@ const LandingPage = () => {
 
   return (
     <div className="landing-page">
-      {/* 1. Transparent Header */}
       <header className="landing-header">
         <div className="header-content">
           <div className="logo-circle">
@@ -73,7 +82,6 @@ const LandingPage = () => {
         </div>
       </header>
 
-      {/* 2. Hero Section with SVG Curved Text */}
       <div className="hero-section">
         <div className="hero-overlay">
           <div className="hero-content">
@@ -81,33 +89,57 @@ const LandingPage = () => {
               <p className="welcome-subtitle">Welcome to the</p>
             </div>
             
-            <svg viewBox="0 0 500 150" className="portal-curved-svg">
-                {/* d="M (Start) Q (Control/Peak) (End)" */}
-                {/* Peak is at 250,10 to create a shallow elliptical radius */}
-                <path id="ellipsePath" d="M 20,140 Q 250,40 480,140" fill="transparent" />
-                <text>
-                    <textPath xlinkHref="#ellipsePath" startOffset="50%" textAnchor="middle" className="curved-portal-title">
-                    LITTLE LIONS TEAM PORTAL
-                    </textPath>
-                </text>
-                </svg>
+            {/* Updated Viewbox to 800 to prevent clipping at font size 40 */}
+            <svg viewBox="0 0 800 180" className="portal-curved-svg">
+              <defs>
+                <path 
+                  id="curvedPath" 
+                  d="M 40,160 Q 400,10 760,160" 
+                  fill="transparent" 
+                />
+              </defs>
+              <text>
+                <textPath 
+                  xlinkHref="#curvedPath" 
+                  startOffset="50%" 
+                  textAnchor="middle" 
+                  className="curved-portal-title"
+                >
+                  LITTLE LIONS TEAM PORTAL
+                </textPath>
+              </text>
+            </svg>
           </div>
         </div>
       </div>
 
-      {/* 3. Yellow Dome, Thanks, and Login Section */}
       <div className="thanks-login-section">
         <div className="thanks-section">
           <div className="thanks-content">
+            <p className="arrow-guide-text">Click the Arrow to Login</p>
+             {/* 5. Clickable Arrow with Bounce Animation */}
+            <button 
+              className="scroll-arrow-btn" 
+              onClick={scrollToLogin}
+              aria-label="Scroll to Login"
+            >
+              <ChevronDown size={48} strokeWidth={2.5} />
+            </button>
+
             <h3 className="thanks-title">THANKS TEAM</h3>
+            
+           
             <p className="thanks-message">
-              It's your energy, kindness, and creativity that make every day special. 
-              Thanks for everything you do to keep our kids happy, safe and nurtured 
-              with learnings — we couldn't do it without you.
+              It's your energy, kindness, and creativity 
+              that make every day special. Thanks for 
+              everything you do to keep our kids happy, 
+              safe and nurtured with learnings — we 
+              couldn't do it without you.
             </p>
           </div>
 
-          <div className="login-card">
+          {/* 6. Attached ref to the login card */}
+          <div className="login-card" ref={loginRef}>
             <div className="login-image">
               <img 
                 src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&h=500&fit=crop" 
@@ -174,10 +206,31 @@ const LandingPage = () => {
           </div>
         </div>
       </div>
-
       <footer className="landing-footer">
-        <div className="footer-logo">
-          <img src={logo} alt="Little Lions" className="footer-logo-img" />
+        <div className="footer-content">
+          {/* Circle Logo and Title */}
+          <div className="footer-info-item">
+            <div className="footer-logo-circle">
+              <img src={logo} alt="Little Lions" className="footer-logo-img" />
+            </div>
+            <span>Little Lions Learning and Development Center</span>
+          </div>
+          
+          <span className="footer-divider">•</span>
+          
+          {/* Email with Icon */}
+          <div className="footer-info-item">
+            <Mail size={18} className="footer-icon" />
+            <span>littlelionsldc@gmail.com</span>
+          </div>
+
+          <span className="footer-divider">•</span>
+
+          {/* Phone with Icon */}
+          <div className="footer-info-item">
+            <Phone size={18} className="footer-icon" />
+            <span>(+63) 9677900930</span>
+          </div>
         </div>
       </footer>
     </div>
