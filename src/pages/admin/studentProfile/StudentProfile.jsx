@@ -116,8 +116,13 @@ const StudentProfile = () => {
         ),
       ];
 
-      const filteredServices = services.filter((s) =>
-        savedServiceIds.includes(s.id)
+      // Exclude services that are already enrolled on this child
+      const enrolledServiceIds = new Set(
+        (selectedStudent?.enrolledServices || []).map((es) => es.serviceId)
+      );
+
+      const filteredServices = services.filter(
+        (s) => savedServiceIds.includes(s.id) && !enrolledServiceIds.has(s.id)
       );
 
       if (filteredServices.length === 0) {
