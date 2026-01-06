@@ -11,6 +11,7 @@ import Step8SummaryRecommendations from "./components/Step8SummaryRecommendation
 import Step9ServiceEnrollment from "./components/Step9ServiceEnrollment";
 import childService from "../../../../services/childService";
 import assessmentService from "../../../../services/assessmentService";
+import userService from "../../../../services/userService";
 import { generateUUID } from "../../../../utils/constants";
 
 // Define the clean slate outside the component
@@ -262,6 +263,17 @@ export default function EnrollStudentFormModal({
         selectedParent.uid || selectedParent.id,
         childDataToSave
       );
+
+      // 6b. Ensure the parent document includes this child's id
+      try {
+        await userService.addChildToParent(
+          selectedParent.uid || selectedParent.id,
+          savedChild.id
+        );
+      } catch (err) {
+        // Non-fatal: log but don't block the success flow
+        console.warn("Failed to link child to parent:", err);
+      }
 
       onSave(savedChild);
       onClose();
