@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'; 
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import GeneralFooter from "../../components/footer/generalfooter";
 
 // 1. Import React Query
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -34,6 +35,12 @@ const PlayGroup = () => {
   const [newServiceData, setNewServiceData] = useState({ name: '', description: '' });
   const [serviceImage, setServiceImage] = useState(null);
   const [uploading, setUploading] = useState(false);
+
+  // --- EDIT SERVICE MODAL STATE (ADDED) ---
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editServiceData, setEditServiceData] = useState({ id: null, name: '', description: '', imageUrl: '' });
+  const [editServiceImage, setEditServiceImage] = useState(null);
+  const [editing, setEditing] = useState(false);
 
   // --- 1. ✅ CACHED: Fetch Play Group Services ---
   const { data: services = [], isLoading: loadingServices } = useQuery({
@@ -165,21 +172,25 @@ const PlayGroup = () => {
   }
 
   return (
-    <div className="ooo-container">
+    <div className="pg-container">
       <AdminSidebar />
-      <div className="ooo-main">
-        
+      <div className="pg-main">
+
+        {/* ===== ADDED WRAPPER (MATCHES ONE-ON-ONE) ===== */}
+        <div className="pg-page">
+        <div className="pg-content">
+
         {/* === VIEW 1: SERVICE SELECTION === */}
         {currentView === 'service-list' && (
           <div className="pg-service-list-view">
-             <div className="ooo-header">
-                <div className="header-title">
-                  <h1>Play Group Services</h1>
-                  <p className="header-subtitle">Select a class to view calendar and students</p>
+             <div className="pg-header">
+                <div className="pg-title">
+                  <h1>PLAY GROUP SERVICES</h1>
+                  <p>Select a class to view calendar and students</p>
                 </div>
              </div>
 
-             <div className="ooo-content-area">
+             <div className="pg-content-area">
                 <div className="pg-services-grid">
                   {services.map(service => (
                     <div 
@@ -196,6 +207,24 @@ const PlayGroup = () => {
                       )}
                       <h3>{service.name}</h3>
                       <p>{service.description || "No description provided."}</p>
+
+                      {/* ===== ADDITION: EDIT BUTTON ===== */}
+                      <button 
+                        className="pg-edit-btn"
+                        onClick={(e) => {
+                          e.stopPropagation(); // prevent card click
+                          setEditServiceData({ 
+                            id: service.id,
+                            name: service.name,
+                            description: service.description || '',
+                            imageUrl: service.imageUrl || ''
+                          });
+                          setEditServiceImage(null);
+                          setShowEditModal(true);
+                        }}
+                      >
+                        ✎
+                      </button>
                     </div>
                   ))}
                   {services.length === 0 && !isLoading && (
@@ -206,7 +235,7 @@ const PlayGroup = () => {
 
              <button className="pg-fab" onClick={() => setShowAddModal(true)}>
                <span className="pg-fab-icon">+</span>
-               <span className="pg-fab-text">Add Play Group Service</span>
+               <span className="pg-fab-text">PLAY GROUP SERVICE</span>
              </button>
           </div>
         )}
@@ -214,12 +243,12 @@ const PlayGroup = () => {
         {/* === VIEW 2: SERVICE DASHBOARD (SPLIT VIEW) === */}
         {currentView === 'service-dashboard' && selectedService && (
           <div className="pg-dashboard-view">
-            <div className="ooo-header">
+            <div className="pg-header">
               <div style={{display:'flex', alignItems:'center', gap:'15px'}}>
-                <button onClick={goBackToServices} className="pg-back-btn">← Back</button>
-                <div className="header-title">
+                <span onClick={goBackToServices} className="pg-back-btn">‹</span>
+                <div className="pg-service-name-desc">
                   <h1>{selectedService.name}</h1>
-                  <p className="header-subtitle">Manage attendance and activities</p>
+                  <p>Manage attendance and activities</p>
                 </div>
               </div>
             </div>
@@ -348,12 +377,95 @@ const PlayGroup = () => {
 
                 <div className="pg-form-actions">
                   <button type="button" className="pg-cancel-btn" onClick={() => setShowAddModal(false)} disabled={uploading}>Cancel</button>
-                  <button type="submit" className="pg-submit-btn" disabled={uploading}>{uploading ? 'Uploading...' : 'Create Class'}</button>
+                  <button type="submit" className="pg-submit-btn" disabled={uploading}>
+                    {uploading ? 'Uploading...' : 'Create Class'}
+                  </button>
                 </div>
               </form>
             </div>
           </div>
         )}
+
+        {/* ===== ADDITION: EDIT SERVICE MODAL ===== */}
+        {showEditModal && (
+          <div className="pg-modal-overlay" onClick={() => !editing && setShowEditModal(false)}>
+            <div className="pg-modal-form-card" onClick={e => e.stopPropagation()}>
+              <h2>Edit Class</h2>
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                setEditing(true);
+                try {
+                  let imageUrl = editServiceData.imageUrl;
+                  if (editServiceImage) {
+                    imageUrl = await cloudinaryService.uploadImage(editServiceImage, 'little-lions/services');
+                  }
+
+                  await offeringsService.updateService(editServiceData.id, {
+                    name: editServiceData.name,
+                    description: editServiceData.description,
+                    imageUrl
+                  });
+
+                  await queryClient.invalidateQueries({ queryKey: ['services', 'Class'] });
+                  setShowEditModal(false);
+                } catch(err) {
+                  alert("Failed to update service: " + err.message);
+                } finally {
+                  setEditing(false);
+                }
+              }}>
+                <div className="pg-form-group">
+                  <label>Class Name</label>
+                  <input 
+                    type="text" 
+                    value={editServiceData.name}
+                    onChange={(e) => setEditServiceData({...editServiceData, name: e.target.value})}
+                    required
+                    autoFocus
+                    disabled={editing}
+                  />
+                </div>
+                <div className="pg-form-group">
+                  <label>Description</label>
+                  <textarea 
+                    value={editServiceData.description}
+                    onChange={(e) => setEditServiceData({...editServiceData, description: e.target.value})}
+                    disabled={editing}
+                  />
+                </div>
+                <div className="pg-form-group">
+                  <label>Service Image (Optional)</label>
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={(e) => setEditServiceImage(e.target.files[0])}
+                    disabled={editing}
+                    className="pg-file-input"
+                  />
+                  {editServiceImage ? (
+                    <span className="pg-file-name">Selected: {editServiceImage.name}</span>
+                  ) : editServiceData.imageUrl ? (
+                    <span className="pg-file-name">Current Image: {editServiceData.imageUrl.split('/').pop()}</span>
+                  ) : null}
+                </div>
+
+                <div className="pg-form-actions">
+                  <button type="button" className="pg-cancel-btn" onClick={() => setShowEditModal(false)} disabled={editing}>Cancel</button>
+                  <button type="submit" className="pg-submit-btn" disabled={editing}>
+                    {editing ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        </div>
+
+        {/* ===== FOOTER (ONLY ADDITION) ===== */}
+        <GeneralFooter pageLabel="PlayGroup" />
+
+        </div>
       </div>
     </div>
   );
