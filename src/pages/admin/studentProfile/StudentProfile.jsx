@@ -368,9 +368,9 @@ const StudentProfile = () => {
                       <p>
                         <b>Gender:</b> {selectedStudent.gender}
                       </p>
-                      {/* <p>
-                        <b>Grade Level:</b> {selectedStudent.gradeLevel || "N/A"}
-                      </p> */}
+                      <p>
+                        <b>Relationship to Guardian:</b> {selectedStudent.relationshipToClient || "N/A"}
+                      </p>
                     </div>
                   </div>
 
@@ -389,7 +389,7 @@ const StudentProfile = () => {
                         {parentData.lastName}
                         <span style={{ color: "#777", fontSize: "0.9em" }}>
                           {" "}
-                          ({selectedStudent.relationshipToClient || "Parent"})
+                          {/* ({selectedStudent.relationshipToClient || "Parent"}) */}
                         </span>
                       </p>
                       <div
