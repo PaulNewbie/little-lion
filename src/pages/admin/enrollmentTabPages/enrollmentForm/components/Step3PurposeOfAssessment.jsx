@@ -24,7 +24,10 @@ export default function Step3PurposeOfAssessment({ data, onChange }) {
       </div>
 
       <div className="dynamic-list-container">
-        {data.purposeOfAssessment.map((purpose, index) => (
+        {(data.purposeOfAssessment.length > 0
+          ? data.purposeOfAssessment
+          : [""]
+        ).map((purpose, index) => (
           <div className="dynamic-input-row" key={index}>
             <span className="row-index">{index + 1}</span>
             <input
@@ -34,12 +37,14 @@ export default function Step3PurposeOfAssessment({ data, onChange }) {
               onChange={(e) => handlePurposeChange(index, e.target.value)}
               required
             />
-            <button
-              className="remove-row-btn"
-              onClick={() => handleRemovePurpose(index)}
-            >
-              ×
-            </button>
+            {data.purposeOfAssessment.length > 1 && (
+              <button
+                className="remove-row-btn"
+                onClick={() => handleRemovePurpose(index)}
+              >
+                ×
+              </button>
+            )}
           </div>
         ))}
       </div>

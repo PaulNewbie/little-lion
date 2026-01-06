@@ -410,7 +410,7 @@ export default function EnrollStudent() {
                     />
                   </div>
                 </div>
-                <div className="input-group">
+                {/* <div className="input-group">
                   <label>Profile Picture</label>
                   <input
                     type="file"
@@ -423,7 +423,7 @@ export default function EnrollStudent() {
                       }
                     }}
                   />
-                </div>
+                </div> */}
 
                 {/* Preview */}
                 {parentPhotoPreview && (

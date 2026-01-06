@@ -63,25 +63,108 @@ export default function EnrollStudentFormModal({
   const [studentInput, setStudentInput] = useState(INITIAL_STUDENT_STATE);
   const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
 
+  // Validate any step against provided data (defaults to current state)
+  const validateStep = (step = formStep, data = studentInput) => {
+    switch (step) {
+      case 1:
+        return !!(
+          data.firstName &&
+          data.lastName &&
+          data.gender &&
+          data.dateOfBirth &&
+          data.assessmentDates &&
+          data.examiner
+        );
+      case 2:
+        return !!data.reasonForReferral;
+      case 3:
+        return !!(
+          data.purposeOfAssessment?.length > 0 &&
+          data.purposeOfAssessment.every((purpose) => purpose)
+        );
+      case 4:
+        return !!(
+          data.backgroundHistory?.familyBackground &&
+          data.backgroundHistory?.familyRelationships &&
+          data.backgroundHistory?.dailyLifeActivities &&
+          data.backgroundHistory?.medicalHistory &&
+          data.backgroundHistory?.developmentalBackground?.length > 0 &&
+          data.backgroundHistory?.developmentalBackground.every(
+            (devBack) => devBack.devBgTitle && devBack.devBgInfo
+          ) &&
+          data.backgroundHistory?.schoolHistory &&
+          data.backgroundHistory?.clinicalDiagnosis &&
+          data.backgroundHistory?.interventions?.length > 0 &&
+          data.backgroundHistory?.interventions.every(
+            (intervention) => intervention.name && intervention.frequency
+          ) &&
+          data.backgroundHistory?.strengthsAndInterests &&
+          data.backgroundHistory?.socialSkills
+        );
+      case 5:
+        return !!data.behaviorDuringAssessment;
+      case 6:
+        return (
+          data.assessmentTools?.length > 0 &&
+          data.assessmentTools.every((tool) => tool.tool && tool.details)
+        );
+      case 7:
+        return data.assessmentTools?.every((tool) => tool.result);
+      case 8:
+        return (
+          !!data.assessmentSummary &&
+          data.assessmentTools?.every((tool) => tool.recommendation)
+        );
+      case 9:
+        const hasTherapy =
+          data.oneOnOneServices?.length > 0 &&
+          data.oneOnOneServices.every(
+            (service) => service.serviceId && service.staffId
+          );
+        const hasClasses =
+          data.groupClassServices?.length > 0 &&
+          data.groupClassServices.every(
+            (class_) => class_.serviceId && class_.staffId
+          );
+        return hasTherapy || hasClasses;
+      default:
+        return true;
+    }
+  };
+
+  // const validateCurrentStep = () => validateStep(formStep, studentInput);
+
+  const findFirstIncompleteStep = (data = studentInput) => {
+    for (let i = 1; i <= 9; i++) {
+      if (!validateStep(i, data)) return i;
+    }
+    // If everything is valid, open at the final step (9)
+    return 9;
+  };
+
   useEffect(() => {
     if (show) {
-      if (editingStudent) {
-        setStudentInput({
-          ...INITIAL_STUDENT_STATE,
-          ...editingStudent,
-          backgroundHistory: {
-            ...INITIAL_STUDENT_STATE.backgroundHistory,
-            ...(editingStudent.backgroundHistory || {}),
-          },
-          assessmentTools:
-            editingStudent.assessmentTools ||
-            INITIAL_STUDENT_STATE.assessmentTools,
-          purposeOfAssessment: editingStudent.purposeOfAssessment || [],
-        });
-      } else {
-        setStudentInput(INITIAL_STUDENT_STATE);
-      }
-      setFormStep(1);
+      // Build the initial data object (merge defaults with editingStudent when present)
+      const initialData = editingStudent
+        ? {
+            ...INITIAL_STUDENT_STATE,
+            ...editingStudent,
+            backgroundHistory: {
+              ...INITIAL_STUDENT_STATE.backgroundHistory,
+              ...(editingStudent.backgroundHistory || {}),
+            },
+            assessmentTools:
+              editingStudent.assessmentTools ||
+              INITIAL_STUDENT_STATE.assessmentTools,
+            purposeOfAssessment: editingStudent.purposeOfAssessment || [],
+          }
+        : INITIAL_STUDENT_STATE;
+
+      setStudentInput(initialData);
+
+      // Determine which step to open: first incomplete step, or 9 if all complete
+      setFormStep(findFirstIncompleteStep(initialData));
+
       setShowCloseConfirmation(false);
     }
   }, [show, editingStudent]);
@@ -116,72 +199,8 @@ export default function EnrollStudentFormModal({
     }));
   };
 
-  const validateCurrentStep = () => {
-    switch (formStep) {
-      case 1:
-        return !!(
-          studentInput.firstName &&
-          studentInput.lastName &&
-          studentInput.gender &&
-          studentInput.dateOfBirth &&
-          studentInput.assessmentDates &&
-          studentInput.examiner
-        );
-      case 2:
-        return !!studentInput.reasonForReferral;
-      case 3:
-        return studentInput.purposeOfAssessment?.length > 0;
-      case 4:
-        return !!(
-          studentInput.backgroundHistory?.familyBackground &&
-          studentInput.backgroundHistory?.familyRelationships &&
-          studentInput.backgroundHistory?.dailyLifeActivities &&
-          studentInput.backgroundHistory?.medicalHistory &&
-          studentInput.backgroundHistory?.developmentalBackground?.length > 0 &&
-          studentInput.backgroundHistory?.developmentalBackground.every(
-            (devBack) => devBack.devBgTitle && devBack.devBgInfo
-          ) &&
-          studentInput.backgroundHistory?.schoolHistory &&
-          studentInput.backgroundHistory?.clinicalDiagnosis &&
-          studentInput.backgroundHistory?.interventions?.length > 0 &&
-          studentInput.backgroundHistory?.interventions.every(
-            (intervention) => intervention.name && intervention.frequency
-          ) &&
-          studentInput.backgroundHistory?.strengthsAndInterests &&
-          studentInput.backgroundHistory?.socialSkills
-        );
-      case 5:
-        return !!studentInput.behaviorDuringAssessment;
-      case 6:
-        return (
-          studentInput.assessmentTools?.length > 0 &&
-          studentInput.assessmentTools.every(
-            (tool) => tool.tool && tool.details
-          )
-        );
-      case 7:
-        return studentInput.assessmentTools?.every((tool) => tool.result);
-      case 8:
-        return (
-          !!studentInput.assessmentSummary &&
-          studentInput.assessmentTools?.every((tool) => tool.recommendation)
-        );
-      case 9:
-        const hasTherapy =
-          studentInput.oneOnOneServices?.length > 0 &&
-          studentInput.oneOnOneServices.every(
-            (service) => service.serviceId && service.staffId
-          );
-        const hasClasses =
-          studentInput.groupClassServices?.length > 0 &&
-          studentInput.groupClassServices.every(
-            (class_) => class_.serviceId && class_.staffId
-          );
-        return hasTherapy || hasClasses;
-      default:
-        return true;
-    }
-  };
+  // Keep an API-compatible helper for existing checks
+  const validateCurrentStep = () => validateStep(formStep, studentInput);
 
   const handleSave = async (isFinalized) => {
     setIsSaving(true);

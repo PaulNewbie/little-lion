@@ -233,7 +233,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
           <div className="dev-bg-entry" key={index}>
             <div className="dev-bg-header">
               <span className="dev-bg-number">
-                Developmental Entry #{index + 1}
+                {index + 1}. Developmental Pediatric Assessment
               </span>
               {data.backgroundHistory.developmentalBackground.length > 1 && (
                 <button
@@ -275,7 +275,7 @@ export default function Step4BackgroundHistory({ data, onChange }) {
         ))}
 
         <button className="add-point-btn" onClick={handleAddDevBg}>
-          + Add Milestone/History Entry
+          + Upload Developmental Pediatric Assessment / Diagnosis
         </button>
       </div>
 
