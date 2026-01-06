@@ -336,13 +336,22 @@ const StudentProfile = () => {
 
                   <div className="profile-details">
                     <div className="profile-left">
-                      <p>
+                      {/* <p>
+                        //I remove this one, because there's no "medical" info inputs for child from the word docu of mam Phoebe.
                         <span className="icon">🏥</span> <b>Medical:</b>{" "}
                         {selectedStudent.medicalInfo || "None"}
+                      </p> */}
+                      <p>
+                        <span className="icon">📍</span> <b>Nickname:</b>{" "}
+                        {selectedStudent.nickname || "N/A"}
                       </p>
                       <p>
                         <span className="icon">📍</span> <b>Address:</b>{" "}
                         {selectedStudent.address || "N/A"}
+                      </p>
+                      <p>
+                        <span className="icon">📍</span> <b>Grade Level:</b>{" "}
+                        {selectedStudent.gradeLevel || "N/A"}
                       </p>
                       <p>
                         <span className="icon">🎓</span> <b>School:</b>{" "}
@@ -351,14 +360,17 @@ const StudentProfile = () => {
                     </div>
                     <div className="profile-right">
                       <p>
+                        <b>Birthdate: {selectedStudent.dateOfBirth || "N/A"}</b>
+                      </p>
+                      <p>
                         <b>Age:</b> {calculateAge(selectedStudent.dateOfBirth)}
                       </p>
                       <p>
                         <b>Gender:</b> {selectedStudent.gender}
                       </p>
-                      <p>
-                        <b>Grade:</b> {selectedStudent.gradeLevel || "N/A"}
-                      </p>
+                      {/* <p>
+                        <b>Grade Level:</b> {selectedStudent.gradeLevel || "N/A"}
+                      </p> */}
                     </div>
                   </div>
 
