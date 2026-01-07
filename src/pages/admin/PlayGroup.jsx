@@ -17,6 +17,30 @@ import AdminSidebar from '../../components/sidebar/AdminSidebar';
 import './css/PlayGroup.css';
 import './studentProfile/StudentProfile.css'; 
 
+// ===== HELPER: SERVICE DESCRIPTION WITH SEE MORE =====
+const ServiceDescription = ({ description, maxLength = 70 }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  if (description.length <= maxLength) {
+    return <p>{description}</p>;
+  }
+
+  return (
+    <p>
+      {expanded ? description : `${description.slice(0, maxLength)}... `}
+      <span
+        className="pg-see-more"
+        onClick={(e) => {
+          e.stopPropagation(); // prevent card click
+          setExpanded(!expanded);
+        }}
+      >
+        {expanded ? "See less" : "See more"}
+      </span>
+    </p>
+  );
+};
+
 const PlayGroup = () => {
   const queryClient = useQueryClient();
 
@@ -50,7 +74,6 @@ const PlayGroup = () => {
   });
 
   // --- 2. ✅ CACHED: Fetch All Students (Shared with Dashboard/OneOnOne) ---
-  // This is likely ALREADY loaded, so it will be instant!
   const { data: allChildren = [], isLoading: loadingChildren } = useQuery({
     queryKey: ['students'], 
     queryFn: () => childService.getAllChildren(),
@@ -73,14 +96,11 @@ const PlayGroup = () => {
     setCurrentView('service-dashboard');
     setSelectedDate(new Date()); 
     setSelectedStudentForPhotos(null);
-    // No fetching needed here! Data is already live.
   };
 
   // --- HELPERS (Derived Data) ---
   const getServiceActivities = () => {
     if (!selectedService) return [];
-    
-    // Strict Filter: Only show activities that match the selected Class Name
     return allActivities.filter(act => 
       (act.className === selectedService.name) || 
       (act.serviceType === selectedService.name)
@@ -97,7 +117,6 @@ const PlayGroup = () => {
     const localDate = new Date(selectedDate.getTime() - (offset * 60 * 1000));
     const dateString = localDate.toISOString().split('T')[0];
 
-    // Find activities for this specific date
     const acts = getServiceActivities().filter(a => a.date === dateString);
     
     const presentIds = new Set();
@@ -115,7 +134,6 @@ const PlayGroup = () => {
     const localDate = new Date(selectedDate.getTime() - (offset * 60 * 1000));
     const dateString = localDate.toISOString().split('T')[0];
     
-    // Find activities where this student participated
     const acts = getServiceActivities().filter(a => 
       a.date === dateString && 
       a.participatingStudentIds?.includes(selectedStudentForPhotos.id)
@@ -142,7 +160,6 @@ const PlayGroup = () => {
         imageUrl: imageUrl
       });
       
-      // ✅ MAGIC: Auto-refresh the list
       await queryClient.invalidateQueries({ queryKey: ['services', 'Class'] });
       
       setNewServiceData({ name: '', description: '' });
@@ -166,7 +183,6 @@ const PlayGroup = () => {
     setSelectedStudentForPhotos(null); 
   };
 
-  // Simplified Loading Screen
   if (isLoading && services.length === 0) {
     return <div className="pg-loading">Loading Play Group Data...</div>;
   }
@@ -175,8 +191,6 @@ const PlayGroup = () => {
     <div className="pg-container">
       <AdminSidebar />
       <div className="pg-main">
-
-        {/* ===== ADDED WRAPPER (MATCHES ONE-ON-ONE) ===== */}
         <div className="pg-page">
         <div className="pg-content">
 
@@ -206,7 +220,9 @@ const PlayGroup = () => {
                         <div className="pg-card-icon">🎨</div>
                       )}
                       <h3>{service.name}</h3>
-                      <p>{service.description || "No description provided."}</p>
+                      
+                      {/* ===== UPDATED: DESCRIPTION WITH SEE MORE ===== */}
+                      <ServiceDescription description={service.description || "No description provided."} />
 
                       {/* ===== ADDITION: EDIT BUTTON ===== */}
                       <button 
@@ -240,7 +256,7 @@ const PlayGroup = () => {
           </div>
         )}
 
-        {/* === VIEW 2: SERVICE DASHBOARD (SPLIT VIEW) === */}
+        {/* === VIEW 2: SERVICE DASHBOARD === */}
         {currentView === 'service-dashboard' && selectedService && (
           <div className="pg-dashboard-view">
             <div className="pg-header">
@@ -253,9 +269,8 @@ const PlayGroup = () => {
               </div>
             </div>
 
-            {/* Content is ALREADY loaded, so no loading spinner needed here! */}
             <div className="pg-split-layout">
-              {/* LEFT SIDE: Students & Photos */}
+              {/* LEFT PANEL */}
               <div className="pg-left-panel">
                 {selectedStudentForPhotos ? (
                   <>
@@ -310,7 +325,7 @@ const PlayGroup = () => {
                 )}
               </div>
 
-              {/* RIGHT SIDE: Calendar */}
+              {/* RIGHT PANEL */}
               <div className="pg-right-panel">
                  <div className="pg-panel-header"><h2>Schedule</h2></div>
                  <div className="pg-calendar-wrapper">
@@ -335,7 +350,7 @@ const PlayGroup = () => {
           </div>
         )}
 
-        {/* === ADD SERVICE MODAL (Keep existing logic) === */}
+        {/* ADD SERVICE MODAL */}
         {showAddModal && (
           <div className="pg-modal-overlay" onClick={() => !uploading && setShowAddModal(false)}>
             <div className="pg-modal-form-card" onClick={e => e.stopPropagation()}>
@@ -386,7 +401,7 @@ const PlayGroup = () => {
           </div>
         )}
 
-        {/* ===== ADDITION: EDIT SERVICE MODAL ===== */}
+        {/* EDIT SERVICE MODAL */}
         {showEditModal && (
           <div className="pg-modal-overlay" onClick={() => !editing && setShowEditModal(false)}>
             <div className="pg-modal-form-card" onClick={e => e.stopPropagation()}>
@@ -462,7 +477,7 @@ const PlayGroup = () => {
 
         </div>
 
-        {/* ===== FOOTER (ONLY ADDITION) ===== */}
+        {/* FOOTER */}
         <GeneralFooter pageLabel="PlayGroup" />
 
         </div>
