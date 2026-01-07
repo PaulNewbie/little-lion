@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import AdminSidebar from "../../../components/sidebar/AdminSidebar";
 import EnrollStudentFormModal from "./enrollmentForm/EnrollStudentFormModal";
+import GeneralFooter from "../../../components/footer/generalfooter";
 import "./EnrollStudent.css";
 import authService from "../../../services/authService";
 
@@ -238,13 +239,13 @@ export default function EnrollStudent() {
               Manage accounts and enrollment progress
             </p>
           </div>
-          <div className="search-wrapper">
-            <input
-              type="text"
-              className="ooo-search"
-              placeholder="SEARCH PARENT NAME..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+            <div className="search-wrapper">
+              <span className="search-icon">🔍</span>
+              <input
+                className="sp-search"
+                placeholder="Search by name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
@@ -500,6 +501,8 @@ export default function EnrollStudent() {
             editingStudent={editingStudent}
           />
         )}
+        {/* FOOTER */}
+        <GeneralFooter pageLabel="Enrollment" />
       </div>
     </div>
   );
