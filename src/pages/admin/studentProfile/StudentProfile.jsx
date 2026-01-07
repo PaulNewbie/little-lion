@@ -354,11 +354,8 @@ const StudentProfile = () => {
                       </p>
                        <p>
                         <span className="icon">📍</span> <b>Current Age:</b>{" "}
-                        {calculateAge(selectedStudent.dateOfBirth) || "N/A"}
-                        {/* to fix */}
+                        {calculateAge(selectedStudent.dateOfBirth) ?? "N/A"}
                       </p>
-
-                     
                     </div>
                     <div className="profile-right">
                    
