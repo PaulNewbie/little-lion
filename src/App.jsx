@@ -29,6 +29,7 @@ import StudentProfile from "./pages/admin/studentProfile/StudentProfile";
 // Teacher Components
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
 import PlayGroupActivity from "./pages/teacher/PlayGroupActivity";
+import TeacherProfile from './pages/teacher/TeacherProfile';
 
 // Therapist Components
 import TherapistDashboard from "./pages/therapist/TherapistDashboard";
@@ -193,6 +194,16 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
+      <Route 
+        path="/teacher/profile" 
+        element={
+          <ProtectedRoute allowedRoles={['teacher']}>
+            <TeacherProfile />
+          </ProtectedRoute>
+        } 
+      />
+      
       <Route
         path="/teacher/play-group-upload"
         element={
