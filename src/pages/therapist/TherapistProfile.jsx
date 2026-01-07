@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import userService from '../../services/userService';
 import cloudinaryService from '../../services/cloudinaryService';
 import Loading from '../../components/common/Loading';
+import TherapistSidebar from '../../components/sidebar/TherapistSidebar';
 
 const TherapistProfile = () => {
   const { currentUser } = useAuth();
@@ -178,227 +179,230 @@ const TherapistProfile = () => {
   if (loading) return <Loading />;
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <button onClick={() => navigate('/therapist/dashboard')} style={styles.backBtn}>← Back to Dashboard</button>
-        <h1 style={styles.title}>Professional Profile</h1>
-        <p style={styles.subtitle}>Build trust with parents by verifying your credentials.</p>
-      </div>
-
-      <form onSubmit={handleSubmit} style={styles.form}>
-        
-        {/* 1. Basic Info & Photo */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>1. Basic Information</h2>
-          <div style={styles.photoContainer}>
-            <div style={styles.avatarPreview}>
-              {formData.profilePhoto ? <img src={formData.profilePhoto} alt="Profile" style={styles.avatarImg} /> : '📷'}
-            </div>
-            <div>
-              <label style={styles.uploadBtn}>
-                Change Photo
-                <input type="file" accept="image/*" onChange={handlePhotoSelect} style={{ display: 'none' }} />
-              </label>
-              <p style={styles.hint}>Professional headshot recommended</p>
-            </div>
-          </div>
-          
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Professional Bio</label>
-            <textarea 
-              style={styles.textarea} 
-              rows="4" 
-              maxLength="500"
-              value={formData.bio}
-              onChange={(e) => handleInputChange('bio', e.target.value)}
-              placeholder="Describe your approach and experience..."
-              required 
-            />
-          </div>
-
-          <div style={styles.gridTwo}>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>License Number</label>
-              <input 
-                type="text" 
-                style={styles.input} 
-                value={formData.licenseNumber}
-                onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
-                required 
-              />
-            </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Expiry Date</label>
-              <input 
-                type="date" 
-                style={styles.input} 
-                value={formData.licenseExpiry}
-                onChange={(e) => handleInputChange('licenseExpiry', e.target.value)}
-                required 
-              />
-            </div>
-          </div>
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      <TherapistSidebar />
+      <div style={styles.container}>
+        <div style={styles.header}>
+          <button onClick={() => navigate('/therapist/dashboard')} style={styles.backBtn}>← Back to Dashboard</button>
+          <h1 style={styles.title}>Professional Profile</h1>
+          <p style={styles.subtitle}>Build trust with parents by verifying your credentials.</p>
         </div>
 
-        {/* 2. Experience & Languages */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>2. Experience & Skills</h2>
+        <form onSubmit={handleSubmit} style={styles.form}>
           
-          <div style={styles.formGroup}>
-            <label style={styles.label}>When did you start practicing?</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <input 
-                type="number" 
-                style={{ ...styles.input, width: '120px' }}
-                min="1970" 
-                max={new Date().getFullYear()}
-                value={formData.practiceStartYear}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value);
-                  handleInputChange('practiceStartYear', val);
-                  setYearsOfExperience(new Date().getFullYear() - val);
-                }}
+          {/* 1. Basic Info & Photo */}
+          <div style={styles.section}>
+            <h2 style={styles.sectionTitle}>1. Basic Information</h2>
+            <div style={styles.photoContainer}>
+              <div style={styles.avatarPreview}>
+                {formData.profilePhoto ? <img src={formData.profilePhoto} alt="Profile" style={styles.avatarImg} /> : '📷'}
+              </div>
+              <div>
+                <label style={styles.uploadBtn}>
+                  Change Photo
+                  <input type="file" accept="image/*" onChange={handlePhotoSelect} style={{ display: 'none' }} />
+                </label>
+                <p style={styles.hint}>Professional headshot recommended</p>
+              </div>
+            </div>
+            
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Professional Bio</label>
+              <textarea 
+                style={styles.textarea} 
+                rows="4" 
+                maxLength="500"
+                value={formData.bio}
+                onChange={(e) => handleInputChange('bio', e.target.value)}
+                placeholder="Describe your approach and experience..."
+                required 
               />
-              <span style={{ fontWeight: 'bold', color: '#059669' }}>
-                = {yearsOfExperience} Years of Experience
-              </span>
+            </div>
+
+            <div style={styles.gridTwo}>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>License Number</label>
+                <input 
+                  type="text" 
+                  style={styles.input} 
+                  value={formData.licenseNumber}
+                  onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
+                  required 
+                />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Expiry Date</label>
+                <input 
+                  type="date" 
+                  style={styles.input} 
+                  value={formData.licenseExpiry}
+                  onChange={(e) => handleInputChange('licenseExpiry', e.target.value)}
+                  required 
+                />
+              </div>
             </div>
           </div>
 
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Languages Spoken</label>
-            <div style={styles.checkboxGrid}>
-              {LANGUAGE_OPTIONS.map(lang => (
-                <label key={lang} style={styles.checkboxLabel}>
-                  <input 
-                    type="checkbox" 
-                    checked={formData.languagesSpoken.includes(lang)}
-                    onChange={() => handleLanguageToggle(lang)}
-                  />
-                  {lang}
-                </label>
+          {/* 2. Experience & Languages */}
+          <div style={styles.section}>
+            <h2 style={styles.sectionTitle}>2. Experience & Skills</h2>
+            
+            <div style={styles.formGroup}>
+              <label style={styles.label}>When did you start practicing?</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <input 
+                  type="number" 
+                  style={{ ...styles.input, width: '120px' }}
+                  min="1970" 
+                  max={new Date().getFullYear()}
+                  value={formData.practiceStartYear}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    handleInputChange('practiceStartYear', val);
+                    setYearsOfExperience(new Date().getFullYear() - val);
+                  }}
+                />
+                <span style={{ fontWeight: 'bold', color: '#059669' }}>
+                  = {yearsOfExperience} Years of Experience
+                </span>
+              </div>
+            </div>
+
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Languages Spoken</label>
+              <div style={styles.checkboxGrid}>
+                {LANGUAGE_OPTIONS.map(lang => (
+                  <label key={lang} style={styles.checkboxLabel}>
+                    <input 
+                      type="checkbox" 
+                      checked={formData.languagesSpoken.includes(lang)}
+                      onChange={() => handleLanguageToggle(lang)}
+                    />
+                    {lang}
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Education (Structured) */}
+          <div style={styles.section}>
+            <h2 style={styles.sectionTitle}>3. Education History</h2>
+            
+            {/* List existing */}
+            <div style={styles.listContainer}>
+              {formData.education.map(edu => (
+                <div key={edu.id} style={styles.listItem}>
+                  <div>
+                    <strong>{edu.degree}</strong>
+                    <div style={{ fontSize: '0.875rem', color: '#64748b' }}>{edu.school} • {edu.year}</div>
+                  </div>
+                  <button type="button" onClick={() => handleRemoveEducation(edu.id)} style={styles.deleteBtn}>×</button>
+                </div>
               ))}
             </div>
-          </div>
-        </div>
 
-        {/* 3. Education (Structured) */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>3. Education History</h2>
-          
-          {/* List existing */}
-          <div style={styles.listContainer}>
-            {formData.education.map(edu => (
-              <div key={edu.id} style={styles.listItem}>
-                <div>
-                  <strong>{edu.degree}</strong>
-                  <div style={{ fontSize: '0.875rem', color: '#64748b' }}>{edu.school} • {edu.year}</div>
-                </div>
-                <button type="button" onClick={() => handleRemoveEducation(edu.id)} style={styles.deleteBtn}>×</button>
-              </div>
-            ))}
+            {/* Add New */}
+            <div style={styles.addBox}>
+              <input 
+                placeholder="Degree (e.g. BS OT)" 
+                style={styles.inputSmall} 
+                value={newEdu.degree}
+                onChange={e => setNewEdu({...newEdu, degree: e.target.value})}
+              />
+              <input 
+                placeholder="University / School" 
+                style={styles.inputSmall}
+                value={newEdu.school}
+                onChange={e => setNewEdu({...newEdu, school: e.target.value})}
+              />
+              <input 
+                placeholder="Year" 
+                type="number" 
+                style={{ ...styles.inputSmall, width: '80px' }}
+                value={newEdu.year}
+                onChange={e => setNewEdu({...newEdu, year: e.target.value})}
+              />
+              <button type="button" onClick={handleAddEducation} style={styles.addBtn}>Add</button>
+            </div>
           </div>
 
-          {/* Add New */}
-          <div style={styles.addBox}>
-            <input 
-              placeholder="Degree (e.g. BS OT)" 
-              style={styles.inputSmall} 
-              value={newEdu.degree}
-              onChange={e => setNewEdu({...newEdu, degree: e.target.value})}
-            />
-            <input 
-              placeholder="University / School" 
-              style={styles.inputSmall}
-              value={newEdu.school}
-              onChange={e => setNewEdu({...newEdu, school: e.target.value})}
-            />
-            <input 
-              placeholder="Year" 
-              type="number" 
-              style={{ ...styles.inputSmall, width: '80px' }}
-              value={newEdu.year}
-              onChange={e => setNewEdu({...newEdu, year: e.target.value})}
-            />
-            <button type="button" onClick={handleAddEducation} style={styles.addBtn}>Add</button>
-          </div>
-        </div>
-
-        {/* 4. Certifications (With File Upload) */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>4. Certifications & Training</h2>
-          
-          <div style={styles.listContainer}>
-            {formData.certifications.map(cert => (
-              <div key={cert.id} style={styles.listItem}>
-                <div>
-                  <strong>{cert.name}</strong>
-                  <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                    {cert.issuer} • {cert.date}
+          {/* 4. Certifications (With File Upload) */}
+          <div style={styles.section}>
+            <h2 style={styles.sectionTitle}>4. Certifications & Training</h2>
+            
+            <div style={styles.listContainer}>
+              {formData.certifications.map(cert => (
+                <div key={cert.id} style={styles.listItem}>
+                  <div>
+                    <strong>{cert.name}</strong>
+                    <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                      {cert.issuer} • {cert.date}
+                    </div>
+                    <a href={cert.fileUrl} target="_blank" rel="noreferrer" style={styles.link}>View Proof 📎</a>
                   </div>
-                  <a href={cert.fileUrl} target="_blank" rel="noreferrer" style={styles.link}>View Proof 📎</a>
+                  <button type="button" onClick={() => handleRemoveCertification(cert.id)} style={styles.deleteBtn}>×</button>
                 </div>
-                <button type="button" onClick={() => handleRemoveCertification(cert.id)} style={styles.deleteBtn}>×</button>
+              ))}
+            </div>
+
+            {/* Add New Cert Form */}
+            <div style={styles.addBox}>
+              <div style={styles.gridTwo}>
+                <input 
+                  placeholder="Certificate Name" 
+                  style={styles.inputSmall}
+                  value={newCert.name}
+                  onChange={e => setNewCert({...newCert, name: e.target.value})}
+                />
+                <input 
+                  placeholder="Issuing Org" 
+                  style={styles.inputSmall}
+                  value={newCert.issuer}
+                  onChange={e => setNewCert({...newCert, issuer: e.target.value})}
+                />
               </div>
-            ))}
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                <input 
+                  type="date" 
+                  style={styles.inputSmall}
+                  value={newCert.date}
+                  onChange={e => setNewCert({...newCert, date: e.target.value})}
+                />
+                <input 
+                  type="file"
+                  style={styles.inputSmall}
+                  accept="application/pdf,image/*"
+                  onChange={e => setNewCert({...newCert, file: e.target.files[0]})}
+                />
+              </div>
+              <button 
+                type="button" 
+                onClick={handleAddCertification} 
+                disabled={isUploadingCert}
+                style={{ ...styles.addBtn, marginTop: '0.5rem', width: '100%' }}
+              >
+                {isUploadingCert ? 'Uploading...' : '+ Upload & Add Certificate'}
+              </button>
+            </div>
           </div>
 
-          {/* Add New Cert Form */}
-          <div style={styles.addBox}>
-            <div style={styles.gridTwo}>
-              <input 
-                placeholder="Certificate Name" 
-                style={styles.inputSmall}
-                value={newCert.name}
-                onChange={e => setNewCert({...newCert, name: e.target.value})}
-              />
-              <input 
-                placeholder="Issuing Org" 
-                style={styles.inputSmall}
-                value={newCert.issuer}
-                onChange={e => setNewCert({...newCert, issuer: e.target.value})}
-              />
-            </div>
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-              <input 
-                type="date" 
-                style={styles.inputSmall}
-                value={newCert.date}
-                onChange={e => setNewCert({...newCert, date: e.target.value})}
-              />
-              <input 
-                type="file"
-                style={styles.inputSmall}
-                accept="application/pdf,image/*"
-                onChange={e => setNewCert({...newCert, file: e.target.files[0]})}
-              />
-            </div>
-            <button 
-              type="button" 
-              onClick={handleAddCertification} 
-              disabled={isUploadingCert}
-              style={{ ...styles.addBtn, marginTop: '0.5rem', width: '100%' }}
-            >
-              {isUploadingCert ? 'Uploading...' : '+ Upload & Add Certificate'}
+          <div style={styles.actions}>
+            <button type="submit" style={styles.saveBtn} disabled={saving}>
+              {saving ? 'Saving Profile...' : 'Save Complete Profile'}
             </button>
           </div>
-        </div>
 
-        <div style={styles.actions}>
-          <button type="submit" style={styles.saveBtn} disabled={saving}>
-            {saving ? 'Saving Profile...' : 'Save Complete Profile'}
-          </button>
-        </div>
-
-      </form>
+        </form>
+      </div>
     </div>
   );
 };
 
 const styles = {
-  container: { minHeight: '100vh', backgroundColor: '#f1f5f9', padding: '2rem' },
+  container: { minHeight: '100vh', backgroundColor: '#f1f5f9', padding: '2rem', width: '100%' },
   header: { maxWidth: '800px', margin: '0 auto 2rem' },
-  backBtn: { border: 'none', background: 'none', color: '#64748b', cursor: 'pointer', marginBottom: '1rem' },
+  backBtn: { border: 'none', background: 'none', color: '#64748b', cursor: 'pointer', marginBottom: '1rem', fontSize: '0.9rem' },
   title: { fontSize: '2rem', fontWeight: '800', color: '#1e293b', margin: 0 },
   subtitle: { color: '#64748b', marginTop: '0.5rem' },
   form: { maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' },

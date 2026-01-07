@@ -3,224 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import childService from '../../services/childService';
 import Loading from '../../components/common/Loading';
-
-// Therapist Sidebar Component - Matching the uploaded design
-const TherapistSidebar = ({ currentUser, onLogout, onNavigate }) => {
-  return (
-    <div style={{
-      width: '360px',
-      backgroundColor: '#f5f5f5',
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      position: 'sticky',
-      top: 0,
-      height: '100vh',
-      padding: '2rem 1.5rem'
-    }}>
-      {/* User Profile Section */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '1rem',
-        marginBottom: '3rem'
-      }}>
-        <div style={{
-          width: '80px',
-          height: '80px',
-          borderRadius: '50%',
-          border: '4px solid #FDB913',
-          background: 'white',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '2.5rem'
-        }}>
-          👨‍⚕️
-        </div>
-        <div>
-          <div style={{ 
-            fontSize: '0.875rem', 
-            color: '#888', 
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-            marginBottom: '0.25rem'
-          }}>
-            THERAPIST
-          </div>
-          <div style={{ 
-            fontSize: '1.5rem', 
-            fontWeight: '700', 
-            color: '#1565C0'
-          }}>
-            {currentUser?.firstName || 'Therapist'}
-          </div>
-        </div>
-      </div>
-
-      {/* MAIN Section */}
-      <div style={{ marginBottom: '2.5rem' }}>
-        <div style={{
-          fontSize: '0.75rem',
-          fontWeight: '700',
-          color: '#999',
-          textTransform: 'uppercase',
-          letterSpacing: '1px',
-          marginBottom: '1rem'
-        }}>
-          MAIN
-        </div>
-
-        <button
-          onClick={() => onNavigate('/therapist/dashboard')}
-          style={{
-            width: '100%',
-            padding: '1rem 1.5rem',
-            backgroundColor: '#FDB913',
-            border: 'none',
-            borderRadius: '12px',
-            color: 'white',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-            fontSize: '1rem',
-            fontWeight: '700',
-            textTransform: 'uppercase',
-            marginBottom: '0.75rem',
-            boxShadow: '0 4px 12px rgba(253, 185, 19, 0.3)',
-            transition: 'all 0.2s'
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 6px 16px rgba(253, 185, 19, 0.4)';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(253, 185, 19, 0.3)';
-          }}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-          </svg>
-          <span>MY STUDENTS</span>
-        </button>
-
-        <button
-          onClick={() => onNavigate('/therapist/profile')}
-          style={{
-            width: '100%',
-            padding: '1rem 1.5rem',
-            backgroundColor: 'white',
-            border: 'none',
-            borderRadius: '12px',
-            color: '#1565C0',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-            fontSize: '1rem',
-            fontWeight: '700',
-            textTransform: 'uppercase',
-            marginBottom: '0.75rem',
-            position: 'relative',
-            transition: 'all 0.2s'
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.backgroundColor = '#f0f0f0';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.backgroundColor = 'white';
-          }}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="#1565C0">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
-          </svg>
-          <span>MY PROFILE</span>
-          {currentUser?.profileCompleted === false && (
-            <span style={{
-              width: '10px',
-              height: '10px',
-              backgroundColor: '#EF5350',
-              borderRadius: '50%',
-              position: 'absolute',
-              right: '1.5rem'
-            }}></span>
-          )}
-        </button>
-
-        <button
-          onClick={() => onNavigate('/staff/inquiries')}
-          style={{
-            width: '100%',
-            padding: '1rem 1.5rem',
-            backgroundColor: 'white',
-            border: 'none',
-            borderRadius: '12px',
-            color: '#1565C0',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-            fontSize: '1rem',
-            fontWeight: '700',
-            textTransform: 'uppercase',
-            transition: 'all 0.2s'
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.backgroundColor = '#f0f0f0';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.backgroundColor = 'white';
-          }}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="#1565C0">
-            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-          </svg>
-          <span>INQUIRIES</span>
-        </button>
-      </div>
-
-      {/* Spacer to push logout to bottom */}
-      <div style={{ flex: 1 }}></div>
-
-      {/* Logout Button */}
-      <button
-        onClick={onLogout}
-        style={{
-          width: '100%',
-          padding: '1rem',
-          backgroundColor: '#EF5350',
-          border: 'none',
-          borderRadius: '12px',
-          color: 'white',
-          cursor: 'pointer',
-          fontSize: '1rem',
-          fontWeight: '700',
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-          transition: 'all 0.2s',
-          boxShadow: '0 4px 12px rgba(239, 83, 80, 0.3)'
-        }}
-        onMouseOver={(e) => {
-          e.currentTarget.style.backgroundColor = '#E53935';
-          e.currentTarget.style.transform = 'translateY(-2px)';
-          e.currentTarget.style.boxShadow = '0 6px 16px rgba(239, 83, 80, 0.4)';
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.backgroundColor = '#EF5350';
-          e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = '0 4px 12px rgba(239, 83, 80, 0.3)';
-        }}
-      >
-        LOG OUT
-      </button>
-    </div>
-  );
-};
+import TherapistSidebar from '../../components/sidebar/TherapistSidebar';
 
 const TherapistDashboard = () => {
-  const { currentUser, logout } = useAuth();
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
   
   const [students, setStudents] = useState([]);
@@ -233,7 +19,7 @@ const TherapistDashboard = () => {
   const [selectedStudentForModal, setSelectedStudentForModal] = useState(null);
   const [availableServices, setAvailableServices] = useState([]);
 
-  // ✅ Profile Completion Check
+  // Profile Completion Check
   useEffect(() => {
     if (currentUser && currentUser.profileCompleted === false) {
       const timer = setTimeout(() => {
@@ -271,11 +57,6 @@ const TherapistDashboard = () => {
       `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [students, searchTerm]);
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
 
   const getMyServices = (student) => {
     const allServices = student.enrolledServices || [
@@ -328,16 +109,13 @@ const TherapistDashboard = () => {
   if (loading) return <Loading />;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-      {/* Sidebar */}
-      <TherapistSidebar 
-        currentUser={currentUser}
-        onLogout={handleLogout}
-        onNavigate={navigate}
-      />
-
-      {/* Main Content */}
-      <div style={{ flex: 1, padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      <TherapistSidebar />
+      <div style={{ 
+        padding: '2rem', 
+        width: '100%', 
+        backgroundColor: '#f8fafc'
+      }}>
         
         {/* Welcome */}
         <div style={{ marginBottom: '2.5rem' }}>
@@ -353,7 +131,7 @@ const TherapistDashboard = () => {
           </div>
         )}
 
-        {/* ✅ Profile Completion Banner */}
+        {/* Profile Completion Banner */}
         {currentUser?.profileCompleted === false && (
           <div style={{
             backgroundColor: '#fef3c7',
