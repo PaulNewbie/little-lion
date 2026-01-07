@@ -106,7 +106,7 @@ const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
             onClick={() => navigate("/admin/one-on-one")}
           >
             <img src={ICONS.OOO} className="menu-icon" alt="One On One" />
-            <span className="menu-label">1 : 1 SERVICES</span> 
+            <span className="menu-label">1 on 1 SERVICES</span> 
           </div>
           <div
             className={`menu-item ${isActive("/admin/play-group") ? "active" : ""}`}
