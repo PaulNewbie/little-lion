@@ -76,6 +76,7 @@ export default function EnrollStudent() {
       const user = await authService.createParentAccount(email, password, {
         ...profileData,
         password: password, // <--- ADD THIS to save it in the database
+        email: email,
       });
 
       // 3. Update the UI list

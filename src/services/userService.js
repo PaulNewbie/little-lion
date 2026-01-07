@@ -32,6 +32,24 @@ class UserService {
     }
   }
 
+  /**
+   * Add a child ID to a parent's `childrenIds` array (non-fatal)
+   * @param {string} uid - Parent user UID
+   * @param {string} childId - Child document id
+   */
+  async addChildToParent(uid, childId) {
+    try {
+      const userRef = doc(db, 'users', uid);
+      await updateDoc(userRef, {
+        childrenIds: arrayUnion(childId),
+        updatedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Failed to add child to parent:", error);
+      // Non-fatal: do not throw so enrollment flow continues
+    }
+  }
+
   // --- BASIC CRUD ---
 
   // Create or Overwrite User (Used by Auth Services)
