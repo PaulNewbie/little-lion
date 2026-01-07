@@ -62,20 +62,32 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
       </section>
 
       <section className="report-section">
-        <h3 className="report-heading">IV. BACKGROUND HISTORY</h3>
+       <h3 className="report-heading">IV. BACKGROUND HISTORY</h3>
+
         <div className="sub-section">
-          <h4>A. Family Background</h4>
+          <h4>Family Background:</h4>
           <p className="report-text">{bg.familyBackground || "N/A"}</p>
         </div>
+
         <div className="sub-section">
-          <h4>B. Medical History</h4>
+          <h4>Family Relationships:</h4>
+          <p className="report-text">{bg.familyRelationships || "N/A"}</p>
+        </div>
+
+        <div className="sub-section">
+          <h4>Daily Life & Activities:</h4>
+          <p className="report-text">{bg.dailyLifeActivities || "N/A"}</p>
+        </div>
+
+        <div className="sub-section">
+          <h4>Medical History:</h4>
           <p className="report-text">{bg.medicalHistory || "N/A"}</p>
         </div>
+
         <div className="sub-section">
-          <h4>C. Developmental History</h4>
-          {bg.developmentalBackground &&
-          bg.developmentalBackground.length > 0 ? (
-            <ul className="report-list">
+          <h4>Developmental Background:</h4>
+          {bg.developmentalBackground && bg.developmentalBackground.length > 0 ? (
+            <ul className="report-list bulleted">
               {bg.developmentalBackground.map((item, i) => (
                 <li key={i}>
                   <strong>{item.devBgTitle}:</strong> {item.devBgInfo}
@@ -86,13 +98,50 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
             <p className="report-text">N/A</p>
           )}
         </div>
+
         <div className="sub-section">
-          <h4>D. School History</h4>
+          <h4>School History:</h4>
           <p className="report-text">{bg.schoolHistory || "N/A"}</p>
         </div>
+
         <div className="sub-section">
-          <h4>E. Clinical Diagnosis</h4>
+          <h4>Clinical Diagnosis:</h4>
           <p className="report-text">{bg.clinicalDiagnosis || "N/A"}</p>
+        </div>
+
+        <div className="sub-section">
+          <h4>Therapies/Interventions:</h4>
+          {bg.interventions && bg.interventions.length > 0 ? (
+            <ul className="report-list bulleted">
+              {bg.interventions.map((item, i) => {
+                if (!item) return (
+                  <li key={i} className="report-text">N/A</li>
+                );
+                if (typeof item === "string") return <li key={i}>{item}</li>;
+
+                const name = item.name || item.serviceName || item.serviceId || "Unnamed intervention";
+                const freq = item.frequency ? ` — ${item.frequency}` : "";
+
+                return (
+                  <li key={i}>
+                    <strong>{name}</strong>{freq}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="report-text">N/A</p>
+          )}
+        </div>
+
+        <div className="sub-section">
+          <h4>Strengths & Interests:</h4>
+          <p className="report-text">{bg.strengthsAndInterests || "N/A"}</p>
+        </div>
+
+        <div className="sub-section">
+          <h4>Social Skills:</h4>
+          <p className="report-text">{bg.socialSkills || "N/A"}</p>
         </div>
       </section>
 
