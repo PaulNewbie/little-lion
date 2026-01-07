@@ -6,13 +6,13 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
 
   const merged = { ...(childData || {}), ...(assessmentData || {}) };
 
-  const {
+ const {
     reasonForReferral,
     purposeOfAssessment,
     backgroundHistory,
     behaviorDuringAssessment,
-    assessmentTools,
-    assessmentSummary,
+    assessmentTools, 
+    assessmentSummary, 
     examiner,
     assessmentDates,
     ageAtAssessment,
@@ -152,24 +152,23 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
         </p>
       </section>
 
-      <section className="report-section">
-        <h3 className="report-heading">VI & VII. ASSESSMENT TOOLS & RESULTS</h3>
+      {/* JOINED SECTION VI, VII, & VIII */}
+      <section className="report-section assessment-results-joined">
+        <h3 className="report-heading">VI, VII, & VIII. ASSESSMENT TOOLS & MEASURES, RESULTS, RECOMMENDATIONS, & SUMMARY</h3>
+        
+        {/* Mapping Tools and Results (VI & VII) */}
         {assessmentTools && assessmentTools.length > 0 ? (
           <div className="tools-list">
             {assessmentTools.map((item, index) => (
               <div key={index} className="tool-card">
                 <div className="tool-header">
-                  <span className="tool-index">
-                    {String.fromCharCode(65 + index)}.
-                  </span>
+                  <span className="tool-index">{String.fromCharCode(65 + index)}.</span>
                   <h4>{item.tool}</h4>
                 </div>
                 <div className="tool-body">
-                  <p>
-                    <strong>Details:</strong> {item.details}
-                  </p>
+                  <p><strong>Measure:</strong> {item.details}</p>
                   <div className="result-box">
-                    <strong>Findings:</strong>
+                    <strong>Results:</strong>
                     <p>{item.result || "No results recorded."}</p>
                   </div>
                   {item.recommendation && (
@@ -185,13 +184,16 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
         ) : (
           <p className="report-text">No assessment tools recorded.</p>
         )}
-      </section>
 
-      <section className="report-section">
-        <h3 className="report-heading">VIII. SUMMARY AND RECOMMENDATIONS</h3>
-        <p className="report-text">
-          {assessmentSummary || "No summary provided."}
-        </p>
+        {/* Final Summary and Recommendations (VIII) */}
+        <div className="summary-final-section">
+          <h4 className="summary-title">OVERALL SUMMARY AND RECOMMENDATIONS</h4>
+          <div className="summary-content-box">
+            <p className="report-text">
+              {assessmentSummary || "No overall summary provided."}
+            </p>
+          </div>
+        </div>
       </section>
     </div>
   );
