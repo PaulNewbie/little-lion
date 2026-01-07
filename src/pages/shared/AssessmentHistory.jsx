@@ -187,7 +187,7 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
 
         {/* Final Summary and Recommendations (VIII) */}
         <div className="summary-final-section">
-          <h4 className="summary-title">OVERALL SUMMARY AND RECOMMENDATIONS</h4>
+          <h4 className="summary-title">SUMMARY</h4>
           <div className="summary-content-box">
             <p className="report-text">
               {assessmentSummary || "No overall summary provided."}
