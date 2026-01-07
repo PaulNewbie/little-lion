@@ -333,40 +333,38 @@ const StudentProfile = () => {
                   <h1 className="profile-fullname">
                     {selectedStudent.lastName}, {selectedStudent.firstName}
                   </h1>
-
-                
-
-
                   <div className="profile-details">
                     <div className="profile-left">
-                     
                       <p>
-                        <span className="icon">📍</span> <b>Nickname:</b>{" "}
+                        <span className="icon">🧒</span> <b>Nickname:</b>{" "}
                         {selectedStudent.nickname || "N/A"}
                       </p>
                       <p>
-                        <span className="icon">📍</span> <b>Address:</b>{" "}
+                        <span className="icon">🏠</span> <b>Address:</b>{" "}
                         {selectedStudent.address || "N/A"}
                       </p>
                       <p>
-                        <span className="icon">📍</span> <b>Date of Birth:</b>{" "}
+                        <span className="icon">🎂</span> <b>Date of Birth:</b>{" "}
                         {selectedStudent.dateOfBirth || "N/A"}
                       </p>
-                       <p>
-                        <span className="icon">📍</span> <b>Current Age:</b>{" "}
+                      <p>
+                        <span className="icon">📅</span> <b>Current Age:</b>{" "}
                         {calculateAge(selectedStudent.dateOfBirth) ?? "N/A"}
                       </p>
                     </div>
+
                     <div className="profile-right">
-                   
                       <p>
-                        <b>Gender:</b> {selectedStudent.gender}
+                        <span className="icon">🚻</span> <b>Gender:</b>{" "}
+                        {selectedStudent.gender || "N/A"}
                       </p>
                       <p>
-                        <b>School:</b> {selectedStudent.school || "N/A"}
+                        <span className="icon">🏫</span> <b>School:</b>{" "}
+                        {selectedStudent.school || "N/A"}
                       </p>
                       <p>
-                        <b>Relationship to Guardian:</b> {selectedStudent.relationshipToClient || "N/A"}
+                        <span className="icon">👨‍👩‍👧</span> <b>Relationship to Guardian:</b>{" "}
+                        {selectedStudent.relationshipToClient || "N/A"}
                       </p>
                     </div>
                   </div>
