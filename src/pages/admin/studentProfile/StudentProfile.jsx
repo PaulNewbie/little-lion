@@ -386,11 +386,14 @@ const StudentProfile = () => {
                       {/* <p>
                         <b>Birthdate: {selectedStudent.dateOfBirth || "N/A"}</b>
                       </p> */}
-                      <p>
+                      {/* <p>
                         <b>Age:</b> {calculateAge(selectedStudent.dateOfBirth)}
-                      </p>
+                      </p> */}
                       <p>
                         <b>Gender:</b> {selectedStudent.gender}
+                      </p>
+                      <p>
+                        <b>School:</b> {selectedStudent.school || "N/A"}
                       </p>
                       <p>
                         <b>Relationship to Guardian:</b> {selectedStudent.relationshipToClient || "N/A"}
