@@ -51,11 +51,11 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
       <section className="report-section">
         <h3 className="report-heading">III. PURPOSE OF ASSESSMENT</h3>
         {purposeOfAssessment && purposeOfAssessment.length > 0 ? (
-          <ul className="report-list">
+          <ol className="report-list">
             {purposeOfAssessment.map((purpose, i) => (
               <li key={i}>{purpose}</li>
             ))}
-          </ul>
+          </ol>
         ) : (
           <p className="report-text">No purpose listed.</p>
         )}
