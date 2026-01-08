@@ -1,7 +1,10 @@
+// src/pages/admin/ManageTeachers.jsx
+
 import React, { useState } from 'react';
 import useManageTeachers from '../../hooks/useManageTeachers';
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
-import TherapistCard from '../shared/TherapistCard'; // Reusing the professional card component
+import TherapistCard from '../shared/TherapistCard';
+import ActivationModal from '../../components/admin/ActivationModal';
 import "./css/OneOnOne.css";
 
 const ManageTeachers = () => {
@@ -19,8 +22,13 @@ const ManageTeachers = () => {
   const [showForm, setShowForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
-  // ✅ NEW: State for Profile View Modal
+  // State for Profile View Modal
   const [selectedTeacherId, setSelectedTeacherId] = useState(null);
+
+  // NEW: Activation Modal State
+  const [showActivationModal, setShowActivationModal] = useState(false);
+  const [newUserData, setNewUserData] = useState(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   if (loading) return <div className="pg-loading">Loading teachers...</div>;
 
@@ -30,12 +38,30 @@ const ManageTeachers = () => {
     teacher.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // UPDATED: Handle form submit with activation modal
+  const handleCreateTeacher = async (e) => {
+    e.preventDefault();
+    setIsCreating(true);
+    
+    const result = await createTeacher(e);
+    
+    setIsCreating(false);
+    
+    if (result.success) {
+      setShowForm(false);
+      setNewUserData(result.user);
+      setShowActivationModal(true);
+    } else {
+      alert('Failed to create teacher: ' + result.error);
+    }
+  };
+
   return (
     <div className="ooo-container">
       <AdminSidebar />
       <div className="ooo-main">
         
-        {/* Header with Search */}
+        {/* Header with Search - ORIGINAL */}
         <div className="ooo-header">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: '20px' }}>
             <div className="header-title">
@@ -81,6 +107,7 @@ const ManageTeachers = () => {
           </div>
         )}
 
+        {/* Content - ORIGINAL UI PRESERVED */}
         <div className="ooo-content-area">
           <div style={{ marginBottom: '24px' }}>
             <h2 style={{ fontSize: '14px', fontWeight: '700', textTransform: 'uppercase', color: '#374151', letterSpacing: '0.5px', margin: '0 0 16px 0' }}>
@@ -112,7 +139,7 @@ const ManageTeachers = () => {
                   }}
                 >
                   <div>
-                    {/* ✅ Status Badge */}
+                    {/* Status Badge */}
                     <div style={{
                       position: 'absolute', top: '10px', right: '10px', width: '12px', height: '12px',
                       borderRadius: '50%', border: '2px solid white',
@@ -125,14 +152,14 @@ const ManageTeachers = () => {
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       margin: '0 auto 12px', fontSize: '36px', overflow: 'hidden'
                     }}>
-                      {teacher.profilePhoto ? <img src={teacher.profilePhoto} style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : '👤'}
+                      {teacher.profilePhoto ? <img src={teacher.profilePhoto} alt="" style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : '👤'}
                     </div>
 
                     <h3 style={{ fontSize: '15px', fontWeight: '700', margin: '8px 0 4px', color: '#1f2937' }}>
                       {teacher.firstName} {teacher.lastName}
                     </h3>
                     
-                    {/* ✅ Status Text */}
+                    {/* Status Text */}
                     <div style={{ 
                       fontSize: '11px', fontWeight: '600', display: 'inline-block', padding: '2px 8px', borderRadius: '10px',
                       color: teacher.profileCompleted ? '#166534' : '#92400e', 
@@ -150,7 +177,7 @@ const ManageTeachers = () => {
                     </div>
                   </div>
 
-                  {/* ✅ View Profile Button */}
+                  {/* View Profile Button */}
                   <button
                     onClick={() => {
                       if (teacher.profileCompleted) setSelectedTeacherId(teacher.uid);
@@ -172,7 +199,7 @@ const ManageTeachers = () => {
           )}
         </div>
 
-        {/* FAB Button to Add Teacher */}
+        {/* FAB Button - ORIGINAL */}
         <button
           onClick={() => setShowForm(true)}
           style={{
@@ -184,7 +211,7 @@ const ManageTeachers = () => {
           + ADD TEACHER
         </button>
 
-        {/* ✅ Profile View Modal */}
+        {/* Profile View Modal - ORIGINAL */}
         {selectedTeacherId && (
           <div
             style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.5)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
@@ -200,25 +227,90 @@ const ManageTeachers = () => {
           </div>
         )}
 
-        {/* Modal for Creating New Teacher Account */}
+        {/* Modal for Creating New Teacher Account - UPDATED: No password! */}
         {showForm && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '20px' }} onClick={() => setShowForm(false)}>
             <div style={{ background: 'white', borderRadius: '16px', padding: '32px', maxWidth: '500px', width: '100%', border: '4px solid #3b82f6' }} onClick={(e) => e.stopPropagation()}>
               <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '32px', textAlign: 'center' }}>ADD TEACHER</h2>
-              <form onSubmit={(e) => { createTeacher(e); setShowForm(false); }}>
+              
+              <form onSubmit={handleCreateTeacher}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '16px' }}>
-                  <input name="lastName" placeholder="Surname" value={newTeacher.lastName} onChange={handleInputChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
-                  <input name="firstName" placeholder="First Name" value={newTeacher.firstName} onChange={handleInputChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
+                  <input 
+                    name="lastName" 
+                    placeholder="Surname *" 
+                    value={newTeacher.lastName} 
+                    onChange={handleInputChange} 
+                    required 
+                    style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} 
+                  />
+                  <input 
+                    name="firstName" 
+                    placeholder="First Name *" 
+                    value={newTeacher.firstName} 
+                    onChange={handleInputChange} 
+                    required 
+                    style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} 
+                  />
                 </div>
-                <input name="email" type="email" placeholder="Email Address" value={newTeacher.email} onChange={handleInputChange} required style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', marginBottom: '16px' }} />
+                
+                <input 
+                  name="email" 
+                  type="email" 
+                  placeholder="Email Address *" 
+                  value={newTeacher.email} 
+                  onChange={handleInputChange} 
+                  required 
+                  style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', marginBottom: '16px', boxSizing: 'border-box' }} 
+                />
+
+                {/* Info box explaining activation - REPLACES password field */}
+                <div style={{
+                  backgroundColor: '#f0f9ff',
+                  border: '1px solid #bae6fd',
+                  borderRadius: '6px',
+                  padding: '12px',
+                  marginBottom: '16px',
+                  fontSize: '13px',
+                  color: '#0369a1'
+                }}>
+                  <strong>ℹ️ How it works:</strong>
+                  <p style={{ margin: '4px 0 0 0' }}>
+                    After creating the account, a QR code will appear. 
+                    The teacher can scan it to set up their password and complete their profile.
+                  </p>
+                </div>
+
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <button type="button" onClick={() => setShowForm(false)} style={{ flex: 1, padding: '12px', border: '1px solid #000', borderRadius: '6px', fontWeight: '700' }}>CANCEL</button>
-                  <button type="submit" style={{ flex: 1, padding: '12px', background: '#fbbf24', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '700' }}>CREATE ACCOUNT</button>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowForm(false)} 
+                    disabled={isCreating}
+                    style={{ flex: 1, padding: '12px', border: '1px solid #000', borderRadius: '6px', fontWeight: '700', background: 'white', cursor: 'pointer' }}
+                  >
+                    CANCEL
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={isCreating}
+                    style={{ flex: 1, padding: '12px', background: isCreating ? '#fcd34d' : '#fbbf24', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '700', cursor: isCreating ? 'not-allowed' : 'pointer' }}
+                  >
+                    {isCreating ? 'CREATING...' : 'CREATE ACCOUNT'}
+                  </button>
                 </div>
               </form>
             </div>
           </div>
         )}
+
+        {/* NEW: Activation Modal */}
+        <ActivationModal
+          isOpen={showActivationModal}
+          onClose={() => {
+            setShowActivationModal(false);
+            setNewUserData(null);
+          }}
+          userData={newUserData}
+        />
       </div>
     </div>
   );
