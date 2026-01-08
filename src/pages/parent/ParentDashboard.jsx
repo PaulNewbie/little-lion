@@ -319,14 +319,17 @@ const ParentDashboard = () => {
                           marginBottom: "10px",
                         }}
                       >
-                        🩺 Therapy Team
+                        🩺 Therapy & Teaching Team
                       </h4>
-                      {child.therapyServices?.length > 0 ? (
-                        child.therapyServices.map((s, i) => (
+                      
+                      {/* Change: Map over enrolledServices instead of therapyServices */}
+                      {child.enrolledServices?.length > 0 ? (
+                        child.enrolledServices.map((service, i) => (
                           <TherapistCard
                             key={i}
-                            therapistId={s.therapistId}
-                            serviceName={s.serviceName}
+                            /* Change: use service.staffId and service.serviceName */
+                            therapistId={service.staffId}
+                            serviceName={service.serviceName}
                           />
                         ))
                       ) : (
@@ -337,7 +340,7 @@ const ParentDashboard = () => {
                             fontSize: "14px",
                           }}
                         >
-                          None assigned.
+                          No staff or services assigned.
                         </p>
                       )}
                     </div>
