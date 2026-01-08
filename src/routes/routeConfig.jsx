@@ -1,4 +1,5 @@
-// src/routes/routeConfig.js
+// src/routes/routeConfig.jsx
+
 import React from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { QueryClient } from "@tanstack/react-query";
@@ -7,6 +8,8 @@ import { useAuth } from "../hooks/useAuth";
 // Auth Components
 import LandingPage from "../pages/auth/LandingPage";
 import ChangePassword from "../pages/auth/ChangePassword";
+import ActivatePage from "../pages/auth/ActivatePage";
+import AdminActivatePage from "../pages/auth/AdminActivatePage";
 
 // Admin Components
 import OneOnOne from "../pages/admin/OneOnOne";
@@ -16,6 +19,7 @@ import ManageTherapists from "../pages/admin/ManageTherapists";
 import EnrollStudent from "../pages/admin/enrollmentTabPages/EnrollStudent";
 import ManageAdmins from "../pages/admin/ManageAdmins";
 import StudentProfile from "../pages/admin/studentProfile/StudentProfile";
+import PendingAccounts from "../pages/admin/PendingAccounts";
 
 // Teacher Components
 import TeacherDashboard from "../pages/teacher/TeacherDashboard";
@@ -50,6 +54,10 @@ export const ROUTES = {
   LOGIN: "/login",
   CHANGE_PASSWORD: "/change-password",
   UNAUTHORIZED: "/unauthorized",
+  
+  // NEW: Activation routes (public)
+  ACTIVATE: "/activate",
+  ADMIN_ACTIVATE: "/admin-activate",
 
   ADMIN: {
     DASHBOARD: "/admin/dashboard",
@@ -60,6 +68,7 @@ export const ROUTES = {
     MANAGE_THERAPISTS: "/admin/manage-therapists",
     ENROLLMENT: "/admin/enrollment",
     MANAGE_ADMINS: "/admin/manage-admins",
+    PENDING_ACCOUNTS: "/admin/pending-accounts",
   },
 
   TEACHER: {
@@ -189,6 +198,12 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
     return <Navigate to={ROUTES.LOGIN} replace state={{ from: location }} />;
   }
 
+  // Check for pending activation (new system)
+  if (currentUser.accountStatus === 'pending_setup') {
+    return <Navigate to={ROUTES.ACTIVATE} replace />;
+  }
+
+  // Legacy: Check for mustChangePassword (old system - keep for backward compatibility)
   if (currentUser.mustChangePassword && location.pathname !== ROUTES.CHANGE_PASSWORD) {
     return <Navigate to={ROUTES.CHANGE_PASSWORD} replace />;
   }
@@ -214,6 +229,10 @@ export const AppRoutes = () => {
       <Route path={ROUTES.CHANGE_PASSWORD} element={<ChangePassword />} />
       <Route path="/" element={<AuthRedirect><LandingPage /></AuthRedirect>} />
       <Route path={ROUTES.LOGIN} element={<AuthRedirect><LandingPage /></AuthRedirect>} />
+      
+      {/* NEW: Activation Routes (Public - no auth required) */}
+      <Route path={ROUTES.ACTIVATE} element={<ActivatePage />} />
+      <Route path={ROUTES.ADMIN_ACTIVATE} element={<AdminActivatePage />} />
 
       {/* ADMIN ROUTES */}
       <Route path={ROUTES.ADMIN.DASHBOARD} element={<Navigate to={ROUTES.ADMIN.STUDENT_PROFILE} replace />} />
@@ -224,6 +243,7 @@ export const AppRoutes = () => {
       <Route path={ROUTES.ADMIN.MANAGE_THERAPISTS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><ManageTherapists /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.ENROLLMENT} element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><EnrollStudent /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.MANAGE_ADMINS} element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><ManageAdmins /></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.PENDING_ACCOUNTS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><PendingAccounts /></ProtectedRoute>} />
 
       {/* TEACHER ROUTES */}
       <Route path={ROUTES.TEACHER.DASHBOARD} element={<ProtectedRoute allowedRoles={[ROLES.TEACHER]}><TeacherDashboard /></ProtectedRoute>} />
