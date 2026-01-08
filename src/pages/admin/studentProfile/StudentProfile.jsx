@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../../hooks/useAuth";
 import AdminSidebar from "../../../components/sidebar/AdminSidebar";
+import ParentSidebar from "../../../components/sidebar/ParentSidebar";
 import GeneralFooter from "../../../components/footer/generalfooter";
 import childService from "../../../services/childService";
 import offeringsService from "../../../services/offeringsService";
@@ -11,11 +13,16 @@ import { useStudentProfileData } from "./hooks/useStudentProfileData";
 import AssessmentHistory from "../../shared/AssessmentHistory";
 import ActivityCalendar from "./components/ActivityCalendar";
 import Loading from "../../../components/common/Loading";
+import TherapistCard from "../../shared/TherapistCard";
 import "./StudentProfile.css";
 
-const StudentProfile = () => {
+const StudentProfile = ({ 
+  isParentView = false,
+  childIdFromRoute = null
+}) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   const studentIdFromEnrollment = location.state?.studentId;
   const fromEnrollment = location.state?.fromEnrollment;
@@ -40,11 +47,38 @@ const StudentProfile = () => {
 
   // 2. UI State
   const [viewMode, setViewMode] = useState(
-    selectedStudent ? "profile" : "list"
+    (studentIdFromEnrollment || selectedStudent || childIdFromRoute) ? "profile" : "list"
   );
   const [selectedService, setSelectedService] = useState("");
   const [showAssessment, setShowAssessment] = useState(false);
   const calendarRef = useRef(null);
+
+  // NEW: Auto-load child for parent view
+  useEffect(() => {
+    if (isParentView && childIdFromRoute && !selectedStudent) {
+      const loadChildForParent = async () => {
+        try {
+          const children = await childService.getChildrenByParentId(currentUser.uid);
+          const child = children.find(c => c.id === childIdFromRoute);
+          
+          if (!child) {
+            alert("Child not found or access denied");
+            navigate("/parent/dashboard");
+            return;
+          }
+          
+          setSelectedStudent(child);
+          setViewMode("profile");
+        } catch (error) {
+          console.error("Error loading child:", error);
+          alert("Failed to load child data");
+          navigate("/parent/dashboard");
+        }
+      };
+      
+      loadChildForParent();
+    }
+  }, [isParentView, childIdFromRoute, selectedStudent, currentUser, navigate, setSelectedStudent]);
 
   useEffect(() => {
     if (studentIdFromEnrollment && selectedStudent) {
@@ -57,7 +91,7 @@ const StudentProfile = () => {
   const { therapists } = useManageTherapists();
   const combinedStaff = [...(teachers || []), ...(therapists || [])];
 
-  // 4. Modal State
+  // 4. Modal State - Only for admin
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addServiceType, setAddServiceType] = useState(null);
   const [availableServices, setAvailableServices] = useState([]);
@@ -67,13 +101,19 @@ const StudentProfile = () => {
   // --- Handlers ---
   const handleSelectStudent = (student) => {
     setSelectedStudent(student);
-    // fetchStudentActivities(student.id); // ❌ REMOVED: React Query handles this now
     setViewMode("profile");
     setShowAssessment(false);
     setSelectedService("");
   };
 
   const handleBack = () => {
+    // NEW: Parent-specific navigation
+    if (isParentView) {
+      navigate("/parent/dashboard");
+      return;
+    }
+
+    // Existing admin logic
     if (location.state?.fromOneOnOne) {
       navigate("/admin/one-on-one", {
         state: { ...location.state, level: "students" },
@@ -100,13 +140,14 @@ const StudentProfile = () => {
     }, 100);
   };
 
+  // Admin-only: Add service functionality
   const handleOpenAddModal = async (type) => {
+    if (isParentView) return; // Parents can't add services
+    
     setAddServiceType(type);
     setAddForm({ serviceId: "", staffId: "" });
     try {
       const services = await offeringsService.getServicesByType(type);
-
-      // Only use interventions from the assessment data
       const interventionsFromAssessment =
         assessmentData?.backgroundHistory?.interventions || [];
 
@@ -116,7 +157,6 @@ const StudentProfile = () => {
         ),
       ];
 
-      // Exclude services that are already enrolled on this child
       const enrolledServiceIds = new Set(
         (selectedStudent?.enrolledServices || []).map((es) => es.serviceId)
       );
@@ -127,7 +167,6 @@ const StudentProfile = () => {
 
       if (filteredServices.length === 0) {
         setAvailableServices([]);
-        // Notify admin in case there are no matching services
         alert(
           "No services match the student's recorded interventions. Please review Step IV - Background History."
         );
@@ -151,8 +190,6 @@ const StudentProfile = () => {
       );
       const isTherapy = addServiceType === "Therapy";
       const staffList = isTherapy ? therapists : teachers;
-
-      // Fix Key Warning: Use uid OR id
       const staffObj = staffList.find(
         (s) => (s.uid || s.id) === addForm.staffId
       );
@@ -166,11 +203,7 @@ const StudentProfile = () => {
         staffRole: isTherapy ? "therapist" : "teacher",
       };
 
-      // 1. Assign to Student
       await childService.assignService(selectedStudent.id, assignData);
-
-      // ✅ 2. UPDATE STAFF SPECIALIZATION (The Fix)
-      // This ensures the staff member "learns" this skill in the database
       await userService.addSpecialization(addForm.staffId, serviceObj.name);
 
       await refreshData();
@@ -218,19 +251,27 @@ const StudentProfile = () => {
     );
   };
 
+  // Filter students for parent view
+  const effectiveFilteredStudents = isParentView
+    ? filteredStudents.filter((s) => s.parentId === currentUser.uid)
+    : filteredStudents;
+
+  // NEW: Determine which sidebar to use
+  const SidebarComponent = isParentView ? ParentSidebar : AdminSidebar;
+
   return (
     <div className="sp-container">
-      <AdminSidebar />
+      <SidebarComponent />
       <div className="sp-main">
         <div className="sp-page">
-          {/* === VIEW 1: LIST === */}
+          {/* === VIEW 1: LIST (Admin only) === */}
           {viewMode === "list" && (
             <>
               <div className="sp-header">
                 <div className="header-title">
-                  <h1>STUDENT PROFILES</h1>
+                  <h1>{isParentView ? "MY CHILDREN" : "STUDENT PROFILES"}</h1>
                   <p className="header-subtitle">
-                    Manage enrolled students and view activities
+                    {isParentView ? "View your children's profiles and activities" : "Manage enrolled students and view activities"}
                   </p>
                 </div>
                 <div className="filter-actions">
@@ -259,7 +300,7 @@ const StudentProfile = () => {
 
               <div className="sp-content-area">
                 <div className="sp-grid">
-                  {filteredStudents.map((student) => (
+                  {effectiveFilteredStudents.map((student) => (
                     <div
                       key={student.id}
                       className="sp-card"
@@ -298,13 +339,17 @@ const StudentProfile = () => {
                   <span className="back-arrow" onClick={handleBack}>
                     ‹
                   </span>
-                  <h2>STUDENT PROFILE</h2>
+                  <h2>
+                    {isParentView 
+                      ? `${selectedStudent.firstName}'S PROFILE` 
+                      : "STUDENT PROFILE"
+                    }
+                  </h2>
                 </div>
               </div>
 
               <div className="profile-3col">
                 <div className="profile-photo-frame">
-                  {/* ✅ FIX IMAGE WARNING: Handle empty src */}
                   {selectedStudent.photoUrl ? (
                     <img
                       src={selectedStudent.photoUrl}
@@ -382,10 +427,6 @@ const StudentProfile = () => {
                         <span style={{ fontSize: "1.1em" }}>👪</span>{" "}
                         <b>Guardian:</b> {parentData.firstName}{" "}
                         {parentData.lastName}
-                        <span style={{ color: "#777", fontSize: "0.9em" }}>
-                          {" "}
-                          {/* ({selectedStudent.relationshipToClient || "Parent"}) */}
-                        </span>
                       </p>
                       <div
                         style={{
@@ -445,21 +486,32 @@ const StudentProfile = () => {
                       }}
                     >
                       <h2 className="services-header">Therapy Services</h2>
-                      <button onClick={() => handleOpenAddModal("Therapy")}>
-                        + Add
-                      </button>
+                      {/* NEW: Hide Add button for parents */}
+                      {!isParentView && (
+                        <button onClick={() => handleOpenAddModal("Therapy")}>
+                          + Add
+                        </button>
+                      )}
                     </div>
                     <div className="services-list">
                       {therapyServices.map((s, i) => (
-                        <div
-                          key={i}
-                          className={`service-row clickable ${
-                            selectedService === s.serviceName ? "active" : ""
-                          }`}
-                          onClick={() => handleServiceClick(s.serviceName)}
-                        >
-                          <div className="service-left">🧠 {s.serviceName}</div>
-                          <div>{s.staffName}</div>
+                        <div key={i}>
+                          <div
+                            className={`service-row clickable ${
+                              selectedService === s.serviceName ? "active" : ""
+                            }`}
+                            onClick={() => handleServiceClick(s.serviceName)}
+                          >
+                            <div className="service-left">🧠 {s.serviceName}</div>
+                            <div>{s.staffName}</div>
+                          </div>
+                          {/* NEW: Show TherapistCard for parents
+                          {isParentView && (
+                            <TherapistCard
+                              therapistId={s.staffId}
+                              serviceName={s.serviceName}
+                            />
+                          )} */}
                         </div>
                       ))}
                     </div>
@@ -473,9 +525,12 @@ const StudentProfile = () => {
                       }}
                     >
                       <h2 className="services-header">Group Classes</h2>
-                      <button onClick={() => handleOpenAddModal("Class")}>
-                        + Add
-                      </button>
+                      {/* NEW: Hide Add button for parents */}
+                      {!isParentView && (
+                        <button onClick={() => handleOpenAddModal("Class")}>
+                          + Add
+                        </button>
+                      )}
                     </div>
                     <div className="services-list">
                       {groupServices.map((s, i) => (
@@ -512,10 +567,12 @@ const StudentProfile = () => {
             </div>
           )}
 
-          <GeneralFooter pageLabel="Student Profile" />
+          <GeneralFooter pageLabel={isParentView ? "Child Profile" : "Student Profile"} />
         </div>
       </div>
-      {isAddModalOpen && (
+      
+      {/* Admin-only Add Service Modal */}
+      {!isParentView && isAddModalOpen && (
         <div className="add-service-overlay">
           <div className="add-service-modal">
             <h3>Enroll in {addServiceType}</h3>
