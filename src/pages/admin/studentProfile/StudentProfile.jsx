@@ -51,11 +51,12 @@ const StudentProfile = ({
   );
   const [selectedService, setSelectedService] = useState("");
   const [showAssessment, setShowAssessment] = useState(false);
+  const [ignoreRouteChild, setIgnoreRouteChild] = useState(false);
   const calendarRef = useRef(null);
 
   // NEW: Auto-load child for parent view
   useEffect(() => {
-    if (isParentView && childIdFromRoute && !selectedStudent) {
+    if (isParentView && childIdFromRoute && !selectedStudent && !ignoreRouteChild) {
       const loadChildForParent = async () => {
         try {
           const children = await childService.getChildrenByParentId(currentUser.uid);
@@ -78,7 +79,7 @@ const StudentProfile = ({
       
       loadChildForParent();
     }
-  }, [isParentView, childIdFromRoute, selectedStudent, currentUser, navigate, setSelectedStudent]);
+  }, [isParentView, childIdFromRoute, selectedStudent, currentUser, navigate, setSelectedStudent, ignoreRouteChild]);
 
   useEffect(() => {
     if (studentIdFromEnrollment && selectedStudent) {
@@ -107,9 +108,11 @@ const StudentProfile = ({
   };
 
   const handleBack = () => {
-    // NEW: Parent-specific navigation
+    // NEW: Parent-specific navigation - return to list view instead of navigating away
     if (isParentView) {
-      navigate("/parent/dashboard");
+      setIgnoreRouteChild(true);
+      setSelectedStudent(null);
+      setViewMode("list");
       return;
     }
 
