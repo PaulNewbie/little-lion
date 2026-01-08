@@ -6,13 +6,13 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
 
   const merged = { ...(childData || {}), ...(assessmentData || {}) };
 
-  const {
+ const {
     reasonForReferral,
     purposeOfAssessment,
     backgroundHistory,
     behaviorDuringAssessment,
-    assessmentTools,
-    assessmentSummary,
+    assessmentTools, 
+    assessmentSummary, 
     examiner,
     assessmentDates,
     ageAtAssessment,
@@ -51,31 +51,43 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
       <section className="report-section">
         <h3 className="report-heading">III. PURPOSE OF ASSESSMENT</h3>
         {purposeOfAssessment && purposeOfAssessment.length > 0 ? (
-          <ul className="report-list">
+          <ol className="report-list">
             {purposeOfAssessment.map((purpose, i) => (
               <li key={i}>{purpose}</li>
             ))}
-          </ul>
+          </ol>
         ) : (
           <p className="report-text">No purpose listed.</p>
         )}
       </section>
 
       <section className="report-section">
-        <h3 className="report-heading">IV. BACKGROUND HISTORY</h3>
+       <h3 className="report-heading">IV. BACKGROUND HISTORY</h3>
+
         <div className="sub-section">
-          <h4>A. Family Background</h4>
+          <h4>Family Background:</h4>
           <p className="report-text">{bg.familyBackground || "N/A"}</p>
         </div>
+
         <div className="sub-section">
-          <h4>B. Medical History</h4>
+          <h4>Family Relationships:</h4>
+          <p className="report-text">{bg.familyRelationships || "N/A"}</p>
+        </div>
+
+        <div className="sub-section">
+          <h4>Daily Life & Activities:</h4>
+          <p className="report-text">{bg.dailyLifeActivities || "N/A"}</p>
+        </div>
+
+        <div className="sub-section">
+          <h4>Medical History:</h4>
           <p className="report-text">{bg.medicalHistory || "N/A"}</p>
         </div>
+
         <div className="sub-section">
-          <h4>C. Developmental History</h4>
-          {bg.developmentalBackground &&
-          bg.developmentalBackground.length > 0 ? (
-            <ul className="report-list">
+          <h4>Developmental Background:</h4>
+          {bg.developmentalBackground && bg.developmentalBackground.length > 0 ? (
+            <ul className="report-list bulleted">
               {bg.developmentalBackground.map((item, i) => (
                 <li key={i}>
                   <strong>{item.devBgTitle}:</strong> {item.devBgInfo}
@@ -86,13 +98,50 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
             <p className="report-text">N/A</p>
           )}
         </div>
+
         <div className="sub-section">
-          <h4>D. School History</h4>
+          <h4>School History:</h4>
           <p className="report-text">{bg.schoolHistory || "N/A"}</p>
         </div>
+
         <div className="sub-section">
-          <h4>E. Clinical Diagnosis</h4>
+          <h4>Clinical Diagnosis:</h4>
           <p className="report-text">{bg.clinicalDiagnosis || "N/A"}</p>
+        </div>
+
+        <div className="sub-section">
+          <h4>Therapies/Interventions:</h4>
+          {bg.interventions && bg.interventions.length > 0 ? (
+            <ul className="report-list bulleted">
+              {bg.interventions.map((item, i) => {
+                if (!item) return (
+                  <li key={i} className="report-text">N/A</li>
+                );
+                if (typeof item === "string") return <li key={i}>{item}</li>;
+
+                const name = item.name || item.serviceName || item.serviceId || "Unnamed intervention";
+                const freq = item.frequency ? ` — ${item.frequency}` : "";
+
+                return (
+                  <li key={i}>
+                    <strong>{name}</strong>{freq}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="report-text">N/A</p>
+          )}
+        </div>
+
+        <div className="sub-section">
+          <h4>Strengths & Interests:</h4>
+          <p className="report-text">{bg.strengthsAndInterests || "N/A"}</p>
+        </div>
+
+        <div className="sub-section">
+          <h4>Social Skills:</h4>
+          <p className="report-text">{bg.socialSkills || "N/A"}</p>
         </div>
       </section>
 
@@ -103,24 +152,23 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
         </p>
       </section>
 
-      <section className="report-section">
-        <h3 className="report-heading">VI & VII. ASSESSMENT TOOLS & RESULTS</h3>
+      {/* JOINED SECTION VI, VII, & VIII */}
+      <section className="report-section assessment-results-joined">
+        <h3 className="report-heading">VI, VII, & VIII. ASSESSMENT TOOLS & MEASURES, RESULTS, RECOMMENDATIONS, & SUMMARY</h3>
+        
+        {/* Mapping Tools and Results (VI & VII) */}
         {assessmentTools && assessmentTools.length > 0 ? (
           <div className="tools-list">
             {assessmentTools.map((item, index) => (
               <div key={index} className="tool-card">
                 <div className="tool-header">
-                  <span className="tool-index">
-                    {String.fromCharCode(65 + index)}.
-                  </span>
+                  <span className="tool-index">{String.fromCharCode(65 + index)}.</span>
                   <h4>{item.tool}</h4>
                 </div>
                 <div className="tool-body">
-                  <p>
-                    <strong>Details:</strong> {item.details}
-                  </p>
+                  <p><strong>Measure:</strong> {item.details}</p>
                   <div className="result-box">
-                    <strong>Findings:</strong>
+                    <strong>Results:</strong>
                     <p>{item.result || "No results recorded."}</p>
                   </div>
                   {item.recommendation && (
@@ -136,13 +184,16 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
         ) : (
           <p className="report-text">No assessment tools recorded.</p>
         )}
-      </section>
 
-      <section className="report-section">
-        <h3 className="report-heading">VIII. SUMMARY AND RECOMMENDATIONS</h3>
-        <p className="report-text">
-          {assessmentSummary || "No summary provided."}
-        </p>
+        {/* Final Summary and Recommendations (VIII) */}
+        <div className="summary-final-section">
+          <h4 className="summary-title">SUMMARY</h4>
+          <div className="summary-content-box">
+            <p className="report-text">
+              {assessmentSummary || "No overall summary provided."}
+            </p>
+          </div>
+        </div>
       </section>
     </div>
   );

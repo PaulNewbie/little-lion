@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../../hooks/useAuth";
 import AdminSidebar from "../../../components/sidebar/AdminSidebar";
+import ParentSidebar from "../../../components/sidebar/ParentSidebar";
 import GeneralFooter from "../../../components/footer/generalfooter";
 import childService from "../../../services/childService";
 import offeringsService from "../../../services/offeringsService";
@@ -11,11 +13,23 @@ import { useStudentProfileData } from "./hooks/useStudentProfileData";
 import AssessmentHistory from "../../shared/AssessmentHistory";
 import ActivityCalendar from "./components/ActivityCalendar";
 import Loading from "../../../components/common/Loading";
+import TherapistCard from "../../shared/TherapistCard";
 import "./StudentProfile.css";
 
-const StudentProfile = () => {
+const StudentProfile = ({ 
+  isParentView = false,
+  childIdFromRoute = null,
+  hideSidebar = false,
+  noContainer = false,
+}) => {
+  useEffect(() => {
+    console.log("StudentProfile mounted", { isParentView, childIdFromRoute, hideSidebar, noContainer });
+    return () => console.log("StudentProfile unmounted");
+  }, [isParentView, childIdFromRoute, hideSidebar, noContainer]);
+
   const location = useLocation();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   const studentIdFromEnrollment = location.state?.studentId;
   const fromEnrollment = location.state?.fromEnrollment;
@@ -40,11 +54,39 @@ const StudentProfile = () => {
 
   // 2. UI State
   const [viewMode, setViewMode] = useState(
-    selectedStudent ? "profile" : "list"
+    (studentIdFromEnrollment || selectedStudent || childIdFromRoute) ? "profile" : "list"
   );
   const [selectedService, setSelectedService] = useState("");
   const [showAssessment, setShowAssessment] = useState(false);
+  const [ignoreRouteChild, setIgnoreRouteChild] = useState(false);
   const calendarRef = useRef(null);
+
+  // Auto-load child for parent view
+  useEffect(() => {
+    if (isParentView && childIdFromRoute && !selectedStudent && !ignoreRouteChild) {
+      const loadChildForParent = async () => {
+        try {
+          const children = await childService.getChildrenByParentId(currentUser.uid);
+          const child = children.find(c => c.id === childIdFromRoute);
+          
+          if (!child) {
+            alert("Child not found or access denied");
+            navigate("/parent/dashboard");
+            return;
+          }
+          
+          setSelectedStudent(child);
+          setViewMode("profile");
+        } catch (error) {
+          console.error("Error loading child:", error);
+          alert("Failed to load child data");
+          navigate("/parent/dashboard");
+        }
+      };
+      
+      loadChildForParent();
+    }
+  }, [isParentView, childIdFromRoute, selectedStudent, currentUser, navigate, setSelectedStudent, ignoreRouteChild]);
 
   useEffect(() => {
     if (studentIdFromEnrollment && selectedStudent) {
@@ -57,7 +99,7 @@ const StudentProfile = () => {
   const { therapists } = useManageTherapists();
   const combinedStaff = [...(teachers || []), ...(therapists || [])];
 
-  // 4. Modal State
+  // 4. Modal State - Only for admin
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addServiceType, setAddServiceType] = useState(null);
   const [availableServices, setAvailableServices] = useState([]);
@@ -67,13 +109,21 @@ const StudentProfile = () => {
   // --- Handlers ---
   const handleSelectStudent = (student) => {
     setSelectedStudent(student);
-    // fetchStudentActivities(student.id); // ❌ REMOVED: React Query handles this now
     setViewMode("profile");
     setShowAssessment(false);
     setSelectedService("");
   };
 
   const handleBack = () => {
+    // Parent-specific navigation - return to list view instead of navigating away
+    if (isParentView) {
+      setIgnoreRouteChild(true);
+      setSelectedStudent(null);
+      setViewMode("list");
+      return;
+    }
+
+    // Existing admin logic
     if (location.state?.fromOneOnOne) {
       navigate("/admin/one-on-one", {
         state: { ...location.state, level: "students" },
@@ -100,13 +150,14 @@ const StudentProfile = () => {
     }, 100);
   };
 
+  // Admin-only: Add service functionality
   const handleOpenAddModal = async (type) => {
+    if (isParentView) return; // Parents can't add services
+    
     setAddServiceType(type);
     setAddForm({ serviceId: "", staffId: "" });
     try {
       const services = await offeringsService.getServicesByType(type);
-
-      // Only use interventions from the assessment data
       const interventionsFromAssessment =
         assessmentData?.backgroundHistory?.interventions || [];
 
@@ -116,7 +167,6 @@ const StudentProfile = () => {
         ),
       ];
 
-      // Exclude services that are already enrolled on this child
       const enrolledServiceIds = new Set(
         (selectedStudent?.enrolledServices || []).map((es) => es.serviceId)
       );
@@ -127,7 +177,6 @@ const StudentProfile = () => {
 
       if (filteredServices.length === 0) {
         setAvailableServices([]);
-        // Notify admin in case there are no matching services
         alert(
           "No services match the student's recorded interventions. Please review Step IV - Background History."
         );
@@ -151,8 +200,6 @@ const StudentProfile = () => {
       );
       const isTherapy = addServiceType === "Therapy";
       const staffList = isTherapy ? therapists : teachers;
-
-      // Fix Key Warning: Use uid OR id
       const staffObj = staffList.find(
         (s) => (s.uid || s.id) === addForm.staffId
       );
@@ -166,11 +213,7 @@ const StudentProfile = () => {
         staffRole: isTherapy ? "therapist" : "teacher",
       };
 
-      // 1. Assign to Student
       await childService.assignService(selectedStudent.id, assignData);
-
-      // ✅ 2. UPDATE STAFF SPECIALIZATION (The Fix)
-      // This ensures the staff member "learns" this skill in the database
       await userService.addSpecialization(addForm.staffId, serviceObj.name);
 
       await refreshData();
@@ -183,8 +226,9 @@ const StudentProfile = () => {
     }
   };
 
-  if (loading)
+  if (loading) {
     return <div className="loading-spinner">Loading Student Data...</div>;
+  }
 
   const calculateAge = (dob) => {
     if (!dob) return "N/A";
@@ -218,270 +262,253 @@ const StudentProfile = () => {
     );
   };
 
-  return (
-    <div className="sp-container">
-      <AdminSidebar />
-      <div className="sp-main">
-        <div className="sp-page">
-          {/* === VIEW 1: LIST === */}
-          {viewMode === "list" && (
-            <>
-              <div className="sp-header">
-                <div className="header-title">
-                  <h1>STUDENT PROFILES</h1>
-                  <p className="header-subtitle">
-                    Manage enrolled students and view activities
-                  </p>
-                </div>
-                <div className="filter-actions">
-                  <div className="search-wrapper">
-                    <span className="search-icon">🔍</span>
-                    <input
-                      className="sp-search"
-                      placeholder="Search by name..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  <div className="filter-wrapper">
-                    <select
-                      className="sp-filter-select"
-                      value={filterType}
-                      onChange={(e) => setFilterType(e.target.value)}
-                    >
-                      <option value="all">All Students</option>
-                      <option value="therapy">Therapy Only</option>
-                      <option value="group">Group Class Only</option>
-                    </select>
-                  </div>
-                </div>
+  // Filter students for parent view
+  const effectiveFilteredStudents = isParentView
+    ? filteredStudents.filter((s) => s.parentId === currentUser.uid)
+    : filteredStudents;
+
+  // Determine which sidebar to use
+  const SidebarComponent = isParentView ? ParentSidebar : AdminSidebar;
+
+  const mainContent = (
+    <div className="sp-main">
+      <div className="sp-page">
+        {/* === VIEW 1: LIST === */}
+        {viewMode === "list" && (
+          <>
+            <div className="sp-header">
+              <div className="header-title">
+                <h1>{isParentView ? "MY CHILDREN" : "STUDENT PROFILES"}</h1>
+                <p className="header-subtitle">
+                  {isParentView 
+                    ? "View your children's profiles and activities" 
+                    : "Manage enrolled students and view activities"
+                  }
+                </p>
               </div>
-
-              <div className="sp-content-area">
-                <div className="sp-grid">
-                  {filteredStudents.map((student) => (
-                    <div
-                      key={student.id}
-                      className="sp-card"
-                      onClick={() => handleSelectStudent(student)}
-                    >
-                      <div className="sp-card-image-box">
-                        {student.photoUrl ? (
-                          <img
-                            src={student.photoUrl}
-                            className="sp-photo"
-                            alt=""
-                          />
-                        ) : (
-                          <div className="sp-photo-placeholder">
-                            {student.firstName[0]}
-                          </div>
-                        )}
-                      </div>
-                      <div className="sp-card-body">
-                        <h3 className="sp-name">
-                          {student.firstName} {student.lastName}
-                        </h3>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* === VIEW 2: PROFILE === */}
-          {viewMode === "profile" && selectedStudent && (
-            <div className="profile-wrapper">
-              <div className="profile-top">
-                <div className="left-group">
-                  <span className="back-arrow" onClick={handleBack}>
-                    ‹
-                  </span>
-                  <h2>STUDENT PROFILE</h2>
-                </div>
-              </div>
-
-              <div className="profile-3col">
-                <div className="profile-photo-frame">
-                  {/* ✅ FIX IMAGE WARNING: Handle empty src */}
-                  {selectedStudent.photoUrl ? (
-                    <img
-                      src={selectedStudent.photoUrl}
-                      className="profile-photo"
-                      alt="profile"
-                    />
-                  ) : (
-                    <div
-                      className="profile-photo-placeholder"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "3rem",
-                        background: "#eee",
-                      }}
-                    >
-                      {selectedStudent.firstName[0]}
-                    </div>
-                  )}
-                </div>
-
-                <div className="profile-info">
-                  <h1 className="profile-fullname">
-                    {selectedStudent.lastName}, {selectedStudent.firstName}
-                  </h1>
-
-                  {/* Order of data to follow Word Docu of Mam Phoebe
-                  Name:				Zed Yuan L. De Leon
-                  Nickname: 		          	 	Zed
-                  Address: 	Dalandanan, Valenzuela City
-                  Date of Birth:			December 8, 2019
-                  Age:					5.8
-                  Gender: 				Male
-                  School:	Headway School for Giftedness & Little Lions Learning and Development Center
-                  --
-                  Grade Level:	Kindergarten
-                  Date/s of Assessment:		August 21, 2025	
-                  Examiner:				Dianne Phoebe Kaye L. De Leon */}
-
-
-                  <div className="profile-details">
-                    <div className="profile-left">
-                      {/* <p>
-                        //I remove this one, because there's no "medical" info inputs for child from the word docu of mam Phoebe.
-                        <span className="icon">🏥</span> <b>Medical:</b>{" "}
-                        {selectedStudent.medicalInfo || "None"}
-                      </p> */}
-                      <p>
-                        <span className="icon">📍</span> <b>Nickname:</b>{" "}
-                        {selectedStudent.nickname || "N/A"}
-                      </p>
-                      <p>
-                        <span className="icon">📍</span> <b>Address:</b>{" "}
-                        {selectedStudent.address || "N/A"}
-                      </p>
-                      <p>
-                        <span className="icon">📍</span> <b>Date of Birth:</b>{" "}
-                        {selectedStudent.dateOfBirth || "N/A"}
-                      </p>
-                       <p>
-                        <span className="icon">📍</span> <b>Current Age:</b>{" "}
-                        {calculateAge(selectedStudent.dateOfBirth) || "N/A"}
-                        {/* to fix */}
-                      </p>
-
-                      {/* <p>
-                        <span className="icon">📍</span> <b>Grade Level:</b>{" "}
-                        {selectedStudent.gradeLevel || "N/A"}
-                      </p>
-                      <p>
-                        <span className="icon">🎓</span> <b>School:</b>{" "}
-                        {selectedStudent.school || "N/A"}
-                      </p> */}
-                    </div>
-                    <div className="profile-right">
-                      {/* <p>
-                        <b>Birthdate: {selectedStudent.dateOfBirth || "N/A"}</b>
-                      </p> */}
-                      <p>
-                        <b>Age:</b> {calculateAge(selectedStudent.dateOfBirth)}
-                      </p>
-                      <p>
-                        <b>Gender:</b> {selectedStudent.gender}
-                      </p>
-                      <p>
-                        <b>Relationship to Guardian:</b> {selectedStudent.relationshipToClient || "N/A"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {parentData && (
-                    <div
-                      style={{
-                        marginTop: "15px",
-                        paddingTop: "15px",
-                        borderTop: "1px solid #eee",
-                        fontSize: "0.95rem",
-                      }}
-                    >
-                      <p style={{ marginBottom: "5px" }}>
-                        <span style={{ fontSize: "1.1em" }}>👪</span>{" "}
-                        <b>Guardian:</b> {parentData.firstName}{" "}
-                        {parentData.lastName}
-                        <span style={{ color: "#777", fontSize: "0.9em" }}>
-                          {" "}
-                          {/* ({selectedStudent.relationshipToClient || "Parent"}) */}
-                        </span>
-                      </p>
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "15px",
-                          flexWrap: "wrap",
-                          color: "#555",
-                        }}
-                      >
-                        <span>📧 {parentData.email}</span>
-                        <span>📞 {parentData.phone}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div style={{ marginTop: "20px" }}>
-                    <button
-                      className="see-more-btn"
-                      style={{
-                        padding: "10px 20px",
-                        background: showAssessment ? "#e0e0e0" : "#4a90e2",
-                        color: showAssessment ? "#333" : "white",
-                        border: "none",
-                        borderRadius: "6px",
-                        cursor: "pointer",
-                        fontWeight: "bold",
-                      }}
-                      onClick={() => setShowAssessment(!showAssessment)}
-                    >
-                      {showAssessment
-                        ? "Hide Assessment History"
-                        : "See Assessment History"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {showAssessment &&
-                (isAssessmentLoading ? (
-                  <Loading />
-                ) : (
-                  <AssessmentHistory
-                    childData={selectedStudent}
-                    assessmentData={assessmentData}
+              <div className="filter-actions">
+                <div className="search-wrapper">
+                  <span className="search-icon">🔍</span>
+                  <input
+                    className="sp-search"
+                    placeholder="Search by name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
+                </div>
+                <div className="filter-wrapper">
+                  <select
+                    className="sp-filter-select"
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value)}
+                  >
+                    <option value="all">All Students</option>
+                    <option value="therapy">Therapy Only</option>
+                    <option value="group">Group Class Only</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="sp-content-area">
+              <div className="sp-grid">
+                {effectiveFilteredStudents.map((student) => (
+                  <div
+                    key={student.id}
+                    className="sp-card"
+                    onClick={() => handleSelectStudent(student)}
+                  >
+                    <div className="sp-card-image-box">
+                      {student.photoUrl ? (
+                        <img
+                          src={student.photoUrl}
+                          className="sp-photo"
+                          alt=""
+                        />
+                      ) : (
+                        <div className="sp-photo-placeholder">
+                          {student.firstName[0]}
+                        </div>
+                      )}
+                    </div>
+                    <div className="sp-card-body">
+                      <h3 className="sp-name">
+                        {student.firstName} {student.lastName}
+                      </h3>
+                    </div>
+                  </div>
                 ))}
-              <div
-                className="profile-content-scroll"
-                style={{ marginTop: "30px" }}
-              >
-                <div className="services-split-row">
-                  <div className="content-section">
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* === VIEW 2: PROFILE === */}
+        {viewMode === "profile" && selectedStudent && (
+          <div className="profile-wrapper">
+            <div className="profile-top">
+              <div className="left-group">
+                <span className="back-arrow" onClick={handleBack}>
+                  ‹
+                </span>
+                <h2>
+                  {isParentView 
+                    ? `${selectedStudent.firstName}'S PROFILE` 
+                    : "STUDENT PROFILE"
+                  }
+                </h2>
+              </div>
+            </div>
+
+            <div className="profile-3col">
+              <div className="profile-photo-frame">
+                {selectedStudent.photoUrl ? (
+                  <img
+                    src={selectedStudent.photoUrl}
+                    className="profile-photo"
+                    alt="profile"
+                  />
+                ) : (
+                  <div
+                    className="profile-photo-placeholder"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "3rem",
+                      background: "#eee",
+                    }}
+                  >
+                    {selectedStudent.firstName[0]}
+                  </div>
+                )}
+              </div>
+
+              <div className="profile-info">
+                <h1 className="profile-fullname">
+                  {selectedStudent.lastName}, {selectedStudent.firstName}
+                </h1>
+                <div className="profile-details">
+                  <div className="profile-left">
+                    <p>
+                      <span className="icon">🧒</span> <b>Nickname:</b>{" "}
+                      {selectedStudent.nickname || "N/A"}
+                    </p>
+                    <p>
+                      <span className="icon">🏠</span> <b>Address:</b>{" "}
+                      {selectedStudent.address || "N/A"}
+                    </p>
+                    <p>
+                      <span className="icon">🎂</span> <b>Date of Birth:</b>{" "}
+                      {selectedStudent.dateOfBirth || "N/A"}
+                    </p>
+                    <p>
+                      <span className="icon">📅</span> <b>Current Age:</b>{" "}
+                      {calculateAge(selectedStudent.dateOfBirth) ?? "N/A"}
+                    </p>
+                  </div>
+
+                  <div className="profile-right">
+                    <p>
+                      <span className="icon">🚻</span> <b>Gender:</b>{" "}
+                      {selectedStudent.gender || "N/A"}
+                    </p>
+                    <p>
+                      <span className="icon">🏫</span> <b>School:</b>{" "}
+                      {selectedStudent.school || "N/A"}
+                    </p>
+                    <p>
+                      <span className="icon">👨‍👩‍👧</span> <b>Relationship to Guardian:</b>{" "}
+                      {selectedStudent.relationshipToClient || "N/A"}
+                    </p>
+                  </div>
+                </div>
+
+                {parentData && (
+                  <div
+                    style={{
+                      marginTop: "15px",
+                      paddingTop: "15px",
+                      borderTop: "1px solid #eee",
+                      fontSize: "0.95rem",
+                    }}
+                  >
+                    <p style={{ marginBottom: "5px" }}>
+                      <span style={{ fontSize: "1.1em" }}>👪</span>{" "}
+                      <b>Guardian:</b> {parentData.firstName}{" "}
+                      {parentData.lastName}
+                    </p>
                     <div
                       style={{
                         display: "flex",
-                        justifyContent: "space-between",
+                        gap: "15px",
+                        flexWrap: "wrap",
+                        color: "#555",
                       }}
                     >
-                      <h2 className="services-header">Therapy Services</h2>
+                      <span>📧 {parentData.email}</span>
+                      <span>📞 {parentData.phone}</span>
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ marginTop: "20px" }}>
+                  <button
+                    className="see-more-btn"
+                    style={{
+                      padding: "10px 20px",
+                      background: showAssessment ? "#e0e0e0" : "#4a90e2",
+                      color: showAssessment ? "#333" : "white",
+                      border: "none",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      fontWeight: "bold",
+                    }}
+                    onClick={() => setShowAssessment(!showAssessment)}
+                  >
+                    {showAssessment
+                      ? "Hide Assessment History"
+                      : "See Assessment History"}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {showAssessment &&
+              (isAssessmentLoading ? (
+                <Loading />
+              ) : (
+                <AssessmentHistory
+                  childData={selectedStudent}
+                  assessmentData={assessmentData}
+                />
+              ))}
+
+            <div
+              className="profile-content-scroll"
+              style={{ marginTop: "30px" }}
+            >
+              <div className="services-split-row">
+                <div className="content-section">
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <h2 className="services-header">Therapy Services</h2>
+                    {!isParentView && (
                       <button onClick={() => handleOpenAddModal("Therapy")}>
                         + Add
                       </button>
-                    </div>
-                    <div className="services-list">
-                      {therapyServices.map((s, i) => (
+                    )}
+                  </div>
+                  <div className="services-list">
+                    {therapyServices.map((s, i) => (
+                      <div key={i}>
                         <div
-                          key={i}
                           className={`service-row clickable ${
                             selectedService === s.serviceName ? "active" : ""
                           }`}
@@ -490,61 +517,65 @@ const StudentProfile = () => {
                           <div className="service-left">🧠 {s.serviceName}</div>
                           <div>{s.staffName}</div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="content-section">
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <h2 className="services-header">Group Classes</h2>
-                      <button onClick={() => handleOpenAddModal("Class")}>
-                        + Add
-                      </button>
-                    </div>
-                    <div className="services-list">
-                      {groupServices.map((s, i) => (
-                        <div
-                          key={i}
-                          className={`service-row clickable ${
-                            selectedService === s.serviceName ? "active" : ""
-                          }`}
-                          onClick={() => handleServiceClick(s.serviceName)}
-                        >
-                          <div className="service-left">👥 {s.serviceName}</div>
-                          <div>{s.staffName}</div>
-                        </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                {selectedService && (
-                  <div ref={calendarRef}>
-                    <ActivityCalendar
-                      activities={studentActivities.filter(
-                        (a) =>
-                          a.serviceName === selectedService ||
-                          a.serviceType === selectedService ||
-                          a.className === selectedService
-                      )}
-                      teachers={combinedStaff}
-                      selectedServiceName={selectedService}
-                    />
+                <div className="content-section">
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <h2 className="services-header">Group Classes</h2>
+                    {!isParentView && (
+                      <button onClick={() => handleOpenAddModal("Class")}>
+                        + Add
+                      </button>
+                    )}
                   </div>
-                )}
+                  <div className="services-list">
+                    {groupServices.map((s, i) => (
+                      <div
+                        key={i}
+                        className={`service-row clickable ${
+                          selectedService === s.serviceName ? "active" : ""
+                        }`}
+                        onClick={() => handleServiceClick(s.serviceName)}
+                      >
+                        <div className="service-left">👥 {s.serviceName}</div>
+                        <div>{s.staffName}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
 
-          <GeneralFooter pageLabel="Student Profile" />
-        </div>
+              {selectedService && (
+                <div ref={calendarRef}>
+                  <ActivityCalendar
+                    activities={studentActivities.filter(
+                      (a) =>
+                        a.serviceName === selectedService ||
+                        a.serviceType === selectedService ||
+                        a.className === selectedService
+                    )}
+                    teachers={combinedStaff}
+                    selectedServiceName={selectedService}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <GeneralFooter pageLabel={isParentView ? "Child Profile" : "Student Profile"} />
       </div>
-      {isAddModalOpen && (
+      
+      {/* Admin-only Add Service Modal */}
+      {!isParentView && isAddModalOpen && (
         <div className="add-service-overlay">
           <div className="add-service-modal">
             <h3>Enroll in {addServiceType}</h3>
@@ -579,7 +610,6 @@ const StudentProfile = () => {
                 disabled={!addForm.serviceId}
               >
                 <option value="">Select Staff...</option>
-
                 {getQualifiedStaff(
                   availableServices.find((s) => s.id === addForm.serviceId)
                     ?.name,
@@ -609,6 +639,22 @@ const StudentProfile = () => {
           </div>
         </div>
       )}
+    </div>
+  );
+
+  // Handle container/sidebar wrapping
+  if (noContainer) {
+    return mainContent;
+  }
+
+  if (hideSidebar) {
+    return <div className="sp-container">{mainContent}</div>;
+  }
+
+  return (
+    <div className="sp-container">
+      <SidebarComponent />
+      {mainContent}
     </div>
   );
 };
