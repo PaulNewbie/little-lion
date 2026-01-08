@@ -126,8 +126,8 @@
 
 /* Menu icon */
 .therapist-sidebar .menu-icon {
-  width: 25px;
-  height: 25px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
   flex-shrink: 0;
   color: #0052A1;
@@ -142,13 +142,12 @@
 .therapist-sidebar .menu-label {
   color: #374151;
   text-transform: uppercase;
-  font-weight: 700;
-  font-size: 14px;
+  font-size: 1rem;
 }
 
 /* Active state for label */
 .therapist-sidebar .menu-item.active .menu-label {
-  color: #000 !important;
+  color: #ffffff !important;
 }
 
 /* Notification dot */

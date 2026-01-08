@@ -4,6 +4,8 @@ import { useAuth } from '../../hooks/useAuth';
 import childService from '../../services/childService';
 import Loading from '../../components/common/Loading';
 import TherapistSidebar from '../../components/sidebar/TherapistSidebar';
+import './TherapistDashboard.css';
+
 
 const TherapistDashboard = () => {
   const { currentUser } = useAuth();
@@ -99,167 +101,96 @@ const TherapistDashboard = () => {
     setShowServiceModal(false);
   };
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 18) return 'Good Afternoon';
-    return 'Good Evening';
-  };
-
   if (loading) return <Loading />;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="therapist-dashboard">
       <TherapistSidebar />
-      <div style={{ 
-        padding: '2rem', 
-        width: '100%', 
-        backgroundColor: '#f8fafc'
-      }}>
+      <div className="therapist-dashboard__content">
         
-        {/* Welcome */}
-        <div style={{ marginBottom: '2.5rem' }}>
-          <h1 style={{ fontSize: '2.25rem', fontWeight: '700', color: '#0f172a', margin: '0 0 0.5rem 0' }}>
-            {getGreeting()}, {currentUser?.firstName}! 👋
-          </h1>
-          <p style={{ color: '#64748b', margin: 0, fontSize: '1rem' }}>Ready to make a difference today</p>
+        {/* Header Banner */}
+        <div className="therapist-dashboard__header-banner">
+          <div className="therapist-dashboard__header-content">
+            <div className="therapist-dashboard__header-text">
+              <h1 className="therapist-dashboard__title">MY STUDENTS</h1>
+              <p className="therapist-dashboard__subtitle">Manage and Track Student Sessions</p>
+            </div>
+            <div className="therapist-dashboard__search-wrapper">
+              <span className="therapist-dashboard__search-icon">🔍</span>
+              <input 
+                type="text" 
+                placeholder="Search student name..." 
+                value={searchTerm} 
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="therapist-dashboard__search-input"
+              />
+            </div>
+          </div>
         </div>
 
         {error && (
-          <div style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1.5rem' }}>
+          <div className="therapist-dashboard__error">
             {error}
           </div>
         )}
 
         {/* Profile Completion Banner */}
         {currentUser?.profileCompleted === false && (
-          <div style={{
-            backgroundColor: '#fef3c7',
-            border: '2px solid #fbbf24',
-            borderRadius: '1rem',
-            padding: '1.5rem',
-            marginBottom: '2rem',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            boxShadow: '0 4px 6px rgba(251, 191, 36, 0.1)'
-          }}>
+          <div className="therapist-dashboard__profile-banner">
             <div>
-              <h3 style={{ margin: '0 0 0.5rem 0', color: '#92400e', fontSize: '1.125rem', fontWeight: '700' }}>
+              <h3 className="therapist-dashboard__profile-banner-title">
                 📋 Complete Your Profile
               </h3>
-              <p style={{ margin: 0, color: '#78350f', fontSize: '0.9375rem' }}>
+              <p className="therapist-dashboard__profile-banner-text">
                 Help parents know you better by adding your credentials, bio, and certifications.
               </p>
             </div>
             <button
               onClick={() => navigate('/therapist/profile')}
-              style={{
-                padding: '0.75rem 1.5rem',
-                backgroundColor: '#fbbf24',
-                color: '#78350f',
-                border: 'none',
-                borderRadius: '0.5rem',
-                fontWeight: '700',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                fontSize: '0.9375rem'
-              }}
+              className="therapist-dashboard__profile-banner-button"
             >
               Complete Now →
             </button>
           </div>
         )}
 
-        {/* Stats & Search */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-          <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontSize: '0.75rem', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-                My Caseload
-              </div>
-              <div style={{ fontSize: '3rem', fontWeight: '700', color: '#0f172a', lineHeight: '1' }}>
-                {students.length}
-              </div>
-            </div>
-            <div style={{ fontSize: '3rem', opacity: 0.2 }}>👨‍⚕️</div>
-          </div>
-
-          <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center' }}>
-            <div style={{ position: 'relative', flex: 1 }}>
-              <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', fontSize: '1.25rem' }}>🔍</span>
-              <input 
-                type="text" 
-                placeholder="Search students..." 
-                value={searchTerm} 
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{
-                  width: '100%', 
-                  paddingLeft: '3rem', 
-                  paddingRight: '1rem', 
-                  paddingTop: '0.75rem', 
-                  paddingBottom: '0.75rem',
-                  backgroundColor: '#f8fafc', 
-                  border: '2px solid transparent', 
-                  borderRadius: '0.75rem', 
-                  fontSize: '1rem', 
-                  outline: 'none', 
-                  boxSizing: 'border-box'
-                }}
-                onFocus={e => e.target.style.backgroundColor = 'white'}
-                onBlur={e => e.target.style.backgroundColor = '#f8fafc'}
-              />
-            </div>
-          </div>
-        </div>
-
         {/* Students List */}
         {filteredStudents.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '4rem 2rem', backgroundColor: 'white', borderRadius: '1rem', border: '2px dashed #e2e8f0' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1e293b' }}>No students found</h3>
+          <div className="therapist-dashboard__empty-state">
+            <h3 className="therapist-dashboard__empty-state-title">No students found</h3>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
+          <div className="therapist-dashboard__students-grid">
             {filteredStudents.map(student => {
               const myServices = getMyServices(student);
               return (
-                <div key={student.id} style={{ backgroundColor: 'white', borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #f1f5f9' }}>
-                  <div style={{ padding: '1.5rem', borderBottom: '1px solid #f1f5f9' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                      <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.75rem', color: 'white' }}>
-                        {student.photoUrl ? <img src={student.photoUrl} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%' }} /> : '👤'}
+                <div key={student.id} className="therapist-dashboard__student-card">
+                  <div className="therapist-dashboard__student-card-header">
+                    <div className="therapist-dashboard__student-info">
+                      <div className="therapist-dashboard__student-avatar">
+                        {student.photoUrl ? <img src={student.photoUrl} alt="" /> : '👤'}
                       </div>
                       <div>
-                        <h3 style={{ fontSize: '1.125rem', fontWeight: '700', color: '#0f172a', margin: 0 }}>
+                        <h3 className="therapist-dashboard__student-name">
                           {student.firstName} {student.lastName}
                         </h3>
-                        <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0 }}>
+                        <p className="therapist-dashboard__student-dob">
                           DOB: {student.dateOfBirth}
                         </p>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    <div className="therapist-dashboard__services-list">
                       {myServices.map((svc, idx) => (
-                        <div key={idx} style={{ padding: '0.375rem 0.75rem', backgroundColor: '#ede9fe', color: '#6d28d9', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: '600' }}>
+                        <div key={idx} className="therapist-dashboard__service-tag">
                           {svc.serviceName}
                         </div>
                       ))}
                     </div>
                   </div>
-                  <div style={{ padding: '1.5rem' }}>
+                  <div className="therapist-dashboard__student-card-footer">
                     <button 
                       onClick={() => handleStartSessionClick(student)}
-                      style={{
-                        width: '100%', 
-                        padding: '0.875rem', 
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        color: 'white', 
-                        border: 'none', 
-                        borderRadius: '0.75rem', 
-                        fontSize: '0.9375rem', 
-                        fontWeight: '700', 
-                        cursor: 'pointer'
-                      }}
+                      className="therapist-dashboard__start-session-button"
                     >
                       📝 Start Session
                     </button>
@@ -273,36 +204,18 @@ const TherapistDashboard = () => {
 
       {/* Service Selection Modal */}
       {showServiceModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
-          <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '2rem', width: '90%', maxWidth: '400px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#0f172a', marginTop: 0 }}>Select Service</h3>
-            <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
+        <div className="therapist-dashboard__modal-overlay">
+          <div className="therapist-dashboard__modal">
+            <h3 className="therapist-dashboard__modal-title">Select Service</h3>
+            <p className="therapist-dashboard__modal-subtitle">
               Which session are you starting for <strong>{selectedStudentForModal?.firstName}</strong>?
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div className="therapist-dashboard__modal-services">
               {availableServices.map((service) => (
                 <button
                   key={service.serviceId}
                   onClick={() => goToSessionForm(selectedStudentForModal, service)}
-                  style={{
-                    padding: '1rem', 
-                    border: '2px solid #e2e8f0', 
-                    borderRadius: '0.75rem', 
-                    backgroundColor: 'white', 
-                    color: '#0f172a', 
-                    fontWeight: '600', 
-                    cursor: 'pointer', 
-                    textAlign: 'left', 
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseOver={e => { 
-                    e.target.style.borderColor = '#6d28d9'; 
-                    e.target.style.backgroundColor = '#f5f3ff'; 
-                  }}
-                  onMouseOut={e => { 
-                    e.target.style.borderColor = '#e2e8f0'; 
-                    e.target.style.backgroundColor = 'white'; 
-                  }}
+                  className="therapist-dashboard__modal-service-button"
                 >
                   {service.serviceName}
                 </button>
@@ -310,16 +223,7 @@ const TherapistDashboard = () => {
             </div>
             <button 
               onClick={() => setShowServiceModal(false)} 
-              style={{ 
-                marginTop: '1.5rem', 
-                width: '100%', 
-                padding: '0.75rem', 
-                backgroundColor: 'transparent', 
-                border: 'none', 
-                color: '#64748b', 
-                cursor: 'pointer', 
-                fontWeight: '600' 
-              }}
+              className="therapist-dashboard__modal-cancel-button"
             >
               Cancel
             </button>
