@@ -18,8 +18,15 @@ import "./StudentProfile.css";
 
 const StudentProfile = ({ 
   isParentView = false,
-  childIdFromRoute = null
+  childIdFromRoute = null,
+  hideSidebar = false,
+  noContainer = false,
 }) => {
+  useEffect(() => {
+    console.log("StudentProfile mounted", { isParentView, childIdFromRoute, hideSidebar, noContainer });
+    return () => console.log("StudentProfile unmounted");
+  }, [isParentView, childIdFromRoute, hideSidebar, noContainer]);
+
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -54,7 +61,7 @@ const StudentProfile = ({
   const [ignoreRouteChild, setIgnoreRouteChild] = useState(false);
   const calendarRef = useRef(null);
 
-  // NEW: Auto-load child for parent view
+  // Auto-load child for parent view
   useEffect(() => {
     if (isParentView && childIdFromRoute && !selectedStudent && !ignoreRouteChild) {
       const loadChildForParent = async () => {
@@ -108,7 +115,7 @@ const StudentProfile = ({
   };
 
   const handleBack = () => {
-    // NEW: Parent-specific navigation - return to list view instead of navigating away
+    // Parent-specific navigation - return to list view instead of navigating away
     if (isParentView) {
       setIgnoreRouteChild(true);
       setSelectedStudent(null);
@@ -219,8 +226,9 @@ const StudentProfile = ({
     }
   };
 
-  if (loading)
+  if (loading) {
     return <div className="loading-spinner">Loading Student Data...</div>;
+  }
 
   const calculateAge = (dob) => {
     if (!dob) return "N/A";
@@ -259,319 +267,311 @@ const StudentProfile = ({
     ? filteredStudents.filter((s) => s.parentId === currentUser.uid)
     : filteredStudents;
 
-  // NEW: Determine which sidebar to use
+  // Determine which sidebar to use
   const SidebarComponent = isParentView ? ParentSidebar : AdminSidebar;
 
-  return (
-    <div className="sp-container">
-      <SidebarComponent />
-      <div className="sp-main">
-        <div className="sp-page">
-          {/* === VIEW 1: LIST (Admin only) === */}
-          {viewMode === "list" && (
-            <>
-              <div className="sp-header">
-                <div className="header-title">
-                  <h1>{isParentView ? "MY CHILDREN" : "STUDENT PROFILES"}</h1>
-                  <p className="header-subtitle">
-                    {isParentView ? "View your children's profiles and activities" : "Manage enrolled students and view activities"}
-                  </p>
-                </div>
-                <div className="filter-actions">
-                  <div className="search-wrapper">
-                    <span className="search-icon">🔍</span>
-                    <input
-                      className="sp-search"
-                      placeholder="Search by name..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  <div className="filter-wrapper">
-                    <select
-                      className="sp-filter-select"
-                      value={filterType}
-                      onChange={(e) => setFilterType(e.target.value)}
-                    >
-                      <option value="all">All Students</option>
-                      <option value="therapy">Therapy Only</option>
-                      <option value="group">Group Class Only</option>
-                    </select>
-                  </div>
-                </div>
+  const mainContent = (
+    <div className="sp-main">
+      <div className="sp-page">
+        {/* === VIEW 1: LIST === */}
+        {viewMode === "list" && (
+          <>
+            <div className="sp-header">
+              <div className="header-title">
+                <h1>{isParentView ? "MY CHILDREN" : "STUDENT PROFILES"}</h1>
+                <p className="header-subtitle">
+                  {isParentView 
+                    ? "View your children's profiles and activities" 
+                    : "Manage enrolled students and view activities"
+                  }
+                </p>
               </div>
-
-              <div className="sp-content-area">
-                <div className="sp-grid">
-                  {effectiveFilteredStudents.map((student) => (
-                    <div
-                      key={student.id}
-                      className="sp-card"
-                      onClick={() => handleSelectStudent(student)}
-                    >
-                      <div className="sp-card-image-box">
-                        {student.photoUrl ? (
-                          <img
-                            src={student.photoUrl}
-                            className="sp-photo"
-                            alt=""
-                          />
-                        ) : (
-                          <div className="sp-photo-placeholder">
-                            {student.firstName[0]}
-                          </div>
-                        )}
-                      </div>
-                      <div className="sp-card-body">
-                        <h3 className="sp-name">
-                          {student.firstName} {student.lastName}
-                        </h3>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* === VIEW 2: PROFILE === */}
-          {viewMode === "profile" && selectedStudent && (
-            <div className="profile-wrapper">
-              <div className="profile-top">
-                <div className="left-group">
-                  <span className="back-arrow" onClick={handleBack}>
-                    ‹
-                  </span>
-                  <h2>
-                    {isParentView 
-                      ? `${selectedStudent.firstName}'S PROFILE` 
-                      : "STUDENT PROFILE"
-                    }
-                  </h2>
-                </div>
-              </div>
-
-              <div className="profile-3col">
-                <div className="profile-photo-frame">
-                  {selectedStudent.photoUrl ? (
-                    <img
-                      src={selectedStudent.photoUrl}
-                      className="profile-photo"
-                      alt="profile"
-                    />
-                  ) : (
-                    <div
-                      className="profile-photo-placeholder"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "3rem",
-                        background: "#eee",
-                      }}
-                    >
-                      {selectedStudent.firstName[0]}
-                    </div>
-                  )}
-                </div>
-
-                <div className="profile-info">
-                  <h1 className="profile-fullname">
-                    {selectedStudent.lastName}, {selectedStudent.firstName}
-                  </h1>
-                  <div className="profile-details">
-                    <div className="profile-left">
-                      <p>
-                        <span className="icon">🧒</span> <b>Nickname:</b>{" "}
-                        {selectedStudent.nickname || "N/A"}
-                      </p>
-                      <p>
-                        <span className="icon">🏠</span> <b>Address:</b>{" "}
-                        {selectedStudent.address || "N/A"}
-                      </p>
-                      <p>
-                        <span className="icon">🎂</span> <b>Date of Birth:</b>{" "}
-                        {selectedStudent.dateOfBirth || "N/A"}
-                      </p>
-                      <p>
-                        <span className="icon">📅</span> <b>Current Age:</b>{" "}
-                        {calculateAge(selectedStudent.dateOfBirth) ?? "N/A"}
-                      </p>
-                    </div>
-
-                    <div className="profile-right">
-                      <p>
-                        <span className="icon">🚻</span> <b>Gender:</b>{" "}
-                        {selectedStudent.gender || "N/A"}
-                      </p>
-                      <p>
-                        <span className="icon">🏫</span> <b>School:</b>{" "}
-                        {selectedStudent.school || "N/A"}
-                      </p>
-                      <p>
-                        <span className="icon">👨‍👩‍👧</span> <b>Relationship to Guardian:</b>{" "}
-                        {selectedStudent.relationshipToClient || "N/A"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {parentData && (
-                    <div
-                      style={{
-                        marginTop: "15px",
-                        paddingTop: "15px",
-                        borderTop: "1px solid #eee",
-                        fontSize: "0.95rem",
-                      }}
-                    >
-                      <p style={{ marginBottom: "5px" }}>
-                        <span style={{ fontSize: "1.1em" }}>👪</span>{" "}
-                        <b>Guardian:</b> {parentData.firstName}{" "}
-                        {parentData.lastName}
-                      </p>
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "15px",
-                          flexWrap: "wrap",
-                          color: "#555",
-                        }}
-                      >
-                        <span>📧 {parentData.email}</span>
-                        <span>📞 {parentData.phone}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div style={{ marginTop: "20px" }}>
-                    <button
-                      className="see-more-btn"
-                      style={{
-                        padding: "10px 20px",
-                        background: showAssessment ? "#e0e0e0" : "#4a90e2",
-                        color: showAssessment ? "#333" : "white",
-                        border: "none",
-                        borderRadius: "6px",
-                        cursor: "pointer",
-                        fontWeight: "bold",
-                      }}
-                      onClick={() => setShowAssessment(!showAssessment)}
-                    >
-                      {showAssessment
-                        ? "Hide Assessment History"
-                        : "See Assessment History"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {showAssessment &&
-                (isAssessmentLoading ? (
-                  <Loading />
-                ) : (
-                  <AssessmentHistory
-                    childData={selectedStudent}
-                    assessmentData={assessmentData}
+              <div className="filter-actions">
+                <div className="search-wrapper">
+                  <span className="search-icon">🔍</span>
+                  <input
+                    className="sp-search"
+                    placeholder="Search by name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
-                ))}
-              <div
-                className="profile-content-scroll"
-                style={{ marginTop: "30px" }}
-              >
-                <div className="services-split-row">
-                  <div className="content-section">
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <h2 className="services-header">Therapy Services</h2>
-                      {/* NEW: Hide Add button for parents */}
-                      {!isParentView && (
-                        <button onClick={() => handleOpenAddModal("Therapy")}>
-                          + Add
-                        </button>
+                </div>
+                <div className="filter-wrapper">
+                  <select
+                    className="sp-filter-select"
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value)}
+                  >
+                    <option value="all">All Students</option>
+                    <option value="therapy">Therapy Only</option>
+                    <option value="group">Group Class Only</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="sp-content-area">
+              <div className="sp-grid">
+                {effectiveFilteredStudents.map((student) => (
+                  <div
+                    key={student.id}
+                    className="sp-card"
+                    onClick={() => handleSelectStudent(student)}
+                  >
+                    <div className="sp-card-image-box">
+                      {student.photoUrl ? (
+                        <img
+                          src={student.photoUrl}
+                          className="sp-photo"
+                          alt=""
+                        />
+                      ) : (
+                        <div className="sp-photo-placeholder">
+                          {student.firstName[0]}
+                        </div>
                       )}
                     </div>
-                    <div className="services-list">
-                      {therapyServices.map((s, i) => (
-                        <div key={i}>
-                          <div
-                            className={`service-row clickable ${
-                              selectedService === s.serviceName ? "active" : ""
-                            }`}
-                            onClick={() => handleServiceClick(s.serviceName)}
-                          >
-                            <div className="service-left">🧠 {s.serviceName}</div>
-                            <div>{s.staffName}</div>
-                          </div>
-                          {/* NEW: Show TherapistCard for parents
-                          {isParentView && (
-                            <TherapistCard
-                              therapistId={s.staffId}
-                              serviceName={s.serviceName}
-                            />
-                          )} */}
-                        </div>
-                      ))}
+                    <div className="sp-card-body">
+                      <h3 className="sp-name">
+                        {student.firstName} {student.lastName}
+                      </h3>
                     </div>
                   </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
 
-                  <div className="content-section">
+        {/* === VIEW 2: PROFILE === */}
+        {viewMode === "profile" && selectedStudent && (
+          <div className="profile-wrapper">
+            <div className="profile-top">
+              <div className="left-group">
+                <span className="back-arrow" onClick={handleBack}>
+                  ‹
+                </span>
+                <h2>
+                  {isParentView 
+                    ? `${selectedStudent.firstName}'S PROFILE` 
+                    : "STUDENT PROFILE"
+                  }
+                </h2>
+              </div>
+            </div>
+
+            <div className="profile-3col">
+              <div className="profile-photo-frame">
+                {selectedStudent.photoUrl ? (
+                  <img
+                    src={selectedStudent.photoUrl}
+                    className="profile-photo"
+                    alt="profile"
+                  />
+                ) : (
+                  <div
+                    className="profile-photo-placeholder"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "3rem",
+                      background: "#eee",
+                    }}
+                  >
+                    {selectedStudent.firstName[0]}
+                  </div>
+                )}
+              </div>
+
+              <div className="profile-info">
+                <h1 className="profile-fullname">
+                  {selectedStudent.lastName}, {selectedStudent.firstName}
+                </h1>
+                <div className="profile-details">
+                  <div className="profile-left">
+                    <p>
+                      <span className="icon">🧒</span> <b>Nickname:</b>{" "}
+                      {selectedStudent.nickname || "N/A"}
+                    </p>
+                    <p>
+                      <span className="icon">🏠</span> <b>Address:</b>{" "}
+                      {selectedStudent.address || "N/A"}
+                    </p>
+                    <p>
+                      <span className="icon">🎂</span> <b>Date of Birth:</b>{" "}
+                      {selectedStudent.dateOfBirth || "N/A"}
+                    </p>
+                    <p>
+                      <span className="icon">📅</span> <b>Current Age:</b>{" "}
+                      {calculateAge(selectedStudent.dateOfBirth) ?? "N/A"}
+                    </p>
+                  </div>
+
+                  <div className="profile-right">
+                    <p>
+                      <span className="icon">🚻</span> <b>Gender:</b>{" "}
+                      {selectedStudent.gender || "N/A"}
+                    </p>
+                    <p>
+                      <span className="icon">🏫</span> <b>School:</b>{" "}
+                      {selectedStudent.school || "N/A"}
+                    </p>
+                    <p>
+                      <span className="icon">👨‍👩‍👧</span> <b>Relationship to Guardian:</b>{" "}
+                      {selectedStudent.relationshipToClient || "N/A"}
+                    </p>
+                  </div>
+                </div>
+
+                {parentData && (
+                  <div
+                    style={{
+                      marginTop: "15px",
+                      paddingTop: "15px",
+                      borderTop: "1px solid #eee",
+                      fontSize: "0.95rem",
+                    }}
+                  >
+                    <p style={{ marginBottom: "5px" }}>
+                      <span style={{ fontSize: "1.1em" }}>👪</span>{" "}
+                      <b>Guardian:</b> {parentData.firstName}{" "}
+                      {parentData.lastName}
+                    </p>
                     <div
                       style={{
                         display: "flex",
-                        justifyContent: "space-between",
+                        gap: "15px",
+                        flexWrap: "wrap",
+                        color: "#555",
                       }}
                     >
-                      <h2 className="services-header">Group Classes</h2>
-                      {/* NEW: Hide Add button for parents */}
-                      {!isParentView && (
-                        <button onClick={() => handleOpenAddModal("Class")}>
-                          + Add
-                        </button>
-                      )}
+                      <span>📧 {parentData.email}</span>
+                      <span>📞 {parentData.phone}</span>
                     </div>
-                    <div className="services-list">
-                      {groupServices.map((s, i) => (
+                  </div>
+                )}
+
+                <div style={{ marginTop: "20px" }}>
+                  <button
+                    className="see-more-btn"
+                    style={{
+                      padding: "10px 20px",
+                      background: showAssessment ? "#e0e0e0" : "#4a90e2",
+                      color: showAssessment ? "#333" : "white",
+                      border: "none",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      fontWeight: "bold",
+                    }}
+                    onClick={() => setShowAssessment(!showAssessment)}
+                  >
+                    {showAssessment
+                      ? "Hide Assessment History"
+                      : "See Assessment History"}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {showAssessment &&
+              (isAssessmentLoading ? (
+                <Loading />
+              ) : (
+                <AssessmentHistory
+                  childData={selectedStudent}
+                  assessmentData={assessmentData}
+                />
+              ))}
+
+            <div
+              className="profile-content-scroll"
+              style={{ marginTop: "30px" }}
+            >
+              <div className="services-split-row">
+                <div className="content-section">
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <h2 className="services-header">Therapy Services</h2>
+                    {!isParentView && (
+                      <button onClick={() => handleOpenAddModal("Therapy")}>
+                        + Add
+                      </button>
+                    )}
+                  </div>
+                  <div className="services-list">
+                    {therapyServices.map((s, i) => (
+                      <div key={i}>
                         <div
-                          key={i}
                           className={`service-row clickable ${
                             selectedService === s.serviceName ? "active" : ""
                           }`}
                           onClick={() => handleServiceClick(s.serviceName)}
                         >
-                          <div className="service-left">👥 {s.serviceName}</div>
+                          <div className="service-left">🧠 {s.serviceName}</div>
                           <div>{s.staffName}</div>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                {selectedService && (
-                  <div ref={calendarRef}>
-                    <ActivityCalendar
-                      activities={studentActivities.filter(
-                        (a) =>
-                          a.serviceName === selectedService ||
-                          a.serviceType === selectedService ||
-                          a.className === selectedService
-                      )}
-                      teachers={combinedStaff}
-                      selectedServiceName={selectedService}
-                    />
+                <div className="content-section">
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <h2 className="services-header">Group Classes</h2>
+                    {!isParentView && (
+                      <button onClick={() => handleOpenAddModal("Class")}>
+                        + Add
+                      </button>
+                    )}
                   </div>
-                )}
+                  <div className="services-list">
+                    {groupServices.map((s, i) => (
+                      <div
+                        key={i}
+                        className={`service-row clickable ${
+                          selectedService === s.serviceName ? "active" : ""
+                        }`}
+                        onClick={() => handleServiceClick(s.serviceName)}
+                      >
+                        <div className="service-left">👥 {s.serviceName}</div>
+                        <div>{s.staffName}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
 
-          <GeneralFooter pageLabel={isParentView ? "Child Profile" : "Student Profile"} />
-        </div>
+              {selectedService && (
+                <div ref={calendarRef}>
+                  <ActivityCalendar
+                    activities={studentActivities.filter(
+                      (a) =>
+                        a.serviceName === selectedService ||
+                        a.serviceType === selectedService ||
+                        a.className === selectedService
+                    )}
+                    teachers={combinedStaff}
+                    selectedServiceName={selectedService}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <GeneralFooter pageLabel={isParentView ? "Child Profile" : "Student Profile"} />
       </div>
       
       {/* Admin-only Add Service Modal */}
@@ -610,7 +610,6 @@ const StudentProfile = ({
                 disabled={!addForm.serviceId}
               >
                 <option value="">Select Staff...</option>
-
                 {getQualifiedStaff(
                   availableServices.find((s) => s.id === addForm.serviceId)
                     ?.name,
@@ -640,6 +639,22 @@ const StudentProfile = ({
           </div>
         </div>
       )}
+    </div>
+  );
+
+  // Handle container/sidebar wrapping
+  if (noContainer) {
+    return mainContent;
+  }
+
+  if (hideSidebar) {
+    return <div className="sp-container">{mainContent}</div>;
+  }
+
+  return (
+    <div className="sp-container">
+      <SidebarComponent />
+      {mainContent}
     </div>
   );
 };
