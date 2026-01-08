@@ -1,0 +1,280 @@
+/* ===== Layout ===== */
+.ooo-container {
+  display: flex;
+  height: 100vh;
+  background: #f5f5f5;
+}
+
+.ooo-main {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ===== Header ===== */
+.ooo-header {
+  background: white;
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  position: relative;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Header left group (back button + title) */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Header title */
+.header-text h1 {
+  margin: 0;
+  transition: margin-left 0.3s ease; /* smooth shift */
+}
+
+/* Shift title to the right in detail view */
+.header-text.detail-view-title h1 {
+  margin-left: 60px; /* adjust distance from back button */
+}
+
+/* Subtitle */
+.header-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* ===== Back Button ===== */
+.back-btn {
+  position: absolute;
+  margin-bottom: 45px;
+  left: 40px;
+  font-size: 150px;
+  cursor: pointer;
+  color: #000;
+}
+
+.back-btn:hover {
+  font-size: 155px;
+}
+
+/* ===== Search ===== */
+.search-box {
+  position: relative;            /* needed for icon positioning */
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  margin-left: 600px;
+  border-radius: 8px;
+  padding: 10px 15px 10px 40px; /* left padding for icon space */
+  min-width: 250px;
+  font-size: 14px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+/* Icon inside the box on the left */
+.search-box .search-icon {
+  position: absolute;   /* position relative to .search-box */
+  left: 10px;           /* distance from left edge */
+  color: #999;
+  font-size: 14px;
+  background-color: #FFCB10;
+  padding: 2px 2px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Input takes remaining space */
+.search-box input {
+  border: none;
+  outline: none;
+  font-size: 14px;
+  width: 100%;
+}
+
+
+/* ===== Content ===== */
+.tera-content-area {
+  padding: 24px;
+}
+
+.section-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+/* ===== Cards ===== */
+.therapist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.therapist-card {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  position: relative;
+  transition: transform .2s, box-shadow .2s;
+  cursor: pointer;
+}
+
+.therapist-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.1);
+}
+
+/* ===== Status ===== */
+.status-dot {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.status-dot.complete { background: #22c55e; }
+.status-dot.incomplete { background: #f59e0b; }
+
+.status-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.status-badge.complete {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.incomplete {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* ===== Avatar ===== */
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ===== Specializations ===== */
+.specializations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+}
+
+.spec-chip {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+}
+
+.no-spec {
+  font-size: 11px;
+  color: #999;
+}
+
+/* ===== Buttons ===== */
+.view-btn {
+  margin-top: 16px;
+  width: 100%;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid #3b82f6;
+  background: #eff6ff;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+.view-btn.disabled {
+  border-style: dashed;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* ===== Floating Button ===== */
+.fab {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  background: #fbbf24;
+  color: white;
+  padding: 16px 24px;
+  border-radius: 50px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ===== Modal ===== */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-card {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  border: none;
+  background: white;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* ===== Disabled Cards ===== */
+.disabled-card {
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.disabled-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
