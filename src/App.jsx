@@ -12,7 +12,6 @@ import { useAuth } from "./hooks/useAuth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Auth Components
-// import LoginPage from "./pages/auth/LoginPage"; // replaced by LandingPage
 import LandingPage from "./pages/auth/LandingPage";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import ChangePassword from "./pages/auth/ChangePassword";
@@ -37,6 +36,7 @@ import TherapistProfile from "./pages/therapist/TherapistProfile";
 
 // Parent Components
 import ParentDashboard from "./pages/parent/ParentDashboard";
+import ParentChildProfile from "./pages/parent/ParentChildProfile";
 import ChildActivities from "./pages/parent/ChildActivities";
 import ParentInquiries from "./pages/parent/ParentInquiries";
 import NewInquiry from "./pages/parent/NewInquiry";
@@ -52,12 +52,11 @@ const AppRoutes = () => {
 
   if (loading) return <Loading />;
 
-  // --- Helper to determine home page based on role ---
   const getHomeRoute = (role) => {
     switch (role) {
       case "super_admin":
       case "admin":
-        return "/admin/StudentProfile"; // Consistent with login redirect
+        return "/admin/StudentProfile";
       case "teacher":
         return "/teacher/dashboard";
       case "therapist":
@@ -76,19 +75,7 @@ const AppRoutes = () => {
         path="/"
         element={
           currentUser ? (
-            <Navigate
-              to={
-                currentUser.role === "admin" ||
-                currentUser.role === "super_admin"
-                  ? "/admin/StudentProfile"
-                  : currentUser.role === "teacher"
-                  ? "/teacher/dashboard"
-                  : currentUser.role === "therapist"
-                  ? "/therapist/dashboard"
-                  : "/parent/dashboard"
-              }
-              replace
-            />
+            <Navigate to={getHomeRoute(currentUser.role)} replace />
           ) : (
             <LandingPage />
           )
@@ -98,19 +85,7 @@ const AppRoutes = () => {
         path="/login"
         element={
           currentUser ? (
-            <Navigate
-              to={
-                currentUser.role === "admin" ||
-                currentUser.role === "super_admin"
-                  ? "/admin/StudentProfile"
-                  : currentUser.role === "teacher"
-                  ? "/teacher/dashboard"
-                  : currentUser.role === "therapist"
-                  ? "/therapist/dashboard"
-                  : "/parent/dashboard"
-              }
-              replace
-            />
+            <Navigate to={getHomeRoute(currentUser.role)} replace />
           ) : (
             <LandingPage />
           )
@@ -118,9 +93,6 @@ const AppRoutes = () => {
       />
 
       {/* ADMIN ROUTES */}
-      {/* 1. Shared Admin Routes (Accessible by admin AND super_admin) */}
-
-      {/* FIX 2: Added 'super_admin' to allowedRoles for StudentProfile */}
       <Route
         path="/admin/StudentProfile"
         element={
@@ -129,7 +101,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/admin/one-on-one"
         element={
@@ -166,7 +137,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/admin/enrollment"
         element={
@@ -227,8 +197,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
-      {/* THERAPIST PROFILE section */}
       <Route
         path="/therapist/profile"
         element={
@@ -244,6 +212,15 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["parent"]}>
             <ParentDashboard />
+          </ProtectedRoute>
+        }
+      />
+      {/* NEW: Parent Child Profile Route */}
+      <Route
+        path="/parent/child-profile/:childId"
+        element={
+          <ProtectedRoute allowedRoles={["parent"]}>
+            <ParentChildProfile />
           </ProtectedRoute>
         }
       />
@@ -315,10 +292,10 @@ const AppRoutes = () => {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // Data stays "fresh" for 5 minutes
-      cacheTime: 1000 * 60 * 30, // Keep in memory for 30 minutes
-      refetchOnWindowFocus: false, // Don't refresh just because I clicked the window
-      retry: 1, // Only retry failed requests once
+      staleTime: 1000 * 60 * 5,
+      cacheTime: 1000 * 60 * 30,
+      refetchOnWindowFocus: false,
+      retry: 1,
     },
   },
 });
