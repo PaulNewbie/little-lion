@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import "./TherapistSidebar.css";
 
+
+
 const TherapistSidebar = ({ forceActive }) => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
