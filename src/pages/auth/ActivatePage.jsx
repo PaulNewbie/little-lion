@@ -207,6 +207,18 @@ export default function ActivatePage() {
     }
   }, [urlCode]);
 
+  // Auto-redirect to login after successful activation
+  useEffect(() => {
+    if (step === 'success') {
+      const timer = setTimeout(() => {
+        window.history.replaceState({}, '', '/activate');
+        navigate('/login');
+      }, 5000); // 5 seconds
+      
+      return () => clearTimeout(timer);
+    }
+  }, [step, navigate]);
+
   const validateCode = async (codeToValidate) => {
     setStep('validating');
     setError('');
@@ -543,11 +555,19 @@ export default function ActivatePage() {
             </div>
             
             <button 
-              onClick={() => navigate('/login')}
+              onClick={() => {
+                // Clear the URL params and navigate to login
+                window.history.replaceState({}, '', '/activate');
+                navigate('/login');
+              }}
               style={styles.button}
             >
               Go to Login →
             </button>
+            
+            <p style={{ textAlign: 'center', fontSize: '12px', color: '#999', marginTop: '16px' }}>
+              Redirecting to login in 5 seconds...
+            </p>
           </>
         );
 

@@ -224,16 +224,26 @@ class ActivationService {
    */
   async markAccountAsActive(uid, activatedBy = 'self') {
     const userRef = doc(db, 'users', uid);
+    
+    // First, set the active status
     await updateDoc(userRef, {
       accountStatus: 'active',
+      activatedAt: new Date().toISOString(),
+      activatedBy: activatedBy,
+      updatedAt: serverTimestamp()
+    });
+    
+    // Then, delete all activation-related fields in a separate update
+    // This ensures clean deletion
+    await updateDoc(userRef, {
       activationCode: deleteField(),
       activationExpiry: deleteField(),
       activationCreatedAt: deleteField(),
-      _tempKey: deleteField(), // Remove temp password!
-      activatedAt: new Date().toISOString(),
-      activatedBy: activatedBy,
-      mustChangePassword: deleteField(), // Remove old field if exists
-      updatedAt: serverTimestamp()
+      _tempKey: deleteField(),
+      mustChangePassword: deleteField(),
+      password: deleteField(), // Also remove old password field if exists
+      adminAssistCode: deleteField(),
+      adminAssistExpiry: deleteField()
     });
   }
 
