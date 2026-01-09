@@ -1,3 +1,5 @@
+// src/services/authService.js
+
 import { 
   signInWithEmailAndPassword, 
   signOut, 
@@ -9,6 +11,8 @@ import {
 import { initializeApp } from 'firebase/app';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db, firebaseConfig } from '../config/firebase';
+import { generateSecurePassword } from '../utils/codeGenerator';
+import activationService from './activationService';
 
 class AuthService {
   // 1. Sign in user
@@ -29,25 +33,39 @@ class AuthService {
     }
   }
 
-  // 2. Create Parent Account
-async createParentAccount(email, password, parentData) {
+  // 2. Create Parent Account (UPDATED - No password storage)
+  async createParentAccount(email, parentData) {
     let tempApp = null;
     try {
+      // Generate random temp password (never stored or shown)
+      const tempPassword = generateSecurePassword(24);
+      
       tempApp = initializeApp(firebaseConfig, 'tempApp-' + Date.now());
       const tempAuth = getAuth(tempApp);
-      const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(tempAuth, email, tempPassword);
       const user = userCredential.user;
+
+      // Generate activation data
+      const activationData = activationService.generateActivationData();
 
       await setDoc(doc(db, 'users', user.uid), {
         ...parentData,
         uid: user.uid,
+        email: email,
         role: 'parent',
         childrenIds: [],
-        mustChangePassword: true, // <--- ADD THIS LINE
+        active: true,
+        ...activationData, // accountStatus, activationCode, activationExpiry, activationCreatedAt
         createdAt: new Date().toISOString()
+        // NO password field!
       });
 
-      return user;
+      return {
+        uid: user.uid,
+        email: email,
+        ...parentData,
+        ...activationData
+      };
     } catch (error) {
       throw this.handleAuthError(error);
     } finally {
@@ -58,27 +76,37 @@ async createParentAccount(email, password, parentData) {
     }
   }
 
-  // 3. Create Therapist Account
-  async createTherapistAccount(email, password, therapistData) {
+  // 3. Create Therapist Account (UPDATED - No password storage)
+  async createTherapistAccount(email, therapistData) {
     let tempApp = null;
     try {
+      const tempPassword = generateSecurePassword(24);
+      
       tempApp = initializeApp(firebaseConfig, 'tempApp-Therapist-' + Date.now());
       const tempAuth = getAuth(tempApp);
-      const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(tempAuth, email, tempPassword);
       const user = userCredential.user;
+
+      const activationData = activationService.generateActivationData();
 
       await setDoc(doc(db, 'users', user.uid), {
         ...therapistData,
         uid: user.uid,
+        email: email,
         role: 'therapist',
         specializations: therapistData.specializations || [],
         active: true,
-        mustChangePassword: true,
-        profileCompleted: false, 
+        profileCompleted: false,
+        ...activationData,
         createdAt: new Date().toISOString()
       });
 
-      return user;
+      return {
+        uid: user.uid,
+        email: email,
+        ...therapistData,
+        ...activationData
+      };
     } catch (error) {
       throw this.handleAuthError(error);
     } finally {
@@ -89,26 +117,36 @@ async createParentAccount(email, password, parentData) {
     }
   }
 
-  // 4. Create Teacher Account
-async createTeacherAccount(email, password, teacherData) {
+  // 4. Create Teacher Account (UPDATED - No password storage)
+  async createTeacherAccount(email, teacherData) {
     let tempApp = null;
     try {
+      const tempPassword = generateSecurePassword(24);
+      
       tempApp = initializeApp(firebaseConfig, 'tempApp-' + Date.now());
       const tempAuth = getAuth(tempApp);
-      const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(tempAuth, email, tempPassword);
       const user = userCredential.user;
+
+      const activationData = activationService.generateActivationData();
 
       await setDoc(doc(db, 'users', user.uid), {
         ...teacherData,
         uid: user.uid,
+        email: email,
         role: 'teacher',
         specializations: teacherData.specializations || [],
         active: true,
-        mustChangePassword: true, // <--- ADD THIS LINE
+        ...activationData,
         createdAt: new Date().toISOString()
       });
 
-      return user;
+      return {
+        uid: user.uid,
+        email: email,
+        ...teacherData,
+        ...activationData
+      };
     } catch (error) {
       throw this.handleAuthError(error);
     } finally {
@@ -119,26 +157,35 @@ async createTeacherAccount(email, password, teacherData) {
     }
   }
 
-  // 5. Create Admin Account (Super Admin Only)
-async createAdminAccount(email, password, adminData) {
+  // 5. Create Admin Account (UPDATED - No password storage)
+  async createAdminAccount(email, adminData) {
     let tempApp = null;
     try {
-      // Use a temporary app instance to create the user without logging out the current super_admin
+      const tempPassword = generateSecurePassword(24);
+      
       tempApp = initializeApp(firebaseConfig, 'tempApp-Admin-' + Date.now());
       const tempAuth = getAuth(tempApp);
-      const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(tempAuth, email, tempPassword);
       const user = userCredential.user;
+
+      const activationData = activationService.generateActivationData();
 
       await setDoc(doc(db, 'users', user.uid), {
         ...adminData,
         uid: user.uid,
-        role: 'admin', // Explicitly set role to admin
+        email: email,
+        role: 'admin',
         active: true,
-        mustChangePassword: true,
+        ...activationData,
         createdAt: new Date().toISOString()
       });
 
-      return user;
+      return {
+        uid: user.uid,
+        email: email,
+        ...adminData,
+        ...activationData
+      };
     } catch (error) {
       throw this.handleAuthError(error);
     } finally {

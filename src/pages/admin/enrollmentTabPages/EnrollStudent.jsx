@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import AdminSidebar from "../../../components/sidebar/AdminSidebar";
 import EnrollStudentFormModal from "./enrollmentForm/EnrollStudentFormModal";
+import ActivationModal from "../../../components/admin/ActivationModal";
 import "./EnrollStudent.css";
 import authService from "../../../services/authService";
 
@@ -11,25 +12,7 @@ import childService from "../../../services/childService";
 import userService from "../../../services/userService";
 import assessmentService from "../../../services/assessmentService";
 
-function generatePassword() {
-  // 🔐 Password generator: 3 letters + 3 digits (ALL CAPS)
-  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const digits = "0123456789";
-
-  let password = "";
-
-  for (let i = 0; i < 3; i++) {
-    password += letters[Math.floor(Math.random() * letters.length)];
-  }
-
-  for (let i = 0; i < 3; i++) {
-    password += digits[Math.floor(Math.random() * digits.length)];
-  }
-
-  return password;
-}
-
-const generatedPassword = generatePassword();
+// REMOVED: generatePassword function - no longer needed!
 
 export default function EnrollStudent() {
   const [allParents, setAllParents] = useState([]);
@@ -46,14 +29,18 @@ export default function EnrollStudent() {
   // NEW: State for editing existing student
   const [editingStudent, setEditingStudent] = useState(null);
 
-  // Form State for Parent
+  // NEW: Activation Modal State
+  const [showActivationModal, setShowActivationModal] = useState(false);
+  const [newUserData, setNewUserData] = useState(null);
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+
+  // Form State for Parent - REMOVED password field!
   const [parentInput, setParentInput] = useState({
     firstName: "",
     middleName: "",
     lastName: "",
     email: "",
     phone: "",
-    password: generatedPassword,
   });
 
   // Students from Firebase
@@ -66,30 +53,31 @@ export default function EnrollStudent() {
   // --- Handlers ---
   const handleParentSubmit = async (e) => {
     e.preventDefault();
+    setIsCreatingAccount(true);
 
     try {
-      // 1. Separate email and password
-      const { email, password, ...profileData } = parentInput;
+      // 1. Get form data - NO password!
+      const { email, ...profileData } = parentInput;
 
-      // 2. Create the account
-      // ⚠️ PASS 'password' INSIDE THE 3RD ARGUMENT TO STORE IT IN FIRESTORE
-      const user = await authService.createParentAccount(email, password, {
+      // 2. Create the account using updated authService
+      // This now returns user data WITH activationCode
+      const result = await authService.createParentAccount(email, {
         ...profileData,
-        password: password, // <--- ADD THIS to save it in the database
+        email: email,
       });
 
       // 3. Update the UI list
       setAllParents((prev) => [
         ...prev,
         {
-          uid: user.uid,
+          uid: result.uid,
           firstName: parentInput.firstName,
           middleName: parentInput.middleName,
           lastName: parentInput.lastName,
         },
       ]);
 
-      // 4. Reset Form
+      // 4. Reset Form & close parent form modal
       setShowParentForm(false);
       setParentInput({
         firstName: "",
@@ -97,20 +85,33 @@ export default function EnrollStudent() {
         lastName: "",
         email: "",
         phone: "",
-        password: generatePassword(), // Generate a NEW password for the next user
       });
 
-      // 5. Alert the admin with the password just to be sure
-      alert(
-        `Parent account created!\n\nEmail: ${email}\nPassword: ${password}\n\nPlease copy this now.`
-      );
+      // 5. NEW: Show activation modal with QR code
+      setNewUserData({
+        uid: result.uid,
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        email: email,
+        activationCode: result.activationCode,
+      });
+      setShowActivationModal(true);
+
     } catch (error) {
       console.error("Creation Error:", error);
       alert(`Failed to create parent: ${error.message}`);
+    } finally {
+      setIsCreatingAccount(false);
     }
   };
 
-  //setSelectedParent when going  back to enrollment from studentProfile
+  // Handle closing activation modal
+  const handleCloseActivationModal = () => {
+    setShowActivationModal(false);
+    setNewUserData(null);
+  };
+
+  //setSelectedParent when going back to enrollment from studentProfile
   useEffect(() => {
     if (location.state?.selectedParent) {
       setSelectedParent(location.state.selectedParent);
@@ -134,7 +135,7 @@ export default function EnrollStudent() {
   // Get students when parent is selected - WITH IMMEDIATE CLEAR
   useEffect(() => {
     if (selectedParent) {
-      // ✅ CLEAR IMMEDIATELY when parent changes
+      // CLEAR IMMEDIATELY when parent changes
       setAllStudents([]);
       setIsLoadingChildren(true);
 
@@ -160,7 +161,7 @@ export default function EnrollStudent() {
     }
   }, [selectedParent]);
 
-  // NEW: Handle student click - if ASSESSING, load and edit
+  // Handle student click - if ASSESSING, load and edit
   const handleStudentClick = async (student) => {
     if (student.status === "ASSESSING") {
       try {
@@ -171,8 +172,8 @@ export default function EnrollStudent() {
 
         // Combine child data with assessment data
         const fullStudentData = {
-          ...student, //this is from the children table
-          ...assessmentData, // this is form assessment table
+          ...student,
+          ...assessmentData,
         };
 
         setEditingStudent(fullStudentData);
@@ -181,10 +182,8 @@ export default function EnrollStudent() {
         console.error("Failed to load assessment data:", error);
         alert("Failed to load student assessment data. Please try again.");
       }
-    }
-    // If status is ENROLLED, do nothing or show a view-only modal
-    else if (student.status === "ENROLLED") {
-      //go to student profile page
+    } else if (student.status === "ENROLLED") {
+      // Go to student profile page
       navigate("/admin/StudentProfile", {
         state: {
           studentId: student.id,
@@ -264,6 +263,20 @@ export default function EnrollStudent() {
                       {p.lastName}, {p.firstName}{" "}
                       {p.middleName ? p.middleName[0] + "." : ""}
                     </p>
+                    {/* Show pending badge if account not activated */}
+                    {p.accountStatus === "pending_setup" && (
+                      <span style={{
+                        fontSize: '11px',
+                        backgroundColor: '#fef3c7',
+                        color: '#92400e',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        marginTop: '4px',
+                        display: 'inline-block'
+                      }}>
+                        ⏳ Pending Activation
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -343,7 +356,7 @@ export default function EnrollStudent() {
           </button>
         )}
 
-        {/* NEW PARENT ACCOUNT MODAL */}
+        {/* NEW PARENT ACCOUNT MODAL - UPDATED: No password field! */}
         {showParentForm && (
           <div className="modalOverlay">
             <div className="modal">
@@ -370,7 +383,6 @@ export default function EnrollStudent() {
                     <label>Middle Name</label>
                     <input
                       type="text"
-                      required
                       value={parentInput.middleName}
                       onChange={(e) =>
                         setParentInput({
@@ -394,50 +406,16 @@ export default function EnrollStudent() {
                       }
                     />
                   </div>
-
-                  <div className="input-group">
-                    <label>Phone Number</label>
-                    <input
-                      type="text"
-                      required
-                      value={parentInput.phone}
-                      onChange={(e) =>
-                        setParentInput({
-                          ...parentInput,
-                          phone: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
                 </div>
-                {/* <div className="input-group">
-                  <label>Profile Picture</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (file) {
-                        setParentPhoto(file);
-                        setParentPhotoPreview(URL.createObjectURL(file));
-                      }
-                    }}
-                  />
-                </div> */}
 
-                {/* Preview */}
+                {/* Photo upload section - keeping existing functionality */}
                 {parentPhotoPreview && (
-                  <div style={{ marginTop: "10px", textAlign: "center" }}>
-                    <img
-                      src={parentPhotoPreview}
-                      alt="Preview"
-                      style={{
-                        width: "100px",
-                        height: "100px",
-                        borderRadius: "50%",
-                        objectFit: "cover",
-                        border: "2px solid #ccc",
-                      }}
+                  <div className="input-group">
+                    <label>Photo Preview</label>
+                    <img 
+                      src={parentPhotoPreview} 
+                      alt="Preview" 
+                      style={{ maxWidth: '100px', borderRadius: '8px' }}
                     />
                   </div>
                 )}
@@ -455,25 +433,42 @@ export default function EnrollStudent() {
                 </div>
 
                 <div className="input-group">
-                  <label>Password</label>
+                  <label>Phone Number</label>
                   <input
-                    type="text"
-                    required
-                    value={parentInput.password}
+                    type="tel"
+                    value={parentInput.phone}
                     onChange={(e) =>
-                      setParentInput({
-                        ...parentInput,
-                        password: e.target.value,
-                      })
+                      setParentInput({ ...parentInput, phone: e.target.value })
                     }
+                    placeholder="09XX-XXX-XXXX"
                   />
                 </div>
+
+                {/* INFO BOX: Explain the new activation flow */}
+                <div style={{
+                  backgroundColor: '#f0f9ff',
+                  border: '1px solid #bae6fd',
+                  borderRadius: '6px',
+                  padding: '12px',
+                  marginTop: '8px',
+                  fontSize: '13px',
+                  color: '#0369a1'
+                }}>
+                  <strong>ℹ️ How activation works:</strong>
+                  <p style={{ margin: '4px 0 0 0' }}>
+                    After creating the account, a QR code will appear. 
+                    The parent can scan it to set up their password.
+                  </p>
+                </div>
+
+                {/* REMOVED: Password field - no longer needed! */}
               </form>
               <div className="modalActions">
                 <button
                   type="button"
                   className="cancel-btn"
                   onClick={() => setShowParentForm(false)}
+                  disabled={isCreatingAccount}
                 >
                   Cancel
                 </button>
@@ -481,8 +476,9 @@ export default function EnrollStudent() {
                   type="submit"
                   className="create-btn"
                   onClick={handleParentSubmit}
+                  disabled={isCreatingAccount}
                 >
-                  Create Account
+                  {isCreatingAccount ? "Creating..." : "Create Account"}
                 </button>
               </div>
             </div>
@@ -499,6 +495,14 @@ export default function EnrollStudent() {
             editingStudent={editingStudent}
           />
         )}
+
+        {/* NEW: ACTIVATION MODAL - Shows QR code after account creation */}
+        <ActivationModal
+          isOpen={showActivationModal}
+          onClose={handleCloseActivationModal}
+          userData={newUserData}
+          onEmailSent={() => console.log("Activation email sent")}
+        />
       </div>
     </div>
   );

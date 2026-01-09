@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import childService from '../../services/childService'; 
 import { saveSessionActivity } from '../../services/activityService';
+import userService from '../../services/userService'; //
 import Loading from '../../components/common/Loading';
 import ErrorMessage from '../../components/common/ErrorMessage';
-// --- NEW IMPORTS ---
 import QuickSelectTags from '../../components/common/form-elements/QuickSelectTags';
 import VoiceInput from '../../components/common/form-elements/VoiceInput';
 
@@ -23,6 +23,7 @@ const TeacherDashboard = () => {
   const [myClasses, setMyClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [profileIncomplete, setProfileIncomplete] = useState(false); //
 
   // UI State
   const [selectedClass, setSelectedClass] = useState(null);
@@ -32,7 +33,7 @@ const TeacherDashboard = () => {
   const [obsStudent, setObsStudent] = useState(null);
   const [submittingObs, setSubmittingObs] = useState(false);
 
-  // Form Data (Now uses Arrays for tags)
+  // Form Data
   const [topic, setTopic] = useState('');
   const [moods, setMoods] = useState([]);
   const [selectedStrengths, setSelectedStrengths] = useState([]);
@@ -42,12 +43,20 @@ const TeacherDashboard = () => {
   const [homeNote, setHomeNote] = useState('');
   const [concernNote, setConcernNote] = useState('');
 
-  // 1. FETCH DATA
+  // 1. FETCH DATA & CHECK PROFILE
   useEffect(() => {
-    const fetchMyStudents = async () => {
+    const fetchData = async () => {
       if (!currentUser?.uid) return;
       try {
         setLoading(true);
+
+        // ✅ Check Profile Status
+        const userData = await userService.getUserById(currentUser.uid);
+        if (!userData.profileCompleted) {
+          setProfileIncomplete(true);
+        }
+
+        // ✅ Fetch Assigned Students
         const myStudents = await childService.getChildrenByTeacherId(currentUser.uid);
 
         // Group students by Class Name
@@ -70,13 +79,13 @@ const TeacherDashboard = () => {
         });
         setMyClasses(Object.values(classesMap));
       } catch (err) {
-        setError('Failed to load assigned students.');
+        setError('Failed to load dashboard data.');
         console.error(err);
       } finally {
         setLoading(false);
       }
     };
-    fetchMyStudents();
+    fetchData();
   }, [currentUser]);
 
   // 2. HANDLERS
@@ -93,25 +102,16 @@ const TeacherDashboard = () => {
 
   const openObservationModal = (student) => {
     setObsStudent(student);
-    // Reset Form
-    setTopic('');
-    setMoods([]);
-    setSelectedStrengths([]);
-    setStrengthNote('');
-    setSelectedNeeds([]);
-    setNeedNote('');
-    setHomeNote('');
-    setConcernNote('');
+    setTopic(''); setMoods([]); setSelectedStrengths([]); setStrengthNote('');
+    setSelectedNeeds([]); setNeedNote([]); setHomeNote(''); setConcernNote('');
     setShowObsModal(true);
   };
 
   const handleObsSubmit = async (e) => {
     e.preventDefault();
     if (!topic) { alert("Please select or type a topic."); return; }
-    
     setSubmittingObs(true);
     
-    // Combine Tags + Notes
     const finalStrengths = [...selectedStrengths, strengthNote].filter(Boolean).join('. ');
     const finalWeaknesses = [...selectedNeeds, needNote].filter(Boolean).join('. ');
 
@@ -122,37 +122,27 @@ const TeacherDashboard = () => {
         serviceId: selectedClass.serviceId || 'teacher-group-id',
         serviceName: selectedClass.name,
         date: new Date().toISOString(),
-        
         type: 'observation',
-        category: 'educational',
-        authorRole: 'teacher',
         authorId: currentUser.uid,
         authorName: `${currentUser.firstName} ${currentUser.lastName}`,
-        visibleToParents: true,
-
         title: topic,
         studentReaction: moods,
         strengths: finalStrengths,
         weaknesses: finalWeaknesses,
         homeActivities: homeNote,
-        concerns: concernNote,
-        
-        data: {}, 
         sessionNotes: concernNote 
       };
 
-      await saveSessionActivity(sessionData);
+      await saveSessionActivity(sessionData); //
       alert(`Observation saved for ${obsStudent.firstName}!`);
       setShowObsModal(false);
     } catch (err) {
-      console.error("Error saving observation", err);
       alert("Failed to save observation.");
     } finally {
       setSubmittingObs(false);
     }
   };
 
-  // Helper to append text from Voice
   const appendText = (current, newText, setter) => {
     const trimmed = current.trim();
     setter(trimmed ? `${trimmed}. ${newText}. ` : `${newText}. `);
@@ -163,13 +153,30 @@ const TeacherDashboard = () => {
   return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
       
+      {/* --- PROFILE NOTIFICATION BANNER --- */}
+      {profileIncomplete && (
+        <div style={styles.notifBanner}>
+          <div>
+            <strong style={{ display: 'block', color: '#92400e' }}>⚠️ Profile Incomplete</strong>
+            <p style={{ margin: 0, fontSize: '13px', color: '#b45309' }}>Please update your professional credentials (PRC ID, School, etc.) to verify your account.</p>
+          </div>
+          <button 
+            onClick={() => navigate('/teacher/profile')}
+            style={styles.notifBtn}
+          >
+            Setup Profile →
+          </button>
+        </div>
+      )}
+
       {/* --- HEADER --- */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', borderBottom: '1px solid #e2e8f0', paddingBottom: '20px' }}>
+      <div style={styles.header}>
         <div>
           <h1 style={{ margin: 0, color: '#1e293b' }}>Teacher Dashboard 🍎</h1>
           <p style={{ margin: '5px 0 0', color: '#64748b' }}>{currentUser?.firstName} {currentUser?.lastName}</p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={() => navigate('/teacher/profile')} style={styles.secondaryBtn}>⚙️ Profile</button>
           <button onClick={() => navigate('/staff/inquiries')} style={styles.secondaryBtn}>📬 Inbox</button>
           <button onClick={handleLogout} style={styles.logoutBtn}>Sign Out</button>
         </div>
@@ -210,10 +217,6 @@ const TeacherDashboard = () => {
             <button onClick={handlePostGroupActivity} style={styles.primaryBtn}>📸 Post Group Activity</button>
           </div>
 
-          <h3 style={{ color: '#475569', marginBottom: '15px', borderBottom: '2px solid #e2e8f0', paddingBottom: '10px' }}>
-            Student Roster ({selectedClass.students.length})
-          </h3>
-
           <div style={styles.grid}>
             {selectedClass.students.map(student => (
               <div key={student.id} style={styles.studentCard}>
@@ -233,7 +236,7 @@ const TeacherDashboard = () => {
         </div>
       )}
 
-      {/* --- NEW MODAL: SMART OBSERVATION FORM --- */}
+      {/* --- OBSERVATION MODAL --- */}
       {showObsModal && obsStudent && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalContent}>
@@ -243,74 +246,29 @@ const TeacherDashboard = () => {
             </div>
 
             <form onSubmit={handleObsSubmit} style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              
-              {/* 1. TOPIC (Smart Chips) */}
               <div>
                 <label style={styles.label}>📚 Activity / Topic</label>
                 <div style={{display:'flex', flexWrap:'wrap', gap:'0.5rem', marginBottom:'0.5rem'}}>
                    {CLASS_TOPICS.map(t => (
-                      <button key={t} type="button" onClick={() => setTopic(t)} style={styles.chipBtn(topic === t)}>
-                        {t}
-                      </button>
+                      <button key={t} type="button" onClick={() => setTopic(t)} style={styles.chipBtn(topic === t)}>{t}</button>
                    ))}
                 </div>
-                <input 
-                  required
-                  style={styles.input}
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  placeholder="Or type custom topic..."
-                />
+                <input required style={styles.input} value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Or type custom topic..." />
               </div>
 
-              {/* 2. MOOD */}
-              <QuickSelectTags 
-                label="😊 Student's Mood" 
-                options={MOODS} 
-                selected={moods} 
-                onChange={setMoods} 
-                color="purple" 
-              />
+              <QuickSelectTags label="😊 Mood" options={MOODS} selected={moods} onChange={setMoods} color="purple" />
 
-              {/* 3. STRENGTHS */}
               <div>
-                <QuickSelectTags 
-                  label="⭐ What went well?" 
-                  options={COMMON_STRENGTHS} 
-                  selected={selectedStrengths} 
-                  onChange={setSelectedStrengths} 
-                  color="green" 
-                />
+                <QuickSelectTags label="⭐ Strengths" options={COMMON_STRENGTHS} selected={selectedStrengths} onChange={setSelectedStrengths} color="green" />
+                <textarea rows="2" style={styles.textarea} value={strengthNote} onChange={(e) => setStrengthNote(e.target.value)} placeholder="Details..." />
+              </div>
+
+              <div>
                 <div style={styles.flexBetween}>
-                  <span style={styles.subLabel}>Details (Optional)</span>
-                  <VoiceInput onTranscript={(text) => appendText(strengthNote, text, setStrengthNote)} />
+                   <label style={styles.label}>🏠 Home Note</label>
+                   <VoiceInput onTranscript={(text) => appendText(homeNote, text, setHomeNote)} />
                 </div>
-                <textarea rows="2" style={styles.textarea} value={strengthNote} onChange={(e) => setStrengthNote(e.target.value)} placeholder="Add details..." />
-              </div>
-
-              {/* 4. NEEDS HELP */}
-              <div>
-                <QuickSelectTags 
-                  label="🔻 Needs Improvement" 
-                  options={COMMON_NEEDS} 
-                  selected={selectedNeeds} 
-                  onChange={setSelectedNeeds} 
-                  color="red" 
-                />
-                <div style={styles.flexBetween}>
-                  <span style={styles.subLabel}>Details (Optional)</span>
-                  <VoiceInput onTranscript={(text) => appendText(needNote, text, setNeedNote)} />
-                </div>
-                <textarea rows="2" style={styles.textarea} value={needNote} onChange={(e) => setNeedNote(e.target.value)} placeholder="Add details..." />
-              </div>
-
-              {/* 5. NOTES */}
-              <div>
-                 <div style={styles.flexBetween}>
-                    <label style={styles.label}>🏠 Home Note</label>
-                    <VoiceInput onTranscript={(text) => appendText(homeNote, text, setHomeNote)} />
-                 </div>
-                 <textarea rows="2" style={styles.textarea} value={homeNote} onChange={(e) => setHomeNote(e.target.value)} placeholder="Message for parents..." />
+                <textarea rows="2" style={styles.textarea} value={homeNote} onChange={(e) => setHomeNote(e.target.value)} placeholder="Message for parents..." />
               </div>
 
               <div style={styles.modalActions}>
@@ -319,63 +277,37 @@ const TeacherDashboard = () => {
                   {submittingObs ? 'Saving...' : 'Save Report'}
                 </button>
               </div>
-
             </form>
           </div>
         </div>
       )}
-
     </div>
   );
 };
 
 // --- STYLES ---
 const styles = {
-  // Buttons
-  primaryBtn: { padding: '10px 20px', backgroundColor: '#2ecc71', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '15px' },
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', borderBottom: '1px solid #e2e8f0', paddingBottom: '20px' },
+  notifBanner: { backgroundColor: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '12px', padding: '16px 24px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  notifBtn: { backgroundColor: '#fbbf24', color: 'white', border: 'none', padding: '10px 18px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '14px' },
+  primaryBtn: { padding: '10px 20px', backgroundColor: '#2ecc71', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' },
   secondaryBtn: { padding: '8px 16px', backgroundColor: '#f1c40f', color: '#333', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' },
   logoutBtn: { padding: '8px 16px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
-  backBtn: { background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', marginBottom: '20px', fontSize: '15px', fontWeight: '600' },
-  actionBtn: { width: '100%', padding: '10px', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', transition: 'all 0.2s' },
-  
-  // Layouts
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' },
-  emptyState: { textAlign: 'center', padding: '50px', backgroundColor: '#f8fafc', borderRadius: '12px', color: '#94a3b8', border: '2px dashed #e2e8f0' },
-  fadeIn: { animation: 'fadeIn 0.3s ease-in-out' },
-  flexBetween: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'5px' },
-
-  // Cards
-  classCard: { backgroundColor: 'white', borderRadius: '12px', padding: '20px', display: 'flex', alignItems: 'center', gap: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', cursor: 'pointer', transition: 'transform 0.2s' },
-  classIcon: { width: '50px', height: '50px', backgroundColor: '#ecfdf5', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' },
-  arrow: { marginLeft: 'auto', color: '#cbd5e1', fontSize: '20px' },
-  studentCard: { backgroundColor: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' },
-  avatar: { width: '50px', height: '50px', borderRadius: '50%', backgroundColor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', overflow: 'hidden' },
+  classCard: { backgroundColor: 'white', borderRadius: '12px', padding: '20px', display: 'flex', alignItems: 'center', gap: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', cursor: 'pointer' },
+  studentCard: { backgroundColor: 'white', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' },
+  avatar: { width: '50px', height: '50px', borderRadius: '50%', backgroundColor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   avatarImg: { width: '100%', height: '100%', objectFit: 'cover' },
-
-  // Modal
   modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 },
-  modalContent: { backgroundColor: 'white', borderRadius: '12px', width: '90%', maxWidth: '550px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' },
-  modalHeader: { padding: '15px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc', position:'sticky', top:0, zIndex:10 },
-  closeBtn: { background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#64748b' },
-  
-  // Form Elements
+  modalContent: { backgroundColor: 'white', borderRadius: '12px', width: '90%', maxWidth: '550px', maxHeight: '90vh', overflowY: 'auto' },
+  modalHeader: { padding: '15px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc' },
   label: { display: 'block', fontSize: '13px', fontWeight: '700', color: '#334155', marginBottom: '6px' },
-  subLabel: { fontSize: '12px', fontWeight: '600', color: '#64748b' },
+  textarea: { width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', boxSizing: 'border-box' },
   input: { width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', boxSizing: 'border-box' },
-  textarea: { width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' },
-  
-  // Dynamic Chip
-  chipBtn: (isSelected) => ({
-    padding: '6px 12px', borderRadius: '20px', border: '1px solid',
-    borderColor: isSelected ? '#3b82f6' : '#cbd5e1',
-    backgroundColor: isSelected ? '#eff6ff' : 'white',
-    color: isSelected ? '#2563eb' : '#64748b',
-    cursor: 'pointer', fontSize: '13px', fontWeight: '500', transition: 'all 0.2s'
-  }),
-
-  modalActions: { display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px', paddingTop: '15px', borderTop: '1px solid #e2e8f0' },
+  chipBtn: (isSelected) => ({ padding: '6px 12px', borderRadius: '20px', border: '1px solid', borderColor: isSelected ? '#3b82f6' : '#cbd5e1', backgroundColor: isSelected ? '#eff6ff' : 'white', color: isSelected ? '#2563eb' : '#64748b', cursor: 'pointer' }),
+  modalActions: { display: 'flex', justifyContent: 'flex-end', gap: '10px', padding: '15px 20px', borderTop: '1px solid #e2e8f0' },
   saveBtn: { padding: '10px 20px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer' },
-  cancelBtn: { padding: '10px 20px', backgroundColor: 'transparent', color: '#64748b', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer' }
+  cancelBtn: { background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }
 };
 
 export default TeacherDashboard;

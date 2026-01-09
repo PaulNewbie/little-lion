@@ -334,22 +334,58 @@ const StudentProfile = () => {
                     {selectedStudent.lastName}, {selectedStudent.firstName}
                   </h1>
 
+                  {/* Order of data to follow Word Docu of Mam Phoebe
+                  Name:				Zed Yuan L. De Leon
+                  Nickname: 		          	 	Zed
+                  Address: 	Dalandanan, Valenzuela City
+                  Date of Birth:			December 8, 2019
+                  Age:					5.8
+                  Gender: 				Male
+                  School:	Headway School for Giftedness & Little Lions Learning and Development Center
+                  --
+                  Grade Level:	Kindergarten
+                  Date/s of Assessment:		August 21, 2025	
+                  Examiner:				Dianne Phoebe Kaye L. De Leon */}
+
+
                   <div className="profile-details">
                     <div className="profile-left">
-                      <p>
+                      {/* <p>
+                        //I remove this one, because there's no "medical" info inputs for child from the word docu of mam Phoebe.
                         <span className="icon">🏥</span> <b>Medical:</b>{" "}
                         {selectedStudent.medicalInfo || "None"}
+                      </p> */}
+                      <p>
+                        <span className="icon">📍</span> <b>Nickname:</b>{" "}
+                        {selectedStudent.nickname || "N/A"}
                       </p>
                       <p>
                         <span className="icon">📍</span> <b>Address:</b>{" "}
                         {selectedStudent.address || "N/A"}
                       </p>
                       <p>
+                        <span className="icon">📍</span> <b>Date of Birth:</b>{" "}
+                        {selectedStudent.dateOfBirth || "N/A"}
+                      </p>
+                       <p>
+                        <span className="icon">📍</span> <b>Current Age:</b>{" "}
+                        {calculateAge(selectedStudent.dateOfBirth) || "N/A"}
+                        {/* to fix */}
+                      </p>
+
+                      {/* <p>
+                        <span className="icon">📍</span> <b>Grade Level:</b>{" "}
+                        {selectedStudent.gradeLevel || "N/A"}
+                      </p>
+                      <p>
                         <span className="icon">🎓</span> <b>School:</b>{" "}
                         {selectedStudent.school || "N/A"}
-                      </p>
+                      </p> */}
                     </div>
                     <div className="profile-right">
+                      {/* <p>
+                        <b>Birthdate: {selectedStudent.dateOfBirth || "N/A"}</b>
+                      </p> */}
                       <p>
                         <b>Age:</b> {calculateAge(selectedStudent.dateOfBirth)}
                       </p>
@@ -357,7 +393,7 @@ const StudentProfile = () => {
                         <b>Gender:</b> {selectedStudent.gender}
                       </p>
                       <p>
-                        <b>Grade:</b> {selectedStudent.gradeLevel || "N/A"}
+                        <b>Relationship to Guardian:</b> {selectedStudent.relationshipToClient || "N/A"}
                       </p>
                     </div>
                   </div>
@@ -377,7 +413,7 @@ const StudentProfile = () => {
                         {parentData.lastName}
                         <span style={{ color: "#777", fontSize: "0.9em" }}>
                           {" "}
-                          ({selectedStudent.relationshipToClient || "Parent"})
+                          {/* ({selectedStudent.relationshipToClient || "Parent"}) */}
                         </span>
                       </p>
                       <div

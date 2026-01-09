@@ -38,6 +38,7 @@ const ParentInquiryCenter = () => {
             inquiryService.getInquiriesByParent(currentUser.uid),
             childService.getChildrenByParentId(currentUser.uid)
           ]);
+          console.log('📚 Loaded Children:', childData); // Debug
           setInquiries(inqData);
           setChildren(childData);
           if (inqData.length > 0) setSelectedInquiry(inqData[0]);
@@ -51,30 +52,68 @@ const ParentInquiryCenter = () => {
     loadData();
   }, [currentUser]);
 
-  // 2. Handle Staff Options when Child is selected
+  // 2. ✅ FIXED: Handle Staff Options when Child is selected
   useEffect(() => {
     if (formData.childId) {
       const child = children.find(c => c.id === formData.childId);
-      if (child) {
-        const options = [];
-        child.therapyServices?.forEach(s => {
-          if (s.therapistId) options.push({ id: s.therapistId, name: `${s.therapistName} (${s.serviceName})`, role: 'therapist' });
-        });
-        child.groupClasses?.forEach(c => {
-          if (c.teacherId) options.push({ id: c.teacherId, name: `${c.teacherName} (${c.serviceName})`, role: 'teacher' });
-        });
-        setStaffOptions(options);
+      
+      if (!child) {
+        console.warn('⚠️ Child not found');
+        setStaffOptions([]);
+        return;
       }
+
+      console.log('👶 Selected Child:', child);
+      console.log('📋 Enrolled Services:', child.enrolledServices);
+
+      const options = [];
+
+      // ✅ FIX: Use the unified 'enrolledServices' array
+      if (child.enrolledServices && Array.isArray(child.enrolledServices)) {
+        child.enrolledServices.forEach(service => {
+          // Extract staff info (handles multiple naming conventions)
+          const staffId = service.staffId || service.therapistId || service.teacherId;
+          const staffName = service.staffName || service.therapistName || service.teacherName;
+          const staffRole = service.staffRole || (service.type === 'Therapy' ? 'therapist' : 'teacher');
+
+          if (staffId && staffName) {
+            // Avoid duplicates
+            const exists = options.some(opt => opt.id === staffId);
+            if (!exists) {
+              options.push({
+                id: staffId,
+                name: `${staffName} (${service.serviceName})`,
+                role: staffRole
+              });
+            }
+          }
+        });
+      }
+
+      console.log('👨‍⚕️ Generated Staff Options:', options);
+      setStaffOptions(options);
+    } else {
+      setStaffOptions([]);
     }
   }, [formData.childId, children]);
 
   // 3. Submit New Inquiry
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!formData.childId || !formData.staffId || !formData.message) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+    
     setSending(true);
     try {
       const child = children.find(c => c.id === formData.childId);
       const staff = staffOptions.find(s => s.id === formData.staffId);
+
+      if (!child || !staff) {
+        throw new Error('Invalid child or staff selection');
+      }
 
       const newInq = {
         parentId: currentUser.uid,
@@ -84,7 +123,7 @@ const ParentInquiryCenter = () => {
         targetId: staff.id,
         targetName: staff.name,
         targetRole: staff.role,
-        subject: formData.subject,
+        subject: formData.subject || 'General Inquiry',
         message: formData.message,
       };
 
@@ -93,9 +132,10 @@ const ParentInquiryCenter = () => {
       setInquiries(updatedInqs);
       setView('list');
       setFormData({ childId: '', staffId: '', subject: '', message: '' });
-      alert("Inquiry sent!");
+      alert("✅ Inquiry sent successfully!");
     } catch (error) {
-      alert("Error sending message");
+      console.error('❌ Error sending inquiry:', error);
+      alert("Failed to send inquiry. Please try again.");
     } finally {
       setSending(false);
     }
@@ -158,19 +198,81 @@ const ParentInquiryCenter = () => {
           <div style={styles.formView}>
             <h3>Compose New Inquiry</h3>
             <form onSubmit={handleSubmit} style={styles.form}>
-              <select required style={styles.input} value={formData.childId} onChange={e => setFormData({...formData, childId: e.target.value})}>
-                <option value="">Select Child</option>
-                {children.map(c => <option key={c.id} value={c.id}>{c.firstName} {c.lastName}</option>)}
-              </select>
-              <select required disabled={!formData.childId} style={styles.input} value={formData.staffId} onChange={e => setFormData({...formData, staffId: e.target.value})}>
-                <option value="">Select Recipient</option>
-                {staffOptions.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
-              <input required placeholder="Subject" style={styles.input} value={formData.subject} onChange={e => setFormData({...formData, subject: e.target.value})} />
-              <textarea required placeholder="Message..." style={{...styles.input, height: '150px'}} value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})} />
+              
+              {/* Child Selection */}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Select Child *</label>
+                <select 
+                  required 
+                  style={styles.input} 
+                  value={formData.childId} 
+                  onChange={e => setFormData({...formData, childId: e.target.value, staffId: ''})}
+                >
+                  <option value="">-- Select Child --</option>
+                  {children.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.firstName} {c.lastName}
+                    </option>
+                  ))}
+                </select>
+                {children.length === 0 && (
+                  <p style={styles.helpText}>No children found.</p>
+                )}
+              </div>
+
+              {/* Staff Selection */}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Send To (Teacher/Therapist) *</label>
+                <select 
+                  required 
+                  disabled={!formData.childId} 
+                  style={styles.input} 
+                  value={formData.staffId} 
+                  onChange={e => setFormData({...formData, staffId: e.target.value})}
+                >
+                  <option value="">
+                    {formData.childId ? '-- Select Recipient --' : '-- Select a child first --'}
+                  </option>
+                  {staffOptions.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+                {formData.childId && staffOptions.length === 0 && (
+                  <p style={styles.helpText}>⚠️ No staff assigned to this child.</p>
+                )}
+              </div>
+
+              {/* Subject */}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Subject (Optional)</label>
+                <input 
+                  placeholder="e.g., Question about homework" 
+                  style={styles.input} 
+                  value={formData.subject} 
+                  onChange={e => setFormData({...formData, subject: e.target.value})} 
+                />
+              </div>
+
+              {/* Message */}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Message *</label>
+                <textarea 
+                  required 
+                  placeholder="Type your message here..." 
+                  style={{...styles.input, height: '150px'}} 
+                  value={formData.message} 
+                  onChange={e => setFormData({...formData, message: e.target.value})} 
+                />
+              </div>
+
+              {/* Actions */}
               <div style={{display: 'flex', gap: '10px'}}>
-                <button type="submit" disabled={sending} style={styles.sendBtn}>{sending ? 'Sending...' : 'Send Message'}</button>
-                <button type="button" onClick={() => setView('list')} style={styles.cancelBtn}>Cancel</button>
+                <button type="submit" disabled={sending} style={styles.sendBtn}>
+                  {sending ? 'Sending...' : '📤 Send Message'}
+                </button>
+                <button type="button" onClick={() => setView('list')} style={styles.cancelBtn}>
+                  Cancel
+                </button>
               </div>
             </form>
           </div>
@@ -250,8 +352,11 @@ const styles = {
   replyBox: { marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid #eee' },
   limitNotice: { marginTop: '20px', padding: '15px', backgroundColor: '#fff3cd', color: '#856404', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold' },
   formView: { padding: '40px' },
-  form: { display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '500px' },
+  form: { display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '500px' },
+  formGroup: { display: 'flex', flexDirection: 'column', gap: '8px' },
+  label: { fontWeight: '600', fontSize: '0.9rem', color: '#334155' },
   input: { width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box' },
+  helpText: { fontSize: '0.8rem', color: '#ef4444', margin: '4px 0 0 0', fontStyle: 'italic' },
   sendBtn: { padding: '12px 24px', backgroundColor: '#2ecc71', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' },
   cancelBtn: { padding: '12px 24px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
   statusBadge: (status) => ({ 
