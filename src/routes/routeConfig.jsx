@@ -32,7 +32,7 @@ import TherapySessionForm from "../pages/therapist/TherapySessionForm";
 import TherapistProfile from "../pages/therapist/TherapistProfile";
 
 // Parent Components
-import ParentDashboard from "../pages/parent/ ";
+import ParentDashboard from "../pages/parent/ParentChildProfile";
 import ChildActivities from "../pages/parent/ChildActivities";
 import ParentInquiries from "../pages/parent/ParentInquiries";
 import NewInquiry from "../pages/parent/NewInquiry";
