@@ -14,9 +14,11 @@ import {
 import { 
   signInWithEmailAndPassword, 
   updatePassword,
-  sendPasswordResetEmail 
+  sendPasswordResetEmail,
+  getAuth 
 } from 'firebase/auth';
-import { db, auth } from '../config/firebase';
+import { initializeApp } from 'firebase/app';
+import { db, auth, firebaseConfig } from '../config/firebase';
 import { 
   generateActivationCode, 
   generateAdminAssistCode, 
@@ -32,9 +34,10 @@ class ActivationService {
   /**
    * Generate activation data for a new user
    * Called when admin creates an account
+   * @param {string} tempPassword - The temporary password for this account
    * @returns {object} Activation fields to add to user document
    */
-  generateActivationData() {
+  generateActivationData(tempPassword) {
     const now = Date.now();
     const expiryMs = ACTIVATION_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
     
@@ -42,7 +45,9 @@ class ActivationService {
       accountStatus: 'pending_setup',
       activationCode: generateActivationCode(),
       activationExpiry: now + expiryMs,
-      activationCreatedAt: now
+      activationCreatedAt: now,
+      // Store temp password (base64 encoded) - will be deleted after activation
+      _tempKey: btoa(tempPassword)
     };
   }
 
@@ -129,29 +134,86 @@ class ActivationService {
   }
 
   /**
-   * Complete the activation process
-   * Sets the user's password and marks account as active
+   * Complete the activation process - OPTION B: Direct password setting
+   * Signs in with temp password, updates to new password, marks account active
    * @param {string} uid - User's UID
    * @param {string} email - User's email
-   * @param {string} newPassword - The new password
+   * @param {string} newPassword - The new password chosen by user
    * @param {string} activatedBy - 'self' or 'admin'
    * @returns {object} { success: boolean, error?: string }
    */
   async completeActivation(uid, email, newPassword, activatedBy = 'self') {
+    let tempApp = null;
+    
     try {
-      // Use Firebase's password reset email to set password securely
-      // This triggers Firebase to send a password reset link
-      await sendPasswordResetEmail(auth, email, {
-        url: `${window.location.origin}/login?activated=true`
-      });
+      // 1. Get the temp password from Firestore
+      const userDoc = await getDoc(doc(db, 'users', uid));
+      if (!userDoc.exists()) {
+        return { success: false, error: 'User not found' };
+      }
       
-      // Update Firestore to mark as active
+      const userData = userDoc.data();
+      const tempKey = userData._tempKey;
+      
+      if (!tempKey) {
+        // Fallback to email reset if no temp key (shouldn't happen)
+        console.warn('No temp key found, falling back to email reset');
+        await sendPasswordResetEmail(auth, email, {
+          url: `${window.location.origin}/login?activated=true`
+        });
+        await this.markAccountAsActive(uid, activatedBy);
+        return { success: true, method: 'email_reset' };
+      }
+      
+      // 2. Decode temp password
+      const tempPassword = atob(tempKey);
+      
+      // 3. Create a temporary Firebase app to sign in (avoid affecting current session)
+      tempApp = initializeApp(firebaseConfig, 'activationApp-' + Date.now());
+      const tempAuth = getAuth(tempApp);
+      
+      // 4. Sign in with temp password
+      const userCredential = await signInWithEmailAndPassword(tempAuth, email, tempPassword);
+      
+      // 5. Update to new password
+      await updatePassword(userCredential.user, newPassword);
+      
+      // 6. Sign out from temp app
+      await tempAuth.signOut();
+      
+      // 7. Mark account as active and remove temp key
       await this.markAccountAsActive(uid, activatedBy);
       
-      return { success: true, method: 'email_reset' };
+      return { success: true, method: 'direct' };
+      
     } catch (error) {
       console.error('Error completing activation:', error);
+      
+      // If sign-in fails, the temp password might have been changed already
+      // Fall back to email reset
+      if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        try {
+          await sendPasswordResetEmail(auth, email, {
+            url: `${window.location.origin}/login?activated=true`
+          });
+          await this.markAccountAsActive(uid, activatedBy);
+          return { success: true, method: 'email_reset', fallback: true };
+        } catch (resetError) {
+          return { success: false, error: 'Failed to set password. Please contact support.' };
+        }
+      }
+      
       return { success: false, error: error.message };
+    } finally {
+      // Clean up temp app
+      if (tempApp) {
+        try {
+          const { deleteApp } = await import('firebase/app');
+          await deleteApp(tempApp);
+        } catch (e) {
+          console.warn('Failed to delete temp app:', e);
+        }
+      }
     }
   }
 
@@ -167,6 +229,7 @@ class ActivationService {
       activationCode: deleteField(),
       activationExpiry: deleteField(),
       activationCreatedAt: deleteField(),
+      _tempKey: deleteField(), // Remove temp password!
       activatedAt: new Date().toISOString(),
       activatedBy: activatedBy,
       mustChangePassword: deleteField(), // Remove old field if exists
@@ -176,23 +239,45 @@ class ActivationService {
 
   /**
    * Regenerate activation code (for resend)
+   * Also generates a new temp password
    * @param {string} uid - User's UID
+   * @param {string} email - User's email (needed to reset in Firebase Auth)
    * @returns {object} { success: boolean, newCode?: string, error?: string }
    */
-  async regenerateActivationCode(uid) {
+  async regenerateActivationCode(uid, email) {
+    let tempApp = null;
+    
     try {
-      const activationData = this.generateActivationData();
-      const userRef = doc(db, 'users', uid);
+      // Generate new temp password
+      const { generateSecurePassword } = await import('../utils/codeGenerator');
+      const newTempPassword = generateSecurePassword(24);
       
+      // Generate new activation data
+      const activationData = this.generateActivationData(newTempPassword);
+      
+      // Update Firestore
+      const userRef = doc(db, 'users', uid);
       await updateDoc(userRef, {
         ...activationData,
         updatedAt: serverTimestamp()
       });
       
+      // Note: We can't easily update the Firebase Auth password without signing in
+      // The user will need to use email reset if they already changed their password
+      // For now, send a password reset email as fallback
+      await sendPasswordResetEmail(auth, email);
+      
       return { success: true, newCode: activationData.activationCode };
     } catch (error) {
       console.error('Error regenerating code:', error);
       return { success: false, error: error.message };
+    } finally {
+      if (tempApp) {
+        try {
+          const { deleteApp } = await import('firebase/app');
+          await deleteApp(tempApp);
+        } catch (e) {}
+      }
     }
   }
 
@@ -309,26 +394,6 @@ class ActivationService {
     } catch (error) {
       console.error('Error fetching user:', error);
       return null;
-    }
-  }
-
-  /**
-   * Send activation email
-   * @param {string} email - User's email
-   * @param {string} code - Activation code
-   */
-  async sendActivationEmail(email, code) {
-    // Using Firebase's password reset as a delivery mechanism
-    // The email template should be customized in Firebase Console
-    try {
-      const activationUrl = `${window.location.origin}/activate?code=${code}`;
-      await sendPasswordResetEmail(auth, email, {
-        url: activationUrl
-      });
-      return { success: true };
-    } catch (error) {
-      console.error('Error sending activation email:', error);
-      return { success: false, error: error.message };
     }
   }
 }

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import useManageTherapists from '../../hooks/useManageTherapists';
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
-import TherapistCard from '../shared/TherapistCard'; // ✅ Import the card
-import "./css/OneOnOne.css";
+import TherapistCard from '../shared/TherapistCard';
+import ActivationModal from '../../components/admin/ActivationModal';
+import "./css/managetherapist.css";
 
 const ManageTherapists = () => {
   const {
@@ -14,284 +15,183 @@ const ManageTherapists = () => {
     handleInputChange,
     toggleSpecialization,
     createTherapist,
-    // deleteTherapist // Uncomment if you need delete functionality
   } = useManageTherapists();
-  
+
   const [showForm, setShowForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // ✅ NEW: State for Profile View Modal
   const [selectedTherapistId, setSelectedTherapistId] = useState(null);
+
+  // NEW: Activation Modal State
+  const [showActivationModal, setShowActivationModal] = useState(false);
+  const [newUserData, setNewUserData] = useState(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   if (loading) return <div className="pg-loading">Loading therapists...</div>;
 
-  // Filter therapists based on search query
-  const filteredTherapists = therapists.filter(therapist =>
-    `${therapist.firstName} ${therapist.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    therapist.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTherapists = therapists.filter(t =>
+    `${t.firstName} ${t.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    t.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // NEW: Handle form submit with activation modal
+  const handleCreateTherapist = async (e) => {
+    e.preventDefault();
+    setIsCreating(true);
+    
+    const result = await createTherapist(e);
+    
+    setIsCreating(false);
+    
+    if (result.success) {
+      setShowForm(false);
+      setNewUserData(result.user);
+      setShowActivationModal(true);
+    } else {
+      alert('Failed to create therapist: ' + result.error);
+    }
+  };
 
   return (
     <div className="ooo-container">
       <AdminSidebar />
+
       <div className="ooo-main">
-        
-        {/* Header with Search */}
+        {/* ================= HEADER ================= */}
         <div className="ooo-header">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: '20px' }}>
-            <div className="header-title">
-              <h1>THERAPIST PROFILES</h1>
-              <p className="header-subtitle">Add and Manage Therapist Accounts</p>
+          <div className="header-row">
+            <div className="header-left">
+              {/* Back Button – ONLY shows on Therapist Info */}
+              {selectedTherapistId && (
+                <span
+                  className="back-btn"
+                  onClick={() => setSelectedTherapistId(null)}
+                >
+                  ‹
+                </span>
+              )}
+
+              {/* Header text with conditional right shift */}
+              <div
+                className={`header-text ${selectedTherapistId ? 'detail-view-title' : ''}`}
+              >
+                <h1>
+                  {selectedTherapistId
+                    ? "THERAPIST PROFILE"
+                    : "THERAPIST PROFILES"}
+                </h1>
+
+                {!selectedTherapistId && (
+                  <p className="header-subtitle">
+                    Add and Manage Therapist Accounts
+                  </p>
+                )}
+              </div>
             </div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: 'white',
-              border: '1px solid #ddd',
-              borderRadius: '24px',
-              padding: '8px 16px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-              minWidth: '250px'
-            }}>
-              <span style={{ fontSize: '18px' }}>🔍</span>
-              <input
-                type="text"
-                placeholder="Search therapist name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{
-                  flex: 1,
-                  border: 'none',
-                  outline: 'none',
-                  fontSize: '14px',
-                  background: 'transparent'
-                }}
-              />
-            </div>
+
+            {/* Search – ONLY shows on list view */}
+            {!selectedTherapistId && (
+              <div className="search-box">
+                <span className="search-icon">🔍</span>
+                <input
+                  type="text"
+                  placeholder="Search therapist name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            )}
           </div>
         </div>
 
-        {error && (
-          <div style={{ 
-            background: '#fee', 
-            border: '1px solid #fcc', 
-            color: '#c00', 
-            padding: '12px 16px', 
-            borderRadius: '8px', 
-            marginBottom: '20px',
-            marginLeft: '24px',
-            marginRight: '24px'
-          }}>
-            ⚠️ Error: {error}
-          </div>
-        )}
+        {error && <div className="error-box">⚠️ Error: {error}</div>}
 
-        <div className="ooo-content-area">
-          {/* Section Title */}
-          <div style={{ marginBottom: '24px' }}>
-            <h2 style={{ fontSize: '14px', fontWeight: '700', textTransform: 'uppercase', color: '#374151', letterSpacing: '0.5px', margin: '0 0 16px 0' }}>
-              Therapist Accounts
-            </h2>
-          </div>
-
-          {/* Therapist Cards Grid */}
-          {filteredTherapists.length === 0 ? (
-            <div style={{ 
-              padding: '48px 24px', 
-              textAlign: 'center', 
-              color: '#666',
-              background: 'white',
-              borderRadius: '8px',
-              border: '1px solid #eee'
-            }}>
-              <p style={{ fontSize: '14px', marginBottom: '8px' }}>
-                {searchQuery ? 'No therapists found matching your search.' : 'No therapists yet. Click the button below to create one.'}
-              </p>
-            </div>
+        {/* ================= CONTENT ================= */}
+        <div className="tera-content-area">
+          {/* ========== DETAIL VIEW ========== */}
+          {selectedTherapistId ? (
+            <TherapistCard
+              therapistId={selectedTherapistId}
+              serviceName="Therapist Profile"
+            />
           ) : (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', // Widened slightly
-              gap: '16px',
-              marginBottom: '40px'
-            }}>
-              {filteredTherapists.map(therapist => (
-                <div
-                  key={therapist.uid}
-                  style={{
-                    background: 'white',
-                    border: '1px solid #ddd',
-                    borderRadius: '8px',
-                    padding: '16px',
-                    textAlign: 'center',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                    transition: 'all 0.2s',
-                    position: 'relative',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    minHeight: '260px' // Ensure uniform height
-                  }}
-                >
-                  {/* Content Container */}
-                  <div>
-                     {/* ✅ Profile Status Badge */}
-                    <div style={{
-                      position: 'absolute',
-                      top: '10px',
-                      right: '10px',
-                      width: '12px',
-                      height: '12px',
-                      borderRadius: '50%',
-                      backgroundColor: therapist.profileCompleted ? '#22c55e' : '#f59e0b',
-                      border: '2px solid white',
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                      cursor: 'help'
-                    }} title={therapist.profileCompleted ? "Profile Complete" : "Profile Incomplete"} />
+            <>
+              {/* ========== LIST VIEW ========== */}
+              <h2 className="section-title">Therapist Accounts</h2>
 
-                    {/* Avatar */}
-                    <div style={{
-                      background: '#e5e7eb',
-                      borderRadius: '50%', // Circular avatar
-                      width: '80px',
-                      height: '80px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto 12px',
-                      fontSize: '36px',
-                      overflow: 'hidden',
-                      border: '3px solid white',
-                      boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-                    }}>
-                      {therapist.profilePhoto ? (
-                        <img src={therapist.profilePhoto} alt="" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
-                      ) : (
-                        '👤'
-                      )}
-                    </div>
-
-                    {/* Therapist Name */}
-                    <h3 style={{
-                      fontSize: '15px',
-                      fontWeight: '700',
-                      margin: '8px 0 4px',
-                      color: '#1f2937'
-                    }}>
-                      {therapist.firstName} {therapist.lastName}
-                    </h3>
-                    
-                    {/* Status Text */}
-                    <div style={{ fontSize: '11px', color: therapist.profileCompleted ? '#166534' : '#92400e', marginBottom: '8px', fontWeight: '600', backgroundColor: therapist.profileCompleted ? '#dcfce7' : '#fef3c7', display: 'inline-block', padding: '2px 8px', borderRadius: '10px' }}>
-                      {therapist.profileCompleted ? '✅ Profile Active' : '⚠️ Setup Pending'}
-                    </div>
-
-                    {/* Specializations */}
-                    <div style={{
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      gap: '4px',
-                      justifyContent: 'center',
-                      marginTop: '8px'
-                    }}>
-                      {therapist.specializations && therapist.specializations.length > 0 ? (
-                        therapist.specializations.slice(0, 2).map((spec, idx) => (
-                          <span
-                            key={idx}
-                            style={{
-                              padding: '2px 8px',
-                              background: '#f3f4f6',
-                              color: '#4b5563',
-                              fontSize: '11px',
-                              borderRadius: '12px',
-                              fontWeight: '500',
-                              border: '1px solid #e5e7eb'
-                            }}
-                          >
-                            {spec}
-                          </span>
-                        ))
-                      ) : (
-                        <span style={{ fontSize: '11px', color: '#999' }}>No specializations</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* ✅ View Profile Button */}
-                  <button
-                    onClick={() => {
-                      if (therapist.profileCompleted) {
-                        setSelectedTherapistId(therapist.uid);
-                      } else {
-                        alert("This therapist has not completed their profile yet.");
-                      }
-                    }}
-                    style={{
-                      marginTop: '16px',
-                      padding: '8px',
-                      width: '100%',
-                      borderRadius: '6px',
-                      border: therapist.profileCompleted ? '1px solid #3b82f6' : '1px dashed #d1d5db',
-                      background: therapist.profileCompleted ? '#eff6ff' : '#f9fafb',
-                      color: therapist.profileCompleted ? '#2563eb' : '#9ca3af',
-                      fontSize: '12px',
-                      fontWeight: '600',
-                      cursor: therapist.profileCompleted ? 'pointer' : 'not-allowed',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    {therapist.profileCompleted ? 'View Public Profile' : 'Incomplete Profile'}
-                  </button>
+              {filteredTherapists.length === 0 ? (
+                <div className="empty-box">
+                  <p>
+                    {searchQuery
+                      ? 'No therapists found matching your search.'
+                      : 'No therapists yet. Click the button below to create one.'}
+                  </p>
                 </div>
-              ))}
-            </div>
+              ) : (
+                <div className="therapist-grid">
+                  {filteredTherapists.map(t => (
+                    <div
+                      key={t.uid}
+                      className={`therapist-card ${
+                        !t.profileCompleted ? 'disabled-card' : ''
+                      }`}
+                      onClick={() => {
+                        if (t.profileCompleted) {
+                          setSelectedTherapistId(t.uid);
+                        } else {
+                          alert(
+                            "This therapist has not completed their profile yet."
+                          );
+                        }
+                      }}
+                    >
+                      {/* Avatar */}
+                      <div className="avatar">
+                        {t.profilePhoto ? (
+                          <img src={t.profilePhoto} alt="" />
+                        ) : (
+                          '👤'
+                        )}
+                      </div>
+
+                      <h3>{t.firstName} {t.lastName}</h3>
+
+                      <span
+                        className={`status-badge ${
+                          t.profileCompleted ? 'complete' : 'incomplete'
+                        }`}
+                      >
+                        {t.profileCompleted
+                          ? '✅ Profile Active'
+                          : '⚠️ Setup Pending'}
+                      </span>
+
+                      <div className="specializations">
+                        {t.specializations?.length ? (
+                          t.specializations.slice(0, 2).map((s, i) => (
+                            <span key={i} className="spec-chip">
+                              {s}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="no-spec">
+                            No specializations
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
 
-        {/* FAB Button */}
-        <button
-          onClick={() => setShowForm(true)}
-          style={{
-            position: 'fixed', bottom: '32px', right: '32px', background: '#fbbf24', color: 'white',
-            border: 'none', borderRadius: '50px', padding: '16px 24px', fontSize: '14px', fontWeight: '600',
-            cursor: 'pointer', boxShadow: '0 4px 12px rgba(251, 191, 36, 0.4)', display: 'flex', alignItems: 'center',
-            gap: '8px', transition: 'all 0.3s', zIndex: 40
-          }}
-        >
-          <span style={{ fontSize: '18px' }}>+</span> ADD THERAPIST
+        {/* ================= FAB ================= */}
+        <button className="fab" onClick={() => setShowForm(true)}>
+          <span>+</span> THERAPIST
         </button>
 
-        {/* ✅ Profile View Modal */}
-        {selectedTherapistId && (
-          <div
-            style={{
-              position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.5)', zIndex: 60,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
-            }}
-            onClick={() => setSelectedTherapistId(null)}
-          >
-            <div onClick={e => e.stopPropagation()} style={{ position: 'relative', width: '100%', maxWidth: '450px' }}>
-              <button 
-                onClick={() => setSelectedTherapistId(null)}
-                style={{
-                  position: 'absolute', top: '-12px', right: '-12px', background: 'white', border: 'none',
-                  borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer',
-                  boxShadow: '0 2px 5px rgba(0,0,0,0.2)', fontSize: '16px', fontWeight: 'bold', color: '#666', zIndex: 10
-                }}
-              >
-                ✕
-              </button>
-              {/* Reuse the existing card component */}
-              <TherapistCard 
-                therapistId={selectedTherapistId} 
-                serviceName="Professional Profile Preview" 
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Add Therapist Form Modal (Existing) */}
+        {/* ================= ADD THERAPIST FORM MODAL - UPDATED ================= */}
         {showForm && (
           <div
             style={{
@@ -312,14 +212,13 @@ const ManageTherapists = () => {
                 ADD THERAPIST
               </h2>
 
-              <form onSubmit={(e) => { createTherapist(e); setShowForm(false); }}>
+              <form onSubmit={handleCreateTherapist}>
                 {/* Personal Info Section */}
                 <div style={{ marginBottom: '24px' }}>
                   <h3 style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: '#666', letterSpacing: '0.5px', marginBottom: '16px' }}>
                     Personal Information
                   </h3>
 
-                  {/* First Row - Last Name & First Name & Middle Name */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
                     <div>
                       <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', fontSize: '12px' }}>Surname *</label>
@@ -337,7 +236,7 @@ const ManageTherapists = () => {
                 </div>
 
                 {/* Account Info Section */}
-                <div style={{ marginBottom: '32px' }}>
+                <div style={{ marginBottom: '24px' }}>
                   <h3 style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: '#666', letterSpacing: '0.5px', marginBottom: '16px' }}>
                     Account Information
                   </h3>
@@ -348,12 +247,21 @@ const ManageTherapists = () => {
                       <input name="email" type="email" placeholder="@gmail.com" value={newTherapist.email} onChange={handleInputChange} required style={{ flex: 1, padding: '12px 0', border: 'none', outline: 'none', fontSize: '14px', background: 'transparent' }} />
                     </div>
                   </div>
-                  <div>
-                    <label style={{ display: 'block', fontWeight: '700', marginBottom: '8px', fontSize: '12px', textTransform: 'uppercase', color: '#000' }}>Password</label>
-                    <div style={{ display: 'flex', alignItems: 'center', border: '2px solid #ddd', borderRadius: '24px', padding: '0 16px', background: 'white' }}>
-                      <span style={{ fontSize: '20px', marginRight: '12px' }}>🔒</span>
-                      <input name="password" value={newTherapist.password} readOnly style={{ flex: 1, padding: '12px 0', border: 'none', outline: 'none', fontSize: '14px', background: 'transparent', color: '#666' }} />
-                    </div>
+
+                  {/* Info box explaining activation - REPLACES password field */}
+                  <div style={{
+                    backgroundColor: '#f0f9ff',
+                    border: '1px solid #bae6fd',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    fontSize: '13px',
+                    color: '#0369a1'
+                  }}>
+                    <strong>ℹ️ How it works:</strong>
+                    <p style={{ margin: '4px 0 0 0' }}>
+                      After creating the account, a QR code will appear. 
+                      The therapist can scan it to set up their password and complete their profile.
+                    </p>
                   </div>
                 </div>
 
@@ -375,13 +283,36 @@ const ManageTherapists = () => {
                 </div>
 
                 <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                  <button type="button" onClick={() => setShowForm(false)} style={{ flex: 1, background: 'white', color: '#000', padding: '12px 24px', border: '2px solid #000', borderRadius: '6px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', textTransform: 'uppercase', transition: 'all 0.2s' }}>Cancel</button>
-                  <button type="submit" style={{ flex: 1, background: '#fbbf24', color: 'white', padding: '12px 24px', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', textTransform: 'uppercase', transition: 'all 0.2s' }}>Add Therapist</button>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowForm(false)} 
+                    disabled={isCreating}
+                    style={{ flex: 1, background: 'white', color: '#000', padding: '12px 24px', border: '2px solid #000', borderRadius: '6px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', textTransform: 'uppercase', transition: 'all 0.2s' }}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={isCreating}
+                    style={{ flex: 1, background: isCreating ? '#fcd34d' : '#fbbf24', color: 'white', padding: '12px 24px', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '700', cursor: isCreating ? 'not-allowed' : 'pointer', textTransform: 'uppercase', transition: 'all 0.2s' }}
+                  >
+                    {isCreating ? 'Creating...' : 'Add Therapist'}
+                  </button>
                 </div>
               </form>
             </div>
           </div>
         )}
+
+        {/* NEW: Activation Modal */}
+        <ActivationModal
+          isOpen={showActivationModal}
+          onClose={() => {
+            setShowActivationModal(false);
+            setNewUserData(null);
+          }}
+          userData={newUserData}
+        />
       </div>
     </div>
   );

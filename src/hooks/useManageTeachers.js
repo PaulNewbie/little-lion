@@ -1,14 +1,13 @@
+// src/hooks/useManageTeachers.js
+
 import { useState } from 'react';
-// 1. Import Query hooks
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import userService from '../services/userService';
 import authService from '../services/authService';
 import servicesService from '../services/offeringsService';
 
 const useManageTeachers = () => {
-  // 2. Initialize the Client (to control the cache)
   const queryClient = useQueryClient();
-
   const [error, setError] = useState(null);
 
   // --- QUERY 1: Fetch Teachers (Cached) ---
@@ -16,9 +15,9 @@ const useManageTeachers = () => {
     data: teachers = [], 
     isLoading: loadingTeachers 
   } = useQuery({
-    queryKey: ['teachers'], // Unique Key
+    queryKey: ['teachers'],
     queryFn: () => userService.getUsersByRole('teacher'),
-    staleTime: 1000 * 60 * 5, // 5 minutes fresh
+    staleTime: 1000 * 60 * 5,
   });
 
   // --- QUERY 2: Fetch Class Services (Cached) ---
@@ -26,29 +25,21 @@ const useManageTeachers = () => {
     data: services = [], 
     isLoading: loadingServices 
   } = useQuery({
-    queryKey: ['services', 'Class'], // Specific key for Class services
+    queryKey: ['services', 'Class'],
     queryFn: () => servicesService.getServicesByType('Class'),
     staleTime: 1000 * 60 * 5,
   });
 
   const loading = loadingTeachers || loadingServices;
 
-  // ... (Keep Password Generator Logic) ...
-  const generatePassword = () => {
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-    const numbers = '0123456789';
-    let password = '';
-    for (let i = 0; i < 3; i++) password += letters.charAt(Math.floor(Math.random() * letters.length));
-    for (let i = 0; i < 3; i++) password += numbers.charAt(Math.floor(Math.random() * numbers.length));
-    return password;
-  };
+  // REMOVED: generatePassword function - no longer needed!
 
+  // Form state - NO password field!
   const [newTeacher, setNewTeacher] = useState({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
-    password: generatePassword(),
     specializations: []
   });
 
@@ -66,39 +57,59 @@ const useManageTeachers = () => {
     });
   };
 
-  // --- ACTIONS (Create / Delete) ---
+  // --- ACTIONS ---
   
+  /**
+   * Create a new teacher account
+   * Returns the created user data INCLUDING activationCode for the modal
+   */
   const createTeacher = async (e) => {
     e.preventDefault();
     setError(null);
+    
     try {
-      await authService.createTeacherAccount(newTeacher.email, newTeacher.password, newTeacher);
+      // UPDATED: No password parameter - authService handles it securely
+      const result = await authService.createTeacherAccount(newTeacher.email, {
+        firstName: newTeacher.firstName,
+        lastName: newTeacher.lastName,
+        phone: newTeacher.phone,
+        specializations: newTeacher.specializations,
+      });
       
-      // ✅ MAGIC: Tell React Query to re-fetch 'teachers' instantly
+      // Refresh the list
       await queryClient.invalidateQueries({ queryKey: ['teachers'] });
 
+      // Reset form
       setNewTeacher({ 
         firstName: '', 
         lastName: '', 
         email: '', 
         phone: '', 
-        password: generatePassword(), 
         specializations: [] 
       });
-      alert('Teacher created successfully');
+      
+      // Return the result so the component can show the activation modal
+      return {
+        success: true,
+        user: {
+          uid: result.uid,
+          firstName: newTeacher.firstName,
+          lastName: newTeacher.lastName,
+          email: newTeacher.email,
+          activationCode: result.activationCode
+        }
+      };
     } catch (err) {
       setError(err.message);
+      return { success: false, error: err.message };
     }
   };
 
   const deleteTeacher = async (id) => {
-    if (!window.confirm('Are you sure?')) return;
+    if (!window.confirm('Are you sure you want to delete this teacher?')) return;
     try {
       await userService.deleteUser(id);
-      
-      // ✅ MAGIC: Auto-refresh list after delete
       await queryClient.invalidateQueries({ queryKey: ['teachers'] });
-      
     } catch (err) {
       setError(err.message);
     }

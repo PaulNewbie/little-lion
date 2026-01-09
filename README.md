@@ -117,8 +117,7 @@ src/
 │   ├── auth/
 │   │   └── LoginPage.jsx
 │   ├── parent/                # Parent-specific pages
-│   │   ├── ChildActivities.jsx # Activity feed for a specific child
-│   │   └── ParentDashboard.jsx
+│   │   └── ChildActivities.jsx # Activity feed for a specific child
 │   └── teacher/               # Teacher-specific pages
 │       ├── PlayGroupActivity.jsx # Upload form for Group Activities
 │       └── TeacherDashboard.jsx

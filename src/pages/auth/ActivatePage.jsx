@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '../../config/firebase';
 import activationService from '../../services/activationService';
 
 // Minimal inline styles
@@ -266,47 +264,58 @@ export default function ActivatePage() {
     setLoading(true);
     
     try {
-      // Send password reset email (Firebase's secure way)
-      await sendPasswordResetEmail(auth, userData.email, {
-        url: `${window.location.origin}/login?activated=true`
-      });
+      // OPTION B: Set password directly (no email step!)
+      const result = await activationService.completeActivation(
+        userData.uid,
+        userData.email,
+        password,
+        'self'
+      );
       
-      // Mark account as active
-      await activationService.markAccountAsActive(userData.uid, 'self');
-      
-      setStep('success');
+      if (result.success) {
+        setStep('success');
+      } else {
+        setError(result.error || 'Failed to set password. Please try again.');
+      }
     } catch (err) {
-      setError(err.message || 'Failed to complete activation');
+      console.error('Activation error:', err);
+      setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleResendCode = async () => {
-    if (!userData?.uid) return;
+    if (!userData) return;
     
     setLoading(true);
-    const result = await activationService.regenerateActivationCode(userData.uid);
-    
-    if (result.success) {
-      setCode(result.newCode);
-      setError('');
-      // Re-validate with new code
-      validateCode(result.newCode);
-    } else {
-      setError('Failed to generate new code. Please contact admin.');
+    try {
+      const result = await activationService.regenerateActivationCode(userData.uid, userData.email);
+      if (result.success) {
+        alert(`New activation code: ${result.newCode}\n\nPlease use this code to activate your account.`);
+        setCode(result.newCode);
+        setStep('enter_code');
+        setError('');
+        setErrorType('');
+      } else {
+        setError('Failed to generate new code. Please contact support.');
+      }
+    } catch (err) {
+      setError('Failed to generate new code');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  // Render based on step
   const renderContent = () => {
     switch (step) {
       case 'enter_code':
         return (
           <>
-            <h1 style={styles.title}>Activate Account</h1>
-            <p style={styles.subtitle}>Enter the activation code provided by the school</p>
+            <h1 style={styles.title}>Activate Your Account</h1>
+            <p style={styles.subtitle}>
+              Enter the activation code from your QR code or the code given by the admin
+            </p>
             
             {error && <div style={styles.error}>{error}</div>}
             
@@ -317,21 +326,23 @@ export default function ActivatePage() {
                   type="text"
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
-                  placeholder="STAR-1234"
+                  placeholder="e.g., STAR-7842"
                   style={styles.input}
                   autoFocus
                 />
-                <p style={styles.hint}>Example: STAR-1234</p>
+                <p style={styles.hint}>
+                  Format: XXXX-XXXX (e.g., STAR-7842)
+                </p>
               </div>
               
               <button type="submit" style={styles.button}>
-                Continue
+                Continue →
               </button>
             </form>
             
             <div style={styles.divider} />
             <p style={{ textAlign: 'center', fontSize: '14px', color: '#666' }}>
-              Need help? Contact the school admin
+              Don't have a code? Contact the school admin
             </p>
           </>
         );
@@ -339,7 +350,8 @@ export default function ActivatePage() {
       case 'validating':
         return (
           <>
-            <h1 style={styles.title}>Validating...</h1>
+            <h1 style={{ ...styles.title, fontSize: '32px' }}>⏳</h1>
+            <h1 style={styles.title}>Verifying...</h1>
             <p style={styles.subtitle}>Please wait while we verify your code</p>
           </>
         );
@@ -520,22 +532,21 @@ export default function ActivatePage() {
             
             <div style={styles.success}>
               <p style={{ margin: 0 }}>
-                We've sent a password setup link to <strong>{userData?.email}</strong>
+                Your password has been set successfully!
               </p>
             </div>
             
             <div style={styles.infoBox}>
-              <p style={{ margin: '0 0 8px 0', fontWeight: '500' }}>Next steps:</p>
-              <p style={{ margin: '0 0 4px 0' }}>1. Check your email</p>
-              <p style={{ margin: '0 0 4px 0' }}>2. Click the link to set your password</p>
-              <p style={{ margin: 0 }}>3. Log in with your new password</p>
+              <p style={{ margin: '0 0 8px 0', fontWeight: '500' }}>You can now log in with:</p>
+              <p style={{ margin: '0 0 4px 0' }}>📧 <strong>Email:</strong> {userData?.email}</p>
+              <p style={{ margin: 0 }}>🔑 <strong>Password:</strong> The one you just created</p>
             </div>
             
             <button 
               onClick={() => navigate('/login')}
               style={styles.button}
             >
-              Go to Login
+              Go to Login →
             </button>
           </>
         );
