@@ -77,13 +77,13 @@ const ParentSidebar = () => {
           </div>
 
           <div
-            className={`menu-item ${isActive("/parent/inquiries") ? "active" : ""}`}
-            onClick={() => navigate("/parent/inquiries")}
+            className={`menu-item ${isActive("/parent/concerns") ? "active" : ""}`}
+            onClick={() => navigate("/parent/concerns")}
           >
             <svg className="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
             </svg>
-            <span className="menu-label">INQUIRIES</span>
+            <span className="menu-label">CONCERNS</span>
           </div>
         </div>
 

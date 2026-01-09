@@ -1,0 +1,1002 @@
+/* ============================================
+   PARENT CONCERNS - MOBILE FIRST RESPONSIVE
+   ============================================ */
+
+/* CSS Custom Properties */
+:root {
+  --pc-primary: #3b82f6;
+  --pc-primary-hover: #2563eb;
+  --pc-success: #10b981;
+  --pc-success-hover: #059669;
+  --pc-warning: #f59e0b;
+  --pc-danger: #ef4444;
+  --pc-gray-50: #f8fafc;
+  --pc-gray-100: #f1f5f9;
+  --pc-gray-200: #e2e8f0;
+  --pc-gray-300: #cbd5e1;
+  --pc-gray-400: #94a3b8;
+  --pc-gray-500: #64748b;
+  --pc-gray-600: #475569;
+  --pc-gray-700: #334155;
+  --pc-gray-800: #1e293b;
+  --pc-gray-900: #0f172a;
+  --pc-border-radius: 12px;
+  --pc-transition: all 0.2s ease;
+}
+
+/* ============================================
+   BASE LAYOUT - MOBILE FIRST
+   ============================================ */
+
+.pc-page-wrapper {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--pc-gray-100);
+}
+
+.pc-content-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin: 12px;
+  background-color: #fff;
+  border-radius: var(--pc-border-radius);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ============================================
+   LIST COLUMN (Concerns List) - MOBILE FIRST
+   ============================================ */
+
+.pc-list-column {
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  width: 100%;
+  height: 100%;
+}
+
+.pc-list-column.hidden {
+  display: none;
+}
+
+.pc-column-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--pc-gray-200);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 10;
+}
+
+.pc-header-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--pc-gray-800);
+}
+
+.pc-sub-text {
+  font-size: 0.75rem;
+  color: var(--pc-gray-500);
+  display: block;
+  margin-top: 2px;
+}
+
+.pc-compose-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background-color: var(--pc-primary);
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--pc-transition);
+}
+
+.pc-compose-btn:hover,
+.pc-compose-btn:focus {
+  background-color: var(--pc-primary-hover);
+  outline: none;
+  transform: scale(1.05);
+}
+
+.pc-compose-btn:active {
+  transform: scale(0.95);
+}
+
+.pc-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pc-scroll-area::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pc-scroll-area::-webkit-scrollbar-track {
+  background: var(--pc-gray-100);
+  border-radius: 10px;
+}
+
+.pc-scroll-area::-webkit-scrollbar-thumb {
+  background: var(--pc-gray-300);
+  border-radius: 10px;
+}
+
+.pc-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: var(--pc-gray-400);
+}
+
+/* ============================================
+   CONCERN CARD
+   ============================================ */
+
+.pc-concern-card {
+  padding: 12px;
+  border: 1px solid var(--pc-gray-200);
+  border-radius: 8px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: var(--pc-transition);
+  border-left: 4px solid transparent;
+}
+
+.pc-concern-card:hover {
+  background-color: var(--pc-gray-50);
+  border-color: var(--pc-gray-300);
+}
+
+.pc-concern-card.active {
+  background-color: var(--pc-primary);
+  color: white;
+  border-color: var(--pc-primary);
+}
+
+.pc-concern-card.status-pending {
+  border-left-color: var(--pc-warning);
+}
+
+.pc-concern-card.status-waiting {
+  border-left-color: var(--pc-primary);
+}
+
+.pc-concern-card.active.status-pending,
+.pc-concern-card.active.status-waiting {
+  border-left-color: white;
+}
+
+.pc-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.pc-card-subject {
+  font-weight: 600;
+  font-size: 0.95rem;
+  flex: 1;
+  word-break: break-word;
+}
+
+.pc-card-date {
+  font-size: 0.75rem;
+  color: var(--pc-gray-500);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pc-concern-card.active .pc-card-date {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.pc-card-child {
+  font-size: 0.85rem;
+  color: var(--pc-gray-600);
+  margin-top: 4px;
+}
+
+.pc-concern-card.active .pc-card-child {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+
+.pc-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--pc-gray-500);
+  flex: 1;
+}
+
+.pc-empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.pc-empty-state p {
+  margin: 0 0 16px;
+  font-size: 0.95rem;
+}
+
+.pc-secondary-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--pc-primary);
+  border-radius: 6px;
+  background-color: transparent;
+  color: var(--pc-primary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: var(--pc-transition);
+}
+
+.pc-secondary-btn:hover {
+  background-color: var(--pc-primary);
+  color: white;
+}
+
+/* ============================================
+   DETAIL COLUMN - MOBILE FIRST
+   ============================================ */
+
+.pc-detail-column {
+  display: none;
+  flex-direction: column;
+  background-color: #fff;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+}
+
+.pc-detail-column.visible {
+  display: flex;
+}
+
+.pc-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: none;
+  border-bottom: 1px solid var(--pc-gray-200);
+  background: transparent;
+  color: var(--pc-primary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: var(--pc-transition);
+}
+
+.pc-back-btn:hover {
+  background-color: var(--pc-gray-50);
+}
+
+.pc-back-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.pc-view-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  background-color: #fff;
+  padding: 0;
+}
+
+/* ============================================
+   VIEW HEADER (Detail & New Views)
+   ============================================ */
+
+.pc-view-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--pc-gray-200);
+  background-color: #fff;
+}
+
+.pc-view-header h3 {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--pc-gray-800);
+}
+
+.pc-view-header p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--pc-gray-600);
+}
+
+/* ============================================
+   FORM ELEMENTS - MOBILE FIRST
+   ============================================ */
+
+.pc-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.pc-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pc-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--pc-gray-800);
+}
+
+.pc-input,
+.pc-select,
+.pc-textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--pc-gray-300);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: var(--pc-transition);
+  background-color: #fff;
+}
+
+.pc-input:focus,
+.pc-select:focus,
+.pc-textarea:focus {
+  outline: none;
+  border-color: var(--pc-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.pc-input:disabled,
+.pc-select:disabled {
+  background-color: var(--pc-gray-100);
+  color: var(--pc-gray-500);
+  cursor: not-allowed;
+}
+
+.pc-textarea {
+  resize: vertical;
+  min-height: 120px;
+  font-size: 0.9rem;
+}
+
+/* ============================================
+   FORM ACTIONS
+   ============================================ */
+
+.pc-form-actions {
+  display: flex;
+  gap: 10px;
+  padding-top: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.pc-send-btn,
+.pc-cancel-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--pc-transition);
+}
+
+.pc-send-btn {
+  background-color: var(--pc-primary);
+  color: white;
+}
+
+.pc-send-btn:hover:not(:disabled) {
+  background-color: var(--pc-primary-hover);
+  transform: translateY(-1px);
+}
+
+.pc-send-btn:disabled {
+  background-color: var(--pc-gray-300);
+  cursor: not-allowed;
+}
+
+.pc-cancel-btn {
+  background-color: var(--pc-gray-200);
+  color: var(--pc-gray-800);
+}
+
+.pc-cancel-btn:hover {
+  background-color: var(--pc-gray-300);
+}
+
+/* ============================================
+   MESSAGE VIEW
+   ============================================ */
+
+.pc-message-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--pc-gray-200);
+  background-color: #fff;
+}
+
+.pc-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.pc-header-top h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--pc-gray-800);
+  flex: 1;
+}
+
+.pc-status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: var(--pc-gray-200);
+  color: var(--pc-gray-700);
+  white-space: nowrap;
+}
+
+.pc-status-badge.waiting_for_parent {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.pc-status-badge.waiting_for_staff {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.pc-header-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--pc-gray-600);
+}
+
+.pc-header-meta span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pc-header-meta strong {
+  color: var(--pc-gray-800);
+  min-width: 70px;
+}
+
+/* ============================================
+   CHAT WINDOW
+   ============================================ */
+
+.pc-chat-window {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: var(--pc-gray-50);
+}
+
+.pc-chat-window::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pc-chat-window::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pc-chat-window::-webkit-scrollbar-thumb {
+  background: var(--pc-gray-300);
+  border-radius: 10px;
+}
+
+.pc-bubble {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  max-width: 85%;
+  word-wrap: break-word;
+}
+
+.pc-bubble-received {
+  background-color: #fff;
+  border: 1px solid var(--pc-gray-200);
+  align-self: flex-start;
+}
+
+.pc-bubble-sent {
+  background-color: var(--pc-primary);
+  color: white;
+  align-self: flex-end;
+  max-width: 85%;
+}
+
+.pc-bubble-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.pc-bubble-meta strong {
+  font-weight: 600;
+  opacity: 1;
+}
+
+.pc-bubble-text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* ============================================
+   REPLY SECTION
+   ============================================ */
+
+.pc-reply-section {
+  padding: 16px;
+  border-top: 1px solid var(--pc-gray-200);
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pc-reply-input {
+  padding: 10px 12px;
+  border: 1px solid var(--pc-gray-300);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  min-height: 80px;
+  resize: vertical;
+}
+
+.pc-reply-input:focus {
+  outline: none;
+  border-color: var(--pc-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.pc-reply-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pc-reply-count {
+  font-size: 0.8rem;
+  color: var(--pc-gray-500);
+}
+
+/* ============================================
+   NOTICE MESSAGE
+   ============================================ */
+
+.pc-limit-notice {
+  padding: 16px;
+  border-top: 1px solid var(--pc-gray-200);
+  background-color: var(--pc-gray-50);
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--pc-gray-600);
+  border-radius: 0 0 8px 8px;
+}
+
+/* ============================================
+   MOBILE FLOATING ACTION BUTTON
+   ============================================ */
+
+.pc-mobile-fab {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--pc-primary);
+  color: white;
+  border: none;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  transition: var(--pc-transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.pc-mobile-fab:hover {
+  background-color: var(--pc-primary-hover);
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5);
+}
+
+.pc-mobile-fab:active {
+  transform: scale(0.95);
+}
+
+/* ============================================
+   TABLET VIEW (640px and above)
+   ============================================ */
+
+@media (min-width: 640px) {
+  .pc-content-container {
+    margin: 16px;
+  }
+
+  .pc-form {
+    padding: 20px;
+    gap: 16px;
+  }
+
+  .pc-scroll-area {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .pc-concern-card {
+    padding: 14px;
+  }
+
+  .pc-view-header {
+    padding: 20px;
+  }
+
+  .pc-view-header h3 {
+    font-size: 1.25rem;
+  }
+
+  .pc-message-header {
+    padding: 20px;
+  }
+
+  .pc-chat-window {
+    padding: 20px;
+  }
+
+  .pc-reply-section {
+    padding: 20px;
+  }
+
+  .pc-back-btn {
+    display: none;
+  }
+}
+
+/* ============================================
+   LAPTOP VIEW (1024px and above)
+   ============================================ */
+
+@media (min-width: 1024px) {
+  .pc-content-container {
+    flex-direction: row;
+    margin: 20px;
+    gap: 0;
+  }
+
+  .pc-list-column {
+    width: 300px;
+    min-width: 300px;
+    border-right: 1px solid var(--pc-gray-200);
+  }
+
+  .pc-list-column.hidden {
+    display: flex;
+  }
+
+  .pc-detail-column {
+    display: flex;
+    position: static;
+    flex: 1;
+    width: auto;
+    height: auto;
+    z-index: 1;
+  }
+
+  .pc-detail-column.visible {
+    display: flex;
+  }
+
+  .pc-mobile-fab {
+    display: none;
+  }
+
+  .pc-back-btn {
+    display: none !important;
+  }
+
+  .pc-compose-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
+  }
+
+  .pc-header-title {
+    font-size: 1.25rem;
+  }
+
+  .pc-concern-card {
+    padding: 14px;
+  }
+
+  .pc-concern-card:hover {
+    background-color: var(--pc-gray-50);
+    transform: translateX(2px);
+  }
+
+  .pc-view-header {
+    padding: 24px;
+  }
+
+  .pc-view-header h3 {
+    font-size: 1.5rem;
+  }
+
+  .pc-form {
+    padding: 24px;
+    gap: 20px;
+  }
+
+  .pc-form-group {
+    gap: 8px;
+  }
+
+  .pc-input,
+  .pc-select,
+  .pc-textarea {
+    padding: 12px;
+    font-size: 1rem;
+  }
+
+  .pc-textarea {
+    min-height: 150px;
+  }
+
+  .pc-message-header {
+    padding: 24px;
+  }
+
+  .pc-header-top h2 {
+    font-size: 1.5rem;
+  }
+
+  .pc-header-meta {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding-top: 12px;
+  }
+
+  .pc-chat-window {
+    padding: 24px;
+    gap: 16px;
+  }
+
+  .pc-bubble {
+    max-width: 70%;
+    padding: 12px 16px;
+  }
+
+  .pc-reply-section {
+    padding: 24px;
+  }
+
+  .pc-reply-input {
+    padding: 12px 14px;
+    font-size: 1rem;
+    min-height: 100px;
+  }
+
+  .pc-reply-footer {
+    gap: 16px;
+  }
+
+  .pc-send-btn,
+  .pc-cancel-btn {
+    padding: 12px 24px;
+    font-size: 1rem;
+  }
+
+  .pc-column-header {
+    padding: 20px;
+  }
+
+  .pc-scroll-area {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .pc-empty-state {
+    padding: 60px 30px;
+  }
+
+  .pc-empty-icon {
+    font-size: 56px;
+    margin-bottom: 16px;
+  }
+
+  .pc-secondary-btn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+}
+
+/* ============================================
+   LARGE DESKTOP VIEW (1280px and above)
+   ============================================ */
+
+@media (min-width: 1280px) {
+  .pc-list-column {
+    width: 350px;
+    min-width: 350px;
+  }
+
+  .pc-concern-card {
+    padding: 16px;
+  }
+
+  .pc-form,
+  .pc-view-header,
+  .pc-message-header {
+    padding: 28px;
+  }
+
+  .pc-chat-window {
+    padding: 28px;
+  }
+
+  .pc-reply-section {
+    padding: 28px;
+  }
+
+  .pc-bubble {
+    max-width: 60%;
+  }
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+
+.pc-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: var(--pc-gray-600);
+  font-size: 1rem;
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --pc-gray-50: #0f172a;
+    --pc-gray-100: #1e293b;
+    --pc-gray-200: #334155;
+    --pc-gray-300: #475569;
+    --pc-gray-400: #64748b;
+    --pc-gray-500: #94a3b8;
+    --pc-gray-600: #cbd5e1;
+    --pc-gray-700: #e2e8f0;
+    --pc-gray-800: #f1f5f9;
+    --pc-gray-900: #f8fafc;
+  }
+
+  .pc-content-container,
+  .pc-list-column,
+  .pc-detail-column,
+  .pc-view-container {
+    background-color: #1e293b;
+  }
+
+  .pc-column-header,
+  .pc-view-header,
+  .pc-message-header,
+  .pc-reply-section {
+    background-color: #0f172a;
+    border-bottom-color: #334155;
+  }
+
+  .pc-input,
+  .pc-select,
+  .pc-textarea,
+  .pc-reply-input {
+    background-color: #334155;
+    color: #f8fafc;
+    border-color: #475569;
+  }
+
+  .pc-bubble-received {
+    background-color: #334155;
+    border-color: #475569;
+    color: #f8fafc;
+  }
+
+  .pc-chat-window {
+    background-color: #0f172a;
+  }
+
+  .pc-concern-card {
+    background-color: #334155;
+    border-color: #475569;
+  }
+
+  .pc-concern-card:hover {
+    background-color: #475569;
+  }
+
+  .pc-secondary-btn {
+    color: var(--pc-primary);
+    border-color: var(--pc-primary);
+  }
+
+  .pc-cancel-btn {
+    background-color: #475569;
+    color: #f8fafc;
+  }
+}
