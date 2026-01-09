@@ -33,11 +33,11 @@ class AuthService {
     }
   }
 
-  // 2. Create Parent Account (UPDATED - No password storage)
+  // 2. Create Parent Account (UPDATED - Passes temp password to activation)
   async createParentAccount(email, parentData) {
     let tempApp = null;
     try {
-      // Generate random temp password (never stored or shown)
+      // Generate random temp password (stored temporarily for activation)
       const tempPassword = generateSecurePassword(24);
       
       tempApp = initializeApp(firebaseConfig, 'tempApp-' + Date.now());
@@ -45,8 +45,8 @@ class AuthService {
       const userCredential = await createUserWithEmailAndPassword(tempAuth, email, tempPassword);
       const user = userCredential.user;
 
-      // Generate activation data
-      const activationData = activationService.generateActivationData();
+      // Generate activation data WITH temp password
+      const activationData = activationService.generateActivationData(tempPassword);
 
       await setDoc(doc(db, 'users', user.uid), {
         ...parentData,
@@ -55,16 +55,15 @@ class AuthService {
         role: 'parent',
         childrenIds: [],
         active: true,
-        ...activationData, // accountStatus, activationCode, activationExpiry, activationCreatedAt
+        ...activationData, // accountStatus, activationCode, activationExpiry, activationCreatedAt, _tempKey
         createdAt: new Date().toISOString()
-        // NO password field!
       });
 
       return {
         uid: user.uid,
         email: email,
         ...parentData,
-        ...activationData
+        activationCode: activationData.activationCode
       };
     } catch (error) {
       throw this.handleAuthError(error);
@@ -76,7 +75,7 @@ class AuthService {
     }
   }
 
-  // 3. Create Therapist Account (UPDATED - No password storage)
+  // 3. Create Therapist Account (UPDATED - Passes temp password to activation)
   async createTherapistAccount(email, therapistData) {
     let tempApp = null;
     try {
@@ -87,7 +86,7 @@ class AuthService {
       const userCredential = await createUserWithEmailAndPassword(tempAuth, email, tempPassword);
       const user = userCredential.user;
 
-      const activationData = activationService.generateActivationData();
+      const activationData = activationService.generateActivationData(tempPassword);
 
       await setDoc(doc(db, 'users', user.uid), {
         ...therapistData,
@@ -105,7 +104,7 @@ class AuthService {
         uid: user.uid,
         email: email,
         ...therapistData,
-        ...activationData
+        activationCode: activationData.activationCode
       };
     } catch (error) {
       throw this.handleAuthError(error);
@@ -117,7 +116,7 @@ class AuthService {
     }
   }
 
-  // 4. Create Teacher Account (UPDATED - No password storage)
+  // 4. Create Teacher Account (UPDATED - Passes temp password to activation)
   async createTeacherAccount(email, teacherData) {
     let tempApp = null;
     try {
@@ -128,7 +127,7 @@ class AuthService {
       const userCredential = await createUserWithEmailAndPassword(tempAuth, email, tempPassword);
       const user = userCredential.user;
 
-      const activationData = activationService.generateActivationData();
+      const activationData = activationService.generateActivationData(tempPassword);
 
       await setDoc(doc(db, 'users', user.uid), {
         ...teacherData,
@@ -145,7 +144,7 @@ class AuthService {
         uid: user.uid,
         email: email,
         ...teacherData,
-        ...activationData
+        activationCode: activationData.activationCode
       };
     } catch (error) {
       throw this.handleAuthError(error);
@@ -157,7 +156,7 @@ class AuthService {
     }
   }
 
-  // 5. Create Admin Account (UPDATED - No password storage)
+  // 5. Create Admin Account (UPDATED - Passes temp password to activation)
   async createAdminAccount(email, adminData) {
     let tempApp = null;
     try {
@@ -168,7 +167,7 @@ class AuthService {
       const userCredential = await createUserWithEmailAndPassword(tempAuth, email, tempPassword);
       const user = userCredential.user;
 
-      const activationData = activationService.generateActivationData();
+      const activationData = activationService.generateActivationData(tempPassword);
 
       await setDoc(doc(db, 'users', user.uid), {
         ...adminData,
@@ -184,7 +183,7 @@ class AuthService {
         uid: user.uid,
         email: email,
         ...adminData,
-        ...activationData
+        activationCode: activationData.activationCode
       };
     } catch (error) {
       throw this.handleAuthError(error);
