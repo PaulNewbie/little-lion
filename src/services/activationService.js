@@ -1,0 +1,337 @@
+// src/services/activationService.js
+
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  updateDoc,
+  query,
+  where,
+  deleteField,
+  serverTimestamp
+} from 'firebase/firestore';
+import { 
+  signInWithEmailAndPassword, 
+  updatePassword,
+  sendPasswordResetEmail 
+} from 'firebase/auth';
+import { db, auth } from '../config/firebase';
+import { 
+  generateActivationCode, 
+  generateAdminAssistCode, 
+  normalizeCode 
+} from '../utils/codeGenerator';
+
+// Constants
+const ACTIVATION_EXPIRY_DAYS = 14;
+const ADMIN_CODE_EXPIRY_MINUTES = 10;
+
+class ActivationService {
+
+  /**
+   * Generate activation data for a new user
+   * Called when admin creates an account
+   * @returns {object} Activation fields to add to user document
+   */
+  generateActivationData() {
+    const now = Date.now();
+    const expiryMs = ACTIVATION_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+    
+    return {
+      accountStatus: 'pending_setup',
+      activationCode: generateActivationCode(),
+      activationExpiry: now + expiryMs,
+      activationCreatedAt: now
+    };
+  }
+
+  /**
+   * Validate an activation code
+   * @param {string} code - The activation code to validate
+   * @returns {object} { valid: boolean, user?: object, error?: string }
+   */
+  async validateActivationCode(code) {
+    try {
+      const normalizedCode = normalizeCode(code);
+      
+      // Query for user with this activation code
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('activationCode', '==', this.formatStoredCode(normalizedCode)));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        // Try with the original format too
+        const q2 = query(usersRef, where('activationCode', '==', code.toUpperCase()));
+        const snapshot2 = await getDocs(q2);
+        
+        if (snapshot2.empty) {
+          return { valid: false, error: 'Invalid activation code' };
+        }
+        
+        const userDoc = snapshot2.docs[0];
+        return this.checkUserActivationStatus(userDoc);
+      }
+
+      const userDoc = snapshot.docs[0];
+      return this.checkUserActivationStatus(userDoc);
+      
+    } catch (error) {
+      console.error('Error validating activation code:', error);
+      return { valid: false, error: 'Failed to validate code' };
+    }
+  }
+
+  /**
+   * Helper to format stored code consistently
+   */
+  formatStoredCode(normalizedCode) {
+    if (normalizedCode.length === 8) {
+      return `${normalizedCode.slice(0, 4)}-${normalizedCode.slice(4)}`;
+    }
+    return normalizedCode;
+  }
+
+  /**
+   * Check user's activation status
+   */
+  checkUserActivationStatus(userDoc) {
+    const userData = userDoc.data();
+    
+    // Check if already activated
+    if (userData.accountStatus === 'active') {
+      return { valid: false, error: 'already_active', user: { uid: userDoc.id, ...userData } };
+    }
+    
+    // Check if expired
+    if (Date.now() > userData.activationExpiry) {
+      return { valid: false, error: 'expired', user: { uid: userDoc.id, ...userData } };
+    }
+    
+    return { valid: true, user: { uid: userDoc.id, ...userData } };
+  }
+
+  /**
+   * Get user's children (for parent accounts)
+   * @param {string} parentId - Parent's UID
+   * @returns {array} List of children
+   */
+  async getChildrenForParent(parentId) {
+    try {
+      const childrenRef = collection(db, 'children');
+      const q = query(childrenRef, where('parentId', '==', parentId));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      console.error('Error fetching children:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Complete the activation process
+   * Sets the user's password and marks account as active
+   * @param {string} uid - User's UID
+   * @param {string} email - User's email
+   * @param {string} newPassword - The new password
+   * @param {string} activatedBy - 'self' or 'admin'
+   * @returns {object} { success: boolean, error?: string }
+   */
+  async completeActivation(uid, email, newPassword, activatedBy = 'self') {
+    try {
+      // Use Firebase's password reset email to set password securely
+      // This triggers Firebase to send a password reset link
+      await sendPasswordResetEmail(auth, email, {
+        url: `${window.location.origin}/login?activated=true`
+      });
+      
+      // Update Firestore to mark as active
+      await this.markAccountAsActive(uid, activatedBy);
+      
+      return { success: true, method: 'email_reset' };
+    } catch (error) {
+      console.error('Error completing activation:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Mark account as active in Firestore
+   * @param {string} uid - User's UID
+   * @param {string} activatedBy - 'self' or 'admin'
+   */
+  async markAccountAsActive(uid, activatedBy = 'self') {
+    const userRef = doc(db, 'users', uid);
+    await updateDoc(userRef, {
+      accountStatus: 'active',
+      activationCode: deleteField(),
+      activationExpiry: deleteField(),
+      activationCreatedAt: deleteField(),
+      activatedAt: new Date().toISOString(),
+      activatedBy: activatedBy,
+      mustChangePassword: deleteField(), // Remove old field if exists
+      updatedAt: serverTimestamp()
+    });
+  }
+
+  /**
+   * Regenerate activation code (for resend)
+   * @param {string} uid - User's UID
+   * @returns {object} { success: boolean, newCode?: string, error?: string }
+   */
+  async regenerateActivationCode(uid) {
+    try {
+      const activationData = this.generateActivationData();
+      const userRef = doc(db, 'users', uid);
+      
+      await updateDoc(userRef, {
+        ...activationData,
+        updatedAt: serverTimestamp()
+      });
+      
+      return { success: true, newCode: activationData.activationCode };
+    } catch (error) {
+      console.error('Error regenerating code:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Generate admin-assist code for in-person activation
+   * @param {string} uid - User's UID
+   * @returns {object} { success: boolean, code?: string, expiry?: number, error?: string }
+   */
+  async generateAdminAssistCodeForUser(uid) {
+    try {
+      const adminCode = generateAdminAssistCode();
+      const expiry = Date.now() + (ADMIN_CODE_EXPIRY_MINUTES * 60 * 1000);
+      
+      const userRef = doc(db, 'users', uid);
+      await updateDoc(userRef, {
+        adminAssistCode: adminCode,
+        adminAssistExpiry: expiry,
+        updatedAt: serverTimestamp()
+      });
+      
+      return { success: true, code: adminCode, expiry };
+    } catch (error) {
+      console.error('Error generating admin assist code:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Validate admin-assist code
+   * @param {string} code - The admin assist code
+   * @returns {object} { valid: boolean, user?: object, error?: string }
+   */
+  async validateAdminAssistCode(code) {
+    try {
+      const normalizedCode = normalizeCode(code);
+      const formattedCode = `${normalizedCode.slice(0, 3)}-${normalizedCode.slice(3, 6)}-${normalizedCode.slice(6, 9)}`;
+      
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('adminAssistCode', '==', formattedCode));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        return { valid: false, error: 'Invalid admin code' };
+      }
+
+      const userDoc = snapshot.docs[0];
+      const userData = userDoc.data();
+      
+      // Check if expired (10 minutes)
+      if (Date.now() > userData.adminAssistExpiry) {
+        return { valid: false, error: 'Admin code has expired' };
+      }
+      
+      // Check if already activated
+      if (userData.accountStatus === 'active') {
+        return { valid: false, error: 'Account is already activated' };
+      }
+      
+      return { valid: true, user: { uid: userDoc.id, ...userData } };
+    } catch (error) {
+      console.error('Error validating admin code:', error);
+      return { valid: false, error: 'Failed to validate code' };
+    }
+  }
+
+  /**
+   * Clear admin-assist code after use
+   * @param {string} uid - User's UID
+   */
+  async clearAdminAssistCode(uid) {
+    try {
+      const userRef = doc(db, 'users', uid);
+      await updateDoc(userRef, {
+        adminAssistCode: deleteField(),
+        adminAssistExpiry: deleteField()
+      });
+    } catch (error) {
+      console.error('Error clearing admin code:', error);
+    }
+  }
+
+  /**
+   * Get all pending activation accounts
+   * @returns {array} List of pending users
+   */
+  async getPendingAccounts() {
+    try {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('accountStatus', '==', 'pending_setup'));
+      const snapshot = await getDocs(q);
+      
+      const users = snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+      
+      // Sort by creation date (newest first)
+      users.sort((a, b) => (b.activationCreatedAt || 0) - (a.activationCreatedAt || 0));
+      
+      return users;
+    } catch (error) {
+      console.error('Error fetching pending accounts:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get user by UID
+   * @param {string} uid - User's UID
+   * @returns {object|null} User data or null
+   */
+  async getUserById(uid) {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', uid));
+      if (!userDoc.exists()) return null;
+      return { uid: userDoc.id, ...userDoc.data() };
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Send activation email
+   * @param {string} email - User's email
+   * @param {string} code - Activation code
+   */
+  async sendActivationEmail(email, code) {
+    // Using Firebase's password reset as a delivery mechanism
+    // The email template should be customized in Firebase Console
+    try {
+      const activationUrl = `${window.location.origin}/activate?code=${code}`;
+      await sendPasswordResetEmail(auth, email, {
+        url: activationUrl
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error sending activation email:', error);
+      return { success: false, error: error.message };
+    }
+  }
+}
+
+const activationServiceInstance = new ActivationService();
+export default activationServiceInstance;

@@ -23,7 +23,7 @@ const ICONS = {
   Parent: parent_Icon,
 };
 
-const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
+const AdminSidebar = ({ forceActive }) => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,7 +38,7 @@ const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
 
   // Updated to use forceActive if provided
   const isActive = (path) => {
-    if (forceActive) return path === forceActive; // <-- NEW LINE
+    if (forceActive) return path === forceActive;
     return location.pathname === path;
   };
 
@@ -96,7 +96,6 @@ const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
             className={`menu-item ${isActive("/admin/StudentProfile") ? "active" : ""}`}
             onClick={() => navigate("/admin/StudentProfile")}
           >
-            {/* Icon pasted directly from figma*/}
             <img src={ICONS.SP} className="menu-icon" alt="SP" />
             <span className="menu-label">STUDENT PROFILE</span>
           </div>
@@ -116,7 +115,7 @@ const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
             <span className="menu-label">GROUP CLASSES</span>
           </div>
 
-          {/* RESTRICTED: Enroll Students*/}
+          {/* RESTRICTED: Enroll Students */}
           {isSuperAdmin && (
             <div
               className={`menu-item ${isActive("/admin/enrollment") ? "active" : ""}`}
@@ -158,6 +157,24 @@ const AdminSidebar = ({ forceActive }) => { // <-- ADDED forceActive PROP
             <span className="menu-label">THERAPIST</span>
           </div>
 
+          {/* NEW: Pending Accounts Link */}
+          <div
+            className={`menu-item ${isActive("/admin/pending-accounts") ? "active" : ""}`}
+            onClick={() => navigate("/admin/pending-accounts")}
+          >
+            {/* Clock/Pending Icon using SVG */}
+            <svg 
+              width="25" 
+              height="25" 
+              viewBox="0 0 24 24" 
+              fill="currentColor" 
+              className="menu-icon"
+              style={{ color: '#374151' }}
+            >
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/>
+            </svg>
+            <span className="menu-label">PENDING ACCOUNTS</span>
+          </div>
         </div>
 
         <button className="logout-btn" onClick={handleLogout}>
