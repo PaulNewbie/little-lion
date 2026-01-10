@@ -59,9 +59,9 @@
   flex-direction: column;
   background-color: #fff;
   width: 100%;
-  height: 100%;
-  overflow-y: auto; /* make this column the scroll container so header sticks */
-  position: fixed; /* positioning context for sticky header */
+  height: 100%; /* Ensure the container has a limit */
+  overflow-y: auto; /* This makes this specific element the scrollable area */
+  position: relative;
 }
 
 .pc-list-column.hidden {
@@ -69,7 +69,7 @@
 }
 /* Header adjusted to be proportionate to the sidebar open button height (44px) */
 .pc-column-header {
-  padding: 6px 12px; /* reduced vertical padding so header height matches open button */
+  padding: 6px 12px;
   min-height: 74px;
   border-bottom: 1px solid var(--pc-gray-200);
   display: flex;
@@ -79,6 +79,7 @@
   top: 0;
   background: #fff;
   z-index: 10;
+  flex-shrink: 0; /* Prevents the header from squishing */
 }
 
 .pc-header-title {
