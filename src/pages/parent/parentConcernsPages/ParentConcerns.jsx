@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../hooks/useAuth';
-import inquiryService from '../../services/inquiryService';
-import childService from '../../services/childService';
-import ParentSidebar from '../../components/sidebar/ParentSidebar';
+import { useAuth } from '../../../../hooks/useAuth';
+import inquiryService from '../../../../services/inquiryService';
+import childService from '../../../../services/childService';
+import ParentSidebar from '../../../../components/sidebar/ParentSidebar';
 import './ParentConcerns.css';
 
 const ParentConcerns = () => {

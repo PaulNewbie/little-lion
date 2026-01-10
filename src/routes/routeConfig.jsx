@@ -34,7 +34,7 @@ import TherapistProfile from "../pages/therapist/TherapistProfile";
 // Parent Components
 import ParentDashboard from "../pages/parent/ParentChildProfile";
 import ChildActivities from "../pages/parent/ChildActivities";
-import ParentConcerns from "../pages/parent/ParentConcerns";
+import ParentConcerns from "../pages/parent/parentConcernsPages/ParentConcerns";
 
 // Staff Shared Components
 import StaffInquiries from "../pages/shared/StaffInquiries";
