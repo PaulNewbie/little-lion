@@ -60,14 +60,17 @@
   background-color: #fff;
   width: 100%;
   height: 100%;
+  overflow-y: auto; /* make this column the scroll container so header sticks */
+  position: fixed; /* positioning context for sticky header */
 }
 
 .pc-list-column.hidden {
   display: none;
 }
-
+/* Header adjusted to be proportionate to the sidebar open button height (44px) */
 .pc-column-header {
-  padding: 12px;
+  padding: 6px 12px; /* reduced vertical padding so header height matches open button */
+  min-height: 74px;
   border-bottom: 1px solid var(--pc-gray-200);
   display: flex;
   justify-content: space-between;
@@ -119,17 +122,24 @@
   transform: scale(0.95);
 }
 
+/* Hide compose button on small screens (mobile) */
+@media (max-width: 767px) {
+  .pc-compose-btn {
+    display: none;
+  }
+}
 /* ============================================
    SCROLL AREA & CONCERN CARDS
    ============================================ */
 
 .pc-scroll-area {
   flex: 1;
-  overflow-y: auto;
   padding: 8px;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  /* overflow handled by .pc-list-column to keep header sticky */
+  overflow: visible;
 }
 
 .pc-concern-card {
