@@ -4,13 +4,16 @@
 
 /* CSS Custom Properties */
 :root {
-  --pc-primary: #3b82f6;
-  --pc-primary-hover: #2563eb;
-  --pc-success: #10b981;
-  --pc-success-hover: #059669;
-  --pc-warning: #f59e0b;
-  --pc-danger: #ef4444;
-  --pc-gray-50: #f8fafc;
+  --pc-primary: #4a90e2;
+  --pc-primary-hover: #357ABD;
+
+  --pc-success: #27ae60;
+  --pc-success-hover: #1e9e52;
+
+  --pc-warning: #f39c12;
+  --pc-danger: #e74c3c;
+
+  --pc-gray-50: #f8f9fa;
   --pc-gray-100: #f1f5f9;
   --pc-gray-200: #e2e8f0;
   --pc-gray-300: #cbd5e1;
@@ -20,6 +23,7 @@
   --pc-gray-700: #334155;
   --pc-gray-800: #1e293b;
   --pc-gray-900: #0f172a;
+
   --pc-border-radius: 12px;
   --pc-transition: all 0.2s ease;
 }
@@ -933,70 +937,39 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --pc-gray-50: #0f172a;
-    --pc-gray-100: #1e293b;
-    --pc-gray-200: #334155;
-    --pc-gray-300: #475569;
-    --pc-gray-400: #64748b;
-    --pc-gray-500: #94a3b8;
-    --pc-gray-600: #cbd5e1;
-    --pc-gray-700: #e2e8f0;
-    --pc-gray-800: #f1f5f9;
-    --pc-gray-900: #f8fafc;
-  }
+.pc-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
 
-  .pc-content-container,
-  .pc-list-column,
-  .pc-detail-column,
-  .pc-view-container {
-    background-color: #1e293b;
-  }
+.pc-modal {
+  background: #fff;
+  max-width: 520px;
+  width: 100%;
+  padding: 20px;
+  border-radius: 14px;
+  animation: fadeUp 0.25s ease;
+}
 
-  .pc-column-header,
-  .pc-view-header,
-  .pc-message-header,
-  .pc-reply-section {
-    background-color: #0f172a;
-    border-bottom-color: #334155;
-  }
+.pc-modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
 
-  .pc-input,
-  .pc-select,
-  .pc-textarea,
-  .pc-reply-input {
-    background-color: #334155;
-    color: #f8fafc;
-    border-color: #475569;
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
   }
-
-  .pc-bubble-received {
-    background-color: #334155;
-    border-color: #475569;
-    color: #f8fafc;
-  }
-
-  .pc-chat-window {
-    background-color: #0f172a;
-  }
-
-  .pc-concern-card {
-    background-color: #334155;
-    border-color: #475569;
-  }
-
-  .pc-concern-card:hover {
-    background-color: #475569;
-  }
-
-  .pc-secondary-btn {
-    color: var(--pc-primary);
-    border-color: var(--pc-primary);
-  }
-
-  .pc-cancel-btn {
-    background-color: #475569;
-    color: #f8fafc;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

@@ -20,6 +20,9 @@ const ParentConcerns = () => {
   const [sending, setSending] = useState(false);
   const [replyText, setReplyText] = useState('');
 
+  const [showNewModal, setShowNewModal] = useState(false);
+
+
   // Form State
   const [formData, setFormData] = useState({
     childId: '',
@@ -111,15 +114,13 @@ const ParentConcerns = () => {
   };
 
   const handleNewConcern = () => {
-    setView('new');
-    setMobileView('detail');
-  };
+  setShowNewModal(true);
+};
 
-  const handleCancelNew = () => {
-    setView('list');
-    setMobileView('list');
-    setFormData({ childId: '', subject: '', message: '' });
-  };
+const handleCancelNew = () => {
+  setShowNewModal(false);
+  setFormData({ childId: '', subject: '', message: '' });
+};
 
   const getStatusClass = (status) => {
     if (status === 'waiting_for_parent') return 'waiting';
@@ -138,6 +139,77 @@ const ParentConcerns = () => {
       <ParentSidebar />
       
       <main className="pc-content-container">
+
+        {showNewModal && (
+          <div className="pc-modal-overlay" onClick={handleCancelNew}>
+            <div className="pc-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="pc-modal-header">
+                <h3>Raise a Concern</h3>
+                <button className="pc-modal-close" onClick={handleCancelNew}>✕</button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="pc-form">
+                <div className="pc-form-group">
+                  <label className="pc-label">Select Child *</label>
+                  <select
+                    required
+                    className="pc-select"
+                    value={formData.childId}
+                    onChange={(e) =>
+                      setFormData({ ...formData, childId: e.target.value })
+                    }
+                  >
+                    <option value="">-- Select Child --</option>
+                    {children.map(c => (
+                      <option key={c.id} value={c.id}>
+                        {c.firstName} {c.lastName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="pc-form-group">
+                  <label className="pc-label">Subject (Optional)</label>
+                  <input
+                    className="pc-input"
+                    placeholder="Brief summary..."
+                    value={formData.subject}
+                    onChange={(e) =>
+                      setFormData({ ...formData, subject: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="pc-form-group">
+                  <label className="pc-label">Concern Details *</label>
+                  <textarea
+                    required
+                    className="pc-textarea"
+                    placeholder="Describe your concern..."
+                    value={formData.message}
+                    onChange={(e) =>
+                      setFormData({ ...formData, message: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="pc-form-actions">
+                  <button type="submit" disabled={sending} className="pc-send-btn">
+                    {sending ? 'Submitting...' : 'Submit Concern'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelNew}
+                    className="pc-cancel-btn"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {/* COLUMN 1: CONCERNS LIST */}
         <section className={`pc-list-column ${mobileView === 'detail' ? 'hidden' : ''}`}>
           <header className="pc-column-header">
@@ -197,62 +269,7 @@ const ParentConcerns = () => {
             Back
           </button>
 
-          {view === 'new' ? (
-            /* COMPOSE NEW CONCERN */
-            <div className="pc-view-container">
-              <div className="pc-view-header">
-                <h3>Raise a Concern</h3>
-                <p>Send a concern regarding your child to the administration.</p>
-              </div>
-              <form onSubmit={handleSubmit} className="pc-form">
-                <div className="pc-form-group">
-                  <label className="pc-label">Select Child *</label>
-                  <select 
-                    required 
-                    className="pc-select"
-                    value={formData.childId} 
-                    onChange={e => setFormData({...formData, childId: e.target.value})}
-                  >
-                    <option value="">-- Select Child --</option>
-                    {children.map(c => (
-                      <option key={c.id} value={c.id}>{c.firstName} {c.lastName}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="pc-form-group">
-                  <label className="pc-label">Subject (Optional)</label>
-                  <input 
-                    type="text"
-                    placeholder="Brief summary..." 
-                    className="pc-input"
-                    value={formData.subject} 
-                    onChange={e => setFormData({...formData, subject: e.target.value})} 
-                  />
-                </div>
-
-                <div className="pc-form-group" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <label className="pc-label">Concern Details *</label>
-                  <textarea 
-                    required 
-                    className="pc-textarea"
-                    placeholder="Describe your concern..."
-                    value={formData.message} 
-                    onChange={e => setFormData({...formData, message: e.target.value})} 
-                  />
-                </div>
-
-                <div className="pc-form-actions">
-                  <button type="submit" disabled={sending} className="pc-send-btn">
-                    {sending ? 'Submitting...' : 'Submit Concern'}
-                  </button>
-                  <button type="button" onClick={handleCancelNew} className="pc-cancel-btn">
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          ) : selectedConcern ? (
+          {selectedConcern ? (
             /* CONVERSATION VIEW */
             <div className="pc-view-container">
               <div className="pc-message-header">
