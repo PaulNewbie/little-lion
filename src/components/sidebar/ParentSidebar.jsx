@@ -39,19 +39,17 @@ const ParentSidebar = () => {
 
   return (
     <>
-      {!isOpen && !isDesktop && (
-        <button className="open-btn" onClick={() => setIsOpen(true)}>
-          ☰
+      {!isDesktop && (
+        <button
+          className="open-btn"
+          onClick={() => setIsOpen((prev) => !prev)}
+        >
+          {isOpen ? "✕" : "☰"}
         </button>
       )}
 
       <div className={`parent-sidebar ${isOpen ? "open" : "closed"}`}>
-        {!isDesktop && (
-          <button className="close-btn" onClick={() => setIsOpen(false)}>
-            ✕
-          </button>
-        )}
-
+       
         {/* Profile */}
         <div className="profile-section">
           <div className="avatar">👤</div>
