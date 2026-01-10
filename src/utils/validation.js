@@ -16,13 +16,13 @@ export const VALIDATION_RULES = {
    */
   profile: {
     therapist: {
-      required: ['firstName', 'lastName', 'licenseType', 'licenseNumber'],
-      optional: ['middleName', 'phone', 'dateOfBirth', 'gender', 'address', 'emergencyContact'],
+      required: ['firstName', 'lastName', 'licenseType', 'licenseNumber', 'phone'],
+      optional: ['middleName', 'dateOfBirth', 'gender', 'address', 'emergencyContact'],
       recommended: ['educationHistory', 'certifications', 'specializations']
     },
     teacher: {
-      required: ['firstName', 'lastName', 'teachingLicense', 'certificationLevel'],
-      optional: ['middleName', 'phone', 'dateOfBirth', 'gender', 'address', 'emergencyContact'],
+      required: ['firstName', 'lastName', 'teachingLicense', 'certificationLevel', 'phone'],
+      optional: ['middleName', 'dateOfBirth', 'gender', 'address', 'emergencyContact', 'prcIdNumber'],
       recommended: ['educationHistory', 'certifications', 'specializations']
     },
     parent: {
@@ -75,6 +75,14 @@ export const VALIDATION_RULES = {
   parentAccount: {
     required: ['firstName', 'lastName', 'email'],
     optional: ['middleName', 'phone', 'photo']
+  },
+  
+  /**
+   * Staff account creation (teacher/therapist/admin)
+   */
+  staffAccount: {
+    required: ['firstName', 'lastName', 'email'],
+    optional: ['middleName']
   }
 };
 
@@ -85,10 +93,10 @@ export const VALIDATION_RULES = {
 export const VALIDATION_PATTERNS = {
   email: {
     pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    errorMessage: 'Please enter a valid email address (e.g., user@example.com)'
+    errorMessage: 'Please enter a valid email address'
   },
   phone: {
-    pattern: /^\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})$/,
+    pattern: /^[\d\s\-\(\)]+$/,
     errorMessage: 'Please enter a valid phone number (e.g., 123-456-7890)'
   },
   zip: {
@@ -98,6 +106,14 @@ export const VALIDATION_PATTERNS = {
   licenseNumber: {
     pattern: /^[A-Z0-9-]{3,20}$/i,
     errorMessage: 'License number must be 3-20 characters (letters, numbers, hyphens only)'
+  },
+  teachingLicense: {
+    pattern: /^[A-Z0-9-]{3,20}$/i,
+    errorMessage: 'Teaching license must be 3-20 characters (letters, numbers, hyphens only)'
+  },
+  prcId: {
+    pattern: /^[0-9]{7,10}$/,
+    errorMessage: 'PRC ID must be 7-10 digits'
   },
   year: {
     pattern: /^(19|20)\d{2}$/,
@@ -180,17 +196,38 @@ export const validateProfile = (data, role) => {
       });
     }
     
-    // License expiration check (therapist/teacher specific)
-    if (data.licenseExpirationDate) {
-      const expDate = new Date(data.licenseExpirationDate);
+    // License expiration check (teacher/therapist specific)
+    const expirationField = role === 'teacher' ? 'licenseExpirationDate' : 'licenseExpirationDate';
+    if (data[expirationField]) {
+      const expDate = new Date(data[expirationField]);
       const today = new Date();
       const sixtyDaysFromNow = new Date();
       sixtyDaysFromNow.setDate(today.getDate() + 60);
       
       if (expDate < today) {
-        errors.licenseExpirationDate = 'Your license has expired. Please renew immediately.';
+        errors[expirationField] = 'Your license has expired. Please renew immediately.';
       } else if (expDate < sixtyDaysFromNow) {
-        warnings.licenseExpirationDate = 'Your license expires within 60 days. Please renew soon.';
+        warnings[expirationField] = 'Your license expires within 60 days. Please renew soon.';
+      }
+    }
+    
+    // Teacher-specific validations
+    if (role === 'teacher') {
+      // Validate teaching license format
+      if (data.teachingLicense && !VALIDATION_PATTERNS.teachingLicense.pattern.test(data.teachingLicense)) {
+        errors.teachingLicense = VALIDATION_PATTERNS.teachingLicense.errorMessage;
+      }
+      
+      // Validate PRC ID format (if provided)
+      if (data.prcIdNumber && data.prcIdNumber !== '' && !VALIDATION_PATTERNS.prcId.pattern.test(data.prcIdNumber)) {
+        errors.prcIdNumber = VALIDATION_PATTERNS.prcId.errorMessage;
+      }
+    }
+    
+    // Therapist-specific validations
+    if (role === 'therapist') {
+      if (data.licenseNumber && !VALIDATION_PATTERNS.licenseNumber.pattern.test(data.licenseNumber)) {
+        errors.licenseNumber = VALIDATION_PATTERNS.licenseNumber.errorMessage;
       }
     }
   }
@@ -279,56 +316,6 @@ export const validateEnrollmentStep = (stepNumber, data) => {
       // Purpose of assessment should have at least one item
       if (!data.purposeOfAssessment || data.purposeOfAssessment.length === 0) {
         errors.purposeOfAssessment = 'Please select at least one purpose for assessment';
-      }
-      break;
-      
-    case 4:
-      // Developmental background should have at least one entry
-      if (!data.backgroundHistory?.developmentalBackground || 
-          data.backgroundHistory.developmentalBackground.length === 0) {
-        errors['backgroundHistory.developmentalBackground'] = 'Please add at least one developmental background entry';
-      }
-      
-      // Interventions should have at least one entry
-      if (!data.backgroundHistory?.interventions || 
-          data.backgroundHistory.interventions.length === 0) {
-        errors['backgroundHistory.interventions'] = 'Please add at least one intervention entry';
-      }
-      break;
-      
-    case 6:
-      // Assessment tools should have at least one entry
-      if (!data.assessmentTools || data.assessmentTools.length === 0) {
-        errors.assessmentTools = 'Please add at least one assessment tool';
-      } else {
-        // Check if tools have required fields
-        data.assessmentTools.forEach((tool, index) => {
-          if (!tool.tool || !tool.details) {
-            errors[`assessmentTool_${index}`] = `Assessment tool ${index + 1} needs both name and details`;
-          }
-        });
-      }
-      break;
-      
-    case 7:
-      // All assessment tools should have results
-      if (data.assessmentTools) {
-        data.assessmentTools.forEach((tool, index) => {
-          if (!tool.result) {
-            errors[`assessmentToolResult_${index}`] = `Assessment tool ${index + 1} needs results`;
-          }
-        });
-      }
-      break;
-      
-    case 8:
-      // All assessment tools should have recommendations
-      if (data.assessmentTools) {
-        data.assessmentTools.forEach((tool, index) => {
-          if (!tool.recommendation) {
-            errors[`assessmentToolRec_${index}`] = `Assessment tool ${index + 1} needs recommendations`;
-          }
-        });
       }
       break;
       
@@ -453,6 +440,32 @@ export const validateParentAccount = (data) => {
 };
 
 /**
+ * Validate staff account creation (teacher/therapist/admin)
+ * 
+ * @param {Object} data - Staff account data
+ * @returns {Object} { isValid: boolean, errors: Object }
+ */
+export const validateStaffAccount = (data) => {
+  const errors = {};
+  
+  const required = ['firstName', 'lastName', 'email'];
+  required.forEach(field => {
+    if (!data[field] || data[field] === '') {
+      errors[field] = `${formatFieldName(field)} is required`;
+    }
+  });
+  
+  if (data.email && !VALIDATION_PATTERNS.email.pattern.test(data.email)) {
+    errors.email = VALIDATION_PATTERNS.email.errorMessage;
+  }
+  
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors
+  };
+};
+
+/**
  * Generic field validator with custom rules
  * 
  * @param {string} fieldName - Field name for error messages
@@ -566,6 +579,7 @@ export default {
   validateEnrollmentStep,
   validateSession,
   validateParentAccount,
+  validateStaffAccount,
   validateField,
   combineValidationResults,
   VALIDATION_RULES,
