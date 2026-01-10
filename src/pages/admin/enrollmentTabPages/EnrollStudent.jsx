@@ -13,10 +13,12 @@ import childService from "../../../services/childService";
 import userService from "../../../services/userService";
 import assessmentService from "../../../services/assessmentService";
 
+import { useParents, useChildrenByParent, useCacheInvalidation } from "../../../hooks/useCachedData";
+
 // REMOVED: generatePassword function - no longer needed!
 
 export default function EnrollStudent() {
-  const [allParents, setAllParents] = useState([]);
+  const { data: allParents = [], isLoading: isLoadingParents } = useParents();
   const [selectedParent, setSelectedParent] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -45,8 +47,8 @@ export default function EnrollStudent() {
   });
 
   // Students from Firebase
-  const [allStudents, setAllStudents] = useState([]);
-  const [isLoadingChildren, setIsLoadingChildren] = useState(false);
+  const { data: allStudents = [], isLoading: isLoadingChildren } = useChildrenByParent(selectedParent?.uid);
+  const { invalidateParents, invalidateChildrenByParent } = useCacheInvalidation();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -67,16 +69,8 @@ export default function EnrollStudent() {
         email: email,
       });
 
-      // 3. Update the UI list
-      setAllParents((prev) => [
-        ...prev,
-        {
-          uid: result.uid,
-          firstName: parentInput.firstName,
-          middleName: parentInput.middleName,
-          lastName: parentInput.lastName,
-        },
-      ]);
+      // 3. refetch parents automatically
+      invalidateParents();
 
       // 4. Reset Form & close parent form modal
       setShowParentForm(false);
@@ -119,48 +113,7 @@ export default function EnrollStudent() {
     }
   }, [location.state]);
 
-  // Get parents from db
-  useEffect(() => {
-    const fetchParents = async () => {
-      try {
-        const parentsFromDB = await userService.getUsersByRole("parent");
-        setAllParents(parentsFromDB);
-      } catch (error) {
-        console.error("Failed to load parents");
-      }
-    };
 
-    fetchParents();
-  }, []);
-
-  // Get students when parent is selected - WITH IMMEDIATE CLEAR
-  useEffect(() => {
-    if (selectedParent) {
-      // CLEAR IMMEDIATELY when parent changes
-      setAllStudents([]);
-      setIsLoadingChildren(true);
-
-      const fetchChildren = async () => {
-        console.log("Selected Parent:", selectedParent);
-        try {
-          const childrenFromDB = await childService.getChildrenByParentId(
-            selectedParent.uid
-          );
-          setAllStudents(childrenFromDB);
-        } catch (error) {
-          console.error("Failed to load children", error);
-        } finally {
-          setIsLoadingChildren(false);
-        }
-      };
-
-      fetchChildren();
-    } else {
-      // Clear when going back to parent list
-      setAllStudents([]);
-      setIsLoadingChildren(false);
-    }
-  }, [selectedParent]);
 
   // Handle student click - if ASSESSING, load and edit
   const handleStudentClick = async (student) => {
@@ -197,18 +150,9 @@ export default function EnrollStudent() {
 
   const handleEnrollmentSave = (savedChild) => {
     // Update local state with saved child from Firebase
-    setAllStudents((prev) => {
-      const existingIndex = prev.findIndex((c) => c.id === savedChild.id);
-      if (existingIndex >= 0) {
-        // Update existing student
-        const updated = [...prev];
-        updated[existingIndex] = savedChild;
-        return updated;
-      } else {
-        // Add new student
-        return [...prev, savedChild];
-      }
-    });
+    if (selectedParent?.uid) {
+      invalidateChildrenByParent(selectedParent.uid);
+    }
 
     // Clear editing state
     setEditingStudent(null);

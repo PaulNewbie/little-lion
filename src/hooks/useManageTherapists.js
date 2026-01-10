@@ -1,40 +1,31 @@
 // src/hooks/useManageTherapists.js
+// UPDATED: Uses optimized queries and caching
 
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import userService from '../services/userService';
+import { useQueryClient } from '@tanstack/react-query';
+import { useStaff, useServices } from './useRoleBasedData';
+import { QUERY_KEYS, invalidateRelatedCaches } from '../config/queryClient';
 import authService from '../services/authService';
-import servicesService from '../services/offeringsService';
+import userService from '../services/userService';
 
 const useManageTherapists = () => {
   const queryClient = useQueryClient();
   const [error, setError] = useState(null);
 
-  // --- QUERY 1: Fetch Therapists ---
+  // Using optimized hooks instead of direct queries
   const { 
     data: therapists = [], 
     isLoading: loadingTherapists 
-  } = useQuery({
-    queryKey: ['therapists'], 
-    queryFn: () => userService.getUsersByRole('therapist'),
-    staleTime: 1000 * 60 * 5,
-  });
+  } = useStaff({ role: 'therapist' });
 
-  // --- QUERY 2: Fetch Therapy Services ---
   const { 
     data: services = [], 
     isLoading: loadingServices 
-  } = useQuery({
-    queryKey: ['services', 'Therapy'], 
-    queryFn: () => servicesService.getServicesByType('Therapy'),
-    staleTime: 1000 * 60 * 5,
-  });
+  } = useServices({ type: 'Therapy' });
 
   const loading = loadingTherapists || loadingServices;
 
-  // REMOVED: generatePassword function - no longer needed!
-
-  // Form state - NO password field!
+  // Form state
   const [newTherapist, setNewTherapist] = useState({
     firstName: '',
     lastName: '',
@@ -58,63 +49,44 @@ const useManageTherapists = () => {
     });
   };
 
-  // --- ACTIONS ---
-
-  /**
-   * Create a new therapist account
-   * Returns the created user data INCLUDING activationCode for the modal
-   */
   const createTherapist = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setError(null);
-    
+
     try {
-      // UPDATED: No password parameter - authService handles it securely
-      const result = await authService.createTherapistAccount(newTherapist.email, {
-        firstName: newTherapist.firstName,
-        lastName: newTherapist.lastName,
-        middleName: newTherapist.middleName,
-        phone: newTherapist.phone,
-        specializations: newTherapist.specializations,
-      });
-      
-      // Refresh the list
-      await queryClient.invalidateQueries({ queryKey: ['therapists'] });
+      const result = await authService.createTherapistAccount(
+        newTherapist.email, 
+        newTherapist
+      );
 
       // Reset form
-      setNewTherapist({ 
-        firstName: '', 
-        lastName: '', 
+      setNewTherapist({
+        firstName: '',
+        lastName: '',
         middleName: '',
-        email: '', 
-        phone: '', 
-        specializations: [] 
+        email: '',
+        phone: '',
+        specializations: []
       });
-      
-      // Return the result so the component can show the activation modal
-      return {
-        success: true,
-        user: {
-          uid: result.uid,
-          firstName: newTherapist.firstName,
-          lastName: newTherapist.lastName,
-          email: newTherapist.email,
-          activationCode: result.activationCode
-        }
-      };
+
+      // Invalidate caches using optimized helper
+      await invalidateRelatedCaches('therapist');
+
+      return { success: true, user: result };
     } catch (err) {
       setError(err.message);
       return { success: false, error: err.message };
     }
   };
 
-  const deleteTherapist = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this therapist?')) return;
+  const updateTherapist = async (therapistId, updates) => {
     try {
-      await userService.deleteUser(id);
-      await queryClient.invalidateQueries({ queryKey: ['therapists'] });
+      await userService.updateUser(therapistId, updates);
+      await invalidateRelatedCaches('therapist', therapistId);
+      return { success: true };
     } catch (err) {
       setError(err.message);
+      return { success: false, error: err.message };
     }
   };
 
@@ -127,7 +99,7 @@ const useManageTherapists = () => {
     handleInputChange,
     toggleSpecialization,
     createTherapist,
-    deleteTherapist
+    updateTherapist,
   };
 };
 

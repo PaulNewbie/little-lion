@@ -1,40 +1,31 @@
 // src/hooks/useManageTeachers.js
+// UPDATED: Uses optimized queries and caching
 
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import userService from '../services/userService';
+import { useQueryClient } from '@tanstack/react-query';
+import { useStaff, useServices } from './useRoleBasedData';
+import { QUERY_KEYS, invalidateRelatedCaches } from '../config/queryClient';
 import authService from '../services/authService';
-import servicesService from '../services/offeringsService';
+import userService from '../services/userService';
 
 const useManageTeachers = () => {
   const queryClient = useQueryClient();
   const [error, setError] = useState(null);
 
-  // --- QUERY 1: Fetch Teachers (Cached) ---
+  // Using optimized hooks instead of direct queries
   const { 
     data: teachers = [], 
     isLoading: loadingTeachers 
-  } = useQuery({
-    queryKey: ['teachers'],
-    queryFn: () => userService.getUsersByRole('teacher'),
-    staleTime: 1000 * 60 * 5,
-  });
+  } = useStaff({ role: 'teacher' });
 
-  // --- QUERY 2: Fetch Class Services (Cached) ---
   const { 
     data: services = [], 
     isLoading: loadingServices 
-  } = useQuery({
-    queryKey: ['services', 'Class'],
-    queryFn: () => servicesService.getServicesByType('Class'),
-    staleTime: 1000 * 60 * 5,
-  });
+  } = useServices({ type: 'Class' });
 
   const loading = loadingTeachers || loadingServices;
 
-  // REMOVED: generatePassword function - no longer needed!
-
-  // Form state - NO password field!
+  // Form state
   const [newTeacher, setNewTeacher] = useState({
     firstName: '',
     lastName: '',
@@ -57,61 +48,43 @@ const useManageTeachers = () => {
     });
   };
 
-  // --- ACTIONS ---
-  
-  /**
-   * Create a new teacher account
-   * Returns the created user data INCLUDING activationCode for the modal
-   */
   const createTeacher = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setError(null);
-    
+
     try {
-      // UPDATED: No password parameter - authService handles it securely
-      const result = await authService.createTeacherAccount(newTeacher.email, {
-        firstName: newTeacher.firstName,
-        lastName: newTeacher.lastName,
-        phone: newTeacher.phone,
-        specializations: newTeacher.specializations,
-      });
-      
-      // Refresh the list
-      await queryClient.invalidateQueries({ queryKey: ['teachers'] });
+      const result = await authService.createTeacherAccount(
+        newTeacher.email, 
+        newTeacher
+      );
 
       // Reset form
-      setNewTeacher({ 
-        firstName: '', 
-        lastName: '', 
-        email: '', 
-        phone: '', 
-        specializations: [] 
+      setNewTeacher({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        specializations: []
       });
-      
-      // Return the result so the component can show the activation modal
-      return {
-        success: true,
-        user: {
-          uid: result.uid,
-          firstName: newTeacher.firstName,
-          lastName: newTeacher.lastName,
-          email: newTeacher.email,
-          activationCode: result.activationCode
-        }
-      };
+
+      // Invalidate caches using optimized helper
+      await invalidateRelatedCaches('teacher');
+
+      return { success: true, user: result };
     } catch (err) {
       setError(err.message);
       return { success: false, error: err.message };
     }
   };
 
-  const deleteTeacher = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this teacher?')) return;
+  const updateTeacher = async (teacherId, updates) => {
     try {
-      await userService.deleteUser(id);
-      await queryClient.invalidateQueries({ queryKey: ['teachers'] });
+      await userService.updateUser(teacherId, updates);
+      await invalidateRelatedCaches('teacher', teacherId);
+      return { success: true };
     } catch (err) {
       setError(err.message);
+      return { success: false, error: err.message };
     }
   };
 
@@ -124,7 +97,7 @@ const useManageTeachers = () => {
     handleInputChange,
     toggleSpecialization,
     createTeacher,
-    deleteTeacher
+    updateTeacher,
   };
 };
 

@@ -6,20 +6,30 @@ import Loading from '../../components/common/Loading';
 import TherapistSidebar from '../../components/sidebar/TherapistSidebar';
 import './css/TherapistDashboard.css';
 
+import { useTherapistDashboardData } from '../../hooks/useCachedData';
+
 
 const TherapistDashboard = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   
-  const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+
   const [searchTerm, setSearchTerm] = useState('');
 
   // Service Selection Modal State
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [selectedStudentForModal, setSelectedStudentForModal] = useState(null);
   const [availableServices, setAvailableServices] = useState([]);
+
+  const { students, isLoading: loading, error: queryError } = useTherapistDashboardData();
+  const [error, setError] = useState('');
+
+  // Set error from query if needed
+  useEffect(() => {
+    if (queryError) {
+      setError('Failed to load assigned students.');
+    }
+  }, [queryError]);
 
   // Profile Completion Check
   useEffect(() => {
@@ -36,23 +46,6 @@ const TherapistDashboard = () => {
       return () => clearTimeout(timer);
     }
   }, [currentUser, navigate]);
-
-  useEffect(() => {
-    const fetchMyStudents = async () => {
-      if (!currentUser?.uid) return;
-      try {
-        setLoading(true);
-        const myStudents = await childService.getChildrenByTherapistId(currentUser.uid);
-        setStudents(myStudents);
-      } catch (err) {
-        setError('Failed to load assigned students.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchMyStudents();
-  }, [currentUser]);
 
   const filteredStudents = useMemo(() => {
     return students.filter(student => 

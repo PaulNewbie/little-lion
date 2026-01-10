@@ -1,165 +1,283 @@
+// src/services/userService.js
+// FIXED VERSION - Removed orderBy to avoid index requirements
+// Sorting is done client-side instead
+
 import { 
   collection, 
   doc, 
   getDoc, 
   getDocs, 
   setDoc, 
-  updateDoc, 
-  deleteDoc, 
+  updateDoc,
   query, 
-  where,
-  arrayUnion
+  where, 
+  orderBy,
+  arrayUnion,
+  writeBatch,
+  serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { trackRead } from '../utils/readCounter';
+
+const COLLECTION_NAME = 'users';
+const METADATA_COLLECTION = 'metadata';
 
 class UserService {
   
   /**
-  * Adds a specialization to a staff member's profile if it doesn't exist.
-   * @param {string} uid - The staff member's User ID
-   * @param {string} specialization - The name of the service (e.g. "Speech Therapy")
+   * Get all staff (teachers + therapists) in ONE query
+   * Sorting done client-side to avoid index requirement
    */
-  async addSpecialization(uid, specialization) {
+  async getAllStaff() {
     try {
-      const userRef = doc(db, 'users', uid);
-      await updateDoc(userRef, {
-        specializations: arrayUnion(specialization)
-      });
+      const q = query(
+        collection(db, COLLECTION_NAME),
+        where('role', 'in', ['teacher', 'therapist'])
+      );
+
+      const snapshot = await getDocs(q);
+      trackRead(COLLECTION_NAME, snapshot.docs.length);
+      
+      const staff = snapshot.docs.map(doc => ({
+        id: doc.id,
+        uid: doc.id,
+        ...doc.data()
+      }));
+      
+      // Sort client-side
+      return staff.sort((a, b) => 
+        (a.lastName || '').localeCompare(b.lastName || '')
+      );
     } catch (error) {
-      console.error("Failed to update staff specialization:", error);
-      // We don't throw here because this is a "secondary" action. 
-      // If it fails, we don't want to crash the whole enrollment process.
+      console.error('Error fetching staff:', error);
+      throw error;
     }
   }
 
   /**
-   * Add a child ID to a parent's `childrenIds` array (non-fatal)
-   * @param {string} uid - Parent user UID
-   * @param {string} childId - Child document id
+   * Get users by role
+   * Sorting done client-side to avoid index requirement
    */
-  async addChildToParent(uid, childId) {
-    try {
-      const userRef = doc(db, 'users', uid);
-      await updateDoc(userRef, {
-        childrenIds: arrayUnion(childId),
-        updatedAt: new Date().toISOString()
-      });
-    } catch (error) {
-      console.error("Failed to add child to parent:", error);
-      // Non-fatal: do not throw so enrollment flow continues
-    }
-  }
-
-  // --- BASIC CRUD ---
-
-  // Create or Overwrite User (Used by Auth Services)
-  async createUser(uid, userData) {
-    try {
-      await setDoc(doc(db, 'users', uid), {
-        ...userData,
-        createdAt: new Date().toISOString(),
-        active: true // Default to active
-      });
-    } catch (error) {
-      throw new Error('Failed to create user: ' + error.message);
-    }
-  }
-
-  // Get User by ID
-  async getUserById(uid) {
-    try {
-      const userDoc = await getDoc(doc(db, 'users', uid));
-      if (!userDoc.exists()) throw new Error('User not found');
-      return { uid: userDoc.id, ...userDoc.data() };
-    } catch (error) {
-      throw new Error('Failed to fetch user: ' + error.message);
-    }
-  }
-
-  // Update User (Generic)
-  async updateUser(uid, updates) {
-    try {
-      await updateDoc(doc(db, 'users', uid), {
-        ...updates,
-        updatedAt: new Date().toISOString()
-      });
-    } catch (error) {
-      throw new Error('Failed to update user: ' + error.message);
-    }
-  }
-
-  // Hard Delete (Permanent)
-  async deleteUser(uid) {
-    try {
-      await deleteDoc(doc(db, 'users', uid));
-    } catch (error) {
-      throw new Error('Failed to delete user: ' + error.message);
-    }
-  }
-
-  // Soft Delete (Mark as inactive - Used by Teachers/Therapists)
-  async softDeleteUser(uid) {
-    try {
-      await this.updateUser(uid, {
-        active: false,
-        deletedAt: new Date().toISOString()
-      });
-    } catch (error) {
-      throw new Error('Failed to deactivate user: ' + error.message);
-    }
-  }
-
-  // ----------------------- QUERIES ------------------------
-
-  // Get Users by Role (Replaces getAllTeachers, getAllTherapists, getAllParents)
   async getUsersByRole(role) {
     try {
-      const q = query(collection(db, 'users'), where('role', '==', role));
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
-    } catch (error) {
-      throw new Error(`Failed to fetch ${role}s: ` + error.message);
-    }
-  }
-
-  // Get Users by Specialization (Replaces teacherService specific logic)
-  async getUsersBySpecialization(role, specialization) {
-    try {
       const q = query(
-        collection(db, 'users'),
-        where('role', '==', role),
-        where('specializations', 'array-contains', specialization)
+        collection(db, COLLECTION_NAME),
+        where('role', '==', role)
       );
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+
+      const snapshot = await getDocs(q);
+      trackRead(COLLECTION_NAME, snapshot.docs.length);
+      
+      const users = snapshot.docs.map(doc => ({
+        id: doc.id,
+        uid: doc.id,
+        ...doc.data()
+      }));
+      
+      // Sort client-side
+      return users.sort((a, b) => 
+        (a.lastName || '').localeCompare(b.lastName || '')
+      );
     } catch (error) {
-      throw new Error('Failed to search users by specialization: ' + error.message);
+      console.error(`Error fetching ${role}s:`, error);
+      throw error;
     }
   }
 
-  // Get All Active Staff (Combined Teachers & Therapists)
-  async getAllStaff() {
+  /**
+   * Get a single user by ID
+   */
+  async getUserById(userId) {
+    if (!userId) return null;
+
     try {
-      const q = query(collection(db, 'users'), where('role', 'in', ['teacher', 'therapist']));
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+      const docRef = doc(db, COLLECTION_NAME, userId);
+      const docSnap = await getDoc(docRef);
+      trackRead(COLLECTION_NAME, 1);
+      
+      if (!docSnap.exists()) {
+        return null;
+      }
+
+      return {
+        id: docSnap.id,
+        uid: docSnap.id,
+        ...docSnap.data()
+      };
     } catch (error) {
-      throw new Error('Failed to fetch staff: ' + error.message);
+      console.error('Error fetching user:', error);
+      throw error;
     }
   }
 
-  // Find by Email (Helper for Auth)
-  async getUserByEmail(email) {
+  /**
+   * Update user profile
+   */
+  async updateUser(userId, updates) {
     try {
-      const q = query(collection(db, 'users'), where('email', '==', email));
-      const querySnapshot = await getDocs(q);
-      if (querySnapshot.empty) return null;
-      return { uid: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
+      const docRef = doc(db, COLLECTION_NAME, userId);
+      
+      await updateDoc(docRef, {
+        ...updates,
+        updatedAt: serverTimestamp(),
+      });
+
+      return true;
     } catch (error) {
-      throw new Error('Failed to find user by email: ' + error.message);
+      console.error('Error updating user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Add child to parent's childrenIds array
+   */
+  async addChildToParent(parentId, childId) {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, parentId);
+      
+      await updateDoc(docRef, {
+        childrenIds: arrayUnion(childId),
+        updatedAt: serverTimestamp(),
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error adding child to parent:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get staff summary from metadata collection
+   */
+  async getStaffSummary() {
+    try {
+      const docRef = doc(db, METADATA_COLLECTION, 'staffSummary');
+      const docSnap = await getDoc(docRef);
+      trackRead(METADATA_COLLECTION, 1);
+
+      if (!docSnap.exists()) {
+        console.log('Staff summary not found, generating...');
+        return this.generateAndSaveStaffSummary();
+      }
+
+      const data = docSnap.data();
+      
+      return {
+        teachers: data.teachers || [],
+        therapists: data.therapists || [],
+        allStaff: [...(data.teachers || []), ...(data.therapists || [])],
+        lastUpdated: data.lastUpdated?.toDate(),
+      };
+    } catch (error) {
+      console.error('Error fetching staff summary:', error);
+      return this.generateStaffSummaryFromQuery();
+    }
+  }
+
+  /**
+   * Generate and save staff summary
+   */
+  async generateAndSaveStaffSummary() {
+    const summary = await this.generateStaffSummaryFromQuery();
+    
+    try {
+      const docRef = doc(db, METADATA_COLLECTION, 'staffSummary');
+      await setDoc(docRef, {
+        teachers: summary.teachers,
+        therapists: summary.therapists,
+        lastUpdated: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error('Error saving staff summary:', error);
+    }
+
+    return summary;
+  }
+
+  /**
+   * Generate staff summary from direct queries
+   */
+  async generateStaffSummaryFromQuery() {
+    const allStaff = await this.getAllStaff();
+
+    const teachers = allStaff
+      .filter(s => s.role === 'teacher')
+      .map(t => ({
+        id: t.id,
+        uid: t.uid,
+        name: `${t.firstName || ''} ${t.lastName || ''}`.trim(),
+        firstName: t.firstName,
+        lastName: t.lastName,
+        specializations: t.specializations || [],
+        photo: t.profilePhoto || t.photoUrl || null,
+        email: t.email,
+      }));
+
+    const therapists = allStaff
+      .filter(s => s.role === 'therapist')
+      .map(t => ({
+        id: t.id,
+        uid: t.uid,
+        name: `${t.firstName || ''} ${t.lastName || ''}`.trim(),
+        firstName: t.firstName,
+        lastName: t.lastName,
+        specializations: t.specializations || [],
+        photo: t.profilePhoto || t.photoUrl || null,
+        email: t.email,
+        licenseType: t.licenseType,
+      }));
+
+    return {
+      teachers,
+      therapists,
+      allStaff: [...teachers, ...therapists],
+      lastUpdated: new Date(),
+    };
+  }
+
+  /**
+   * Get staff by specialization
+   */
+  async getStaffBySpecialization(serviceName) {
+    try {
+      const summary = await this.getStaffSummary();
+      
+      return summary.allStaff.filter(staff => 
+        staff.specializations?.includes(serviceName)
+      );
+    } catch (error) {
+      console.error('Error fetching staff by specialization:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Batch update users
+   */
+  async batchUpdateUsers(updates) {
+    if (!updates || updates.length === 0) return;
+
+    try {
+      const batch = writeBatch(db);
+
+      updates.forEach(({ id, data }) => {
+        const docRef = doc(db, COLLECTION_NAME, id);
+        batch.update(docRef, {
+          ...data,
+          updatedAt: serverTimestamp(),
+        });
+      });
+
+      await batch.commit();
+      console.log(`Batch updated ${updates.length} users`);
+    } catch (error) {
+      console.error('Error in batch update:', error);
+      throw error;
     }
   }
 }
 
-const userServiceInstance = new UserService();
-export default userServiceInstance;
+const userService = new UserService();
+export default userService;

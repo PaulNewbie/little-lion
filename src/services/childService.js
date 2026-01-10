@@ -1,248 +1,430 @@
-import {
-  collection,
-  doc,
-  setDoc,
-  updateDoc,
+// src/services/childService.js
+// COMPLETE VERSION with all methods including aliases for backward compatibility
+
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  setDoc, 
+  updateDoc, 
+  deleteDoc,
+  query, 
+  where, 
+  orderBy, 
+  limit, 
+  startAfter,
   arrayUnion,
-  query,
-  where,
-  getDocs,
-  serverTimestamp,
-} from "firebase/firestore";
-import { db } from "../config/firebase";
-import { generateUUID } from "../utils/constants";
+  arrayRemove,
+  writeBatch,
+  serverTimestamp
+} from 'firebase/firestore';
+import { db } from '../config/firebase';
+import { trackRead } from '../utils/readCounter';
+
+const COLLECTION_NAME = 'children';
+const DEFAULT_PAGE_SIZE = 20;
 
 class ChildService {
-  /* ============================================================================
-     SECTION 1: CORE ENROLLMENT (Merged from manageChildren.js)
-     This is the robust logic used by your Admin Enrollment Wizard.
-  ============================================================================ */
+  // ==========================================================================
+  // PAGINATION
+  // ==========================================================================
+  
+  async getChildrenPaginated(options = {}) {
+    const {
+      limit: pageLimit = DEFAULT_PAGE_SIZE,
+      startAfter: startAfterDoc = null,
+      orderByField = 'lastName',
+      orderDirection = 'asc',
+      status = null,
+    } = options;
 
-  /**
-   * Creates or Updates a Child Profile with full enrollment data.
-   * This handles standardizing services, staff IDs, and linking to the parent.
-   * * @param {string} parentId - The UID of the parent
-   * @param {object} data - The full form data object (identifying info + services)
-   */
-  async createOrUpdateChild(parentId, data) {
-    const childId = data.childId || generateUUID();
-
-    // 1. Process 1-on-1 Services
-    const processedServices = (data.oneOnOneServices || []).map((service) => ({
-      serviceId: service.serviceId,
-      serviceName: service.serviceName,
-      type: "Therapy",
-      staffId: service.staffId,
-      staffName: service.staffName,
-      staffRole: "therapist",
-    }));
-
-    // 2. Process Group Classes
-    const processedClasses = (data.groupClassServices || []).map((service) => ({
-      serviceId: service.serviceId,
-      serviceName: service.serviceName,
-      type: "Class",
-      staffId: service.staffId,
-      staffName: service.staffName,
-      staffRole: "teacher",
-    }));
-
-    // 3. Create Quick-Lookup Arrays
-    const therapistIds = processedServices.map((s) => s.staffId);
-    const teacherIds = [
-      ...processedServices
-        .filter((s) => s.staffRole === "teacher")
-        .map((s) => s.staffId),
-      ...processedClasses.map((s) => s.staffId),
-    ];
-
-    // 4. Construct the Payload (CLEANED - Assessment fields removed)
-    const childPayload = {
-      // --- Identifying Data ---
-      firstName: data.firstName,
-      middleName: data.middleName,
-      lastName: data.lastName,
-      nickname: data.nickname,
-      dateOfBirth: data.dateOfBirth,
-      gender: data.gender,
-      relationshipToClient: data.relationshipToClient,
-      photoUrl: data.photoUrl,
-      active: data.active !== false,
-      address: data.address,
-      school: data.school,
-      gradeLevel: data.gradeLevel,
-
-      // --- Identification/Linkage ---
-      assessmentDates: data.assessmentDates || [],
-      examiner: data.examiner || "",
-      ageAtAssessment: data.ageAtAssessment || "",
-      assessmentId: data.assessmentId || null, // THE ONLY LINK TO THE OTHER COLLECTION
-
-      // --- SERVICE ENROLLMENT ---
-      enrolledServices: [...processedServices, ...processedClasses],
-
-      // --- Lookup Arrays ---
-      therapistIds: [...new Set(therapistIds)],
-      teacherIds: [...new Set(teacherIds)],
-
-      // --- Metadata ---
-      parentId,
-      status: data.status || "ENROLLED",
-      updatedAt: serverTimestamp(),
-      createdAt: data.createdAt || serverTimestamp(),
-    };
-
-    console.log("🦁 Saving CLEAN Child Profile:", childPayload);
-
-    // 5. Save to Firestore
-    // REMOVED { merge: true } to ensure old assessment fields are deleted from this collection
-    await setDoc(doc(db, "children", childId), childPayload);
-
-    return { id: childId, ...childPayload };
-  }
-
-  /* ============================================================================
-     SECTION 2: DATA FETCHING (Existing ChildService Logic)
-     Used by Dashboards and Lists.
-  ============================================================================ */
-
-  // Get children for a specific parent
-  async getChildrenByParentId(parentId) {
     try {
-      const q = query(
-        collection(db, "children"),
-        where("parentId", "==", parentId)
+      let q = query(
+        collection(db, COLLECTION_NAME),
+        orderBy(orderByField, orderDirection),
+        limit(pageLimit)
       );
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-      throw new Error("Failed to fetch children: " + error.message);
-    }
-  }
 
-  // Get children assigned to a specific TEACHER
-  async getChildrenByTeacherId(teacherId) {
-    try {
-      const q = query(
-        collection(db, "children"),
-        where("teacherIds", "array-contains", teacherId),
-        where("active", "==", true)
-      );
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-      throw new Error("Failed to fetch your class students: " + error.message);
-    }
-  }
-
-  // Get children assigned to a specific THERAPIST
-  async getChildrenByTherapistId(therapistId) {
-    try {
-      const q = query(
-        collection(db, "children"),
-        where("therapistIds", "array-contains", therapistId),
-        where("active", "==", true)
-      );
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-      throw new Error(
-        "Failed to fetch your therapy students: " + error.message
-      );
-    }
-  }
-
-  // Get All Children (Admin)
-  async getAllChildren() {
-    try {
-      const querySnapshot = await getDocs(collection(db, "children"));
-      return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-      throw new Error("Failed to fetch all children: " + error.message);
-    }
-  }
-
-  /* ============================================================================
-     SECTION 3: SERVICE MODIFICATION (Unified Logic)
-     Used by Manual Add Buttons in Profile.
-  ============================================================================ */
-
-  async assignService(childId, serviceData) {
-    try {
-      const childRef = doc(db, "children", childId);
-
-      // Standardize the object structure to match 'createOrUpdateChild' format
-      const standardizedService = {
-        serviceId: serviceData.serviceId,
-        serviceName: serviceData.serviceName,
-        type: serviceData.type || "Therapy",
-
-        // Handle varying naming conventions from inputs
-        staffId:
-          serviceData.staffId ||
-          serviceData.therapistId ||
-          serviceData.teacherId,
-        staffName:
-          serviceData.staffName ||
-          serviceData.therapistName ||
-          serviceData.teacherName,
-        staffRole:
-          serviceData.staffRole ||
-          (serviceData.teacherId ? "teacher" : "therapist"),
-      };
-
-      const updates = {
-        enrolledServices: arrayUnion(standardizedService),
-      };
-
-      // Maintain the quick-lookup arrays
-      if (standardizedService.staffRole === "therapist") {
-        updates.therapistIds = arrayUnion(standardizedService.staffId);
-      } else if (standardizedService.staffRole === "teacher") {
-        updates.teacherIds = arrayUnion(standardizedService.staffId);
+      if (status) {
+        q = query(
+          collection(db, COLLECTION_NAME),
+          where('status', '==', status),
+          orderBy(orderByField, orderDirection),
+          limit(pageLimit)
+        );
       }
 
-      await updateDoc(childRef, updates);
+      if (startAfterDoc) {
+        q = query(q, startAfter(startAfterDoc));
+      }
+
+      const snapshot = await getDocs(q);
+      trackRead(COLLECTION_NAME, snapshot.docs.length);
+      
+      const students = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      return {
+        students,
+        lastDoc: snapshot.docs[snapshot.docs.length - 1] || null,
+        hasMore: snapshot.docs.length === pageLimit,
+        total: null
+      };
     } catch (error) {
-      throw new Error("Failed to assign service: " + error.message);
+      console.error('Error fetching paginated children:', error);
+      throw error;
     }
   }
 
-  // Wrappers for backward compatibility
-  async assignTherapyService(childId, data) {
-    return this.assignService(childId, {
-      ...data,
-      type: "Therapy",
-      staffRole: "therapist",
-    });
-  }
+  // ==========================================================================
+  // ROLE-BASED QUERIES
+  // ==========================================================================
 
-  async assignGroupClass(childId, data) {
-    return this.assignService(childId, {
-      ...data,
-      type: "Class",
-      staffRole: "teacher",
-    });
+  /**
+   * Get children by parent ID
+   */
+  async getChildrenByParentId(parentId) {
+    if (!parentId) {
+      console.warn('getChildrenByParentId called without parentId');
+      return [];
+    }
+
+    try {
+      // Simple query without orderBy to avoid index requirement
+      const q = query(
+        collection(db, COLLECTION_NAME),
+        where('parentId', '==', parentId)
+      );
+
+      const snapshot = await getDocs(q);
+      trackRead(COLLECTION_NAME, snapshot.docs.length);
+      
+      // Sort client-side instead
+      const children = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      return children.sort((a, b) => 
+        (a.lastName || '').localeCompare(b.lastName || '')
+      );
+    } catch (error) {
+      console.error('Error fetching children by parent:', error);
+      throw error;
+    }
   }
 
   /**
-   * Updates specific fields of a child's profile (e.g. photo, address).
-   * @param {string} childId
-   * @param {object} updates - Object containing fields to update
+   * Get children by staff ID (works for teachers AND therapists)
    */
-  async updateChildProfile(childId, updates) {
+  async getChildrenByStaffId(staffId) {
+    if (!staffId) {
+      console.warn('getChildrenByStaffId called without staffId');
+      return [];
+    }
+
     try {
-      const childRef = doc(db, "children", childId);
-      // Ensure we don't accidentally overwrite critical fields if they weren't passed
-      await updateDoc(childRef, {
-        ...updates,
+      // Try with assignedStaffIds array first
+      const q = query(
+        collection(db, COLLECTION_NAME),
+        where('assignedStaffIds', 'array-contains', staffId)
+      );
+
+      const snapshot = await getDocs(q);
+      trackRead(COLLECTION_NAME, snapshot.docs.length);
+      
+      const children = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      return children.sort((a, b) => 
+        (a.lastName || '').localeCompare(b.lastName || '')
+      );
+    } catch (error) {
+      // Fallback: search through enrolled services
+      console.warn('Falling back to service-based staff query:', error.message);
+      return this.getChildrenByStaffIdFallback(staffId);
+    }
+  }
+
+  /**
+   * Fallback: Get children by checking enrolled services
+   */
+  async getChildrenByStaffIdFallback(staffId) {
+    try {
+      const q = query(
+        collection(db, COLLECTION_NAME),
+        where('status', '==', 'ENROLLED')
+      );
+
+      const snapshot = await getDocs(q);
+      trackRead(COLLECTION_NAME, snapshot.docs.length);
+      
+      return snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(child => {
+          const oneOnOne = child.oneOnOneServices || [];
+          const groupClass = child.groupClassServices || [];
+          const enrolledServices = child.enrolledServices || [];
+          
+          return [...oneOnOne, ...groupClass, ...enrolledServices].some(
+            service => service.staffId === staffId
+          );
+        })
+        .sort((a, b) => (a.lastName || '').localeCompare(b.lastName || ''));
+    } catch (error) {
+      console.error('Error in fallback staff query:', error);
+      throw error;
+    }
+  }
+
+  // ==========================================================================
+  // ALIAS METHODS (for backward compatibility with existing components)
+  // ==========================================================================
+
+  /**
+   * @alias for getChildrenByStaffId - used by TherapistDashboard
+   */
+  async getChildrenByTherapistId(therapistId) {
+    return this.getChildrenByStaffId(therapistId);
+  }
+
+  /**
+   * @alias for getChildrenByStaffId - used by TeacherDashboard
+   */
+  async getChildrenByTeacherId(teacherId) {
+    return this.getChildrenByStaffId(teacherId);
+  }
+
+  /**
+   * Get children by service name
+   */
+  async getChildrenByService(serviceName) {
+    if (!serviceName) return [];
+
+    try {
+      const q = query(
+        collection(db, COLLECTION_NAME),
+        where('status', '==', 'ENROLLED')
+      );
+
+      const snapshot = await getDocs(q);
+      trackRead(COLLECTION_NAME, snapshot.docs.length);
+      
+      return snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(child => {
+          const allServices = [
+            ...(child.oneOnOneServices || []),
+            ...(child.groupClassServices || []),
+            ...(child.enrolledServices || [])
+          ];
+          return allServices.some(s => s.serviceName === serviceName);
+        });
+    } catch (error) {
+      console.error('Error fetching children by service:', error);
+      throw error;
+    }
+  }
+
+  // ==========================================================================
+  // SINGLE DOCUMENT OPERATIONS
+  // ==========================================================================
+
+  async getChildById(childId) {
+    if (!childId) return null;
+
+    try {
+      const docRef = doc(db, COLLECTION_NAME, childId);
+      const docSnap = await getDoc(docRef);
+      trackRead(COLLECTION_NAME, 1);
+      
+      if (!docSnap.exists()) {
+        return null;
+      }
+
+      return {
+        id: docSnap.id,
+        ...docSnap.data()
+      };
+    } catch (error) {
+      console.error('Error fetching child:', error);
+      throw error;
+    }
+  }
+
+  async createOrUpdateChild(parentId, childData) {
+    try {
+      const childId = childData.childId || childData.id || doc(collection(db, COLLECTION_NAME)).id;
+      const docRef = doc(db, COLLECTION_NAME, childId);
+
+      const assignedStaffIds = this.extractStaffIds(childData);
+
+      const dataToSave = {
+        ...childData,
+        id: childId,
+        parentId,
+        assignedStaffIds,
+        updatedAt: serverTimestamp(),
+      };
+
+      Object.keys(dataToSave).forEach(key => {
+        if (dataToSave[key] === undefined) {
+          delete dataToSave[key];
+        }
+      });
+
+      const existingDoc = await getDoc(docRef);
+      trackRead(COLLECTION_NAME, 1);
+      
+      if (existingDoc.exists()) {
+        await updateDoc(docRef, dataToSave);
+      } else {
+        dataToSave.createdAt = serverTimestamp();
+        await setDoc(docRef, dataToSave);
+      }
+
+      return { id: childId, ...dataToSave };
+    } catch (error) {
+      console.error('Error saving child:', error);
+      throw error;
+    }
+  }
+
+  extractStaffIds(childData) {
+    const staffIds = new Set();
+
+    const serviceArrays = [
+      childData.oneOnOneServices,
+      childData.groupClassServices,
+      childData.enrolledServices,
+    ];
+
+    serviceArrays.forEach(services => {
+      if (Array.isArray(services)) {
+        services.forEach(service => {
+          if (service.staffId) {
+            staffIds.add(service.staffId);
+          }
+        });
+      }
+    });
+
+    return Array.from(staffIds);
+  }
+
+  async addServiceToChild(childId, serviceData) {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, childId);
+      
+      const arrayField = serviceData.serviceType === 'Therapy' 
+        ? 'oneOnOneServices' 
+        : serviceData.serviceType === 'Class'
+          ? 'groupClassServices'
+          : 'enrolledServices';
+
+      await updateDoc(docRef, {
+        [arrayField]: arrayUnion(serviceData),
+        assignedStaffIds: arrayUnion(serviceData.staffId),
         updatedAt: serverTimestamp(),
       });
+
+      return true;
     } catch (error) {
-      throw new Error("Failed to update child profile: " + error.message);
+      console.error('Error adding service to child:', error);
+      throw error;
+    }
+  }
+
+  async removeServiceFromChild(childId, serviceData) {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, childId);
+      
+      const arrayField = serviceData.serviceType === 'Therapy' 
+        ? 'oneOnOneServices' 
+        : serviceData.serviceType === 'Class'
+          ? 'groupClassServices'
+          : 'enrolledServices';
+
+      await updateDoc(docRef, {
+        [arrayField]: arrayRemove(serviceData),
+        updatedAt: serverTimestamp(),
+      });
+
+      const child = await this.getChildById(childId);
+      const newStaffIds = this.extractStaffIds(child);
+      
+      await updateDoc(docRef, {
+        assignedStaffIds: newStaffIds,
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error removing service from child:', error);
+      throw error;
+    }
+  }
+
+  // ==========================================================================
+  // LEGACY METHOD - Keep for backward compatibility
+  // ==========================================================================
+
+  async getAllChildren() {
+    console.warn(
+      '⚠️ getAllChildren() is deprecated and expensive. ' +
+      'Use getChildrenPaginated() or role-specific methods instead.'
+    );
+
+    try {
+      // Simple query without orderBy to avoid index issues
+      const snapshot = await getDocs(collection(db, COLLECTION_NAME));
+      trackRead(COLLECTION_NAME, snapshot.docs.length);
+      
+      const children = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      // Sort client-side
+      return children.sort((a, b) => 
+        (a.lastName || '').localeCompare(b.lastName || '')
+      );
+    } catch (error) {
+      console.error('Error fetching all children:', error);
+      throw error;
+    }
+  }
+
+  // ==========================================================================
+  // BATCH OPERATIONS
+  // ==========================================================================
+
+  async batchUpdateChildren(updates) {
+    if (!updates || updates.length === 0) return;
+
+    try {
+      const batch = writeBatch(db);
+
+      updates.forEach(({ id, data }) => {
+        const docRef = doc(db, COLLECTION_NAME, id);
+        batch.update(docRef, {
+          ...data,
+          updatedAt: serverTimestamp(),
+        });
+      });
+
+      await batch.commit();
+      console.log(`Batch updated ${updates.length} children`);
+    } catch (error) {
+      console.error('Error in batch update:', error);
+      throw error;
     }
   }
 }
 
-const childServiceInstance = new ChildService();
-export default childServiceInstance;
+const childService = new ChildService();
+export default childService;

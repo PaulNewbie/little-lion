@@ -9,6 +9,8 @@ import ErrorMessage from '../../components/common/ErrorMessage';
 import QuickSelectTags from '../../components/common/form-elements/QuickSelectTags';
 import VoiceInput from '../../components/common/form-elements/VoiceInput';
 
+import { useTeacherDashboardData } from '../../hooks/useCachedData';
+
 // --- TEACHER SMART DATA ---
 const CLASS_TOPICS = ["Circle Time", "Art Class", "Music", "Math", "Reading", "Free Play", "Snack/Lunch", "Social Skills", "Nap Time"];
 const MOODS = ["Happy 😊", "Focused 🧐", "Active ⚡", "Tired 🥱", "Upset 😢", "Social 👋", "Quiet 😶"];
@@ -21,7 +23,6 @@ const TeacherDashboard = () => {
   
   // Data State
   const [myClasses, setMyClasses] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [profileIncomplete, setProfileIncomplete] = useState(false); //
 
@@ -44,50 +45,8 @@ const TeacherDashboard = () => {
   const [concernNote, setConcernNote] = useState('');
 
   // 1. FETCH DATA & CHECK PROFILE
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!currentUser?.uid) return;
-      try {
-        setLoading(true);
-
-        // ✅ Check Profile Status
-        const userData = await userService.getUserById(currentUser.uid);
-        if (!userData.profileCompleted) {
-          setProfileIncomplete(true);
-        }
-
-        // ✅ Fetch Assigned Students
-        const myStudents = await childService.getChildrenByTeacherId(currentUser.uid);
-
-        // Group students by Class Name
-        const classesMap = {};
-        myStudents.forEach(student => {
-          const allServices = student.enrolledServices || [...(student.groupClasses || []), ...(student.classes || [])];
-          
-          allServices.forEach(svc => {
-             const assignedId = svc.staffId || svc.teacherId;
-             if (assignedId === currentUser.uid) {
-                const className = svc.serviceName || svc.className;
-                if (!classesMap[className]) {
-                   classesMap[className] = { name: className, serviceId: svc.serviceId, students: [] };
-                }
-                if (!classesMap[className].students.some(s => s.id === student.id)) {
-                   classesMap[className].students.push(student);
-                }
-             }
-          });
-        });
-        setMyClasses(Object.values(classesMap));
-      } catch (err) {
-        setError('Failed to load dashboard data.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [currentUser]);
-
+  const { students, isLoading: loading, error: queryError } = useTeacherDashboardData();
+ 
   // 2. HANDLERS
   const handleLogout = async () => {
     await logout();
