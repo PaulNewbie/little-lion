@@ -42,7 +42,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin: 12px;
+  margin: 8px;
   background-color: #fff;
   border-radius: var(--pc-border-radius);
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
@@ -67,7 +67,7 @@
 }
 
 .pc-column-header {
-  padding: 16px;
+  padding: 12px;
   border-bottom: 1px solid var(--pc-gray-200);
   display: flex;
   justify-content: space-between;
@@ -79,29 +79,29 @@
 }
 
 .pc-header-title {
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 700;
   margin: 0;
   color: var(--pc-gray-800);
 }
 
 .pc-sub-text {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--pc-gray-500);
   display: block;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .pc-compose-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   border: none;
   background-color: var(--pc-primary);
   color: white;
   cursor: pointer;
   font-weight: bold;
-  font-size: 20px;
+  font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -126,14 +126,14 @@
 .pc-scroll-area {
   flex: 1;
   overflow-y: auto;
-  padding: 10px;
+  padding: 8px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .pc-concern-card {
-  padding: 12px;
+  padding: 10px;
   border: 1px solid var(--pc-gray-200);
   border-radius: 8px;
   cursor: pointer;
@@ -168,24 +168,24 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .pc-card-subject {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: var(--pc-gray-800);
   flex: 1;
 }
 
 .pc-card-date {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--pc-gray-500);
   white-space: nowrap;
 }
 
 .pc-card-child {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--pc-gray-600);
 }
 
@@ -198,23 +198,23 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 30px 16px;
   text-align: center;
   color: var(--pc-gray-600);
 }
 
 .pc-empty-icon {
-  font-size: 48px;
-  margin-bottom: 12px;
+  font-size: 40px;
+  margin-bottom: 10px;
 }
 
 .pc-empty-state p {
-  margin: 0 0 16px;
-  font-size: 0.95rem;
+  margin: 0 0 12px;
+  font-size: 0.9rem;
 }
 
 .pc-secondary-btn {
-  padding: 8px 16px;
+  padding: 8px 14px;
   border: 1px solid var(--pc-primary);
   border-radius: 6px;
   background: transparent;
@@ -255,14 +255,14 @@
 .pc-back-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
+  gap: 6px;
+  padding: 10px 12px;
   border: none;
   border-bottom: 1px solid var(--pc-gray-200);
   background: transparent;
   color: var(--pc-primary);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
   transition: var(--pc-transition);
 }
@@ -272,8 +272,8 @@
 }
 
 .pc-back-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 .pc-view-container {
@@ -290,21 +290,21 @@
    ============================================ */
 
 .pc-view-header {
-  padding: 16px;
+  padding: 12px;
   border-bottom: 1px solid var(--pc-gray-200);
   background-color: #fff;
 }
 
 .pc-view-header h3 {
-  margin: 0 0 4px;
-  font-size: 1.1rem;
+  margin: 0 0 2px;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--pc-gray-800);
 }
 
 .pc-view-header p {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--pc-gray-600);
 }
 
@@ -315,8 +315,8 @@
 .pc-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px;
+  gap: 10px;
+  padding: 12px;
   flex: 1;
   overflow-y: auto;
 }
@@ -324,11 +324,11 @@
 .pc-form-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .pc-label {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--pc-gray-800);
 }
@@ -336,10 +336,10 @@
 .pc-input,
 .pc-select,
 .pc-textarea {
-  padding: 10px 12px;
+  padding: 10px;
   border: 1px solid var(--pc-gray-300);
   border-radius: 6px;
-  font-size: 0.95rem;
+  font-size: 16px; /* Prevents iOS zoom on focus */
   font-family: inherit;
   transition: var(--pc-transition);
   background-color: #fff;
@@ -362,8 +362,8 @@
 
 .pc-textarea {
   resize: vertical;
-  min-height: 120px;
-  font-size: 0.9rem;
+  min-height: 100px;
+  font-size: 16px;
 }
 
 /* ============================================
@@ -372,15 +372,15 @@
 
 .pc-form-actions {
   display: flex;
-  gap: 10px;
-  padding-top: 8px;
+  gap: 8px;
+  padding-top: 6px;
   justify-content: flex-end;
   flex-wrap: wrap;
 }
 
 .pc-send-btn,
 .pc-cancel-btn {
-  padding: 10px 20px;
+  padding: 10px 16px;
   border: none;
   border-radius: 6px;
   font-size: 0.9rem;
@@ -414,11 +414,11 @@
 }
 
 /* ============================================
-   MESSAGE VIEW
+   MESSAGE VIEW - COMPACT MOBILE HEADER
    ============================================ */
 
 .pc-message-header {
-  padding: 16px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--pc-gray-200);
   background-color: #fff;
 }
@@ -427,24 +427,25 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 6px;
   flex-wrap: wrap;
 }
 
 .pc-header-top h2 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--pc-gray-800);
   flex: 1;
+  line-height: 1.2;
 }
 
 .pc-status-badge {
   display: inline-block;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.65rem;
   font-weight: 600;
   background-color: var(--pc-gray-200);
   color: var(--pc-gray-700);
@@ -461,23 +462,24 @@
   color: #92400e;
 }
 
+/* Compact mobile meta - single line when possible */
 .pc-header-meta {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 0.85rem;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.75rem;
   color: var(--pc-gray-600);
 }
 
 .pc-header-meta span {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .pc-header-meta strong {
-  color: var(--pc-gray-800);
-  min-width: 70px;
+  color: var(--pc-gray-700);
+  font-weight: 500;
 }
 
 /* ============================================
@@ -487,10 +489,10 @@
 .pc-chat-window {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   background-color: var(--pc-gray-50);
 }
 
@@ -510,8 +512,8 @@
 .pc-bubble {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 10px 14px;
+  gap: 3px;
+  padding: 8px 12px;
   border-radius: 12px;
   max-width: 85%;
   word-wrap: break-word;
@@ -535,7 +537,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   opacity: 0.7;
 }
 
@@ -546,7 +548,7 @@
 
 .pc-bubble-text {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   line-height: 1.4;
 }
 
@@ -555,21 +557,21 @@
    ============================================ */
 
 .pc-reply-section {
-  padding: 16px;
+  padding: 12px;
   border-top: 1px solid var(--pc-gray-200);
   background-color: #fff;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .pc-reply-input {
-  padding: 10px 12px;
+  padding: 10px;
   border: 1px solid var(--pc-gray-300);
   border-radius: 6px;
-  font-size: 0.9rem;
+  font-size: 16px;
   font-family: inherit;
-  min-height: 80px;
+  min-height: 70px;
   resize: vertical;
 }
 
@@ -583,12 +585,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .pc-reply-count {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--pc-gray-500);
 }
 
@@ -597,11 +599,11 @@
    ============================================ */
 
 .pc-limit-notice {
-  padding: 16px;
+  padding: 12px;
   border-top: 1px solid var(--pc-gray-200);
   background-color: var(--pc-gray-50);
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--pc-gray-600);
   border-radius: 0 0 8px 8px;
 }
@@ -612,15 +614,15 @@
 
 .pc-mobile-fab {
   position: absolute;
-  bottom: 20px;
-  right: 20px;
-  width: 56px;
-  height: 56px;
+  bottom: 16px;
+  right: 16px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   background-color: var(--pc-primary);
   color: white;
   border: none;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: bold;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
@@ -642,7 +644,7 @@
 }
 
 /* ============================================
-   MODAL STYLES
+   MODAL STYLES - COMPACT FOR MOBILE
    ============================================ */
 
 .pc-modal-overlay {
@@ -651,31 +653,34 @@
   background: rgba(0, 0, 0, 0.55);
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-end; /* Slide up from bottom on mobile */
   z-index: 999;
+  padding: 0;
 }
 
 .pc-modal {
   background: #fff;
-  max-width: 520px;
-  width: 90%;
-  max-height: 90vh;
+  width: 100%;
+  max-width: 100%;
+  max-height: 95vh;
   overflow-y: auto;
-  padding: 20px;
-  border-radius: 14px;
-  animation: fadeUp 0.25s ease;
+  padding: 14px;
+  border-radius: 14px 14px 0 0;
+  animation: slideUp 0.25s ease;
 }
 
 .pc-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--pc-gray-200);
 }
 
 .pc-modal-header h3 {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--pc-gray-800);
 }
@@ -694,6 +699,55 @@
 .pc-modal-close:hover {
   background-color: var(--pc-gray-100);
   color: var(--pc-gray-800);
+}
+
+/* Child context display in modal */
+.pc-child-context {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: var(--pc-gray-50);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+}
+
+.pc-child-label {
+  color: var(--pc-gray-500);
+  font-weight: 500;
+}
+
+.pc-child-name {
+  color: var(--pc-gray-800);
+  font-weight: 600;
+}
+
+.pc-child-switcher {
+  margin-left: auto;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  border: 1px solid var(--pc-gray-300);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--pc-primary);
+  cursor: pointer;
+}
+
+.pc-child-switcher:focus {
+  outline: none;
+  border-color: var(--pc-primary);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeUp {
@@ -716,9 +770,17 @@
     margin: 16px;
   }
 
+  .pc-column-header {
+    padding: 16px;
+  }
+
+  .pc-header-title {
+    font-size: 1.125rem;
+  }
+
   .pc-form {
-    padding: 20px;
-    gap: 16px;
+    padding: 18px;
+    gap: 14px;
   }
 
   .pc-scroll-area {
@@ -731,27 +793,50 @@
   }
 
   .pc-view-header {
-    padding: 20px;
+    padding: 18px;
   }
 
   .pc-view-header h3 {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
   }
 
   .pc-message-header {
-    padding: 20px;
+    padding: 16px 18px;
+  }
+
+  .pc-header-top h2 {
+    font-size: 1.15rem;
+  }
+
+  .pc-header-meta {
+    gap: 12px;
+    font-size: 0.8rem;
   }
 
   .pc-chat-window {
-    padding: 20px;
+    padding: 18px;
   }
 
   .pc-reply-section {
-    padding: 20px;
+    padding: 18px;
   }
 
   .pc-back-btn {
     display: none;
+  }
+
+  /* Modal becomes centered on tablet */
+  .pc-modal-overlay {
+    align-items: center;
+    padding: 20px;
+  }
+
+  .pc-modal {
+    max-width: 500px;
+    width: 90%;
+    border-radius: 14px;
+    padding: 20px;
+    animation: fadeUp 0.25s ease;
   }
 }
 
@@ -845,18 +930,24 @@
   }
 
   .pc-message-header {
-    padding: 24px;
+    padding: 20px 24px;
   }
 
   .pc-header-top h2 {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
   }
 
   .pc-header-meta {
     flex-direction: row;
     flex-wrap: wrap;
     gap: 20px;
-    padding-top: 12px;
+    padding-top: 8px;
+    font-size: 0.85rem;
+  }
+
+  .pc-status-badge {
+    padding: 4px 12px;
+    font-size: 0.75rem;
   }
 
   .pc-chat-window {
@@ -910,6 +1001,10 @@
   .pc-secondary-btn {
     padding: 10px 20px;
     font-size: 0.9rem;
+  }
+
+  .pc-modal {
+    max-width: 520px;
   }
 }
 
