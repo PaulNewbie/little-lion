@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import childService from '../../services/childService';
 import Loading from '../../components/common/Loading';
 import TherapistSidebar from '../../components/sidebar/TherapistSidebar';
-import './TherapistDashboard.css';
+import './css/TherapistDashboard.css';
 
 
 const TherapistDashboard = () => {
