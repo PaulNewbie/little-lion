@@ -91,7 +91,7 @@
   flex-direction: column;
   gap: 6px;
   /* overflow handled by .pc-list-column to keep header sticky */
-  overflow: visible;
+  overflow-y: auto;
 }
 
 .pc-concern-card {

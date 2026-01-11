@@ -34,7 +34,7 @@
 
 .pc-page-wrapper {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
   background-color: var(--pc-gray-100);
 }
 
