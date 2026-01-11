@@ -135,6 +135,16 @@ class ChildService {
 
       const snapshot = await getDocs(q);
       trackRead(COLLECTION_NAME, snapshot.docs.length);
+
+      // FIX: If optimized query returns nothing, try fallback (in case data is legacy)
+      if (snapshot.empty) {
+        console.log('Optimized query found 0 students. Checking fallback for legacy data...');
+        const fallbackResults = await this.getChildrenByStaffIdFallback(staffId);
+        // Only return fallback if it actually found something
+        if (fallbackResults.length > 0) {
+            return fallbackResults;
+        }
+      }
       
       const children = snapshot.docs.map(doc => ({
         id: doc.id,

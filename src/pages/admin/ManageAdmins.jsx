@@ -1,10 +1,11 @@
 import React from 'react';
 import useManageAdmins from '../../hooks/useManageAdmins';
 import AdminSidebar from '../../components/sidebar/AdminSidebar';
-import { useAdmins, useCacheInvalidation } from '../../hooks/useCachedData';
 
 const ManageAdmins = () => {
   const {
+    admins,
+    loading,
     error,
     newAdmin,
     handleInputChange,
@@ -13,12 +14,6 @@ const ManageAdmins = () => {
   } = useManageAdmins();
 
   if (loading) return <div>Loading admins...</div>;
-
-  const { data: admins = [], isLoading: loading } = useAdmins();
-  const { invalidateAdmins } = useCacheInvalidation();
-
-  // After creating new admin, call:
-  invalidateAdmins();
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
