@@ -1,32 +1,8 @@
 /* ============================================
    CONCERN DETAIL - COMPONENT-LOCAL CSS
-   Moved from parent folder to component folder
+   Shared variables and global concerns moved to `ParentConcerns.css`.
    ============================================ */
 
-:root {
-  --pc-primary: #4a90e2;
-  --pc-primary-hover: #357ABD;
-
-  --pc-success: #27ae60;
-  --pc-success-hover: #1e9e52;
-
-  --pc-warning: #f39c12;
-  --pc-danger: #e74c3c;
-
-  --pc-gray-50: #f8f9fa;
-  --pc-gray-100: #f1f5f9;
-  --pc-gray-200: #e2e8f0;
-  --pc-gray-300: #cbd5e1;
-  --pc-gray-400: #94a3b8;
-  --pc-gray-500: #64748b;
-  --pc-gray-600: #475569;
-  --pc-gray-700: #334155;
-  --pc-gray-800: #1e293b;
-  --pc-gray-900: #0f172a;
-
-  --pc-border-radius: 12px;
-  --pc-transition: all 0.2s ease;
-}
 
 /* DETAIL COLUMN - MOBILE FIRST */
 .pc-detail-column {
@@ -439,11 +415,7 @@
 
 /* Laptop view adjustments for detail */
 @media (min-width: 1024px) {
-  .pc-content-container {
-    flex-direction: row;
-    margin: 20px;
-    gap: 0;
-  }
+  /* page-level content container styles moved to ParentConcerns.css */
 
   .pc-detail-column {
     display: flex;
@@ -563,23 +535,7 @@
   }
 }
 
-/* LOADING & ACCESSIBILITY */
-.pc-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  color: var(--pc-gray-600);
-  font-size: 1rem;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+/* Loading and accessibility helpers moved to `ParentConcerns.css` */
 
 /* Focus visible for keyboard navigation (detail controls) */
 .pc-send-btn:focus-visible,

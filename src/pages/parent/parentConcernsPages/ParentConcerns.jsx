@@ -14,6 +14,7 @@ import {
 import { useConcerns } from './hooks';
 
 // Styles
+import './ParentConcerns.css';
 // component-level CSS files are imported in their respective components
 
 /**
