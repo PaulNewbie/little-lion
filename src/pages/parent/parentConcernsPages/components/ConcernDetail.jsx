@@ -19,8 +19,6 @@ const ConcernDetail = ({
     return <DetailEmptyState onNewConcern={onNewConcern} />;
   }
 
-  const parentReplyCount = getParentReplyCount(concern);
-  const canReply = concern.status !== 'closed' && parentReplyCount < 3;
 
   return (
     <div className="pc-view-container">
@@ -31,17 +29,12 @@ const ConcernDetail = ({
         currentUserId={currentUserId} 
       />
 
-      {canReply ? (
-        <ReplySection
-          replyText={replyText}
-          onReplyChange={onReplyChange}
-          onSendReply={onSendReply}
-          isSending={isSending}
-          replyCount={parentReplyCount}
-        />
-      ) : (
-        <LimitNotice status={concern.status} />
-      )}
+      <ReplySection
+        replyText={replyText}
+        onReplyChange={onReplyChange}
+        onSendReply={onSendReply}
+        isSending={isSending}
+      />
     </div>
   );
 };
@@ -114,7 +107,6 @@ const ReplySection = ({
   onReplyChange, 
   onSendReply, 
   isSending,
-  replyCount 
 }) => (
   <div className="pc-reply-section">
     <textarea 
@@ -125,7 +117,6 @@ const ReplySection = ({
     />
     <div className="pc-reply-footer">
       <small className="pc-reply-count">
-        Responses: {replyCount} / 3
       </small>
       <button 
         onClick={onSendReply} 
@@ -182,9 +173,7 @@ export const BackButton = ({ onClick }) => (
   </button>
 );
 
-// Helper function
-const getParentReplyCount = (concern) => 
-  concern?.messages?.filter(m => m.type === 'parent').length || 0;
+
 
 // PropTypes
 ConcernDetail.propTypes = {
@@ -229,7 +218,6 @@ ReplySection.propTypes = {
   onReplyChange: PropTypes.func.isRequired,
   onSendReply: PropTypes.func.isRequired,
   isSending: PropTypes.bool,
-  replyCount: PropTypes.number.isRequired
 };
 
 LimitNotice.propTypes = {
