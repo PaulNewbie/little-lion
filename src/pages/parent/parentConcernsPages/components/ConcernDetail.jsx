@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import './ConcernDetail.css';
 
 /**
  * Displays the detail view of a selected concern with message thread
@@ -61,7 +62,7 @@ const ConcernHeader = ({ concern }) => {
         <h2>{concern.subject}</h2>
         <span className={`pc-status-badge ${getStatusBadgeClass(concern.status)}`}>
           {concern.status.replace(/_/g, ' ').toUpperCase()}
-        </span>
+        </span>   
       </div>
       <div className="pc-header-meta">
         <span><strong>Child:</strong> {concern.childName}</span>
