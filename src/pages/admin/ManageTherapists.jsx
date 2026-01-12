@@ -3,7 +3,13 @@ import useManageTherapists from '../../hooks/useManageTherapists';
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
 import TherapistCard from '../shared/TherapistCard';
 import ActivationModal from '../../components/admin/ActivationModal';
-import "./css/managetherapist.css";
+// 1. IMPORT THE CACHED HOOK (Saves money!)
+import { useChildrenByStaff } from '../../hooks/useCachedData';
+
+// 2. CSS IMPORTS (Crucial for the "Circle" and "Scroll")
+import "./css/OneOnOne.css";      // Provides 'ooo-photo-area' (The Color Circle!)
+import "./css/ManageTeacher.css"; // Provides the main layout & search styles
+import "./css/managetherapist.css"; 
 
 const ManageTherapists = () => {
   const {
@@ -21,10 +27,16 @@ const ManageTherapists = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTherapistId, setSelectedTherapistId] = useState(null);
 
-  // NEW: Activation Modal State
+  // Activation Modal State
   const [showActivationModal, setShowActivationModal] = useState(false);
   const [newUserData, setNewUserData] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
+
+  // 3. USE CACHED DATA (No duplicate reads)
+  const { 
+    data: assignedStudents = [], 
+    isLoading: loadingStudents 
+  } = useChildrenByStaff(selectedTherapistId);
 
   if (loading) return <div className="pg-loading">Loading therapists...</div>;
 
@@ -33,7 +45,15 @@ const ManageTherapists = () => {
     t.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // NEW: Handle form submit with activation modal
+  // Helper to show which service the student is taking
+  const getStudentServices = (student) => {
+    const all = [...(student.oneOnOneServices || []), ...(student.groupClassServices || [])];
+    return all
+      .filter(s => s.staffId === selectedTherapistId)
+      .map(s => s.serviceName)
+      .join(", ");
+  };
+
   const handleCreateTherapist = async (e) => {
     e.preventDefault();
     setIsCreating(true);
@@ -51,35 +71,36 @@ const ManageTherapists = () => {
     }
   };
 
+  const selectedTherapist = selectedTherapistId 
+    ? therapists.find(t => t.uid === selectedTherapistId) 
+    : null;
+
   return (
     <div className="ooo-container">
       <AdminSidebar />
 
       <div className="ooo-main">
+        
         {/* ================= HEADER ================= */}
         <div className="ooo-header">
-          <div className="header-row">
-            <div className="header-left">
-              {/* Back Button – ONLY shows on Therapist Info */}
+          <div className="mt-header-wrapper">
+            
+            <div className="mt-header-left">
               {selectedTherapistId && (
                 <span
-                  className="back-btn"
+                  className="mt-back-btn"
                   onClick={() => setSelectedTherapistId(null)}
                 >
                   ‹
                 </span>
               )}
 
-              {/* Header text with conditional right shift */}
-              <div
-                className={`header-text ${selectedTherapistId ? 'detail-view-title' : ''}`}
-              >
+              {/* Title matches Teacher UI */}
+              <div className="header-title">
                 <h1>
-                  {selectedTherapistId
-                    ? "THERAPIST PROFILE"
-                    : "THERAPIST PROFILES"}
+                  {selectedTherapistId ? "THERAPIST PROFILE" : "THERAPIST PROFILES"}
                 </h1>
-
+                
                 {!selectedTherapistId && (
                   <p className="header-subtitle">
                     Add and Manage Therapist Accounts
@@ -88,95 +109,143 @@ const ManageTherapists = () => {
               </div>
             </div>
 
-            {/* Search – ONLY shows on list view */}
+            {/* Search Box */}
             {!selectedTherapistId && (
-              <div className="search-box">
-                <span className="search-icon">🔍</span>
+              <div className="mt-search-container">
+                <span className="mt-search-icon">🔍</span>
                 <input
                   type="text"
                   placeholder="Search therapist name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  className="mt-search-input"
                 />
               </div>
             )}
           </div>
         </div>
 
-        {error && <div className="error-box">⚠️ Error: {error}</div>}
+        {error && <div className="mt-error-banner">⚠️ Error: {error}</div>}
 
-        {/* ================= CONTENT ================= */}
-        <div className="tera-content-area">
-          {/* ========== DETAIL VIEW ========== */}
+        {/* ================= CONTENT AREA ================= */}
+        <div className="ooo-content-area">
+          
           {selectedTherapistId ? (
-            <TherapistCard
-              therapistId={selectedTherapistId}
-              serviceName="Therapist Profile"
-            />
+            /* ---------------- VIEW: DETAIL (Scrollable) ---------------- */
+            /* FIX: paddingBottom ensures button doesn't cover list */
+            <div style={{ paddingBottom: '120px', width: '100%' }}>
+              
+              <TherapistCard
+                therapistId={selectedTherapistId}
+                serviceName="Therapist Profile"
+              />
+
+              {/* --- ENROLLED PATIENTS SECTION --- */}
+              <div style={{ marginTop: '30px' }}>
+                <h3 className="mt-section-title">
+                  Assigned Patients ({assignedStudents.length})
+                </h3>
+                
+                {loadingStudents ? (
+                   <p style={{ color: '#666', fontStyle: 'italic' }}>Loading patients...</p>
+                ) : assignedStudents.length === 0 ? (
+                   <div className="mt-empty-state">
+                     <p>No patients currently assigned to this therapist.</p>
+                   </div>
+                ) : (
+                  // FIX: Using 'ooo-grid' + 'ooo-card' + 'ooo-photo-area'
+                  // This combination gives you the exact UI and the CIRCLE PICTURE
+                  <div className="ooo-grid">
+                    {assignedStudents.map(student => (
+                      <div key={student.id} className="ooo-card" style={{ cursor: 'default' }}>
+                        
+                        {/* THIS CLASS 'ooo-photo-area' MAKES THE COLORED CIRCLE! */}
+                        <div className="ooo-photo-area">
+                          {student.photoUrl ? <img src={student.photoUrl} alt="" /> : <span>📷</span>}
+                        </div>
+                        
+                        <div className="ooo-card-info">
+                          <p className="ooo-name">{student.firstName} {student.lastName}</p>
+                          {/* Blue text for service name */}
+                          <p className="ooo-sub" style={{ color: '#2563eb', fontWeight: '500' }}>
+                            {getStudentServices(student)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
           ) : (
+            /* ---------------- VIEW: LIST (Matches Teacher Grid) ---------------- */
             <>
-              {/* ========== LIST VIEW ========== */}
-              <h2 className="section-title">Therapist Accounts</h2>
+              <div className="mt-section-title-wrapper">
+                <h2 className="mt-section-title">Therapist Accounts</h2>
+              </div>
 
               {filteredTherapists.length === 0 ? (
-                <div className="empty-box">
-                  <p>
+                <div className="mt-empty-state">
+                  <p className="mt-empty-text">
                     {searchQuery
                       ? 'No therapists found matching your search.'
-                      : 'No therapists yet. Click the button below to create one.'}
+                      : 'No therapists yet.'}
                   </p>
                 </div>
               ) : (
-                <div className="therapist-grid">
+                <div className="mt-grid">
                   {filteredTherapists.map(t => (
                     <div
                       key={t.uid}
-                      className={`therapist-card ${
-                        !t.profileCompleted ? 'disabled-card' : ''
+                      className={`mt-card ${
+                        t.profileCompleted ? 'is-clickable' : 'is-locked'
                       }`}
                       onClick={() => {
                         if (t.profileCompleted) {
                           setSelectedTherapistId(t.uid);
                         } else {
-                          alert(
-                            "This therapist has not completed their profile yet."
-                          );
+                          alert("This therapist has not completed their profile yet.");
                         }
                       }}
                     >
-                      {/* Avatar */}
-                      <div className="avatar">
-                        {t.profilePhoto ? (
-                          <img src={t.profilePhoto} alt="" />
-                        ) : (
-                          '👤'
-                        )}
-                      </div>
+                      <div>
+                        {/* Status Dot */}
+                        <div 
+                          className={`mt-status-dot ${t.profileCompleted ? 'active' : 'pending'}`}
+                          title={t.profileCompleted ? "Profile Complete" : "Profile Incomplete"} 
+                        />
 
-                      <h3>{t.firstName} {t.lastName}</h3>
+                        {/* Avatar */}
+                        <div className="mt-avatar-container">
+                          {t.profilePhoto ? (
+                            <img src={t.profilePhoto} alt="" className="mt-avatar-img" />
+                          ) : (
+                            '👤'
+                          )}
+                        </div>
 
-                      <span
-                        className={`status-badge ${
-                          t.profileCompleted ? 'complete' : 'incomplete'
-                        }`}
-                      >
-                        {t.profileCompleted
-                          ? '✅ Profile Active'
-                          : '⚠️ Setup Pending'}
-                      </span>
+                        <h3 className="mt-teacher-name">
+                          {t.firstName} {t.lastName}
+                        </h3>
 
-                      <div className="specializations">
-                        {t.specializations?.length ? (
-                          t.specializations.slice(0, 2).map((s, i) => (
-                            <span key={i} className="spec-chip">
-                              {s}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="no-spec">
-                            No specializations
-                          </span>
-                        )}
+                        {/* Status Badge */}
+                        <div className={`mt-badge ${t.profileCompleted ? 'complete' : 'incomplete'}`}>
+                          {t.profileCompleted ? '✅ Profile Active' : '⚠️ Setup Pending'}
+                        </div>
+
+                        {/* Specializations Tags */}
+                        <div className="mt-tags-wrapper">
+                          {t.specializations?.length ? (
+                            t.specializations.slice(0, 2).map((s, i) => (
+                              <span key={i} className="mt-tag">
+                                {s}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="mt-tag">No specs</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -186,88 +255,40 @@ const ManageTherapists = () => {
           )}
         </div>
 
-        {/* ================= FAB ================= */}
-        <button className="fab" onClick={() => setShowForm(true)}>
-          <span>+</span> THERAPIST
-        </button>
+        {/* FAB */}
+        {!selectedTherapistId && (
+          <button className="mt-fab" onClick={() => setShowForm(true)}>
+            + ADD THERAPIST
+          </button>
+        )}
 
-        {/* ================= ADD THERAPIST FORM MODAL - UPDATED ================= */}
+        {/* Form Modal */}
         {showForm && (
-          <div
-            style={{
-              position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex',
-              alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '20px'
-            }}
-            onClick={() => setShowForm(false)}
-          >
-            <div
-              style={{
-                background: 'white', borderRadius: '16px', padding: '32px',
-                boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)', maxWidth: '500px', width: '100%',
-                maxHeight: '90vh', overflowY: 'auto', border: '4px solid #3b82f6'
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2 style={{ fontSize: '24px', fontWeight: '700', margin: '0 0 32px 0', textAlign: 'center' }}>
-                ADD THERAPIST
-              </h2>
+          <div className="mt-modal-overlay" onClick={() => setShowForm(false)}>
+            <div className="mt-form-container" onClick={(e) => e.stopPropagation()}>
+              <h2 className="mt-form-title">ADD THERAPIST</h2>
 
               <form onSubmit={handleCreateTherapist}>
-                {/* Personal Info Section */}
+                {/* Personal Info */}
                 <div style={{ marginBottom: '24px' }}>
-                  <h3 style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: '#666', letterSpacing: '0.5px', marginBottom: '16px' }}>
-                    Personal Information
-                  </h3>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', fontSize: '12px' }}>Surname *</label>
-                      <input name="lastName" placeholder="Surname" value={newTherapist.lastName} onChange={handleInputChange} required style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', boxSizing: 'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', fontSize: '12px' }}>First Name *</label>
-                      <input name="firstName" placeholder="First name" value={newTherapist.firstName} onChange={handleInputChange} required style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', boxSizing: 'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', fontSize: '12px' }}>Middle Name</label>
-                      <input name="middleName" placeholder="Middle name" value={newTherapist.middleName || ''} onChange={handleInputChange} style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', boxSizing: 'border-box' }} />
-                    </div>
+                  <div className="mt-form-row">
+                     <input name="lastName" placeholder="Surname *" value={newTherapist.lastName} onChange={handleInputChange} required className="mt-input" />
+                     <input name="firstName" placeholder="First Name *" value={newTherapist.firstName} onChange={handleInputChange} required className="mt-input" />
                   </div>
+                  <input name="middleName" placeholder="Middle Name (Optional)" value={newTherapist.middleName || ''} onChange={handleInputChange} className="mt-input-full" style={{ marginBottom: 0 }} />
                 </div>
 
-                {/* Account Info Section */}
-                <div style={{ marginBottom: '24px' }}>
-                  <h3 style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: '#666', letterSpacing: '0.5px', marginBottom: '16px' }}>
-                    Account Information
-                  </h3>
-                  <div style={{ marginBottom: '16px' }}>
-                    <label style={{ display: 'block', fontWeight: '700', marginBottom: '8px', fontSize: '12px', textTransform: 'uppercase', color: '#000' }}>Email</label>
-                    <div style={{ display: 'flex', alignItems: 'center', border: '2px solid #ddd', borderRadius: '24px', padding: '0 16px', background: 'white' }}>
-                      <span style={{ fontSize: '20px', marginRight: '12px' }}>✉️</span>
-                      <input name="email" type="email" placeholder="@gmail.com" value={newTherapist.email} onChange={handleInputChange} required style={{ flex: 1, padding: '12px 0', border: 'none', outline: 'none', fontSize: '14px', background: 'transparent' }} />
-                    </div>
-                  </div>
-
-                  {/* Info box explaining activation - REPLACES password field */}
-                  <div style={{
-                    backgroundColor: '#f0f9ff',
-                    border: '1px solid #bae6fd',
-                    borderRadius: '8px',
-                    padding: '12px',
-                    fontSize: '13px',
-                    color: '#0369a1'
-                  }}>
+                {/* Email */}
+                <input name="email" type="email" placeholder="Email Address *" value={newTherapist.email} onChange={handleInputChange} required className="mt-input-full" />
+                
+                <div className="mt-info-box">
                     <strong>ℹ️ How it works:</strong>
-                    <p style={{ margin: '4px 0 0 0' }}>
-                      After creating the account, a QR code will appear. 
-                      The therapist can scan it to set up their password and complete their profile.
-                    </p>
-                  </div>
+                    <p>After creating the account, a QR code will appear. The therapist can scan it to set up their password and complete their profile.</p>
                 </div>
 
-                {/* Specialization Section */}
+                {/* Specializations */}
                 <div style={{ marginBottom: '32px' }}>
-                  <h3 style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: '#666', letterSpacing: '0.5px', marginBottom: '16px' }}>Specialization</h3>
+                  <h3 style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: '#666', marginBottom: '16px' }}>Specialization</h3>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
                     {services && services.length > 0 ? (
                       services.map(s => (
@@ -282,21 +303,10 @@ const ManageTherapists = () => {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                  <button 
-                    type="button" 
-                    onClick={() => setShowForm(false)} 
-                    disabled={isCreating}
-                    style={{ flex: 1, background: 'white', color: '#000', padding: '12px 24px', border: '2px solid #000', borderRadius: '6px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', textTransform: 'uppercase', transition: 'all 0.2s' }}
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    disabled={isCreating}
-                    style={{ flex: 1, background: isCreating ? '#fcd34d' : '#fbbf24', color: 'white', padding: '12px 24px', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '700', cursor: isCreating ? 'not-allowed' : 'pointer', textTransform: 'uppercase', transition: 'all 0.2s' }}
-                  >
-                    {isCreating ? 'Creating...' : 'Add Therapist'}
+                <div className="mt-action-row">
+                  <button type="button" onClick={() => setShowForm(false)} disabled={isCreating} className="mt-btn-cancel">CANCEL</button>
+                  <button type="submit" disabled={isCreating} className={`mt-btn-submit ${isCreating ? 'loading' : 'normal'}`}>
+                    {isCreating ? 'CREATING...' : 'ADD THERAPIST'}
                   </button>
                 </div>
               </form>
@@ -304,7 +314,6 @@ const ManageTherapists = () => {
           </div>
         )}
 
-        {/* NEW: Activation Modal */}
         <ActivationModal
           isOpen={showActivationModal}
           onClose={() => {

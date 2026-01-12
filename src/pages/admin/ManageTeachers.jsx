@@ -3,6 +3,8 @@ import useManageTeachers from '../../hooks/useManageTeachers';
 import AdminSidebar from "../../components/sidebar/AdminSidebar";
 import TeacherCard from '../shared/TeacherCard';
 import ActivationModal from '../../components/admin/ActivationModal';
+// 1. IMPORT THE CACHED HOOK
+import { useChildrenByStaff } from '../../hooks/useCachedData'; 
 import "./css/OneOnOne.css"; 
 import "./css/ManageTeacher.css";
 
@@ -14,7 +16,6 @@ const ManageTeachers = () => {
     createTeacher, 
     newTeacher, 
     handleInputChange, 
-    toggleSpecialization, 
     services 
   } = useManageTeachers();
   
@@ -29,6 +30,12 @@ const ManageTeachers = () => {
   const [newUserData, setNewUserData] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
 
+  // 2. USE THE CACHED HOOK (Saves reads, handles loading auto-magically)
+  const { 
+    data: assignedStudents = [], 
+    isLoading: loadingStudents 
+  } = useChildrenByStaff(selectedTeacherId);
+
   if (loading) return <div className="pg-loading">Loading teachers...</div>;
 
   // Filter teachers based on search query
@@ -41,6 +48,15 @@ const ManageTeachers = () => {
   const selectedTeacher = selectedTeacherId 
     ? teachers.find(t => t.uid === selectedTeacherId) 
     : null;
+
+  // Helper to show which service the student is taking with this teacher
+  const getStudentServices = (student) => {
+    const all = [...(student.groupClassServices || []), ...(student.oneOnOneServices || [])];
+    return all
+      .filter(s => s.staffId === selectedTeacherId)
+      .map(s => s.serviceName)
+      .join(", ");
+  };
 
   const handleCreateTeacher = async (e) => {
     e.preventDefault();
@@ -119,9 +135,41 @@ const ManageTeachers = () => {
           
           {selectedTeacherId && selectedTeacher ? (
             /* ---------------- VIEW: SINGLE TEACHER PROFILE ---------------- */
-            <TeacherCard 
-              teacher={selectedTeacher} 
-            />
+            /* 3. SCROLL FIX: Removed height:100% and added paddingBottom */
+            <div style={{ paddingBottom: '120px', width: '100%' }}>
+              <TeacherCard teacher={selectedTeacher} />
+
+              {/* --- NEW SECTION: ENROLLED STUDENTS --- */}
+              <div style={{ marginTop: '30px' }}>
+                <h3 className="mt-section-title">
+                  Enrolled Students ({assignedStudents.length})
+                </h3>
+                
+                {loadingStudents ? (
+                   <p style={{ color: '#666', fontStyle: 'italic' }}>Loading students...</p>
+                ) : assignedStudents.length === 0 ? (
+                   <div className="mt-empty-state">
+                     <p>No students currently assigned to this teacher.</p>
+                   </div>
+                ) : (
+                  <div className="ooo-grid">
+                    {assignedStudents.map(student => (
+                      <div key={student.id} className="ooo-card" style={{ cursor: 'default' }}>
+                        <div className="ooo-photo-area">
+                          {student.photoUrl ? <img src={student.photoUrl} alt="" /> : <span>📷</span>}
+                        </div>
+                        <div className="ooo-card-info">
+                          <p className="ooo-name">{student.firstName} {student.lastName}</p>
+                          <p className="ooo-sub" style={{ color: '#2563eb', fontWeight: '500' }}>
+                            {getStudentServices(student)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
 
           ) : (
             /* ---------------- VIEW: TEACHER GRID LIST ---------------- */

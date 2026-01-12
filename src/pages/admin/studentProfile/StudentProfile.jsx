@@ -152,7 +152,7 @@ const StudentProfile = ({
 
   // Admin-only: Add service functionality
   const handleOpenAddModal = async (type) => {
-    if (isParentView) return; // Parents can't add services
+    if (isParentView) return; 
     
     setAddServiceType(type);
     setAddForm({ serviceId: "", staffId: "" });
@@ -167,8 +167,14 @@ const StudentProfile = ({
         ),
       ];
 
+      // FIX: Check the specific arrays instead of 'enrolledServices'
+      const currentEnrolled = [
+        ...(selectedStudent?.oneOnOneServices || []),
+        ...(selectedStudent?.groupClassServices || [])
+      ];
+
       const enrolledServiceIds = new Set(
-        (selectedStudent?.enrolledServices || []).map((es) => es.serviceId)
+        currentEnrolled.map((es) => es.serviceId)
       );
 
       const filteredServices = services.filter(
@@ -240,14 +246,14 @@ const StudentProfile = ({
 
   const enrolled = [
     ...(selectedStudent?.enrolledServices || []),
-    ...(selectedStudent?.therapyServices || []),
-    ...(selectedStudent?.groupClasses || []),
+    ...(selectedStudent?.oneOnOneServices || []),
+    ...(selectedStudent?.groupClassServices || []),
   ];
   const therapyServices = enrolled.filter(
-    (s) => s.type === "Therapy" || s.staffRole === "therapist"
+    (s) => s.serviceType === "Therapy" || s.staffRole === "therapist"
   );
   const groupServices = enrolled.filter(
-    (s) => s.type === "Class" || s.staffRole === "teacher"
+    (s) => s.serviceType === "Class" || s.staffRole === "teacher"
   );
 
   const getQualifiedStaff = (serviceName, serviceType) => {

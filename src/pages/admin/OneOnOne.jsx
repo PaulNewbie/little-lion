@@ -77,7 +77,13 @@ const OneOnOne = () => {
   // ENROLLED STUDENTS
   const enrolledStudents = selectedService
     ? students.filter((s) => {
-        const allSrv = s.enrolledServices || [...(s.therapyServices || []), ...(s.services || [])];
+        // 1. Combine the new specific arrays
+        const allSrv = [
+          ...(s.oneOnOneServices || []),
+          ...(s.groupClassServices || [])
+        ];
+        
+        // 2. Check if any matches the selected service name
         return allSrv.some(
           (srv) => srv.serviceName?.trim().toLowerCase() === selectedService.name?.trim().toLowerCase()
         );
@@ -199,32 +205,43 @@ const OneOnOne = () => {
 
             {level === "students" && selectedService && (
               <>
+                {/* --- RESTORED HEADER --- */}
                 <div className="ooo-header">
                   <span className="back-arrow" onClick={goBack}>‹</span>
                   <h1 className="service-name">{selectedService.name}</h1>
                 </div>
-                <div className="ooo-grid">
-                  {enrolledStudents.length === 0 ? (
-                    <p style={{ color: "#888", fontStyle: "italic" }}>No students enrolled for this service yet.</p>
-                  ) : (
-                    enrolledStudents.map(student => {
-                      const serviceInfo = (student.enrolledServices || [...(student.therapyServices || []), ...(student.services || [])])
-                        .find(s => s.serviceName === selectedService.name);
+                {/* ----------------------- */}
 
-                      return (
-                        <div key={student.id} className="ooo-card" onClick={() => handleSelectStudent(student)}>
-                          <div className="ooo-photo-area">
-                            {student.photoUrl ? <img src={student.photoUrl} alt="" /> : <span>📷</span>}
+                <div className="ooo-grid">
+                    {enrolledStudents.length === 0 ? (
+                      <p style={{ color: "#888", fontStyle: "italic" }}>No students enrolled for this service yet.</p>
+                    ) : (
+                      enrolledStudents.map(student => {
+                        // 1. Find the specific service entry to get the staff name
+                        const allSrv = [
+                          ...(student.oneOnOneServices || []),
+                          ...(student.groupClassServices || [])
+                        ];
+                        
+                        const serviceInfo = allSrv.find(
+                          s => s.serviceName?.trim().toLowerCase() === selectedService.name?.trim().toLowerCase()
+                        );
+
+                        return (
+                          <div key={student.id} className="ooo-card" onClick={() => handleSelectStudent(student)}>
+                            <div className="ooo-photo-area">
+                              {student.photoUrl ? <img src={student.photoUrl} alt="" /> : <span>📷</span>}
+                            </div>
+                            <div className="ooo-card-info">
+                              <p className="ooo-name">{student.lastName}, {student.firstName}</p>
+                              {/* Use the standard 'staffName' field from the new structure */}
+                              <p className="ooo-sub">Therapist: {serviceInfo?.staffName || "Not assigned"}</p>
+                            </div>
                           </div>
-                          <div className="ooo-card-info">
-                            <p className="ooo-name">{student.lastName}, {student.firstName}</p>
-                            <p className="ooo-sub">Therapist: {serviceInfo?.staffName || serviceInfo?.therapistName || "Not assigned"}</p>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
+                        );
+                      })
+                    )}
+                  </div>
               </>
             )}
 
