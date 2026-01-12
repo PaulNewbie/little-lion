@@ -176,7 +176,7 @@
   font-size: 0.75rem;
   color: var(--pc-gray-500);
   align-items: center;
-  /* flex-wrap: wrap; */
+  flex-wrap: wrap;
 }
 
 .pc-card-child {

@@ -4,7 +4,7 @@ import './ConcernsList.css';
 
 /**
  * Displays the list of concerns in the left column
- */
+ */ 
 const ConcernsList = ({ 
   concerns, 
   selectedConcernId, 
@@ -87,6 +87,7 @@ const ConcernCard = ({ concern, isActive, statusClass, onSelect }) => {
       </div>
 
       <div className="pc-card-meta">
+        <span className='pc-card-createdBy'>Created by: {concern.createdByName || "Minerma F. Fidel"}</span>
         <span className="pc-card-child">Child: {concern.childName}</span>
         <span>{formatDate(concern.createdAt)}</span>
       </div>
