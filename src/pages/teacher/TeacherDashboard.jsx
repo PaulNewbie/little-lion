@@ -1,9 +1,10 @@
+// src/pages/teacher/TeacherDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import childService from '../../services/childService'; 
 import { saveSessionActivity } from '../../services/activityService';
-import userService from '../../services/userService'; //
+import userService from '../../services/userService'; 
 import Loading from '../../components/common/Loading';
 import ErrorMessage from '../../components/common/ErrorMessage';
 import QuickSelectTags from '../../components/common/form-elements/QuickSelectTags';
@@ -24,7 +25,7 @@ const TeacherDashboard = () => {
   // Data State
   const [myClasses, setMyClasses] = useState([]);
   const [error, setError] = useState('');
-  const [profileIncomplete, setProfileIncomplete] = useState(false); //
+  const [profileIncomplete, setProfileIncomplete] = useState(false); 
 
   // UI State
   const [selectedClass, setSelectedClass] = useState(null);
@@ -44,10 +45,56 @@ const TeacherDashboard = () => {
   const [homeNote, setHomeNote] = useState('');
   const [concernNote, setConcernNote] = useState('');
 
-  // 1. FETCH DATA & CHECK PROFILE
+  // 1. FETCH DATA
   const { students, isLoading: loading, error: queryError } = useTeacherDashboardData();
+
+  // 2. PROCESS DATA (THIS WAS MISSING)
+  useEffect(() => {
+    if (students && currentUser) {
+      const groupedClasses = {};
+
+      students.forEach(student => {
+        // Collect all potential services the student is enrolled in
+        const allServices = [
+          ...(student.groupClassServices || []),
+          ...(student.oneOnOneServices || []),
+          ...(student.enrolledServices || [])
+        ];
+
+        // Filter for services assigned to THIS teacher
+        const myServices = allServices.filter(svc => svc.staffId === currentUser.uid);
+
+        myServices.forEach(svc => {
+          const className = svc.serviceName || 'Unassigned Group';
+          
+          if (!groupedClasses[className]) {
+            groupedClasses[className] = {
+              name: className,
+              serviceId: svc.serviceId,
+              students: []
+            };
+          }
+
+          // Add student if not already present in this class group
+          if (!groupedClasses[className].students.find(s => s.id === student.id)) {
+            groupedClasses[className].students.push(student);
+          }
+        });
+      });
+
+      setMyClasses(Object.values(groupedClasses));
+    }
+  }, [students, currentUser]);
+
+  // Check Profile Completeness
+  useEffect(() => {
+    if (currentUser) {
+      // Example check: warn if PRC ID is missing
+      setProfileIncomplete(!currentUser.prcId);
+    }
+  }, [currentUser]);
  
-  // 2. HANDLERS
+  // 3. HANDLERS
   const handleLogout = async () => {
     await logout();
     navigate('/login');
@@ -62,7 +109,7 @@ const TeacherDashboard = () => {
   const openObservationModal = (student) => {
     setObsStudent(student);
     setTopic(''); setMoods([]); setSelectedStrengths([]); setStrengthNote('');
-    setSelectedNeeds([]); setNeedNote([]); setHomeNote(''); setConcernNote('');
+    setSelectedNeeds([]); setNeedNote(''); setHomeNote(''); setConcernNote('');
     setShowObsModal(true);
   };
 
@@ -92,7 +139,7 @@ const TeacherDashboard = () => {
         sessionNotes: concernNote 
       };
 
-      await saveSessionActivity(sessionData); //
+      await saveSessionActivity(sessionData); 
       alert(`Observation saved for ${obsStudent.firstName}!`);
       setShowObsModal(false);
     } catch (err) {
@@ -108,6 +155,7 @@ const TeacherDashboard = () => {
   };
 
   if (loading) return <Loading />;
+  if (queryError) return <ErrorMessage message={queryError.message} />;
 
   return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
@@ -266,7 +314,10 @@ const styles = {
   chipBtn: (isSelected) => ({ padding: '6px 12px', borderRadius: '20px', border: '1px solid', borderColor: isSelected ? '#3b82f6' : '#cbd5e1', backgroundColor: isSelected ? '#eff6ff' : 'white', color: isSelected ? '#2563eb' : '#64748b', cursor: 'pointer' }),
   modalActions: { display: 'flex', justifyContent: 'flex-end', gap: '10px', padding: '15px 20px', borderTop: '1px solid #e2e8f0' },
   saveBtn: { padding: '10px 20px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer' },
-  cancelBtn: { background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }
+  cancelBtn: { background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' },
+  backBtn: { background: 'none', border: 'none', color: '#64748b', marginBottom: '20px', cursor: 'pointer', fontSize: '16px' },
+  emptyState: { textAlign: 'center', color: '#64748b', marginTop: '40px' },
+  actionBtn: { width: '100%', padding: '8px', backgroundColor: '#e2e8f0', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', color: '#475569', marginTop: '10px' }
 };
 
 export default TeacherDashboard;
