@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import './ConcernsList.css';
 
 /**
  * Displays the list of concerns in the left column
