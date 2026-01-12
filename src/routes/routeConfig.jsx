@@ -34,8 +34,7 @@ import TherapistProfile from "../pages/therapist/TherapistProfile";
 // Parent Components
 import ParentDashboard from "../pages/parent/ParentChildProfile";
 import ChildActivities from "../pages/parent/ChildActivities";
-import ParentInquiries from "../pages/parent/ParentInquiries";
-import NewInquiry from "../pages/parent/NewInquiry";
+import ParentConcerns from "../pages/parent/parentConcernsPages/ParentConcerns";
 
 // Staff Shared Components
 import StaffInquiries from "../pages/shared/StaffInquiries";
@@ -87,8 +86,7 @@ export const ROUTES = {
   PARENT: {
     DASHBOARD: "/parent/dashboard",
     CHILD: "/parent/child/:childId",
-    INQUIRIES: "/parent/inquiries",
-    NEW_INQUIRY: "/parent/inquiries/new",
+    CONCERNS: "/parent/concerns",
   },
 
   STAFF: {
@@ -259,8 +257,7 @@ export const AppRoutes = () => {
       {/* PARENT ROUTES */}
       <Route path={ROUTES.PARENT.DASHBOARD} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><ParentDashboard /></ProtectedRoute>} />
       <Route path={ROUTES.PARENT.CHILD} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><ChildActivities /></ProtectedRoute>} />
-      <Route path={ROUTES.PARENT.INQUIRIES} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><ParentInquiries /></ProtectedRoute>} />
-      <Route path={ROUTES.PARENT.NEW_INQUIRY} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><NewInquiry /></ProtectedRoute>} />
+      <Route path={ROUTES.PARENT.CONCERNS} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><ParentConcerns /></ProtectedRoute>} />
 
       {/* SHARED STAFF ROUTES */}
       <Route path={ROUTES.STAFF.INQUIRIES} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.STAFF}><StaffInquiries /></ProtectedRoute>} />
