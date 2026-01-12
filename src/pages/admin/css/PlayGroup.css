@@ -616,3 +616,173 @@
 .pg-see-more:hover {
   text-decoration: underline;
 }
+
+
+/* === DASHBOARD SPLIT VIEW === */
+.pg-split-layout {
+  display: flex;
+  gap: 30px;
+  padding: 30px 40px;
+  height: calc(100vh - 140px);
+  box-sizing: border-box;
+}
+
+/* Left Panel: Activities & Attendance */
+.pg-left-panel {
+  flex: 1; 
+  background: white;
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; 
+}
+
+/* Right Panel: Calendar */
+.pg-right-panel {
+  width: 400px;
+  background: white;
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.pg-panel-header {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 40px;
+}
+
+.pg-panel-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #2c3e50;
+}
+
+.pg-date-label {
+  color: #4ECDC4;
+  font-weight: bold;
+}
+
+/* === NEW: Activity & Photo Section === */
+.pg-inner-scroll {
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px; /* Space between activities and attendance */
+}
+
+.pg-activity-block {
+  margin-bottom: 30px;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 20px;
+}
+
+.pg-activity-block:last-child {
+  border-bottom: none;
+}
+
+.pg-activity-text {
+  margin-bottom: 15px;
+}
+
+.pg-activity-title {
+  margin: 0 0 5px 0;
+  color: #0052A1;
+  font-size: 18px;
+}
+
+.pg-activity-desc {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.pg-no-photos-msg {
+  font-style: italic;
+  color: #aaa;
+  font-size: 13px;
+}
+
+/* Photo Grid */
+.pg-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.pg-photo-card {
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #eee;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.pg-photo-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.pg-photo-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* === NEW: Attendance Section === */
+.pg-attendance-section {
+  background-color: #f9fbfc;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #edf2f7;
+}
+
+.pg-attendance-header h3 {
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pg-attendance-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pg-simple-student-card {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 6px 12px 6px 6px;
+  border-radius: 30px;
+  border: 1px solid #e0e0e0;
+  gap: 10px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.pg-simple-student-card img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.pg-simple-student-card span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
