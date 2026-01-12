@@ -71,15 +71,20 @@ const ConcernHeader = ({ concern }) => {
  */
 const ChatWindow = ({ messages = [], currentUserId }) => (
   <div className="pc-chat-window">
-    {messages.map((msg, index) => (
-      <MessageBubble 
-        key={index}
-        message={msg}
-        isSent={msg.senderId === currentUserId}
-      />
-    ))}
+    {messages.length === 0 ? (
+      <p className="pc-no-messages">No messages yet.</p>
+    ) : (
+      messages.map((msg) => (
+        <MessageBubble 
+          key={msg.id} // use firestore doc id
+          message={msg}
+          isSent={msg.senderId === currentUserId}
+        />
+      ))
+    )}
   </div>
 );
+
 
 /**
  * Individual message bubble

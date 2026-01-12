@@ -23,27 +23,23 @@ const useConcerns = (userId) => {
   // =======================
   // FETCH INITIAL DATA
   // =======================
-  const fetchData = useCallback(async () => {
-    if (!userId) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const [concernData, childData] = await Promise.all([
-        concernService.getConcernsByParent(userId),
-        childService.getChildrenByParentId(userId)
-      ]);
-
-      setConcerns(concernData);
-      setChildren(childData);
-    } catch (err) {
-      console.error('Failed to load concerns:', err);
-      setError('Failed to load concerns. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
+ const fetchData = useCallback(async () => {
+  if (!userId) return;
+  setLoading(true);
+  setError(null);
+  try {
+    const [concernData, childData] = await Promise.all([
+      concernService.getConcernsByParent(userId), // messages now included
+      childService.getChildrenByParentId(userId)
+    ]);
+    setConcerns(concernData);
+    setChildren(childData);
+  } catch (err) {
+    setError("Failed to load concerns. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+}, [userId]);
 
   useEffect(() => {
     fetchData();

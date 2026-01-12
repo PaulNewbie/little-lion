@@ -92,9 +92,10 @@ class ConcernService {
     }
   }
 
+
   /* ----------------------------------------------------
-     4. GET CONCERNS BY PARENT (List View)
-     ---------------------------------------------------- */
+   4. GET CONCERNS BY PARENT (List View + Messages)
+   ---------------------------------------------------- */
   async getConcernsByParent(parentId) {
     const q = query(
       collection(db, 'concerns'),
@@ -103,15 +104,25 @@ class ConcernService {
 
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
+    // For each concern, fetch messages subcollection
+    const concerns = await Promise.all(snapshot.docs.map(async (docSnap) => {
+      const concern = { id: docSnap.id, ...docSnap.data() };
+
+      const messagesSnapshot = await getDocs(
+        collection(db, 'concerns', docSnap.id, 'messages')
+      );
+
+      concern.messages = messagesSnapshot.docs
+        .map(m => ({ id: m.id, ...m.data() }))
+        .sort((a, b) => a.createdAt?.seconds - b.createdAt?.seconds); // sort by timestamp
+
+      return concern;
     }));
+
+    return concerns;
   }
 
-  /* ----------------------------------------------------
-     5. GET CONCERNS BY STAFF
-     ---------------------------------------------------- */
+
   async getConcernsByStaff(staffId) {
     const q = query(
       collection(db, 'concerns'),
@@ -120,11 +131,23 @@ class ConcernService {
 
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
+    const concerns = await Promise.all(snapshot.docs.map(async (docSnap) => {
+      const concern = { id: docSnap.id, ...docSnap.data() };
+
+      const messagesSnapshot = await getDocs(
+        collection(db, 'concerns', docSnap.id, 'messages')
+      );
+
+      concern.messages = messagesSnapshot.docs
+        .map(m => ({ id: m.id, ...m.data() }))
+        .sort((a, b) => a.createdAt?.seconds - b.createdAt?.seconds);
+
+      return concern;
     }));
+
+    return concerns;
   }
+
 }
 
 const concernService = new ConcernService();
