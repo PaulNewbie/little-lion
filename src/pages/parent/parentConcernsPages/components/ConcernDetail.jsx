@@ -59,7 +59,7 @@ const ConcernHeader = ({ concern }) => {
       </div>
       <div className="pc-header-meta">
         <span><strong>Child:</strong> {concern.childName}</span>
-        <span><strong>Status:</strong> {statusText}</span>
+        {/* <span><strong>Status:</strong> {statusText}</span> */}
         <span><strong>Created:</strong> {new Date(concern.createdAt).toLocaleDateString()}</span>
       </div>
     </div>

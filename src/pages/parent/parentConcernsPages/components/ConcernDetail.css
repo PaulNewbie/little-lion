@@ -224,6 +224,7 @@
 /* Compact mobile meta - single line when possible */
 .pc-header-meta {
   display: flex;
+  justify-content: space-between;
   flex-wrap: wrap;
   gap: 8px;
   font-size: 0.75rem;

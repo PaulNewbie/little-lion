@@ -65,24 +65,35 @@ const ConcernCard = ({ concern, isActive, statusClass, onSelect }) => {
     }
   };
 
+  // Format createdAt safely
+  const formatDate = (ts) => {
+    if (!ts) return '';
+    return ts.toDate ? ts.toDate().toLocaleDateString() : new Date(ts).toLocaleDateString();
+  };
+
   return (
-    <div 
+    <div
       onClick={onSelect}
-      className={`pc-concern-card ${isActive ? 'active' : ''} status-${statusClass}`}
+      className={`pc-concern-card ${isActive ? 'active' : ''}`}
       role="button"
       tabIndex={0}
       onKeyDown={handleKeyDown}
     >
       <div className="pc-card-header">
         <span className="pc-card-subject">{concern.subject}</span>
-        <span className="pc-card-date">
-          {new Date(concern.createdAt).toLocaleDateString()}
+        <span className={`pc-card-status ${statusClass}`}>
+          {concern.status.replace(/_/g, ' ')}
         </span>
       </div>
-      <div className="pc-card-child">Child: {concern.childName}</div>
+
+      <div className="pc-card-meta">
+        <span className="pc-card-child">Child: {concern.childName}</span>
+        <span>{formatDate(concern.createdAt)}</span>
+      </div>
     </div>
   );
 };
+
 
 /**
  * Empty state when no concerns exist
