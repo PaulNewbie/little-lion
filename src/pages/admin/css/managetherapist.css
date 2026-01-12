@@ -167,9 +167,32 @@
   color: #92400e;
 }
 
+.mt-avatar-container {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background-color: #f3f4f6;
+  border: 3px solid #fbbf24; /* The signature yellow border */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #6b7280;
+  margin: 0 auto 12px; /* Centers it in the card and adds bottom spacing */
+  overflow: hidden;
+}
+
+.mt-avatar-container img, 
+.mt-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 /* ===== Avatar ===== */
 .avatar {
-  width: 80px;
+  /* width: 80px;
   height: 80px;
   border-radius: 50%;
   background: #e5e7eb;
@@ -177,7 +200,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: hidden; */
+  display: none;
 }
 
 .avatar img {

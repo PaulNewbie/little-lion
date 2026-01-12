@@ -38,10 +38,6 @@
   scrollbar-color: rgba(0, 82, 161, 0.55) rgba(0, 0, 0, 0.08);
 }
 
-.pg-service-list-view{
-
-}
-
 .pg-header{
   padding: 40px 40px;
   border-bottom: 1px solid #e0e0e0;
@@ -80,10 +76,6 @@
   margin-left: 3rem;
   font-size: 14px;
   margin-bottom: 25px;
-}
-
-.pg-content-area{
-
 }
 
 .pg-back-btn {
