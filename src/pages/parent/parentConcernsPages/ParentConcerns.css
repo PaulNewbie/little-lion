@@ -1,0 +1,120 @@
+/* ============================================
+   PARENT CONCERNS - MOBILE FIRST RESPONSIVE
+   ============================================ */
+
+/* CSS Custom Properties */
+:root {
+  --pc-primary: #4a90e2;
+  --pc-primary-hover: #357ABD;
+
+  --pc-success: #27ae60;
+  --pc-success-hover: #1e9e52;
+
+  --pc-warning: #f39c12;
+  --pc-danger: #e74c3c;
+
+  --pc-gray-50: #f8f9fa;
+  --pc-gray-100: #f1f5f9;
+  --pc-gray-200: #e2e8f0;
+  --pc-gray-300: #cbd5e1;
+  --pc-gray-400: #94a3b8;
+  --pc-gray-500: #64748b;
+  --pc-gray-600: #475569;
+  --pc-gray-700: #334155;
+  --pc-gray-800: #1e293b;
+  --pc-gray-900: #0f172a;
+
+  --pc-border-radius: 12px;
+  --pc-transition: all 0.2s ease;
+}
+
+/* ============================================
+   BASE LAYOUT - MOBILE FIRST
+   ============================================ */
+
+.pc-page-wrapper {
+  display: flex;
+  height: 100vh;
+  background-color: var(--pc-gray-100);
+}
+
+.pc-content-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin: 8px;
+  background-color: #fff;
+  border-radius: var(--pc-border-radius);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+/* LIST styles moved to `components/ConcernsList.css` */
+
+/* Empty state styles moved to `components/ConcernsList.css` */
+
+/* Detail/message/chat/reply/mobile/modal styles moved to component CSS files:
+   - components/ConcernDetail.css
+   - components/ConcernsList.css
+*/
+
+/* TABLET adjustments (page-level only) */
+@media (min-width: 640px) {
+  .pc-content-container {
+    margin: 16px;
+  }
+} 
+
+/* ============================================
+   LAPTOP VIEW (1024px and above)
+   ============================================ */
+
+@media (min-width: 1024px) {
+  .pc-content-container {
+    flex-direction: row;
+    margin: 20px;
+    gap: 0;
+  }
+} 
+
+/* ============================================
+   LARGE DESKTOP VIEW (1280px and above)
+   ============================================ */
+
+@media (min-width: 1280px) {
+  .pc-content-container {
+    margin: 24px;
+  }
+} 
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+
+.pc-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: var(--pc-gray-600);
+  font-size: 1rem;
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Minimal focus visible helper; components can add more specific rules */
+:focus-visible {
+  outline: 2px solid var(--pc-primary);
+  outline-offset: 2px;
+}

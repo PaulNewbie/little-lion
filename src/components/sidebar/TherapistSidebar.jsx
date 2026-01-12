@@ -56,7 +56,7 @@ const TherapistSidebar = ({ forceActive }) => {
 
         <div className="profile-section">
           <div className="avatar">👨‍⚕️</div>
-          <div>
+          <div className="profile-info">
             <div className="role-label">THERAPIST</div>
             <div className="profile-name">{currentUser?.firstName || "Therapist"}</div>
           </div>

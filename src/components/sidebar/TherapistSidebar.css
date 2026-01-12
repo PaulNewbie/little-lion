@@ -40,7 +40,7 @@
 .open-btn {
   position: fixed;
   top: 15px;
-  left: 15px;
+  right: 15px;
   font-size: 24px;
   padding: 10px 15px;
   border: none;
@@ -55,20 +55,34 @@
 .therapist-sidebar .profile-section {
   margin-bottom: 40px;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 15px;
+  gap: 5px;
 }
 
 .therapist-sidebar .avatar {
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   border: 3px solid #ffd700;
   background-color: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 32px;
+  flex-shrink: 0;
+  margin-left: -10px;
+}
+
+.therapist-sidebar .profile-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: none;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
 }
 
 .therapist-sidebar .role-label {
@@ -76,12 +90,16 @@
   color: #666;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  margin-bottom: 2px;
+  margin-left: 10px;
 }
 
 .therapist-sidebar .profile-name {
   font-size: 20px;
   font-weight: bold;
   color: #0052A1;
+  line-height: 1.2;
+  margin-left: -70px;
 }
 
 /* Menu sections */
