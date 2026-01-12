@@ -178,7 +178,7 @@ const TherapistCard = ({ therapistId, serviceName }) => {
 const styles = {
 wrapper: {
   display: "flex",
-  gap: "1rem",
+  gap: "2.5rem",
   marginBottom: "1rem",
   alignItems: "flex-start", // 🔑 IMPORTANT
 },
@@ -192,8 +192,8 @@ wrapper: {
 
   /* LEFT IMAGE CARD */
   imageCard: {
-  width: "260px",           // ✅ same ratio as student profile
-  height: "320px",          // ✅ fixed height (does NOT grow)
+  width: "300px",           // ✅ same ratio as student profile
+  height: "385px",          // ✅ fixed height (does NOT grow)
   flexShrink: 0,            // 🔑 prevent resizing
   backgroundColor: "white",
   borderRadius: "16px",
