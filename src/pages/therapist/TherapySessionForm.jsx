@@ -6,12 +6,13 @@ import Loading from '../../components/common/Loading';
 import TherapistSidebar from '../../components/sidebar/TherapistSidebar';
 import QuickSelectTags from '../../components/common/form-elements/QuickSelectTags';
 import VoiceInput from '../../components/common/form-elements/VoiceInput';
+import './css/TherapySessionForm.css';
 
 // --- DATA: SMART LISTS & CHIPS ---
 
 // 1. Activity Chips (For OT/ST)
 const OT_ACTIVITIES = [
-  "Fine Motor Puzzles", "Handwriting Practice", "Sensory Bin", "Scissor Skills", 
+  "Fine Motor Puzzles", "Handwriting Practice", "Sensory Bin", "Scissor Skills",
   "Peg Board", "Lacing Beads", "Buttoning/Zipping", "Zone of Regulation",
   "Obstacle Course", "Clay/Playdough", "Theraputty", "Balance Beam"
 ];
@@ -23,22 +24,22 @@ const ST_ACTIVITIES = [
 
 // 2. Clinical Note Phrases (For OT/ST)
 const NOTE_PHRASES = [
-  "Arrived on time", "Transitioned well", "Separated easily", 
-  "Required minimal prompting", "Hand-over-hand assistance needed", 
+  "Arrived on time", "Transitioned well", "Separated easily",
+  "Required minimal prompting", "Hand-over-hand assistance needed",
   "Sustained attention", "Frequent redirection needed", "Parent observed"
 ];
 const REC_PHRASES = [
-  "Continue home program", "Daily practice (10 mins)", "Monitor sensory needs", 
+  "Continue home program", "Daily practice (10 mins)", "Monitor sensory needs",
   "Use visual schedule", "Model words at home", "Review goals next session"
 ];
 
 // 3. Observation Tags (For Other Services)
 const COMMON_STRENGTHS = [
-  "Good Focus", "Followed Instructions", "Social Interaction", 
+  "Good Focus", "Followed Instructions", "Social Interaction",
   "Eye Contact", "Completed Tasks", "Gentle Hands", "Energetic", "Happy"
 ];
 const COMMON_WEAKNESSES = [
-  "Distracted", "Refused Task", "Crying", "Aggressive", 
+  "Distracted", "Refused Task", "Crying", "Aggressive",
   "Sensory Overload", "Difficulty Transitioning", "Needs Prompts"
 ];
 
@@ -50,19 +51,21 @@ const TherapySessionForm = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { child, service } = location.state || {};
-  
+
   // --- LOGIC: DETERMINE FORM TYPE ---
-  // OT & ST -> "Session Log" (Activities focused)
-  // Everything else -> "Observation Report" (Behavior focused)
   const isSpeech = service?.name?.toLowerCase().includes('speech');
   const isOT = service?.name?.toLowerCase().includes('occupational');
   const isSessionLog = isSpeech || isOT || ['Occupational Therapy', 'Speech Therapy', 'Occupational Service', 'Speech Service'].includes(service?.name);
 
   const [loading, setLoading] = useState(false);
 
+  // --- MODAL STATE ---
+  const [showModal, setShowModal] = useState(true); // Start with modal open
+  const [modalStep, setModalStep] = useState(0);
+
   // --- STATE: SESSION LOG (OT/ST) ---
   const [reaction, setReaction] = useState([]);
-  const [activities, setActivities] = useState([]); // List of strings or objects
+  const [activities, setActivities] = useState([]);
   const [currentActivity, setCurrentActivity] = useState('');
   const [notes, setNotes] = useState('');
   const [suggestions, setSuggestions] = useState('');
@@ -76,19 +79,57 @@ const TherapySessionForm = () => {
   const [homeActivities, setHomeActivities] = useState('');
   const [concerns, setConcerns] = useState('');
 
+  // --- MODAL STEPS CONFIGURATION ---
+  const sessionLogSteps = [
+    { id: 'mood', title: "Student's Mood", description: 'How was the student feeling?' },
+    { id: 'activities', title: 'Activities Done', description: 'What activities were performed?' },
+    { id: 'notes', title: 'Clinical Notes', description: 'Session observations' },
+    { id: 'recommendations', title: 'Recommendations', description: 'Next steps and plans' }
+  ];
+
+  const observationSteps = [
+    { id: 'purpose', title: 'Activity Purpose', description: 'Goal of the session' },
+    { id: 'strengths', title: 'Strengths', description: 'Observed positive behaviors' },
+    { id: 'improvements', title: 'Areas for Improvement', description: 'Areas needing attention' },
+    { id: 'home', title: 'Home & Concerns', description: 'Instructions and notes' }
+  ];
+
+  const modalSteps = isSessionLog ? sessionLogSteps : observationSteps;
+
+  // --- MODAL NAVIGATION ---
+  const goToModalStep = (stepIndex) => {
+    if (stepIndex >= 0 && stepIndex < modalSteps.length) {
+      setModalStep(stepIndex);
+    }
+  };
+
+  const nextModalStep = () => {
+    if (modalStep < modalSteps.length - 1) {
+      setModalStep(modalStep + 1);
+    }
+  };
+
+  const prevModalStep = () => {
+    if (modalStep > 0) {
+      setModalStep(modalStep - 1);
+    }
+  };
+
+  const closeModal = () => {
+    navigate(-1);
+  };
+
   // --- HANDLERS ---
 
-  // Helper: Add text to textarea
   const appendText = (current, newText, setter) => {
     const trimmed = current.trim();
     setter(trimmed ? `${trimmed}. ${newText}. ` : `${newText}. `);
   };
 
-  // Activity Handlers
   const addActivity = (name) => {
     if (!name.trim()) return;
     if (activities.some(a => a.name === name)) return;
-    setActivities([...activities, { name: name, performance: '' }]); // 'performance' kept empty for DB compatibility
+    setActivities([...activities, { name: name, performance: '' }]);
     setCurrentActivity('');
   };
 
@@ -96,36 +137,26 @@ const TherapySessionForm = () => {
     setActivities(activities.filter((_, i) => i !== index));
   };
 
-  // Submit Handler
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSessionLog && activities.length === 0 && !window.confirm("No activities listed. Save anyway?")) return;
-    
+
     setLoading(true);
 
-    // Format Tags + Notes for Observation View
     const finalStrengths = [...selectedStrengths, strengthNotes].filter(Boolean).join('. ');
     const finalWeaknesses = [...selectedWeaknesses, weaknessNotes].filter(Boolean).join('. ');
 
     const sessionData = {
-      // Core Data
       childId: child.id,
       childName: `${child.firstName} ${child.lastName}`,
       serviceId: service.id,
       serviceName: service.name,
       date: new Date().toISOString(),
-      
-      // Type Flag
       type: isSessionLog ? 'activity' : 'observation',
-
-      // 1. SESSION LOG DATA (OT/ST)
-      data: isSessionLog ? { activities } : {}, // The activity list
+      data: isSessionLog ? { activities } : {},
       studentReaction: isSessionLog ? reaction : [],
       sessionNotes: notes,
       recommendations: suggestions,
-
-      // 2. OBSERVATION DATA (Others)
-      // Note: We map "reaction" to mood for both forms if needed, but usually Observation form uses Strengths/Weaknesses
       activityPurpose: activityPurpose,
       strengths: finalStrengths,
       weaknesses: finalWeaknesses,
@@ -145,241 +176,378 @@ const TherapySessionForm = () => {
     }
   };
 
+  // --- RENDER STEP CONTENT ---
+  const renderModalStepContent = () => {
+    if (isSessionLog) {
+      switch (modalStep) {
+        case 0: // Mood
+          return (
+            <QuickSelectTags
+              label="How was the student feeling today?"
+              options={MOODS}
+              selected={reaction}
+              onChange={setReaction}
+              color="purple"
+            />
+          );
+        case 1: // Activities
+          return (
+            <>
+              <p className="tsf-hint">Tap to add or type your own activity.</p>
+              <div className="tsf-chip-container">
+                {(isSpeech ? ST_ACTIVITIES : OT_ACTIVITIES).map(act => (
+                  <button
+                    key={act}
+                    type="button"
+                    onClick={() => addActivity(act)}
+                    className={`tsf-chip-btn ${activities.some(a => a.name === act) ? 'tsf-chip-btn--selected' : ''}`}
+                  >
+                    + {act}
+                  </button>
+                ))}
+              </div>
+              <div className="tsf-input-row">
+                <input
+                  type="text"
+                  value={currentActivity}
+                  onChange={(e) => setCurrentActivity(e.target.value)}
+                  placeholder="Type custom activity..."
+                  className="tsf-input"
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addActivity(currentActivity))}
+                />
+                <button type="button" onClick={() => addActivity(currentActivity)} className="tsf-add-btn">
+                  Add
+                </button>
+              </div>
+              <div className="tsf-activity-list">
+                {activities.map((act, index) => (
+                  <div key={index} className="tsf-activity-item">
+                    <div className="tsf-activity-badge">{index + 1}</div>
+                    <span className="tsf-activity-name">{act.name}</span>
+                    <button type="button" onClick={() => removeActivity(index)} className="tsf-remove-btn">✕</button>
+                  </div>
+                ))}
+                {activities.length === 0 && <p className="tsf-empty-text">No activities added yet.</p>}
+              </div>
+            </>
+          );
+        case 2: // Clinical Notes
+          return (
+            <>
+              <div className="tsf-card-header">
+                <span className="tsf-mini-label">Quick phrases</span>
+                <VoiceInput onTranscript={(text) => appendText(notes, text, setNotes)} />
+              </div>
+              <div className="tsf-chip-container">
+                {NOTE_PHRASES.map(phrase => (
+                  <button key={phrase} type="button" onClick={() => appendText(notes, phrase, setNotes)} className="tsf-phrase-btn">
+                    {phrase}
+                  </button>
+                ))}
+              </div>
+              <textarea
+                rows="6"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Session observations and student responses..."
+                className="tsf-textarea"
+              />
+            </>
+          );
+        case 3: // Recommendations
+          return (
+            <>
+              <div className="tsf-card-header">
+                <span className="tsf-mini-label">Quick phrases</span>
+                <VoiceInput onTranscript={(text) => appendText(suggestions, text, setSuggestions)} />
+              </div>
+              <div className="tsf-chip-container">
+                {REC_PHRASES.map(phrase => (
+                  <button key={phrase} type="button" onClick={() => appendText(suggestions, phrase, setSuggestions)} className="tsf-phrase-btn">
+                    {phrase}
+                  </button>
+                ))}
+              </div>
+              <textarea
+                rows="5"
+                value={suggestions}
+                onChange={(e) => setSuggestions(e.target.value)}
+                placeholder="Next steps and home recommendations..."
+                className="tsf-textarea"
+              />
+            </>
+          );
+        default:
+          return null;
+      }
+    } else {
+      // Observation Report
+      switch (modalStep) {
+        case 0: // Activity Purpose
+          return (
+            <>
+              <div className="tsf-card-header">
+                <span className="tsf-mini-label">Voice input available</span>
+                <VoiceInput onTranscript={(text) => appendText(activityPurpose, text, setActivityPurpose)} />
+              </div>
+              <p className="tsf-hint">What was the goal of today's session?</p>
+              <textarea
+                rows="4"
+                value={activityPurpose}
+                onChange={(e) => setActivityPurpose(e.target.value)}
+                placeholder="Describe the purpose of today's activity..."
+                className="tsf-textarea"
+              />
+            </>
+          );
+        case 1: // Strengths
+          return (
+            <>
+              <QuickSelectTags
+                label="Select observed strengths"
+                options={COMMON_STRENGTHS}
+                selected={selectedStrengths}
+                onChange={setSelectedStrengths}
+                color="green"
+              />
+              <div className="tsf-section-divider">
+                <div className="tsf-card-header">
+                  <span className="tsf-mini-label">Additional details</span>
+                  <VoiceInput onTranscript={(text) => appendText(strengthNotes, text, setStrengthNotes)} />
+                </div>
+                <textarea
+                  rows="3"
+                  value={strengthNotes}
+                  onChange={(e) => setStrengthNotes(e.target.value)}
+                  placeholder="Additional details about observed strengths..."
+                  className="tsf-textarea"
+                />
+              </div>
+            </>
+          );
+        case 2: // Areas for Improvement
+          return (
+            <>
+              <QuickSelectTags
+                label="Select areas needing attention"
+                options={COMMON_WEAKNESSES}
+                selected={selectedWeaknesses}
+                onChange={setSelectedWeaknesses}
+                color="red"
+              />
+              <div className="tsf-section-divider">
+                <div className="tsf-card-header">
+                  <span className="tsf-mini-label">Additional details</span>
+                  <VoiceInput onTranscript={(text) => appendText(weaknessNotes, text, setWeaknessNotes)} />
+                </div>
+                <textarea
+                  rows="3"
+                  value={weaknessNotes}
+                  onChange={(e) => setWeaknessNotes(e.target.value)}
+                  placeholder="Additional details about areas needing improvement..."
+                  className="tsf-textarea"
+                />
+              </div>
+            </>
+          );
+        case 3: // Home & Concerns
+          return (
+            <>
+              <label className="tsf-label">
+                <span className="tsf-label-icon">🏠</span>
+                Home Instructions
+              </label>
+              <textarea
+                rows="3"
+                value={homeActivities}
+                onChange={(e) => setHomeActivities(e.target.value)}
+                className="tsf-textarea"
+                placeholder="Activities or exercises for parents to do at home..."
+              />
+              <div className="tsf-section-divider">
+                <label className="tsf-label">
+                  <span className="tsf-label-icon">⚠️</span>
+                  Other Concerns
+                </label>
+                <textarea
+                  rows="3"
+                  value={concerns}
+                  onChange={(e) => setConcerns(e.target.value)}
+                  className="tsf-textarea"
+                  placeholder="Any behavioral notes or concerns to flag..."
+                />
+              </div>
+            </>
+          );
+        default:
+          return null;
+      }
+    }
+  };
+
   if (!child || !service) return <div style={{padding:'2rem'}}>No session details provided.</div>;
   if (loading) return <Loading />;
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <TherapistSidebar />
-      <div style={{ padding: '20px', width: '100%', backgroundColor: '#f8f9fa' }}>
-        <div className="therapy-session-form">
-        {/* --- HEADER --- */}
-        <div style={{ backgroundColor: 'white', borderBottom: '1px solid #e2e8f0', padding: '1.5rem 2rem', borderRadius: '1rem', marginBottom: '1.5rem' }}>
-        <button onClick={() => navigate(-1)} style={styles.backBtn}>← Back</button>
-        <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-end'}}>
-          <div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: '700', color: '#0f172a', margin: '0.5rem 0' }}>
-              {isSessionLog ? 'New Session Log' : 'Observation Report'}
-            </h1>
-            <p style={{color: '#64748b', margin: 0}}>
-              Student: <span style={{fontWeight: '600', color: '#3b82f6'}}>{child.firstName} {child.lastName}</span>
-              {' • '}
-              <span style={{fontWeight: '600', color: '#6d28d9'}}>{service.name}</span>
-            </p>
-          </div>
-          <div style={{padding:'0.5rem 1rem', borderRadius:'2rem', backgroundColor: isSessionLog ? '#eff6ff' : '#f0fdf4', color: isSessionLog ? '#2563eb' : '#16a34a', fontWeight:'bold', fontSize:'0.85rem'}}>
-            {isSessionLog ? 'Clinical Session' : 'Class Observation'}
-          </div>
-        </div>
-      </div>
+      <div style={{ flex: 1, backgroundColor: '#f8f9fa' }}>
+        <div className="tsf-page">
 
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 1rem' }}>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-
-          {/* =========================================================
-              FORM TYPE 1: OT / ST (Session Log)
-             ========================================================= */}
-          {isSessionLog && (
-            <>
-              {/* 1. MOOD */}
-              <div style={styles.card}>
-                <QuickSelectTags 
-                  label="😊 Student's Mood" 
-                  options={MOODS} 
-                  selected={reaction} 
-                  onChange={setReaction} 
-                  color="purple" 
-                />
+          {/* Page Header */}
+          <div className="tsf-header">
+            <button onClick={() => navigate(-1)} className="tsf-back-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+              Back
+            </button>
+            <div className="tsf-header-main">
+              <div className="tsf-header-text">
+                <h1 className="tsf-title">
+                  {isSessionLog ? 'NEW SESSION LOG' : 'OBSERVATION REPORT'}
+                </h1>
+                <p className="tsf-subtitle">
+                  Student: <span className="tsf-subtitle-highlight">{child.firstName} {child.lastName}</span>
+                  {' • '}
+                  <span className="tsf-subtitle-service">{service.name}</span>
+                </p>
               </div>
+              <span className={`tsf-type-badge ${isSessionLog ? 'tsf-type-badge--session' : 'tsf-type-badge--observation'}`}>
+                {isSessionLog ? 'Clinical Session' : 'Class Observation'}
+              </span>
+            </div>
+          </div>
 
-              {/* 2. ACTIVITIES (Smart Chips + Simple List) */}
-              <div style={styles.card}>
-                 <div style={{marginBottom:'1rem'}}>
-                    <label style={styles.label}>📋 Activities Done</label>
-                    <p style={styles.hint}>Tap to add or type your own.</p>
-                 </div>
-
-                 {/* Chips */}
-                 <div style={styles.chipContainer}>
-                    {(isSpeech ? ST_ACTIVITIES : OT_ACTIVITIES).map(act => (
-                       <button 
-                          key={act} 
-                          type="button" 
-                          onClick={() => addActivity(act)} 
-                          style={styles.chipBtn(activities.some(a => a.name === act))}
-                       >
-                          + {act}
-                       </button>
-                    ))}
-                 </div>
-
-                 {/* Manual Input */}
-                 <div style={styles.inputRow}>
-                    <input 
-                      type="text" 
-                      value={currentActivity} 
-                      onChange={(e) => setCurrentActivity(e.target.value)} 
-                      placeholder="Type custom activity..." 
-                      style={styles.input} 
-                    />
-                    <button type="button" onClick={() => addActivity(currentActivity)} style={styles.addBtn}>Add</button>
+          {/* Multi-Step Modal */}
+          {showModal && (
+            <div className="tsf-modal-overlay" onClick={closeModal}>
+              <div className="tsf-modal-container" onClick={(e) => e.stopPropagation()}>
+                {/* Modal Header */}
+                <div className="tsf-modal-header">
+                  <div className="tsf-modal-header-content">
+                    <h2 className="tsf-modal-title">
+                      {isSessionLog ? 'Session Log' : 'Observation Report'}
+                    </h2>
+                    <p className="tsf-modal-subtitle">
+                      {child.firstName} {child.lastName} • {service.name}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="tsf-modal-close"
+                    onClick={closeModal}
+                    aria-label="Close modal"
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18"/>
+                      <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
                 </div>
 
-                {/* Selected List (No Dropdowns) */}
-                <div style={{marginTop:'1rem', display:'flex', flexDirection:'column', gap:'0.5rem'}}>
-                  {activities.map((act, index) => (
-                    <div key={index} style={styles.activityItem}>
-                      <div style={styles.badge}>{index + 1}</div>
-                      <span style={{flex:1, fontWeight:'600', color:'#334155'}}>{act.name}</span>
-                      <button type="button" onClick={() => removeActivity(index)} style={styles.removeBtn}>✕</button>
+                {/* Modal Step Indicator */}
+                <div className="tsf-modal-steps">
+                  {modalSteps.map((step, index) => (
+                    <button
+                      key={step.id}
+                      type="button"
+                      className={`tsf-modal-step ${index === modalStep ? 'tsf-modal-step--active' : ''} ${index < modalStep ? 'tsf-modal-step--completed' : ''}`}
+                      onClick={() => goToModalStep(index)}
+                    >
+                      <span className="tsf-modal-step-number">
+                        {index < modalStep ? (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        ) : (
+                          index + 1
+                        )}
+                      </span>
+                      <span className="tsf-modal-step-title">{step.title}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Modal Body */}
+                <form onSubmit={handleSubmit}>
+                  <div className="tsf-modal-body">
+                    <div className="tsf-modal-step-header">
+                      <h3>{modalSteps[modalStep].title}</h3>
+                      <p>{modalSteps[modalStep].description}</p>
                     </div>
-                  ))}
-                  {activities.length === 0 && <p style={styles.emptyText}>No activities added.</p>}
-                </div>
-              </div>
+                    <div className="tsf-modal-step-content">
+                      {renderModalStepContent()}
+                    </div>
+                  </div>
 
-              {/* 3. CLINICAL NOTES (Phrases + Voice) */}
-              <div style={styles.card}>
-                <div style={styles.headerRow}>
-                  <label style={styles.label}>📝 Clinical Notes</label>
-                  <VoiceInput onTranscript={(text) => appendText(notes, text, setNotes)} />
-                </div>
-                <div style={styles.chipContainer}>
-                  {NOTE_PHRASES.map(phrase => (
-                    <button key={phrase} type="button" onClick={() => appendText(notes, phrase, setNotes)} style={styles.phraseBtn}>{phrase}</button>
-                  ))}
-                </div>
-                <textarea rows="5" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Session observations..." style={styles.textarea} />
-              </div>
+                  {/* Modal Footer */}
+                  <div className="tsf-modal-footer">
+                    <div className="tsf-modal-footer-left">
+                      {modalStep > 0 && (
+                        <button
+                          type="button"
+                          className="tsf-btn tsf-btn--secondary"
+                          onClick={prevModalStep}
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                          </svg>
+                          Previous
+                        </button>
+                      )}
+                    </div>
 
-              {/* 4. RECOMMENDATIONS */}
-              <div style={styles.card}>
-                <div style={styles.headerRow}>
-                  <label style={styles.label}>💡 Recommendations / Plan</label>
-                  <VoiceInput onTranscript={(text) => appendText(suggestions, text, setSuggestions)} />
-                </div>
-                <div style={styles.chipContainer}>
-                  {REC_PHRASES.map(phrase => (
-                    <button key={phrase} type="button" onClick={() => appendText(suggestions, phrase, setSuggestions)} style={styles.phraseBtn}>{phrase}</button>
-                  ))}
-                </div>
-                <textarea rows="3" value={suggestions} onChange={(e) => setSuggestions(e.target.value)} placeholder="Next steps..." style={styles.textarea} />
+                    <div className="tsf-modal-footer-center">
+                      <span className="tsf-modal-step-counter">
+                        Step {modalStep + 1} of {modalSteps.length}
+                      </span>
+                    </div>
+
+                    <div className="tsf-modal-footer-right">
+                      {modalStep < modalSteps.length - 1 ? (
+                        <button
+                          type="button"
+                          className="tsf-btn tsf-btn--primary"
+                          onClick={nextModalStep}
+                        >
+                          Next
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                          </svg>
+                        </button>
+                      ) : (
+                        <button
+                          type="submit"
+                          className="tsf-btn tsf-btn--save"
+                          disabled={loading}
+                        >
+                          {loading ? (
+                            <>
+                              <span className="tsf-btn-spinner"></span>
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                              </svg>
+                              Complete Session
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </form>
               </div>
-            </>
+            </div>
           )}
-
-          {/* =========================================================
-              FORM TYPE 2: OTHERS (Observation Report)
-             ========================================================= */}
-          {!isSessionLog && (
-            <>
-              {/* 1. ACTIVITY PURPOSE */}
-              <div style={styles.card}>
-                <div style={styles.headerRow}>
-                  <label style={styles.label}>🎯 Activity Purpose</label>
-                  <VoiceInput onTranscript={(text) => appendText(activityPurpose, text, setActivityPurpose)} />
-                </div>
-                <p style={styles.hint}>What was the goal of today's session?</p>
-                <textarea rows="2" value={activityPurpose} onChange={(e) => setActivityPurpose(e.target.value)} style={styles.textarea} />
-              </div>
-
-              {/* 2. STRENGTHS (Tags + Voice) */}
-              <div style={styles.card}>
-                <QuickSelectTags 
-                  label="💪 Strengths (Observed)" 
-                  options={COMMON_STRENGTHS} 
-                  selected={selectedStrengths} 
-                  onChange={setSelectedStrengths} 
-                  color="green" 
-                />
-                <div style={styles.headerRow}>
-                   <span style={styles.miniLabel}>Specific Details</span>
-                   <VoiceInput onTranscript={(text) => appendText(strengthNotes, text, setStrengthNotes)} />
-                </div>
-                <textarea rows="2" value={strengthNotes} onChange={(e) => setStrengthNotes(e.target.value)} placeholder="Details..." style={styles.textarea} />
-              </div>
-
-              {/* 3. WEAKNESSES (Tags + Voice) */}
-              <div style={styles.card}>
-                <QuickSelectTags 
-                  label="🔻 Areas for Improvement" 
-                  options={COMMON_WEAKNESSES} 
-                  selected={selectedWeaknesses} 
-                  onChange={setSelectedWeaknesses} 
-                  color="red" 
-                />
-                 <div style={styles.headerRow}>
-                   <span style={styles.miniLabel}>Specific Details</span>
-                   <VoiceInput onTranscript={(text) => appendText(weaknessNotes, text, setWeaknessNotes)} />
-                </div>
-                <textarea rows="2" value={weaknessNotes} onChange={(e) => setWeaknessNotes(e.target.value)} placeholder="Details..." style={styles.textarea} />
-              </div>
-
-              {/* 4. HOME & CONCERNS */}
-              <div style={styles.card}>
-                <label style={styles.label}>🏠 Home Instructions</label>
-                <textarea rows="3" value={homeActivities} onChange={(e) => setHomeActivities(e.target.value)} style={styles.textarea} placeholder="For parents..." />
-                
-                <div style={{marginTop:'1.5rem'}}>
-                   <label style={styles.label}>⚠️ Other Concerns</label>
-                   <textarea rows="2" value={concerns} onChange={(e) => setConcerns(e.target.value)} style={styles.textarea} placeholder="Behavioral notes..." />
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* --- SUBMIT BUTTON --- */}
-          <button type="submit" disabled={loading} style={styles.submitBtn}>
-            {loading ? 'Saving Record...' : '✅ Complete Session'}
-          </button>
-
-        </form>
         </div>
-      </div>
       </div>
     </div>
   );
-};
-
-// --- STYLES ---
-const styles = {
-  card: { backgroundColor: 'white', borderRadius: '1rem', padding: '1.5rem', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', border:'1px solid #e2e8f0' },
-  label: { fontSize: '1.1rem', fontWeight: '700', color: '#1e293b' },
-  miniLabel: { fontSize: '0.85rem', fontWeight: '600', color: '#64748b' },
-  hint: { fontSize: '0.9rem', color: '#64748b', margin: '0 0 0.5rem 0' },
-  emptyText: { color: '#94a3b8', fontStyle: 'italic', textAlign:'center', marginTop:'0.5rem' },
-  
-  // Inputs
-  textarea: { width: '100%', padding: '0.75rem', border: '1px solid #cbd5e1', borderRadius: '0.5rem', fontFamily:'inherit', boxSizing: 'border-box', marginTop:'0.5rem' },
-  input: { flex: 1, padding: '0.75rem', border: '1px solid #cbd5e1', borderRadius: '0.5rem', fontSize:'1rem' },
-  
-  // Containers
-  headerRow: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'0.5rem' },
-  chipContainer: { display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' },
-  inputRow: { display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', borderTop: '1px dashed #e2e8f0', paddingTop: '1rem' },
-
-  // Buttons & Badges
-  backBtn: { background:'none', border:'none', color:'#64748b', cursor:'pointer', fontSize:'0.9rem', fontWeight:'600', marginBottom:'0.5rem' },
-  submitBtn: { width: '100%', padding: '1rem', backgroundColor: '#10b981', color: 'white', fontSize: '1.1rem', fontWeight: 'bold', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', marginTop:'1rem', boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.2)' },
-  addBtn: { padding: '0 1.5rem', backgroundColor: '#6366f1', color:'white', borderRadius:'0.5rem', border:'none', fontWeight:'600', cursor:'pointer' },
-  removeBtn: { color:'#ef4444', border:'none', background:'none', cursor:'pointer', fontSize:'1.1rem', padding: '0 0.5rem' },
-  
-  badge: { width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#e2e8f0', color: '#64748b', fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  
-  // List Items
-  activityItem: { display:'flex', alignItems:'center', gap:'12px', padding:'10px 12px', backgroundColor:'#f8fafc', borderRadius:'0.5rem', border:'1px solid #e2e8f0' },
-  
-  // Dynamic Styles
-  chipBtn: (isSelected) => ({
-    padding: '0.4rem 0.8rem', borderRadius: '20px', border: '1px solid #cbd5e1',
-    backgroundColor: 'white', color: '#475569', cursor: 'pointer', fontSize: '0.85rem',
-    opacity: isSelected ? 0.5 : 1, textDecoration: isSelected ? 'line-through' : 'none',
-    transition: 'all 0.2s'
-  }),
-  phraseBtn: {
-    padding: '0.3rem 0.6rem', borderRadius: '6px', border: '1px solid #bfdbfe',
-    backgroundColor: '#eff6ff', color: '#1d4ed8', cursor: 'pointer', fontSize: '0.75rem', fontWeight:'500'
-  }
 };
 
 export default TherapySessionForm;

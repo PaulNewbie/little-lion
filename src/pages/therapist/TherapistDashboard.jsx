@@ -3,14 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import Loading from '../../components/common/Loading';
 import TherapistSidebar from '../../components/sidebar/TherapistSidebar';
+import { Mail, Phone } from 'lucide-react';
 import { useTherapistDashboardData } from '../../hooks/useCachedData';
+import logo from '../../images/logo.png';
 import './css/TherapistDashboard.css';
 
 
 const TherapistDashboard = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  
+
 
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -40,13 +42,13 @@ const TherapistDashboard = () => {
           navigate('/therapist/profile');
         }
       }, 1000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [currentUser, navigate]);
 
   const filteredStudents = useMemo(() => {
-    return students.filter(student => 
+    return students.filter(student =>
       `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [students, searchTerm]);
@@ -57,7 +59,7 @@ const TherapistDashboard = () => {
       ...(student.groupClassServices || [])
     ];
 
-    return allServices.filter(s => 
+    return allServices.filter(s =>
       (s.staffId === currentUser.uid) || (s.therapistId === currentUser.uid)
     );
   };
@@ -80,14 +82,14 @@ const TherapistDashboard = () => {
   };
 
   const goToSessionForm = (student, serviceAssignment) => {
-    navigate('/therapist/session-form', { 
-      state: { 
-        child: student, 
+    navigate('/therapist/session-form', {
+      state: {
+        child: student,
         service: {
           id: serviceAssignment.serviceId,
           name: serviceAssignment.serviceName
         }
-      } 
+      }
     });
     setShowServiceModal(false);
   };
@@ -97,9 +99,10 @@ const TherapistDashboard = () => {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <TherapistSidebar forceActive="/therapist/dashboard" />
-      <div style={{ padding: '20px', width: '100%', backgroundColor: '#f8f9fa' }}>
-        <div className="therapist-dashboard__content">
-        
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', backgroundColor: '#f8f9fa' }}>
+        <div style={{ padding: '20px', flex: 1 }}>
+          <div className="therapist-dashboard__content">
+
         {/* Header Banner */}
         <div className="therapist-dashboard__header-banner">
           <div className="therapist-dashboard__header-content">
@@ -108,11 +111,16 @@ const TherapistDashboard = () => {
               <p className="therapist-dashboard__subtitle">Manage and Track Student Sessions</p>
             </div>
             <div className="therapist-dashboard__search-wrapper">
-              <span className="therapist-dashboard__search-icon">🔍</span>
-              <input 
-                type="text" 
-                placeholder="Search student name..." 
-                value={searchTerm} 
+              <span className="therapist-dashboard__search-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <circle cx="11" cy="11" r="8"/>
+                  <path d="M21 21l-4.35-4.35"/>
+                </svg>
+              </span>
+              <input
+                type="text"
+                placeholder="Search student name..."
+                value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="therapist-dashboard__search-input"
               />
@@ -180,7 +188,7 @@ const TherapistDashboard = () => {
                     </div>
                   </div>
                   <div className="therapist-dashboard__student-card-footer">
-                    <button 
+                    <button
                       onClick={() => handleStartSessionClick(student)}
                       className="therapist-dashboard__start-session-button"
                     >
@@ -194,34 +202,55 @@ const TherapistDashboard = () => {
         )}
       </div>
 
-      {/* Service Selection Modal */}
-      {showServiceModal && (
-        <div className="therapist-dashboard__modal-overlay">
-          <div className="therapist-dashboard__modal">
-            <h3 className="therapist-dashboard__modal-title">Select Service</h3>
-            <p className="therapist-dashboard__modal-subtitle">
-              Which session are you starting for <strong>{selectedStudentForModal?.firstName}</strong>?
-            </p>
-            <div className="therapist-dashboard__modal-services">
-              {availableServices.map((service) => (
-                <button
-                  key={service.serviceId}
-                  onClick={() => goToSessionForm(selectedStudentForModal, service)}
-                  className="therapist-dashboard__modal-service-button"
-                >
-                  {service.serviceName}
-                </button>
-              ))}
+        {/* Service Selection Modal */}
+        {showServiceModal && (
+          <div className="therapist-dashboard__modal-overlay">
+            <div className="therapist-dashboard__modal">
+              <h3 className="therapist-dashboard__modal-title">Select Service</h3>
+              <p className="therapist-dashboard__modal-subtitle">
+                Which session are you starting for <strong>{selectedStudentForModal?.firstName}</strong>?
+              </p>
+              <div className="therapist-dashboard__modal-services">
+                {availableServices.map((service) => (
+                  <button
+                    key={service.serviceId}
+                    onClick={() => goToSessionForm(selectedStudentForModal, service)}
+                    className="therapist-dashboard__modal-service-button"
+                  >
+                    {service.serviceName}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setShowServiceModal(false)}
+                className="therapist-dashboard__modal-cancel-button"
+              >
+                Cancel
+              </button>
             </div>
-            <button 
-              onClick={() => setShowServiceModal(false)} 
-              className="therapist-dashboard__modal-cancel-button"
-            >
-              Cancel
-            </button>
           </div>
+        )}
         </div>
-      )}
+        <footer className="therapist-dashboard__footer">
+          <div className="therapist-dashboard__footer-content">
+            <div className="therapist-dashboard__footer-item">
+              <div className="therapist-dashboard__footer-logo">
+                <img src={logo} alt="Little Lions" className="therapist-dashboard__footer-logo-img" />
+              </div>
+              <span>Little Lions Learning and Development Center</span>
+            </div>
+            <span className="therapist-dashboard__footer-divider">•</span>
+            <div className="therapist-dashboard__footer-item">
+              <Mail size={18} className="therapist-dashboard__footer-icon" />
+              <span>littlelionsldc@gmail.com</span>
+            </div>
+            <span className="therapist-dashboard__footer-divider">•</span>
+            <div className="therapist-dashboard__footer-item">
+              <Phone size={18} className="therapist-dashboard__footer-icon" />
+              <span>(+63) 9677900930</span>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );

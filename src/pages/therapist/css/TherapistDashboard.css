@@ -10,7 +10,7 @@
   background-position: center;
   background-repeat: no-repeat;
   border-radius: 1rem;
-  padding: 2rem;
+  padding: 2.5rem 2rem;
   margin-bottom: 2rem;
   position: relative;
   overflow: hidden;
@@ -23,7 +23,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.25) 100%);
 }
 
 .therapist-dashboard__header-content {
@@ -33,64 +33,98 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .therapist-dashboard__header-text {
   flex: 1;
+  min-width: 200px;
 }
 
 .therapist-dashboard__title {
-  font-size: 2rem;
+  font-size: 1.85rem;
   font-weight: 800;
   color: #ffffff;
-  margin: 0 0 0.25rem 0;
+  margin: 0 0 0.3rem 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .therapist-dashboard__subtitle {
-  color: #ffffff;
+  color: rgba(255, 255, 255, 0.9);
   margin: 0;
   font-size: 0.9375rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+  font-weight: 600;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 /* Search in Header */
 .therapist-dashboard__search-wrapper {
   position: relative;
   min-width: 280px;
+  max-width: 320px;
 }
 
 .therapist-dashboard__search-icon {
   position: absolute;
-  left: 1rem;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 1rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFCB10;
+  border-radius: 8px;
+  font-size: 0.875rem;
   z-index: 1;
+  color: white;
 }
 
 .therapist-dashboard__search-input {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.75rem;
-  background-color: rgba(255, 255, 255, 0.9);
+  padding: 0.875rem 1rem 0.875rem 3.5rem;
+  background-color: white;
   border: none;
-  border-radius: 2rem;
+  border-radius: 12px;
   font-size: 0.9375rem;
   outline: none;
   box-sizing: border-box;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
 }
 
 .therapist-dashboard__search-input:focus {
-  background-color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .therapist-dashboard__search-input::placeholder {
   color: #9ca3af;
+}
+
+/* Header Responsive */
+@media (max-width: 768px) {
+  .therapist-dashboard__header-banner {
+    padding: 1.5rem;
+  }
+
+  .therapist-dashboard__header-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .therapist-dashboard__title {
+    font-size: 1.5rem;
+  }
+
+  .therapist-dashboard__search-wrapper {
+    min-width: unset;
+    max-width: unset;
+    width: 100%;
+  }
 }
 
 /* Error Message */
@@ -340,4 +374,87 @@
   color: #64748b;
   cursor: pointer;
   font-weight: 600;
+}
+
+/* Footer - Admin Style with Icons & Logo */
+.therapist-dashboard__footer {
+  background: #0052A1;
+  padding: 16px 40px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: auto;
+}
+
+.therapist-dashboard__footer-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  color: #FFCB10;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.therapist-dashboard__footer-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.therapist-dashboard__footer-logo {
+  width: 30px;
+  height: 30px;
+  background-color: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  padding: 3px;
+  flex-shrink: 0;
+}
+
+.therapist-dashboard__footer-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.therapist-dashboard__footer-divider {
+  color: #FFCB10;
+  opacity: 0.6;
+}
+
+.therapist-dashboard__footer-icon {
+  flex-shrink: 0;
+  color: #FFCB10;
+}
+
+/* Footer Responsive */
+@media (max-width: 768px) {
+  .therapist-dashboard__footer {
+    padding: 12px 20px;
+  }
+
+  .therapist-dashboard__footer-content {
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .therapist-dashboard__footer-logo {
+    width: 24px;
+    height: 24px;
+  }
+
+  .therapist-dashboard__footer-divider {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .therapist-dashboard__footer-content {
+    flex-direction: column;
+    gap: 6px;
+    font-size: 11px;
+  }
 }
