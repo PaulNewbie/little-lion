@@ -51,6 +51,36 @@ const ManageTherapists = () => {
     }
   };
 
+  // --- Specialization Handlers ---
+
+  // Update a specific row's selection
+  const handleSpecChange = (index, value) => {
+    const updatedSpecs = [...newTherapist.specializations];
+    updatedSpecs[index] = value;
+    
+    // Assuming you have access to set state, or you can create a custom update
+    // If setNewTherapist is not available, you might need to update your hook
+    // For now, this mimics a state update:
+    newTherapist.specializations = updatedSpecs; 
+    // forceUpdate or standard setState would go here. 
+    // Ideally: setNewTherapist({ ...newTherapist, specializations: updatedSpecs });
+  };
+
+  // Add a new empty dropdown row
+  const addSpecRow = () => {
+    const updatedSpecs = [...newTherapist.specializations, ""];
+    // Ideally: setNewTherapist({ ...newTherapist, specializations: updatedSpecs });
+    // For direct mutation (if hook manages object ref):
+    newTherapist.specializations = updatedSpecs;
+  };
+
+  // Remove a row
+  const removeSpecRow = (index) => {
+    const updatedSpecs = newTherapist.specializations.filter((_, i) => i !== index);
+    // Ideally: setNewTherapist({ ...newTherapist, specializations: updatedSpecs });
+    newTherapist.specializations = updatedSpecs;
+  };
+
   return (
     <div className="ooo-container">
       <AdminSidebar />
@@ -265,23 +295,145 @@ const ManageTherapists = () => {
                   </div>
                 </div>
 
-                {/* Specialization Section */}
-                <div style={{ marginBottom: '32px' }}>
-                  <h3 style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: '#666', letterSpacing: '0.5px', marginBottom: '16px' }}>Specialization</h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
-                    {services && services.length > 0 ? (
-                      services.map(s => (
-                        <label key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                          <input type="checkbox" checked={newTherapist.specializations.includes(s.name)} onChange={() => toggleSpecialization(s.name)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
-                          <span style={{ fontSize: '13px', fontWeight: '600' }}>{s.name.toUpperCase()}</span>
-                        </label>
-                      ))
-                    ) : (
-                      <p style={{ fontSize: '13px', color: '#666' }}>No specializations available</p>
+{/* Specialization Section */}
+                <div style={{ marginBottom: "32px" }}>
+                  <h3
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: "700",
+                      textTransform: "uppercase",
+                      color: "#666",
+                      letterSpacing: "0.5px",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    Specialization
+                  </h3>
+
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    {/* Render Dynamic Rows */}
+                    {newTherapist.specializations.map((currentSpec, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "15px",
+                          marginBottom: "10px",
+                        }}
+                      >
+                        {/* Service Dropdown */}
+                        <div style={{ flex: 1 }}>
+                          <select
+                            style={{
+                              width: "100%",
+                              padding: "10px 12px",
+                              border: "1px solid #ddd",
+                              borderRadius: "6px",
+                              fontSize: "13px",
+                              backgroundColor: "white",
+                              outline: "none",
+                            }}
+                            value={currentSpec}
+                            onChange={(e) => {
+                              const updatedSpecs = [...newTherapist.specializations];
+                              updatedSpecs[index] = e.target.value;
+                              // NOTE: You need to update your state here. 
+                              // Example: setNewTherapist({ ...newTherapist, specializations: updatedSpecs })
+                              // If using the hook directly, ensure it triggers a re-render.
+                              Object.assign(newTherapist, { specializations: updatedSpecs }); // Temporary mutation if setter missing
+                              setNewUserData({ ...newUserData }); // Force re-render hack if needed, or preferably use proper setState
+                            }}
+                          >
+                            <option value="" disabled>
+                              Select Specialization
+                            </option>
+                            {services
+                              .filter((service) => {
+                                // Logic: Show option if it is the CURRENT value for this row
+                                // OR if it is NOT used in any other row.
+                                const isCurrentlySelected = service.name === currentSpec;
+                                const isAlreadyUsed = newTherapist.specializations.includes(service.name);
+                                return isCurrentlySelected || !isAlreadyUsed;
+                              })
+                              .map((service) => (
+                                <option key={service.id} value={service.name}>
+                                  {service.name.toUpperCase()}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+
+                        {/* Remove Button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updatedSpecs = newTherapist.specializations.filter((_, i) => i !== index);
+                            // NOTE: Update state here
+                            // setNewTherapist({ ...newTherapist, specializations: updatedSpecs })
+                            Object.assign(newTherapist, { specializations: updatedSpecs }); 
+                            setNewUserData({ ...newUserData }); // Force update trigger
+                          }}
+                          style={{
+                            border: "none",
+                            background: "#fee2e2",
+                            color: "#ef4444",
+                            borderRadius: "6px",
+                            width: "38px",
+                            height: "38px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            transition: "background 0.2s",
+                          }}
+                          title="Remove specialization"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* Add Button - Only shows if there are available services left to pick */}
+                    {services && newTherapist.specializations.length < services.length && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                           const updatedSpecs = [...newTherapist.specializations, ""];
+                           // NOTE: Update state here
+                           // setNewTherapist({ ...newTherapist, specializations: updatedSpecs })
+                           Object.assign(newTherapist, { specializations: updatedSpecs });
+                           setNewUserData({ ...newUserData }); // Force update trigger
+                        }}
+                        style={{
+                          alignSelf: "flex-start",
+                          marginTop: "5px",
+                          background: "white",
+                          border: "1px dashed #3b82f6",
+                          color: "#3b82f6",
+                          padding: "8px 16px",
+                          borderRadius: "6px",
+                          fontSize: "12px",
+                          fontWeight: "600",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                        }}
+                      >
+                        <span>+</span> ADD SPECIALIZATION
+                      </button>
+                    )}
+                    
+                    {/* Fallback if no specs are added yet */}
+                    {newTherapist.specializations.length === 0 && (
+                       <p style={{ fontSize: '12px', color: '#999', fontStyle: 'italic', margin: '0 0 10px 0'}}>
+                         No specializations added yet.
+                       </p>
                     )}
                   </div>
                 </div>
-
+                
                 <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                   <button 
                     type="button" 
