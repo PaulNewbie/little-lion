@@ -65,10 +65,13 @@ const ConcernCard = ({ concern, isActive, statusClass, onSelect }) => {
     }
   };
 
-  // Format createdAt safely
-  const formatDate = (ts) => {
+  // Format createdAt safely with date and time
+  const formatDateTime = (ts) => {
     if (!ts) return '';
-    return ts.toDate ? ts.toDate().toLocaleDateString() : new Date(ts).toLocaleDateString();
+    const dateObj = ts.toDate ? ts.toDate() : new Date(ts);
+    const date = dateObj.toLocaleDateString(); // e.g., 1/13/2026
+    const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // e.g., 7:21 PM
+    return `${date} ${time}`;
   };
 
   return (
@@ -88,12 +91,16 @@ const ConcernCard = ({ concern, isActive, statusClass, onSelect }) => {
 
       <div className="pc-card-meta">
         <span className='pc-card-createdBy'>Created by: {concern.createdByUserName || "N/A"}</span>
+      </div>
+
+      <div className="pc-card-meta">
         <span className="pc-card-child">Child: {concern.childName}</span>
-        <span>{formatDate(concern.createdAt)}</span>
+        <span>{formatDateTime(concern.createdAt)}</span>
       </div>
     </div>
   );
 };
+
 
 
 /**
