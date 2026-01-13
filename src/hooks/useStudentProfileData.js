@@ -1,15 +1,12 @@
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useStudents, useLoadMoreStudents } from "../../../../hooks/useRoleBasedData"; 
+import childService from "../../../../services/childService";
 import activityService from "../../../../services/activityService";
 import userService from "../../../../services/userService";
 import assessmentService from "../../../../services/assessmentService";
 
 export const useStudentProfileData = (locationState) => {
   const queryClient = useQueryClient();
-
-  // === CONFIG ===
-  const PAGE_SIZE = 8; // Fetch exactly 8 students per page
 
   const passedStudent = locationState?.student || null;
   const passedActivities = locationState?.activities || [];
@@ -20,23 +17,18 @@ export const useStudentProfileData = (locationState) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
 
-  // ================= STUDENTS (Optimized) =================
-  const { 
-    data: studentsData, 
-    isLoading 
-  } = useStudents({ pageSize: PAGE_SIZE }); 
+  // ================= STUDENTS =================
+  // FIX 1 & 2: Use paginated fetch to avoid "getAllChildren" deprecation
+  // and add staleTime to prevent infinite render loops.
+  const { data: studentsData, isLoading } = useQuery({
+    queryKey: ["students", "list"], // Changed key to avoid conflict
+    queryFn: () => childService.getChildrenPaginated({ limit: 50 }), // Fetch first 50 instead of all
+    staleTime: 5 * 60 * 1000, // FIX: Keep data fresh for 5 mins to prevent loop
+    initialData: passedStudent ? { students: [passedStudent] } : undefined,
+  });
 
-  // Handle the different return structures (Admin gets object with pagination, Parent gets array)
-  const students = useMemo(() => {
-    if (Array.isArray(studentsData)) return studentsData;
-    return studentsData?.students || [];
-  }, [studentsData]);
-
-  const hasMore = !Array.isArray(studentsData) && studentsData?.hasMore;
-  const lastDoc = !Array.isArray(studentsData) ? studentsData?.lastDoc : null;
-  
-  // Hook to load next page
-  const { loadMore } = useLoadMoreStudents();
+  // Handle the different structure (paginated returns { students: [...] })
+  const students = studentsData?.students || (Array.isArray(studentsData) ? studentsData : []);
 
   // ================= AUTO SELECT FROM NAV =================
   useEffect(() => {
@@ -55,7 +47,6 @@ export const useStudentProfileData = (locationState) => {
   const { data: studentActivities = [] } = useQuery({
     queryKey: ["activities", selectedStudentId],
     queryFn: async () => {
-      if (!selectedStudentId) return [];
       const acts = await activityService.getActivitiesByChild(
         selectedStudentId
       );
@@ -63,6 +54,7 @@ export const useStudentProfileData = (locationState) => {
     },
     enabled: !!selectedStudentId,
     initialData: passedActivities.length ? passedActivities : undefined,
+    staleTime: 60 * 1000, // Add staleTime here too
   });
 
   // ================= PARENT =================
@@ -70,6 +62,7 @@ export const useStudentProfileData = (locationState) => {
     queryKey: ["parent", selectedStudent?.parentId],
     queryFn: () => userService.getUserById(selectedStudent.parentId),
     enabled: !!selectedStudent?.parentId,
+    staleTime: 60 * 60 * 1000,
   });
 
   // ================= ASSESSMENT =================
@@ -86,6 +79,7 @@ export const useStudentProfileData = (locationState) => {
       );
     },
     enabled: !!selectedStudent?.assessmentId,
+    staleTime: 30 * 60 * 1000,
   });
 
   // ================= FILTER =================
@@ -94,11 +88,14 @@ export const useStudentProfileData = (locationState) => {
       const name = `${s.firstName} ${s.lastName}`.toLowerCase();
       if (!name.includes(searchTerm.toLowerCase())) return false;
 
+      // Update checks to look in correct arrays
       const hasTherapy =
+        s.oneOnOneServices?.length > 0 ||
         s.enrolledServices?.some((x) => x.type === "Therapy") ||
         s.therapyServices?.length > 0;
 
       const hasGroup =
+        s.groupClassServices?.length > 0 ||
         s.enrolledServices?.some((x) => x.type === "Class") ||
         s.groupClasses?.length > 0;
 
@@ -119,10 +116,6 @@ export const useStudentProfileData = (locationState) => {
     }
   };
 
-  const handleLoadMore = () => {
-    if (lastDoc) loadMore(lastDoc, PAGE_SIZE); // Pass PAGE_SIZE here
-  };
-
   return {
     loading: isLoading,
     students,
@@ -139,8 +132,5 @@ export const useStudentProfileData = (locationState) => {
     isAssessmentLoading,
     assessmentError,
     refreshData,
-    // Pagination exports
-    hasMore,
-    handleLoadMore
   };
 };

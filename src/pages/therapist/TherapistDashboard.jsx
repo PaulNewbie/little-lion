@@ -53,8 +53,8 @@ const TherapistDashboard = () => {
 
   const getMyServices = (student) => {
     const allServices = student.enrolledServices || [
-      ...(student.therapyServices || []),
-      ...(student.services || []) 
+      ...(student.oneOnOneServices || []),
+      ...(student.groupClassServices || [])
     ];
 
     return allServices.filter(s => 

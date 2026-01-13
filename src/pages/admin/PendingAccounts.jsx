@@ -170,7 +170,7 @@ export default function PendingAccounts() {
   const handleResendCode = async (user) => {
     if (!window.confirm(`Generate a new activation code for ${user.firstName}?`)) return;
     
-    const result = await activationService.regenerateActivationCode(user.uid);
+    const result = await activationService.regenerateActivationCode(user.uid, user.email);
     if (result.success) {
       // Update local state with new code
       setUsers(prev => prev.map(u => 

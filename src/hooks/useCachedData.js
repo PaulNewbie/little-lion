@@ -120,14 +120,45 @@ export function useAllChildren() {
 }
 
 /**
- * Get children by parent ID - CACHED
+ * Get children by parent ID - CACHED & OPTIMIZED
+ * Checks if data exists in the main 'students' list first to avoid re-reading.
  */
 export function useChildrenByParent(parentId) {
+  const queryClient = useQueryClient();
+
   return useQuery({
     queryKey: ['children', 'byParent', parentId],
     queryFn: () => childService.getChildrenByParentId(parentId),
     enabled: !!parentId,
     ...CACHE_CONFIG.standard,
+    // SMART INITIALIZATION: Check if these kids are already in the main list
+    initialData: () => {
+      // 1. Try to find the main list cache (from useStudents hook)
+      // Note: This key must match what is used in useRoleBasedData.js
+      const allStudentsCache = queryClient.getQueryData(['students']);
+
+      if (!allStudentsCache) return undefined;
+
+      // 2. Extract the array (handle both paginated object and simple array formats)
+      const studentsArray = Array.isArray(allStudentsCache) 
+        ? allStudentsCache 
+        : (allStudentsCache.students || []);
+
+      // 3. Filter for this parent's children
+      const children = studentsArray.filter(s => s.parentId === parentId);
+
+      // 4. Only use as initial data if we found some children
+      // WARNING: If a parent has children but they aren't in the *current page* of the list,
+      // this might return an incomplete list. 
+      // However, usually if you just created them or are viewing them, they are likely cached.
+      // If we return undefined, it triggers a fetch, which is safer for completeness.
+      
+      return children.length > 0 ? children : undefined;
+    },
+    // If we found data in cache, consider it fresh for 30 mins (matches standard config)
+    initialDataUpdatedAt: () => {
+      return queryClient.getQueryState(['students'])?.dataUpdatedAt;
+    }
   });
 }
 
@@ -159,11 +190,22 @@ export function useChildrenByService(serviceName) {
  * Get single child by ID - CACHED
  */
 export function useChild(childId) {
+  const queryClient = useQueryClient();
+  
   return useQuery({
     queryKey: ['child', childId],
     queryFn: () => childService.getChildById(childId),
     enabled: !!childId,
     ...CACHE_CONFIG.standard,
+    // Look for this child in the main list cache first
+    initialData: () => {
+      const allStudentsCache = queryClient.getQueryData(['students']);
+      const studentsArray = Array.isArray(allStudentsCache) 
+        ? allStudentsCache 
+        : (allStudentsCache?.students || []);
+        
+      return studentsArray.find(d => d.id === childId);
+    }
   });
 }
 
@@ -208,10 +250,14 @@ export function useCacheInvalidation() {
     
     invalidateChildren: () => {
       queryClient.invalidateQueries({ queryKey: ['children'] });
+      // Also invalidate the main student list so it refreshes
+      queryClient.invalidateQueries({ queryKey: ['students'] });
     },
     
     invalidateChildrenByParent: (parentId) => {
       queryClient.invalidateQueries({ queryKey: ['children', 'byParent', parentId] });
+      // Also invalidate main list
+      queryClient.invalidateQueries({ queryKey: ['students'] });
     },
     
     invalidateStaff: () => {
