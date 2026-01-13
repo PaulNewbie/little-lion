@@ -24,10 +24,9 @@ const TherapistProfile = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  // Multi-step form state
-  const [currentStep, setCurrentStep] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [slideDirection, setSlideDirection] = useState('next');
+  // Modal state
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [modalStep, setModalStep] = useState(0);
 
   const {
     loading,
@@ -52,74 +51,98 @@ const TherapistProfile = () => {
     handleSaveProfile
   } = useProfileForm(currentUser, 'therapist', navigate);
 
-  // Step configuration
-  const steps = [
-    { id: 'personal', title: 'Personal Information', icon: '1', description: 'Basic details and contact info' },
-    { id: 'credentials', title: 'Professional Credentials', icon: '2', description: 'License and specializations' },
-    { id: 'education', title: 'Education History', icon: '3', description: 'Academic background' },
-    { id: 'certifications', title: 'Certifications', icon: '4', description: 'Professional credentials' }
-  ];
-
-  const goToStep = (stepIndex) => {
-    if (stepIndex !== currentStep && !isTransitioning) {
-      setSlideDirection(stepIndex > currentStep ? 'next' : 'prev');
-      setIsTransitioning(true);
-
-      setTimeout(() => {
-        setCurrentStep(stepIndex);
-        setTimeout(() => setIsTransitioning(false), 50);
-      }, 200);
-    }
-  };
-
-  const goToNextStep = () => {
-    if (currentStep < steps.length - 1 && !isTransitioning) {
-      goToStep(currentStep + 1);
-    }
-  };
-
-  const goToPrevStep = () => {
-    if (currentStep > 0 && !isTransitioning) {
-      goToStep(currentStep - 1);
-    }
-  };
-
   if (loading) return <Loading />;
 
   const fullName = `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim();
   const licenseStatus = formData.licenseExpirationDate ? getExpirationStatus(formData.licenseExpirationDate) : null;
 
-  // Render step content based on current step
-  const renderStepContent = () => {
-    switch (currentStep) {
+  // Calculate profile completion status
+  const getProfileCompletion = () => {
+    const requirements = [
+      { label: 'Profile photo', completed: !!formData.profilePhoto },
+      { label: 'Personal information', completed: !!(formData.firstName && formData.lastName && formData.email && formData.phone) },
+      { label: 'License information', completed: !!(formData.licenseNumber && formData.licenseType && formData.licenseExpirationDate) },
+      { label: 'Specializations', completed: formData.specializations?.length > 0 },
+      { label: 'Education history', completed: formData.educationHistory?.length > 0 },
+      { label: 'Certifications', completed: formData.certifications?.length > 0 }
+    ];
+
+    const completedCount = requirements.filter(r => r.completed).length;
+    const percentage = Math.round((completedCount / requirements.length) * 100);
+    const missingItems = requirements.filter(r => !r.completed).map(r => r.label);
+
+    return { percentage, completedCount, total: requirements.length, missingItems, isComplete: percentage === 100 };
+  };
+
+  const profileCompletion = getProfileCompletion();
+
+  // Modal step configuration
+  const modalSteps = [
+    { id: 'personal', title: 'Personal Information', description: 'Basic details and contact info' },
+    { id: 'credentials', title: 'Professional Credentials', description: 'License and specializations' },
+    { id: 'education', title: 'Education History', description: 'Academic background' },
+    { id: 'certifications', title: 'Certifications', description: 'Professional credentials' }
+  ];
+
+  const openProfileModal = () => {
+    setModalStep(0);
+    setShowProfileModal(true);
+  };
+
+  const closeProfileModal = () => {
+    setShowProfileModal(false);
+    setModalStep(0);
+  };
+
+  const goToModalStep = (stepIndex) => {
+    if (stepIndex >= 0 && stepIndex < modalSteps.length) {
+      setModalStep(stepIndex);
+    }
+  };
+
+  const nextModalStep = () => {
+    if (modalStep < modalSteps.length - 1) {
+      setModalStep(modalStep + 1);
+    }
+  };
+
+  const prevModalStep = () => {
+    if (modalStep > 0) {
+      setModalStep(modalStep - 1);
+    }
+  };
+
+  const handleModalSave = async (e) => {
+    e.preventDefault();
+    await handleSaveProfile(e);
+    closeProfileModal();
+  };
+
+  // Render modal step content
+  const renderModalStepContent = () => {
+    switch (modalStep) {
       case 0:
         return (
-          <div className="tp-step-content">
-            <PersonalInfoSection
-              formData={formData}
-              validationErrors={validationErrors}
-              onInputChange={handleInputChange}
-              onNestedChange={handleNestedChange}
-            />
-          </div>
+          <PersonalInfoSection
+            formData={formData}
+            validationErrors={validationErrors}
+            onInputChange={handleInputChange}
+            onNestedChange={handleNestedChange}
+          />
         );
-
       case 1:
         return (
-          <div className="tp-step-content">
-            <TherapistCredentials
-              formData={formData}
-              validationErrors={validationErrors}
-              licenseStatus={licenseStatus}
-              onInputChange={handleInputChange}
-              onSpecializationToggle={handleSpecializationToggle}
-            />
-          </div>
+          <TherapistCredentials
+            formData={formData}
+            validationErrors={validationErrors}
+            licenseStatus={licenseStatus}
+            onInputChange={handleInputChange}
+            onSpecializationToggle={handleSpecializationToggle}
+          />
         );
-
       case 2:
         return (
-          <div className="tp-step-content">
+          <>
             {formData.educationHistory?.length > 0 && (
               <div className="tp-entries-list">
                 {formData.educationHistory.map((edu, index) => (
@@ -132,7 +155,6 @@ const TherapistProfile = () => {
                 ))}
               </div>
             )}
-
             <div className="tp-add-section">
               <h4 className="tp-add-title">Add New Education</h4>
               <EducationEntry
@@ -144,12 +166,11 @@ const TherapistProfile = () => {
                 uploading={uploadingFile === 'new-education-cert'}
               />
             </div>
-          </div>
+          </>
         );
-
       case 3:
         return (
-          <div className="tp-step-content">
+          <>
             {formData.certifications?.length > 0 && (
               <div className="tp-entries-list">
                 {formData.certifications.map((cert, index) => (
@@ -162,7 +183,6 @@ const TherapistProfile = () => {
                 ))}
               </div>
             )}
-
             <div className="tp-add-section">
               <h4 className="tp-add-title">Add New Certification</h4>
               <CertificationEntry
@@ -174,9 +194,8 @@ const TherapistProfile = () => {
                 uploading={uploadingFile === 'new-cert-cert'}
               />
             </div>
-          </div>
+          </>
         );
-
       default:
         return null;
     }
@@ -190,15 +209,8 @@ const TherapistProfile = () => {
 
           {/* Page Header */}
           <div className="tp-page-header">
-            <button
-              className="tp-back-btn"
-              onClick={() => navigate('/therapist/dashboard')}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M19 12H5M12 19l-7-7 7-7"/>
-              </svg>
-              Back to Dashboard
-            </button>
+            <h1 className="tp-page-title">MY PROFILE</h1>
+            <p className="tp-page-subtitle">Manage your professional information</p>
           </div>
 
           {/* Profile Photo Card - Compact */}
@@ -243,11 +255,10 @@ const TherapistProfile = () => {
                 <p className="tp-profile-role">{formData.licenseType || 'Therapist'}</p>
 
                 <div className="tp-profile-meta">
-                  {/* Years of Experience - Highlighted */}
-                  <div className="tp-experience-badge">
-                    <span className="tp-experience-number">{formData.yearsExperience || 0}</span>
-                    <span className="tp-experience-label">Years Experience</span>
-                  </div>
+                  {/* Years of Experience */}
+                  <span className="tp-badge tp-badge--info">
+                    {formData.yearsExperience || 0} Years Experience
+                  </span>
 
                   {/* License Status */}
                   {licenseStatus && (
@@ -270,116 +281,178 @@ const TherapistProfile = () => {
             </div>
           </div>
 
-          {/* Step Indicator */}
-          <div className="tp-step-indicator">
-            {steps.map((step, index) => (
-              <React.Fragment key={step.id}>
+          {/* Profile Completion Notice */}
+          {!profileCompletion.isComplete && (
+            <div className="tp-completion-notice">
+              <div className="tp-completion-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              </div>
+              <div className="tp-completion-content">
+                <h3 className="tp-completion-title">Complete Your Profile</h3>
+                <p className="tp-completion-text">
+                  Please complete your personal information and upload required documents before you can fully use the system.
+                </p>
+                <div className="tp-completion-progress">
+                  <div className="tp-progress-bar">
+                    <div
+                      className="tp-progress-fill"
+                      style={{ width: `${profileCompletion.percentage}%` }}
+                    />
+                  </div>
+                  <span className="tp-progress-text">
+                    {profileCompletion.completedCount} of {profileCompletion.total} completed ({profileCompletion.percentage}%)
+                  </span>
+                </div>
+                {profileCompletion.missingItems.length > 0 && (
+                  <div className="tp-completion-missing">
+                    <span className="tp-missing-label">Missing:</span>
+                    <span className="tp-missing-items">{profileCompletion.missingItems.join(' • ')}</span>
+                  </div>
+                )}
                 <button
                   type="button"
-                  className={`tp-step-item ${index === currentStep ? 'tp-step-item--active' : ''} ${index < currentStep ? 'tp-step-item--completed' : ''}`}
-                  onClick={() => goToStep(index)}
-                  disabled={isTransitioning}
+                  className="tp-completion-btn"
+                  onClick={openProfileModal}
                 >
-                  <div className="tp-step-number">
-                    {index < currentStep ? (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
-                    ) : (
-                      <span>{step.icon}</span>
-                    )}
-                  </div>
-                  <div className="tp-step-text">
-                    <span className="tp-step-title">{step.title}</span>
-                    <span className="tp-step-desc">{step.description}</span>
-                  </div>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                  Complete Profile Now
                 </button>
-                {index < steps.length - 1 && (
-                  <div className={`tp-step-line ${index < currentStep ? 'tp-step-line--completed' : ''}`} />
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-
-          {/* Form Content */}
-          <form onSubmit={handleSaveProfile} className="tp-form">
-            {/* Step Header */}
-            <div className="tp-form-header">
-              <h2 className="tp-form-title">{steps[currentStep].title}</h2>
-              <p className="tp-form-description">{steps[currentStep].description}</p>
-            </div>
-
-            {/* Step Content with Transition */}
-            <div className={`tp-form-body ${isTransitioning ? `tp-form-body--${slideDirection}` : ''}`}>
-              {renderStepContent()}
-            </div>
-
-            {/* Navigation Footer */}
-            <div className="tp-form-footer">
-              <div className="tp-footer-left">
-                {currentStep > 0 && (
-                  <button
-                    type="button"
-                    className="tp-btn tp-btn--secondary"
-                    onClick={goToPrevStep}
-                    disabled={isTransitioning}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M19 12H5M12 19l-7-7 7-7"/>
-                    </svg>
-                    Previous
-                  </button>
-                )}
-              </div>
-
-              <div className="tp-footer-center">
-                <span className="tp-step-counter">
-                  Step {currentStep + 1} of {steps.length}
-                </span>
-              </div>
-
-              <div className="tp-footer-right">
-                {currentStep < steps.length - 1 ? (
-                  <button
-                    type="button"
-                    className="tp-btn tp-btn--primary"
-                    onClick={goToNextStep}
-                    disabled={isTransitioning}
-                  >
-                    Next
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M5 12h14M12 5l7 7-7 7"/>
-                    </svg>
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    className="tp-btn tp-btn--save"
-                    disabled={saving || isTransitioning}
-                  >
-                    {saving ? (
-                      <>
-                        <span className="tp-btn-spinner"></span>
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                          <polyline points="17 21 17 13 7 13 7 21"/>
-                          <polyline points="7 3 7 8 15 8"/>
-                        </svg>
-                        Save Profile
-                      </>
-                    )}
-                  </button>
-                )}
               </div>
             </div>
-          </form>
+          )}
 
         </div>
       </div>
+
+      {/* Profile Completion Modal */}
+      {showProfileModal && (
+        <div className="tp-modal-overlay" onClick={closeProfileModal}>
+          <div className="tp-modal-container" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="tp-modal-header">
+              <div className="tp-modal-header-content">
+                <h2 className="tp-modal-title">Complete Your Profile</h2>
+                <p className="tp-modal-subtitle">Fill out all required information</p>
+              </div>
+              <button
+                type="button"
+                className="tp-modal-close"
+                onClick={closeProfileModal}
+                aria-label="Close modal"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Step Indicator */}
+            <div className="tp-modal-steps">
+              {modalSteps.map((step, index) => (
+                <button
+                  key={step.id}
+                  type="button"
+                  className={`tp-modal-step ${index === modalStep ? 'tp-modal-step--active' : ''} ${index < modalStep ? 'tp-modal-step--completed' : ''}`}
+                  onClick={() => goToModalStep(index)}
+                >
+                  <span className="tp-modal-step-number">
+                    {index < modalStep ? (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    ) : (
+                      index + 1
+                    )}
+                  </span>
+                  <span className="tp-modal-step-title">{step.title}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Modal Body */}
+            <form onSubmit={handleModalSave}>
+              <div className="tp-modal-body">
+                <div className="tp-modal-step-header">
+                  <h3>{modalSteps[modalStep].title}</h3>
+                  <p>{modalSteps[modalStep].description}</p>
+                </div>
+                <div className="tp-modal-step-content">
+                  {renderModalStepContent()}
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="tp-modal-footer">
+                <div className="tp-modal-footer-left">
+                  {modalStep > 0 && (
+                    <button
+                      type="button"
+                      className="tp-btn tp-btn--secondary"
+                      onClick={prevModalStep}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                      </svg>
+                      Previous
+                    </button>
+                  )}
+                </div>
+
+                <div className="tp-modal-footer-center">
+                  <span className="tp-modal-step-counter">
+                    Step {modalStep + 1} of {modalSteps.length}
+                  </span>
+                </div>
+
+                <div className="tp-modal-footer-right">
+                  {modalStep < modalSteps.length - 1 ? (
+                    <button
+                      type="button"
+                      className="tp-btn tp-btn--primary"
+                      onClick={nextModalStep}
+                    >
+                      Next
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                      </svg>
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      className="tp-btn tp-btn--save"
+                      disabled={saving}
+                    >
+                      {saving ? (
+                        <>
+                          <span className="tp-btn-spinner"></span>
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                            <polyline points="17 21 17 13 7 13 7 21"/>
+                            <polyline points="7 3 7 8 15 8"/>
+                          </svg>
+                          Save Profile
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
