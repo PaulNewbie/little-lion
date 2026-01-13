@@ -400,6 +400,7 @@
   .pc-modal-overlay {
     align-items: center;
     padding: 20px;
+    position: absolute;
   }
 
   .pc-modal {
