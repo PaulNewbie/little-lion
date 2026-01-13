@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { saveSessionActivity } from '../../services/activityService';
+import { useAuth } from '../../hooks/useAuth';
 import Loading from '../../components/common/Loading';
+import TherapistSidebar from '../../components/sidebar/TherapistSidebar';
 import QuickSelectTags from '../../components/common/form-elements/QuickSelectTags';
 import VoiceInput from '../../components/common/form-elements/VoiceInput';
 
@@ -46,6 +48,7 @@ const MOODS = ["Happy 😊", "Focused 🧐", "Active ⚡", "Tired 🥱", "Upset 
 const TherapySessionForm = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const { child, service } = location.state || {};
   
   // --- LOGIC: DETERMINE FORM TYPE ---
@@ -146,10 +149,12 @@ const TherapySessionForm = () => {
   if (loading) return <Loading />;
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: 'system-ui, sans-serif', paddingBottom: '3rem' }}>
-      
-      {/* --- HEADER --- */}
-      <div style={{ backgroundColor: 'white', borderBottom: '1px solid #e2e8f0', padding: '1.5rem 2rem' }}>
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      <TherapistSidebar />
+      <div style={{ padding: '20px', width: '100%', backgroundColor: '#f8f9fa' }}>
+        <div className="therapy-session-form">
+        {/* --- HEADER --- */}
+        <div style={{ backgroundColor: 'white', borderBottom: '1px solid #e2e8f0', padding: '1.5rem 2rem', borderRadius: '1rem', marginBottom: '1.5rem' }}>
         <button onClick={() => navigate(-1)} style={styles.backBtn}>← Back</button>
         <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-end'}}>
           <div>
@@ -168,7 +173,7 @@ const TherapySessionForm = () => {
         </div>
       </div>
 
-      <div style={{ maxWidth: '800px', margin: '2rem auto', padding: '0 1rem' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 1rem' }}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
           {/* =========================================================
@@ -329,6 +334,8 @@ const TherapySessionForm = () => {
           </button>
 
         </form>
+        </div>
+      </div>
       </div>
     </div>
   );

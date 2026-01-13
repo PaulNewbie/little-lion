@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import childService from '../../services/childService';
 import Loading from '../../components/common/Loading';
 import TherapistSidebar from '../../components/sidebar/TherapistSidebar';
-import './css/TherapistDashboard.css';
-
 import { useTherapistDashboardData } from '../../hooks/useCachedData';
+import './css/TherapistDashboard.css';
 
 
 const TherapistDashboard = () => {
@@ -97,9 +95,10 @@ const TherapistDashboard = () => {
   if (loading) return <Loading />;
 
   return (
-    <div className="therapist-dashboard">
-      <TherapistSidebar />
-      <div className="therapist-dashboard__content">
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      <TherapistSidebar forceActive="/therapist/dashboard" />
+      <div style={{ padding: '20px', width: '100%', backgroundColor: '#f8f9fa' }}>
+        <div className="therapist-dashboard__content">
         
         {/* Header Banner */}
         <div className="therapist-dashboard__header-banner">
@@ -223,6 +222,7 @@ const TherapistDashboard = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

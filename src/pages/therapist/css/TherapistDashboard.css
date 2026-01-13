@@ -1,13 +1,6 @@
-.therapist-dashboard {
-  display: flex;
-  min-height: 100vh;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-}
-
+/* Therapist Dashboard - Works with PageLayout */
 .therapist-dashboard__content {
-  padding: 2rem;
   width: 100%;
-  background-color: #f8fafc;
 }
 
 /* Header Banner */
