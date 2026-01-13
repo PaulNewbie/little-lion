@@ -36,8 +36,7 @@
 }
 
 /* Open button outside sidebar */
-.therapist-sidebar + .open-btn,
-.open-btn {
+.therapist-open-btn {
   position: fixed;
   top: 15px;
   right: 15px;
@@ -55,51 +54,31 @@
 .therapist-sidebar .profile-section {
   margin-bottom: 40px;
   display: flex;
-  flex-direction: row;
   align-items: center;
-  gap: 5px;
+  gap: 15px;
 }
 
 .therapist-sidebar .avatar {
-  width: 80px;
-  height: 80px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   border: 3px solid #ffd700;
   background-color: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
-  flex-shrink: 0;
-  margin-left: -10px;
-}
-
-.therapist-sidebar .profile-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  background: none;
-  padding: 0;
-  border: none;
-  box-shadow: none;
-  border-radius: 0;
+  font-size: 24px;
 }
 
 .therapist-sidebar .role-label {
   font-size: 12px;
   color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 2px;
-  margin-left: 10px;
 }
 
 .therapist-sidebar .profile-name {
   font-size: 20px;
   font-weight: bold;
   color: #0052A1;
-  line-height: 1.2;
-  margin-left: -70px;
 }
 
 /* Menu sections */
@@ -113,7 +92,6 @@
   font-weight: bold;
   margin-bottom: 15px;
   text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
 /* Menu items */
@@ -123,7 +101,7 @@
   gap: 10px;
   padding: 10px 15px;
   cursor: pointer;
-  color: #374151;
+  color: #000000;
   font-weight: 500;
   font-size: 16px;
   border-radius: 8px;
@@ -149,18 +127,21 @@
   object-fit: contain;
   flex-shrink: 0;
   color: #0052A1;
+
 }
 
-/* Active state for icon */
+/* ACTIVE STATE */
+.therapist-sidebar .menu-item.active {
+  color: #ffffff;
+}
+
 .therapist-sidebar .menu-item.active .menu-icon {
-  color: #000;
+  filter: brightness(0) invert(1);
 }
 
 /* Menu label */
 .therapist-sidebar .menu-label {
   color: #374151;
-  text-transform: uppercase;
-  font-size: 1rem;
 }
 
 /* Active state for label */
@@ -170,12 +151,11 @@
 
 /* Notification dot */
 .therapist-sidebar .notification-dot {
-  width: 10px;
-  height: 10px;
-  background-color: #EF5350;
+  width: 8px;
+  height: 8px;
+  background-color: #ef4444;
   border-radius: 50%;
-  position: absolute;
-  right: 15px;
+  flex-shrink: 0;
 }
 
 /* Logout button */
@@ -189,48 +169,24 @@
   font-weight: bold;
   cursor: pointer;
   width: 100%;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .therapist-sidebar .logout-btn:hover {
   background-color: #dc2626;
-  transform: translateY(-2px);
 }
 
 /* Desktop responsive */
 @media (min-width: 768px) {
-  .open-btn {
+  .therapist-open-btn {
     display: none;
   }
   .therapist-sidebar {
     transform: translateX(0);
-    position: relative;
+    position: sticky;
+    top: 0;
+    height: 100vh;
   }
   .therapist-sidebar .close-btn {
     display: none;
-  }
-}
-
-/* Mobile adjustments */
-@media (max-width: 767px) {
-  .therapist-sidebar {
-    width: 250px;
-    padding: 20px;
-  }
-  
-  .therapist-sidebar .profile-section {
-    margin-bottom: 30px;
-  }
-  
-  .therapist-sidebar .avatar {
-    width: 50px;
-    height: 50px;
-    font-size: 20px;
-  }
-  
-  .therapist-sidebar .profile-name {
-    font-size: 18px;
   }
 }

@@ -3,8 +3,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import "./TherapistSidebar.css";
 
-
-
 const TherapistSidebar = ({ forceActive }) => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
@@ -23,6 +21,7 @@ const TherapistSidebar = ({ forceActive }) => {
     return location.pathname === path;
   };
 
+  // Handle window resize
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 768) {
@@ -41,30 +40,29 @@ const TherapistSidebar = ({ forceActive }) => {
 
   return (
     <>
-      {!isOpen && !isDesktop && (
-        <button className="open-btn" onClick={() => setIsOpen(true)}>
-          ☰
+      {!isDesktop && (
+        <button
+          className="therapist-open-btn"
+          onClick={() => setIsOpen((prev) => !prev)}
+        >
+          {isOpen ? "✕" : "☰"}
         </button>
       )}
 
       <div className={`therapist-sidebar ${isOpen ? "open" : "closed"}`}>
-        {!isDesktop && (
-          <button className="close-btn" onClick={() => setIsOpen(false)}>
-            ✕
-          </button>
-        )}
-
+        {/* Profile */}
         <div className="profile-section">
           <div className="avatar">👨‍⚕️</div>
-          <div className="profile-info">
+          <div>
             <div className="role-label">THERAPIST</div>
             <div className="profile-name">{currentUser?.firstName || "Therapist"}</div>
           </div>
         </div>
 
+        {/* Main Menu */}
         <div className="menu-section">
           <div className="section-title">MAIN</div>
-          
+
           <div
             className={`menu-item ${isActive("/therapist/dashboard") ? "active" : ""}`}
             onClick={() => navigate("/therapist/dashboard")}
