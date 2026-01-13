@@ -124,6 +124,17 @@ const AdminSidebar = ({ forceActive }) => {
               <span className="menu-label">ENROLL STUDENT</span>
             </div>
           )}
+
+           {/* RESTRICTED: Concerns */}
+          {isSuperAdmin && (
+            <div
+              className={`menu-item ${isActive("/admin/concerns") ? "active" : ""}`}
+              onClick={() => navigate("/admin/concerns")}
+            >
+              <img src={ICONS.Enroll} className="menu-icon" alt="Enroll" />
+              <span className="menu-label">CONCERNS</span>
+            </div>
+          )}
         </div>
 
         {/* User Management */}

@@ -17,6 +17,7 @@ import PlayGroup from "../pages/admin/PlayGroup";
 import ManageTeachers from "../pages/admin/ManageTeachers";
 import ManageTherapists from "../pages/admin/ManageTherapists";
 import EnrollStudent from "../pages/admin/enrollmentTabPages/EnrollStudent";
+import Concerns from "../pages/admin/Concerns";
 import ManageAdmins from "../pages/admin/ManageAdmins";
 import StudentProfile from "../pages/admin/studentProfile/StudentProfile";
 import PendingAccounts from "../pages/admin/PendingAccounts";
@@ -66,6 +67,7 @@ export const ROUTES = {
     MANAGE_TEACHERS: "/admin/manage-teachers",
     MANAGE_THERAPISTS: "/admin/manage-therapists",
     ENROLLMENT: "/admin/enrollment",
+    CONCERNS: "/admin/concerns",
     MANAGE_ADMINS: "/admin/manage-admins",
     PENDING_ACCOUNTS: "/admin/pending-accounts",
   },
@@ -240,6 +242,7 @@ export const AppRoutes = () => {
       <Route path={ROUTES.ADMIN.MANAGE_TEACHERS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><ManageTeachers /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.MANAGE_THERAPISTS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><ManageTherapists /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.ENROLLMENT} element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><EnrollStudent /></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.CONCERNS} element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><Concerns /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.MANAGE_ADMINS} element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><ManageAdmins /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.PENDING_ACCOUNTS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><PendingAccounts /></ProtectedRoute>} />
 
