@@ -65,13 +65,17 @@ const ConcernCard = ({ concern, isActive, statusClass, onSelect }) => {
     }
   };
 
-  // Format createdAt safely with date and time
+ // Format createdAt with full month, day, year, and time
   const formatDateTime = (ts) => {
     if (!ts) return '';
     const dateObj = ts.toDate ? ts.toDate() : new Date(ts);
-    const date = dateObj.toLocaleDateString(); // e.g., 1/13/2026
+    const date = dateObj.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }); // e.g., January 12, 2026
     const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // e.g., 7:21 PM
-    return `${date} ${time}`;
+    return `${date} | ${time}`;
   };
 
   return (

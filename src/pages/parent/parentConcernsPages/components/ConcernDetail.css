@@ -315,17 +315,18 @@
   border-top: 1px solid var(--pc-gray-200);
   background-color: #fff;
   display: flex;
-  flex-direction: column;
+  /* flex-direction: column; */
   gap: 10px;
 }
 
 .pc-reply-input {
   padding: 10px;
+  width: 100%;
   border: 1px solid var(--pc-gray-300);
   border-radius: 6px;
   font-size: 16px;
   font-family: inherit;
-  min-height: 70px;
+  min-height: 10px;
   resize: vertical;
 }
 
@@ -393,10 +394,6 @@
 
   .pc-reply-section {
     padding: 18px;
-  }
-
-  .pc-back-btn {
-    display: none;
   }
 
   /* Modal becomes centered on tablet */

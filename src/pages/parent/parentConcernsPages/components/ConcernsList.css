@@ -375,7 +375,7 @@
 /* Large desktop tweak */
 @media (min-width: 1280px) {
   .pc-list-column {
-    width: 350px;
+    width: 380px;
     min-width: 350px;
   }
 
