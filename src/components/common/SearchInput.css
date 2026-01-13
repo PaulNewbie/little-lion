@@ -1,0 +1,73 @@
+/* ===========================================
+   REUSABLE SEARCH INPUT COMPONENT STYLES
+   =========================================== */
+
+.search-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+.search-input__icon {
+  position: absolute;
+  left: 14px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 40px 12px 44px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  background-color: #fafafa;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+  background-color: white;
+}
+
+.search-input:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+}
+
+.search-input__clear {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.search-input__clear:hover {
+  color: #374151;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .search-input-container {
+    max-width: 100%;
+  }
+
+  .search-input {
+    padding: 10px 36px 10px 40px;
+    font-size: 16px; /* Prevents iOS zoom */
+  }
+}

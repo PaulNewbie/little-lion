@@ -1,0 +1,405 @@
+/* ===========================================
+   PAGE LAYOUT - Sidebar + Main Content
+   Reusable layout for all role-based pages
+   =========================================== */
+
+/* Layout Container */
+.page-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+/* ===========================================
+   SIDEBAR
+   =========================================== */
+
+.page-layout__sidebar {
+  width: 280px;
+  min-width: 280px;
+  background-color: #f5f5f5;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Profile Section */
+.page-layout__profile {
+  padding: 28px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.page-layout__avatar {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  border-radius: 50%;
+  border: 3px solid var(--layout-accent, #ffd700);
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.page-layout__profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.page-layout__role {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.page-layout__name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--layout-primary, #0052A1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Navigation */
+.page-layout__nav {
+  flex: 1;
+  padding: 20px 16px;
+}
+
+.page-layout__nav-section {
+  margin-bottom: 24px;
+}
+
+.page-layout__nav-section:last-child {
+  margin-bottom: 0;
+}
+
+.page-layout__nav-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 0 12px 8px;
+}
+
+.page-layout__nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.page-layout__nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  text-align: left;
+  transition: all 0.2s ease;
+  position: relative;
+  margin-bottom: 4px;
+}
+
+.page-layout__nav-item:hover {
+  background-color: #e8e8e8;
+}
+
+.page-layout__nav-item.active {
+  background-color: var(--layout-active, #FFCB10);
+  color: var(--layout-active-text, #000000);
+}
+
+.page-layout__nav-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.page-layout__nav-icon img,
+.page-layout__nav-icon svg {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.page-layout__nav-item.active .page-layout__nav-icon {
+  filter: var(--layout-icon-filter, none);
+}
+
+.page-layout__nav-label {
+  flex: 1;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+}
+
+.page-layout__notification {
+  width: 8px;
+  height: 8px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Logout Button */
+.page-layout__logout {
+  margin: 16px;
+  margin-top: auto;
+  padding: 14px 20px;
+  background-color: #ef4444;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.page-layout__logout:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* ===========================================
+   MAIN CONTENT AREA
+   =========================================== */
+
+.page-layout__main {
+  flex: 1;
+  min-width: 0; /* Prevent flex item from overflowing */
+  padding: 32px 40px;
+  overflow-x: hidden;
+}
+
+/* ===========================================
+   MOBILE STYLES
+   =========================================== */
+
+.page-layout__mobile-header {
+  display: none;
+}
+
+.page-layout__overlay {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .page-layout {
+    flex-direction: column;
+  }
+
+  /* Mobile Header */
+  .page-layout__mobile-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .page-layout__menu-toggle {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background-color: #1e293b;
+    color: #ffffff;
+    border-radius: 8px;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+  }
+
+  .page-layout__menu-toggle:hover {
+    background-color: #334155;
+  }
+
+  .page-layout__mobile-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  /* Mobile Overlay */
+  .page-layout__overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 200;
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Mobile Sidebar */
+  .page-layout__sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 280px;
+    z-index: 300;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none;
+  }
+
+  .page-layout__sidebar.open {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .page-layout__sidebar.closed {
+    transform: translateX(-100%);
+  }
+
+  /* Mobile Main Content */
+  .page-layout__main {
+    padding: 20px 16px;
+    min-height: calc(100vh - 64px);
+  }
+}
+
+@media (max-width: 480px) {
+  .page-layout__sidebar {
+    width: 260px;
+  }
+
+  .page-layout__profile {
+    padding: 20px;
+  }
+
+  .page-layout__avatar {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    font-size: 20px;
+  }
+
+  .page-layout__name {
+    font-size: 16px;
+  }
+
+  .page-layout__main {
+    padding: 16px 12px;
+  }
+}
+
+/* ===========================================
+   ROLE-SPECIFIC THEMES
+   =========================================== */
+
+/* Admin Theme */
+.page-layout__sidebar--admin {
+  --layout-accent: #ffd700;
+  --layout-primary: #0052A1;
+  --layout-active: #FFCB10;
+  --layout-active-text: #000000;
+  --layout-icon-filter: none;
+}
+
+/* Parent Theme */
+.page-layout__sidebar--parent {
+  --layout-accent: #10b981;
+  --layout-primary: #0052A1;
+  --layout-active: #10b981;
+  --layout-active-text: #ffffff;
+  --layout-icon-filter: brightness(0) invert(1);
+}
+
+/* Therapist Theme - Same as Admin */
+.page-layout__sidebar--therapist {
+  --layout-accent: #ffd700;
+  --layout-primary: #0052A1;
+  --layout-active: #FFCB10;
+  --layout-active-text: #000000;
+  --layout-icon-filter: none;
+}
+
+/* Teacher Theme */
+.page-layout__sidebar--teacher {
+  --layout-accent: #f59e0b;
+  --layout-primary: #0052A1;
+  --layout-active: #f59e0b;
+  --layout-active-text: #000000;
+  --layout-icon-filter: none;
+}
+
+/* ===========================================
+   SCROLLBAR STYLING
+   =========================================== */
+
+.page-layout__sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.page-layout__sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.page-layout__sidebar::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 3px;
+}
+
+.page-layout__sidebar::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+/* ===========================================
+   PRINT STYLES
+   =========================================== */
+
+@media print {
+  .page-layout__sidebar,
+  .page-layout__mobile-header {
+    display: none !important;
+  }
+
+  .page-layout__main {
+    padding: 0;
+  }
+
+  .page-layout {
+    display: block;
+  }
+}
