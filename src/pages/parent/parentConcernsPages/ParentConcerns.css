@@ -55,8 +55,8 @@
   background-color: var(--pc-primary);
   color: white;
   position: fixed;
-  height: 54px;
-  width: 54px;
+  height: 60px;
+  width: 60px;
   z-index: 10;
   border-radius: 50%;
   bottom: 20px;
