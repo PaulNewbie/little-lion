@@ -6,7 +6,8 @@ import './ConcernDetail.css';
  * Displays the detail view of a selected concern with message thread
  */
 const ConcernDetail = ({ 
-  concern, 
+  concern,
+  messages, 
   currentUserId,
   replyText,
   onReplyChange,
@@ -25,7 +26,7 @@ const ConcernDetail = ({
       <ConcernHeader concern={concern} />
       
       <ChatWindow 
-        messages={concern.messages} 
+        messages={messages} 
         currentUserId={currentUserId} 
       />
 

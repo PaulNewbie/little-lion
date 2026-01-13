@@ -6,8 +6,11 @@ import {
   getDocs,
   updateDoc,
   doc,
-  serverTimestamp
+  serverTimestamp,
+  onSnapshot,
+  orderBy
 } from 'firebase/firestore';
+
 import { db } from '../config/firebase';
 
 class ConcernService {
@@ -19,8 +22,8 @@ class ConcernService {
     try {
       // 1️⃣ Create concern document (NO messages array)
       const concernRef = await addDoc(collection(db, 'concerns'), {
-        parentId: concernData.parentId,
-        parentName: concernData.parentName,
+        createdByUserId: concernData.createdByUserId,
+        createdByUserName: concernData.createdByUserName,
         childId: concernData.childId,
         childName: concernData.childName,
         subject: concernData.subject,
@@ -33,8 +36,8 @@ class ConcernService {
       await addDoc(
         collection(db, 'concerns', concernRef.id, 'messages'),
         {
-          senderId: concernData.parentId,
-          senderName: concernData.parentName,
+          senderId: concernData.createdByUserId,
+          senderName: concernData.createdByUserName,
           role: 'parent',
           text: concernData.message,
           createdAt: serverTimestamp()
@@ -77,6 +80,22 @@ class ConcernService {
     }
   }
 
+  listenToConcernMessages(concernId, callback) {
+    const q = query(
+      collection(db, 'concerns', concernId, 'messages'),
+      orderBy('createdAt', 'asc')
+    );
+
+    return onSnapshot(q, (snapshot) => {
+      const messages = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      callback(messages);
+    });
+  }
+
+
   /* ----------------------------------------------------
      3. CLOSE CONCERN (Staff/Admin only)
      ---------------------------------------------------- */
@@ -99,7 +118,7 @@ class ConcernService {
   async getConcernsByParent(parentId) {
     const q = query(
       collection(db, 'concerns'),
-      where('parentId', '==', parentId)
+      where('createdByUserId', '==', parentId)
     );
 
     const snapshot = await getDocs(q);
@@ -118,35 +137,35 @@ class ConcernService {
 
       return concern;
     }));
-
+    
     return concerns;
   }
 
 
-  async getConcernsByStaff(staffId) {
-    const q = query(
-      collection(db, 'concerns'),
-      where('targetStaffId', '==', staffId)
-    );
+  // async getConcernsByStaff(staffId) {
+  //   const q = query(
+  //     collection(db, 'concerns'),
+  //     where('targetStaffId', '==', staffId)
+  //   );
 
-    const snapshot = await getDocs(q);
+  //   const snapshot = await getDocs(q);
 
-    const concerns = await Promise.all(snapshot.docs.map(async (docSnap) => {
-      const concern = { id: docSnap.id, ...docSnap.data() };
+  //   const concerns = await Promise.all(snapshot.docs.map(async (docSnap) => {
+  //     const concern = { id: docSnap.id, ...docSnap.data() };
 
-      const messagesSnapshot = await getDocs(
-        collection(db, 'concerns', docSnap.id, 'messages')
-      );
+  //     const messagesSnapshot = await getDocs(
+  //       collection(db, 'concerns', docSnap.id, 'messages')
+  //     );
 
-      concern.messages = messagesSnapshot.docs
-        .map(m => ({ id: m.id, ...m.data() }))
-        .sort((a, b) => a.createdAt?.seconds - b.createdAt?.seconds);
+  //     concern.messages = messagesSnapshot.docs
+  //       .map(m => ({ id: m.id, ...m.data() }))
+  //       .sort((a, b) => a.createdAt?.seconds - b.createdAt?.seconds);
 
-      return concern;
-    }));
+  //     return concern;
+  //   }));
 
-    return concerns;
-  }
+  //   return concerns;
+  // }
 
 }
 

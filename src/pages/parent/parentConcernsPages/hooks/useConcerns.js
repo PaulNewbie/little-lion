@@ -20,6 +20,9 @@ const useConcerns = (userId) => {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
 
+  const [messages, setMessages] = useState([]);
+
+
   // =======================
   // FETCH INITIAL DATA
   // =======================
@@ -45,10 +48,22 @@ const useConcerns = (userId) => {
     fetchData();
   }, [fetchData]);
 
+  useEffect(() => {
+    if (!selectedConcern) return;
+
+    const unsubscribe = concernService.listenToConcernMessages(
+      selectedConcern.id,
+      setMessages
+    );
+
+    return () => unsubscribe();
+  }, [selectedConcern]);
+
+
   // =======================
   // CREATE CONCERN
   // =======================
-  const createConcern = useCallback(async (concernData, parentInfo) => {
+  const createConcern = useCallback(async (concernData, userInfo) => {
     if (!concernData.childId || !concernData.message.trim()) {
       throw new Error('Child and message are required');
     }
@@ -60,8 +75,8 @@ const useConcerns = (userId) => {
       if (!child) throw new Error('Child not found');
 
       await concernService.createConcern({
-        parentId: parentInfo.uid,
-        parentName: `${parentInfo.firstName} ${parentInfo.lastName}`,
+        createdByUserId: userInfo.uid,
+        createdByUserName: `${userInfo.firstName} ${userInfo.lastName}`,
         childId: child.id,
         childName: `${child.firstName} ${child.lastName}`,
         subject: concernData.subject || 'General Concern',
@@ -82,12 +97,9 @@ const useConcerns = (userId) => {
   // SEND REPLY (SUBCOLLECTION)
   // =======================
   const sendReply = useCallback(async (concernId, replyText, senderInfo) => {
-    if (!replyText.trim()) {
-      throw new Error('Reply text is required');
-    }
+    if (!replyText.trim()) throw new Error('Reply text is required');
 
     setSending(true);
-
     try {
       await concernService.addMessageToConcern(
         concernId,
@@ -95,18 +107,12 @@ const useConcerns = (userId) => {
         senderInfo,
         'parent'
       );
-
-      // Update metadata list only
-      await fetchData();
-
       return true;
-    } catch (err) {
-      console.error('Error sending reply:', err);
-      throw err;
     } finally {
       setSending(false);
     }
-  }, [fetchData]);
+  }, []);
+
 
   // =======================
   // UI HELPERS
@@ -130,6 +136,7 @@ const useConcerns = (userId) => {
     concerns,
     children,
     selectedConcern,
+    messages,
 
     loading,
     sending,
