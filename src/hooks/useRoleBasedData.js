@@ -10,18 +10,6 @@ import userService from '../services/userService';
 import activityService from '../services/activityService';
 import offeringsService from '../services/offeringsService';
 
-/**
- * BEFORE (old approach):
- * - Admin loads ALL students → 100+ reads
- * - Parent loads ALL students → 100+ reads (then filters client-side)
- * - Teacher loads ALL students → 100+ reads (then filters client-side)
- * 
- * AFTER (new approach):
- * - Admin loads paginated students → 10-20 reads
- * - Parent loads only their children → 2-5 reads
- * - Teacher loads only assigned students → 5-15 reads
- */
-
 // =============================================================================
 // STUDENTS / CHILDREN HOOKS
 // =============================================================================
@@ -33,7 +21,7 @@ import offeringsService from '../services/offeringsService';
 export function useStudents(options = {}) {
   const { currentUser } = useAuth();
   const { 
-    pageSize = 20, 
+    pageSize = 8, 
     enabled = true,
     forceAll = false // Only true for specific admin operations
   } = options;
@@ -111,19 +99,21 @@ async function fetchStudentsByRole(user, { pageSize, forceAll }) {
 
 /**
  * Hook for loading more students (pagination for admins)
+ * UPDATED: Now accepts pageSize dynamic argument
  */
 export function useLoadMoreStudents() {
   const queryClient = useQueryClient();
   const { currentUser } = useAuth();
   
-  const loadMore = async (lastDoc) => {
+  const loadMore = async (lastDoc, pageSize = 8) => {
     if (!['admin', 'super_admin'].includes(currentUser?.role)) {
       console.warn('Load more is only available for admins');
       return;
     }
     
+    // UPDATED: Use the passed pageSize (defaults to 20 if not provided)
     const moreStudents = await childService.getChildrenPaginated({ 
-      limit: 20, 
+      limit: pageSize, 
       startAfter: lastDoc 
     });
     

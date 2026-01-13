@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
 import AdminSidebar from "../../../components/sidebar/AdminSidebar";
@@ -7,13 +7,11 @@ import GeneralFooter from "../../../components/footer/generalfooter";
 import childService from "../../../services/childService";
 import offeringsService from "../../../services/offeringsService";
 import userService from "../../../services/userService";
-import useManageTeachers from "../../../hooks/useManageTeachers";
-import useManageTherapists from "../../../hooks/useManageTherapists";
+import { useTeachers, useTherapists } from "../../../hooks/useRoleBasedData"; 
 import { useStudentProfileData } from "./hooks/useStudentProfileData";
 import AssessmentHistory from "../../shared/AssessmentHistory";
 import ActivityCalendar from "./components/ActivityCalendar";
 import Loading from "../../../components/common/Loading";
-import TherapistCard from "../../shared/TherapistCard";
 import "./StudentProfile.css";
 
 const StudentProfile = ({ 
@@ -23,9 +21,8 @@ const StudentProfile = ({
   noContainer = false,
 }) => {
   useEffect(() => {
-    console.log("StudentProfile mounted", { isParentView, childIdFromRoute, hideSidebar, noContainer });
-    return () => console.log("StudentProfile unmounted");
-  }, [isParentView, childIdFromRoute, hideSidebar, noContainer]);
+    console.log("StudentProfile mounted", { isParentView, childIdFromRoute });
+  }, [isParentView, childIdFromRoute]);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -35,7 +32,7 @@ const StudentProfile = ({
   const fromEnrollment = location.state?.fromEnrollment;
   const parentFromEnrollment = location.state?.parent;
 
-  // 1. THE CUSTOM HOOK
+  // 1. THE CUSTOM HOOK (Data & Pagination)
   const {
     loading,
     selectedStudent,
@@ -50,6 +47,8 @@ const StudentProfile = ({
     parentData,
     assessmentData,
     isAssessmentLoading,
+    hasMore,
+    handleLoadMore
   } = useStudentProfileData(location.state);
 
   // 2. UI State
@@ -59,7 +58,32 @@ const StudentProfile = ({
   const [selectedService, setSelectedService] = useState("");
   const [showAssessment, setShowAssessment] = useState(false);
   const [ignoreRouteChild, setIgnoreRouteChild] = useState(false);
+  
+  // 3. Modal State (Moved UP so hooks can use it)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [addServiceType, setAddServiceType] = useState(null);
+  const [availableServices, setAvailableServices] = useState([]);
+  const [addForm, setAddForm] = useState({ serviceId: "", staffId: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const calendarRef = useRef(null);
+
+  // 4. Staff Data (LAZY LOAD OPTIMIZATION)
+  // Only fetch staff when the Add Modal is open. 
+  // This prevents reading all 50+ users just by viewing a student profile.
+  const shouldFetchStaff = !isParentView && isAddModalOpen;
+
+  const { data: teachers, isLoading: loadingTeachers } = useTeachers({ 
+    enabled: shouldFetchStaff 
+  });
+  
+  const { data: therapists, isLoading: loadingTherapists } = useTherapists({ 
+    enabled: shouldFetchStaff 
+  });
+  
+  const combinedStaff = useMemo(() => {
+    return [...(teachers || []), ...(therapists || [])];
+  }, [teachers, therapists]);
 
   // Auto-load child for parent view
   useEffect(() => {
@@ -94,18 +118,6 @@ const StudentProfile = ({
     }
   }, [studentIdFromEnrollment, selectedStudent]);
 
-  // 3. Staff Data
-  const { teachers } = useManageTeachers();
-  const { therapists } = useManageTherapists();
-  const combinedStaff = [...(teachers || []), ...(therapists || [])];
-
-  // 4. Modal State - Only for admin
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [addServiceType, setAddServiceType] = useState(null);
-  const [availableServices, setAvailableServices] = useState([]);
-  const [addForm, setAddForm] = useState({ serviceId: "", staffId: "" });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   // --- Handlers ---
   const handleSelectStudent = (student) => {
     setSelectedStudent(student);
@@ -115,7 +127,6 @@ const StudentProfile = ({
   };
 
   const handleBack = () => {
-    // Parent-specific navigation - return to list view instead of navigating away
     if (isParentView) {
       setIgnoreRouteChild(true);
       setSelectedStudent(null);
@@ -123,7 +134,6 @@ const StudentProfile = ({
       return;
     }
 
-    // Existing admin logic
     if (location.state?.fromOneOnOne) {
       navigate("/admin/one-on-one", {
         state: { ...location.state, level: "students" },
@@ -156,6 +166,10 @@ const StudentProfile = ({
     
     setAddServiceType(type);
     setAddForm({ serviceId: "", staffId: "" });
+    
+    // Start by showing the modal (this triggers the staff fetch via hooks)
+    setIsAddModalOpen(true);
+
     try {
       const services = await offeringsService.getServicesByType(type);
       const interventionsFromAssessment =
@@ -167,7 +181,6 @@ const StudentProfile = ({
         ),
       ];
 
-      // FIX: Check the specific arrays instead of 'enrolledServices'
       const currentEnrolled = [
         ...(selectedStudent?.oneOnOneServices || []),
         ...(selectedStudent?.groupClassServices || [])
@@ -182,15 +195,15 @@ const StudentProfile = ({
       );
 
       if (filteredServices.length === 0) {
+        // Keep empty array but warn user
         setAvailableServices([]);
+        // Optional: you can alert here, or just show the message in the modal
         alert(
           "No services match the student's recorded interventions. Please review Step IV - Background History."
         );
       } else {
         setAvailableServices(filteredServices);
       }
-
-      setIsAddModalOpen(true);
     } catch (error) {
       alert("Error loading services: " + error.message);
     }
@@ -206,9 +219,12 @@ const StudentProfile = ({
       );
       const isTherapy = addServiceType === "Therapy";
       const staffList = isTherapy ? therapists : teachers;
-      const staffObj = staffList.find(
+      
+      const staffObj = staffList?.find(
         (s) => (s.uid || s.id) === addForm.staffId
       );
+
+      if (!staffObj) throw new Error("Staff member not found.");
 
       const assignData = {
         serviceId: serviceObj.id,
@@ -258,8 +274,12 @@ const StudentProfile = ({
 
   const getQualifiedStaff = (serviceName, serviceType) => {
     if (!serviceName || !serviceType) return [];
+    
+    // If we are still loading, return empty to prevent errors
+    if (loadingTeachers || loadingTherapists) return [];
 
     const staffList = serviceType === "Therapy" ? therapists : teachers;
+    if (!staffList) return [];
 
     return staffList.filter((staff) =>
       staff.specializations?.some(
@@ -268,12 +288,10 @@ const StudentProfile = ({
     );
   };
 
-  // Filter students for parent view
   const effectiveFilteredStudents = isParentView
     ? filteredStudents.filter((s) => s.parentId === currentUser.uid)
     : filteredStudents;
 
-  // Determine which sidebar to use
   const SidebarComponent = isParentView ? ParentSidebar : AdminSidebar;
 
   const mainContent = (
@@ -345,6 +363,25 @@ const StudentProfile = ({
                   </div>
                 ))}
               </div>
+              
+              {/* Pagination Load More Button */}
+              {!isParentView && hasMore && (
+                <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                  <button 
+                    onClick={handleLoadMore}
+                    style={{
+                      padding: '10px 20px',
+                      background: 'transparent',
+                      border: '1px solid #4a90e2',
+                      color: '#4a90e2',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Load More Students
+                  </button>
+                </div>
+              )}
             </div>
           </>
         )}
@@ -568,6 +605,7 @@ const StudentProfile = ({
                         a.serviceType === selectedService ||
                         a.className === selectedService
                     )}
+                    // Pass empty array if staff not loaded; ActivityCalendar will use denormalized names
                     teachers={combinedStaff}
                     selectedServiceName={selectedService}
                   />
@@ -613,9 +651,13 @@ const StudentProfile = ({
                   setAddForm({ ...addForm, staffId: e.target.value })
                 }
                 value={addForm.staffId}
-                disabled={!addForm.serviceId}
+                disabled={!addForm.serviceId || loadingTeachers || loadingTherapists}
               >
-                <option value="">Select Staff...</option>
+                <option value="">
+                  {(loadingTeachers || loadingTherapists) 
+                    ? "Loading Staff..." 
+                    : "Select Staff..."}
+                </option>
                 {getQualifiedStaff(
                   availableServices.find((s) => s.id === addForm.serviceId)
                     ?.name,
@@ -636,7 +678,7 @@ const StudentProfile = ({
               </button>
               <button
                 className="btn-confirm"
-                disabled={isSubmitting}
+                disabled={isSubmitting || loadingTeachers || loadingTherapists}
                 onClick={handleAddSubmit}
               >
                 Confirm

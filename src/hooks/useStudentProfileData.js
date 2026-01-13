@@ -1,15 +1,15 @@
-// src/hooks/useStudentProfileData.js
-// Hook for managing student profile data
-
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import childService from "../services/childService";
-import activityService from "../services/activityService";
-import userService from "../services/userService";
-import assessmentService from "../services/assessmentService";
+import { useStudents, useLoadMoreStudents } from "../../../../hooks/useRoleBasedData"; 
+import activityService from "../../../../services/activityService";
+import userService from "../../../../services/userService";
+import assessmentService from "../../../../services/assessmentService";
 
 export const useStudentProfileData = (locationState) => {
   const queryClient = useQueryClient();
+
+  // === CONFIG ===
+  const PAGE_SIZE = 8; // Fetch exactly 8 students per page
 
   const passedStudent = locationState?.student || null;
   const passedActivities = locationState?.activities || [];
@@ -20,12 +20,23 @@ export const useStudentProfileData = (locationState) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
 
-  // ================= STUDENTS =================
-  const { data: students = [], isLoading } = useQuery({
-    queryKey: ["students"],
-    queryFn: () => childService.getAllChildren(),
-    initialData: passedStudent ? [passedStudent] : undefined,
-  });
+  // ================= STUDENTS (Optimized) =================
+  const { 
+    data: studentsData, 
+    isLoading 
+  } = useStudents({ pageSize: PAGE_SIZE }); 
+
+  // Handle the different return structures (Admin gets object with pagination, Parent gets array)
+  const students = useMemo(() => {
+    if (Array.isArray(studentsData)) return studentsData;
+    return studentsData?.students || [];
+  }, [studentsData]);
+
+  const hasMore = !Array.isArray(studentsData) && studentsData?.hasMore;
+  const lastDoc = !Array.isArray(studentsData) ? studentsData?.lastDoc : null;
+  
+  // Hook to load next page
+  const { loadMore } = useLoadMoreStudents();
 
   // ================= AUTO SELECT FROM NAV =================
   useEffect(() => {
@@ -44,6 +55,7 @@ export const useStudentProfileData = (locationState) => {
   const { data: studentActivities = [] } = useQuery({
     queryKey: ["activities", selectedStudentId],
     queryFn: async () => {
+      if (!selectedStudentId) return [];
       const acts = await activityService.getActivitiesByChild(
         selectedStudentId
       );
@@ -60,7 +72,7 @@ export const useStudentProfileData = (locationState) => {
     enabled: !!selectedStudent?.parentId,
   });
 
-  // ================= ASSESSMENT (from assessments collection) =================
+  // ================= ASSESSMENT =================
   const {
     data: assessmentData = null,
     isLoading: isAssessmentLoading,
@@ -107,6 +119,10 @@ export const useStudentProfileData = (locationState) => {
     }
   };
 
+  const handleLoadMore = () => {
+    if (lastDoc) loadMore(lastDoc, PAGE_SIZE); // Pass PAGE_SIZE here
+  };
+
   return {
     loading: isLoading,
     students,
@@ -123,7 +139,8 @@ export const useStudentProfileData = (locationState) => {
     isAssessmentLoading,
     assessmentError,
     refreshData,
+    // Pagination exports
+    hasMore,
+    handleLoadMore
   };
 };
-
-export default useStudentProfileData;
