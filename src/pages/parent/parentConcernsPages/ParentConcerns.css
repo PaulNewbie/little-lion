@@ -50,6 +50,25 @@
   position: relative;
 }
 
+/* raise a concern button */
+.pc-mobile-fab{
+  background-color: var(--pc-primary);
+  color: white;
+  position: fixed;
+  height: 60px;
+  width: 60px;
+  z-index: 10;
+  border-radius: 50%;
+  bottom: 20px;
+  right: 20px;
+  display: flex;;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  border: none;
+  font-size: 28px;
+}
+
 /* LIST styles moved to `components/ConcernsList.css` */
 
 /* Empty state styles moved to `components/ConcernsList.css` */
@@ -61,6 +80,9 @@
 
 /* TABLET adjustments (page-level only) */
 @media (min-width: 640px) {
+  .pc-mobile-fab{
+    display: none;
+  }
   .pc-content-container {
     margin: 16px;
   }

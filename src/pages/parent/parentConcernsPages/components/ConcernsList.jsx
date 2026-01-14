@@ -4,7 +4,7 @@ import './ConcernsList.css';
 
 /**
  * Displays the list of concerns in the left column
- */
+ */ 
 const ConcernsList = ({ 
   concerns, 
   selectedConcernId, 
@@ -65,24 +65,47 @@ const ConcernCard = ({ concern, isActive, statusClass, onSelect }) => {
     }
   };
 
+ // Format createdAt with full month, day, year, and time
+  const formatDateTime = (ts) => {
+    if (!ts) return '';
+    const dateObj = ts.toDate ? ts.toDate() : new Date(ts);
+    const date = dateObj.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }); // e.g., January 12, 2026
+    const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // e.g., 7:21 PM
+    return `${date} | ${time}`;
+  };
+
   return (
-    <div 
+    <div
       onClick={onSelect}
-      className={`pc-concern-card ${isActive ? 'active' : ''} status-${statusClass}`}
+      className={`pc-concern-card ${isActive ? 'active' : ''}`}
       role="button"
       tabIndex={0}
       onKeyDown={handleKeyDown}
     >
       <div className="pc-card-header">
         <span className="pc-card-subject">{concern.subject}</span>
-        <span className="pc-card-date">
-          {new Date(concern.createdAt).toLocaleDateString()}
+        <span className={`pc-card-status ${statusClass}`}>
+          {concern.status.replace(/_/g, ' ')}
         </span>
       </div>
-      <div className="pc-card-child">Child: {concern.childName}</div>
+
+      <div className="pc-card-meta">
+        <span className='pc-card-createdBy'>Created by: {concern.createdByUserName || "N/A"}</span>
+      </div>
+
+      <div className="pc-card-meta">
+        <span className="pc-card-child">Child: {concern.childName}</span>
+        <span>{formatDateTime(concern.createdAt)}</span>
+      </div>
     </div>
   );
 };
+
+
 
 /**
  * Empty state when no concerns exist

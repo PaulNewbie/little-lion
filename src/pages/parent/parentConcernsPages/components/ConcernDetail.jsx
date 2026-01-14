@@ -6,7 +6,8 @@ import './ConcernDetail.css';
  * Displays the detail view of a selected concern with message thread
  */
 const ConcernDetail = ({ 
-  concern, 
+  concern,
+  messages, 
   currentUserId,
   replyText,
   onReplyChange,
@@ -25,7 +26,7 @@ const ConcernDetail = ({
       <ConcernHeader concern={concern} />
       
       <ChatWindow 
-        messages={concern.messages} 
+        messages={messages} 
         currentUserId={currentUserId} 
       />
 
@@ -39,6 +40,19 @@ const ConcernDetail = ({
   );
 };
 
+ // Format createdAt with full month, day, year, and time
+  const formatDateTime = (ts) => {
+    if (!ts) return '';
+    const dateObj = ts.toDate ? ts.toDate() : new Date(ts);
+    const date = dateObj.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }); // e.g., January 12, 2026
+    const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // e.g., 7:21 PM
+    return `${date} | ${time}`;
+  };
+
 /**
  * Header section showing concern metadata
  */
@@ -49,6 +63,7 @@ const ConcernHeader = ({ concern }) => {
     ? '⏳ Awaiting Your Response' 
     : '📝 Pending Review';
 
+ 
   return (
     <div className="pc-message-header">
       <div className="pc-header-top">
@@ -59,8 +74,8 @@ const ConcernHeader = ({ concern }) => {
       </div>
       <div className="pc-header-meta">
         <span><strong>Child:</strong> {concern.childName}</span>
-        <span><strong>Status:</strong> {statusText}</span>
-        <span><strong>Created:</strong> {new Date(concern.createdAt).toLocaleDateString()}</span>
+        {/* <span><strong>Status:</strong> {statusText}</span> */}
+        <span><strong>Created:</strong> {formatDateTime(concern.createdAt)}</span>
       </div>
     </div>
   );
@@ -71,15 +86,20 @@ const ConcernHeader = ({ concern }) => {
  */
 const ChatWindow = ({ messages = [], currentUserId }) => (
   <div className="pc-chat-window">
-    {messages.map((msg, index) => (
-      <MessageBubble 
-        key={index}
-        message={msg}
-        isSent={msg.senderId === currentUserId}
-      />
-    ))}
+    {messages.length === 0 ? (
+      <p className="pc-no-messages">No messages yet.</p>
+    ) : (
+      messages.map((msg) => (
+        <MessageBubble 
+          key={msg.id} // use firestore doc id
+          message={msg}
+          isSent={msg.senderId === currentUserId}
+        />
+      ))
+    )}
   </div>
 );
+
 
 /**
  * Individual message bubble
@@ -89,10 +109,7 @@ const MessageBubble = ({ message, isSent }) => (
     <div className="pc-bubble-meta">
       <strong>{isSent ? 'You' : message.senderName}</strong>
       <span>
-        {new Date(message.timestamp).toLocaleTimeString([], {
-          hour: '2-digit', 
-          minute: '2-digit'
-        })}
+        {formatDateTime(message.createdAt)}
       </span>
     </div>
     <p className="pc-bubble-text">{message.text}</p>
@@ -123,7 +140,7 @@ const ReplySection = ({
         disabled={isSending || !replyText} 
         className="pc-send-btn"
       >
-        {isSending ? 'Sending...' : 'Send Response'}
+        {isSending ? 'Sending...' : 'Send'}
       </button>
     </div>
   </div>

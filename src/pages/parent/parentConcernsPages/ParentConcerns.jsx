@@ -29,6 +29,7 @@ const ParentConcerns = () => {
     concerns,
     children,
     selectedConcern,
+    messages,
     loading,
     sending,
     createConcern,
@@ -127,6 +128,7 @@ const ParentConcerns = () => {
           
           <ConcernDetail
             concern={selectedConcern}
+            messages={messages}
             currentUserId={currentUser?.uid}
             replyText={replyText}
             onReplyChange={setReplyText}
