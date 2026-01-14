@@ -1,0 +1,9 @@
+/* ============================================================================
+   TEACHER PROFILE - FULL-WIDTH MULTI-STEP FORM
+   Clean, professional blue & yellow color scheme (cloned from therapist)
+   ============================================================================ */
+
+/* Import shared profile styles from TherapistProfile */
+@import '../../../pages/therapist/css/TherapistProfile.css';
+
+/* Any teacher-specific overrides can go here if needed in the future */

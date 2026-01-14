@@ -4,6 +4,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import childService from '../../services/childService';
 import activityService from '../../services/activityService';
 import cloudinaryService from '../../services/cloudinaryService';
+import Sidebar from '../../components/sidebar/Sidebar';
+import { getTeacherConfig } from '../../components/sidebar/sidebarConfigs';
+import { Mail, Phone } from 'lucide-react';
+import logo from '../../images/logo.png';
+import './css/PlayGroupActivity.css';
 
 const PlayGroupActivity = () => {
   const { currentUser } = useAuth();
@@ -17,30 +22,27 @@ const PlayGroupActivity = () => {
   const [students, setStudents] = useState([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
   const [uploading, setUploading] = useState(false);
-  
+
   // Form Data
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  // Pre-fill Class Name if passed, otherwise empty
-  const [className, setClassName] = useState(preSelectedClassName || ''); 
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]); 
-  
+  const [className, setClassName] = useState(preSelectedClassName || '');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+
   // Selection Data
-  const [selectedImages, setSelectedImages] = useState([]); 
-  const [previews, setPreviews] = useState([]); 
-  const [taggedStudentIds, setTaggedStudentIds] = useState([]); 
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [previews, setPreviews] = useState([]);
+  const [taggedStudentIds, setTaggedStudentIds] = useState([]);
 
   // --- 1. FETCH STUDENTS ---
   useEffect(() => {
     const fetchStudents = async () => {
-      // OPTIMIZATION: If data was passed from Dashboard, use it directly!
       if (preSelectedStudents && preSelectedStudents.length > 0) {
         setStudents(preSelectedStudents);
         setLoadingStudents(false);
         return;
       }
 
-      // Fallback: Fetch from DB if page accessed directly (not via Dashboard card)
       if (!currentUser) return;
       setLoadingStudents(true);
       try {
@@ -48,7 +50,6 @@ const PlayGroupActivity = () => {
         if (currentUser.role === 'admin') {
           data = await childService.getAllChildren();
         } else {
-          // Fetch all students assigned to me (mixed classes)
           data = await childService.getChildrenByTeacherId(currentUser.uid);
         }
         setStudents(data);
@@ -96,7 +97,7 @@ const PlayGroupActivity = () => {
   // --- 4. UPLOAD & SAVE ---
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (selectedImages.length === 0) return alert("Please select at least one photo.");
     if (taggedStudentIds.length === 0) return alert("Please tag at least one student.");
 
@@ -105,33 +106,26 @@ const PlayGroupActivity = () => {
     try {
       const folderPath = `little-lions/group-images/${date}`;
 
-      // Upload Images
-      const uploadPromises = selectedImages.map(file => 
+      const uploadPromises = selectedImages.map(file =>
         cloudinaryService.uploadImage(file, folderPath)
       );
       const uploadedUrls = await Promise.all(uploadPromises);
 
-      // Prepare Data
       const activityData = {
         title,
         description,
         date,
-        className, // "Art Class" etc.
+        className,
         photoUrls: uploadedUrls,
         participatingStudentIds: taggedStudentIds,
-        
         teacherId: currentUser.uid,
         teacherName: `${currentUser.firstName} ${currentUser.lastName}`,
         authorRole: 'teacher'
       };
 
-      // Save using Activity Service (type: group_activity)
       await activityService.createGroupActivity(activityData);
 
-      // Success & Navigate Back
       alert('Activity Uploaded Successfully!');
-      
-      // If we came from a specific class view, go back there. Otherwise go to dashboard.
       navigate(-1);
 
     } catch (error) {
@@ -141,171 +135,215 @@ const PlayGroupActivity = () => {
     }
   };
 
-  // --- STYLES ---
-  const styles = {
-    container: { padding: '20px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' },
-    backBtn: { background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', marginBottom: '20px', fontSize: '15px', fontWeight: '600' },
-    section: { marginBottom: '30px', padding: '20px', border: '1px solid #e2e8f0', borderRadius: '12px', backgroundColor: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' },
-    label: { display: 'block', marginBottom: '8px', fontWeight: '600', color: '#334155' },
-    input: { width: '100%', padding: '10px', marginBottom: '15px', borderRadius: '6px', border: '1px solid #cbd5e1', boxSizing: 'border-box' },
-    grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '15px' },
-    card: (isSelected) => ({
-      border: isSelected ? '2px solid #2ecc71' : '1px solid #e2e8f0',
-      backgroundColor: isSelected ? '#f0fdf4' : '#fff',
-      borderRadius: '8px',
-      padding: '10px',
-      textAlign: 'center',
-      cursor: 'pointer',
-      opacity: isSelected ? 1 : 0.8,
-      transition: 'all 0.2s',
-      boxShadow: isSelected ? '0 2px 4px rgba(46, 204, 113, 0.2)' : 'none'
-    }),
-    previewImg: { width: '100px', height: '100px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e2e8f0' },
-    removeBtn: { background: '#ef4444', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '50%', width: '20px', height: '20px', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'absolute', top: '-5px', right: '-5px' }
-  };
-
   return (
-    <div style={styles.container}>
-      <button onClick={() => navigate(-1)} style={styles.backBtn}>← Back</button>
-      
-      <h1 style={{ color: '#0f172a', marginBottom: '25px' }}>📸 New Group Activity</h1>
-      
-      <form onSubmit={handleSubmit}>
-        
-        {/* 1. Metadata */}
-        <div style={styles.section}>
-          <h3 style={{ marginTop: 0, color: '#475569' }}>1. Activity Details</h3>
-          
-          <label style={styles.label}>Class Name</label>
-          <input 
-            style={{...styles.input, backgroundColor: preSelectedClassName ? '#f1f5f9' : 'white'}} 
-            placeholder="e.g. Art Class"
-            value={className} 
-            onChange={e => setClassName(e.target.value)} 
-            // If pre-selected, we might want to make it read-only, or leave editable.
-            // Leaving editable is safer in case they want to fix a typo.
-          />
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      <Sidebar {...getTeacherConfig()} forceActive="/teacher/dashboard" />
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', backgroundColor: '#f8f9fa' }}>
+        <div style={{ padding: '20px', flex: 1 }}>
+          <div className="play-group__content">
 
-          <label style={styles.label}>Activity Title</label>
-          <input 
-            style={styles.input} 
-            placeholder="e.g. Outdoor Building Blocks"
-            value={title} 
-            onChange={e => setTitle(e.target.value)} 
-            required 
-          />
-          
-          <label style={styles.label}>Date</label>
-          <input 
-            style={styles.input} 
-            type="date" 
-            value={date} 
-            onChange={e => setDate(e.target.value)} 
-            required 
-          />
-
-          <label style={styles.label}>Description</label>
-          <textarea 
-            style={{...styles.input, height: '80px', fontFamily: 'inherit'}} 
-            value={description} 
-            onChange={e => setDescription(e.target.value)}
-            placeholder="What did the children do today?"
-          />
-        </div>
-
-        {/* 2. Photos */}
-        <div style={styles.section}>
-          <h3 style={{ marginTop: 0, color: '#475569' }}>2. Select Photos</h3>
-          <input 
-            type="file" 
-            multiple 
-            accept="image/*" 
-            onChange={handleImageSelect} 
-            style={{ marginBottom: '20px' }}
-          />
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
-            {previews.map((src, idx) => (
-              <div key={idx} style={{ position: 'relative' }}>
-                <img src={src} alt="Preview" style={styles.previewImg} />
-                <button type="button" onClick={() => removeImage(idx)} style={styles.removeBtn}>✕</button>
+            {/* Header Banner */}
+            <div className="play-group__header-banner">
+              <div className="play-group__header-content">
+                <h1 className="play-group__title">NEW GROUP ACTIVITY</h1>
+                <p className="play-group__subtitle">Upload photos and tag participating students</p>
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        {/* 3. Student Selection */}
-        <div style={styles.section}>
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
-            <h3 style={{ margin: 0, color: '#475569' }}>
-              3. Who was present? <span style={{fontSize: '14px', color: '#64748b', fontWeight: 'normal'}}>({taggedStudentIds.length} selected)</span>
-            </h3>
-            <button 
-              type="button" 
-              onClick={selectAll} 
-              style={{
-                padding: '6px 12px', cursor: 'pointer', backgroundColor: '#e2e8f0', 
-                border: 'none', borderRadius: '4px', fontSize: '13px', fontWeight: '600', color: '#475569'
-              }}
-            >
-              {taggedStudentIds.length === students.length ? 'Deselect All' : 'Select All'}
+            {/* Back Button */}
+            <button onClick={() => navigate(-1)} className="play-group__back-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+              Back to Dashboard
             </button>
-          </div>
-          
-          {loadingStudents ? <p>Loading your class list...</p> : (
-            <>
-              {students.length === 0 ? (
-                <p style={{color: '#ef4444', fontStyle: 'italic'}}>No students found assigned to this class.</p>
-              ) : (
-                <div style={styles.grid}>
-                  {students.map(student => {
-                    const isSelected = taggedStudentIds.includes(student.id);
-                    return (
-                      <div 
-                        key={student.id} 
-                        style={styles.card(isSelected)}
-                        onClick={() => toggleStudent(student.id)}
-                      >
-                        <div style={{ fontSize: '24px', marginBottom: '5px' }}>
-                          {student.photoUrl ? (
-                            <img 
-                              src={student.photoUrl} 
-                              alt="child" 
-                              style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }}
-                            />
-                          ) : '👤'}
-                        </div>
-                        <div style={{ fontWeight: '600', fontSize: '13px', color: '#334155' }}>{student.firstName}</div>
-                        {isSelected && <div style={{ color: '#2ecc71', fontWeight: 'bold', fontSize: '12px', marginTop: '4px' }}>✓ Here</div>}
-                      </div>
-                    );
-                  })}
+
+            <form onSubmit={handleSubmit}>
+              {/* Section 1: Activity Details */}
+              <div className="play-group__section">
+                <h3 className="play-group__section-title">
+                  <span className="play-group__section-number">1</span>
+                  Activity Details
+                </h3>
+
+                <div className="play-group__form-group">
+                  <label className="play-group__label">Class Name</label>
+                  <input
+                    className={`play-group__input ${preSelectedClassName ? 'play-group__input--prefilled' : ''}`}
+                    placeholder="e.g. Art Class"
+                    value={className}
+                    onChange={e => setClassName(e.target.value)}
+                  />
                 </div>
-              )}
-            </>
-          )}
+
+                <div className="play-group__form-group">
+                  <label className="play-group__label">Activity Title</label>
+                  <input
+                    className="play-group__input"
+                    placeholder="e.g. Outdoor Building Blocks"
+                    value={title}
+                    onChange={e => setTitle(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="play-group__form-group">
+                  <label className="play-group__label">Date</label>
+                  <input
+                    className="play-group__input"
+                    type="date"
+                    value={date}
+                    onChange={e => setDate(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="play-group__form-group">
+                  <label className="play-group__label">Description</label>
+                  <textarea
+                    className="play-group__textarea"
+                    value={description}
+                    onChange={e => setDescription(e.target.value)}
+                    placeholder="What did the children do today?"
+                  />
+                </div>
+              </div>
+
+              {/* Section 2: Photos */}
+              <div className="play-group__section">
+                <h3 className="play-group__section-title">
+                  <span className="play-group__section-number">2</span>
+                  Select Photos
+                </h3>
+
+                <div className="play-group__photo-upload">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    className="play-group__file-input"
+                  />
+                  <div className="play-group__previews">
+                    {previews.map((src, idx) => (
+                      <div key={idx} className="play-group__preview-item">
+                        <img src={src} alt="Preview" className="play-group__preview-img" />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(idx)}
+                          className="play-group__remove-btn"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 3: Student Selection */}
+              <div className="play-group__section">
+                <h3 className="play-group__section-title">
+                  <span className="play-group__section-number">3</span>
+                  Who was present?
+                </h3>
+
+                <div className="play-group__selection-header">
+                  <span className="play-group__selection-count">
+                    {taggedStudentIds.length} student{taggedStudentIds.length !== 1 ? 's' : ''} selected
+                  </span>
+                  <button
+                    type="button"
+                    onClick={selectAll}
+                    className="play-group__select-all-btn"
+                  >
+                    {taggedStudentIds.length === students.length ? 'Deselect All' : 'Select All'}
+                  </button>
+                </div>
+
+                {loadingStudents ? (
+                  <p className="play-group__loading-text">Loading your class list...</p>
+                ) : students.length === 0 ? (
+                  <p className="play-group__error-text">No students found assigned to this class.</p>
+                ) : (
+                  <div className="play-group__students-grid">
+                    {students.map(student => {
+                      const isSelected = taggedStudentIds.includes(student.id);
+                      return (
+                        <div
+                          key={student.id}
+                          className={`play-group__student-card ${isSelected ? 'play-group__student-card--selected' : ''}`}
+                          onClick={() => toggleStudent(student.id)}
+                        >
+                          <div className="play-group__student-avatar">
+                            {student.photoUrl ? (
+                              <img src={student.photoUrl} alt={student.firstName} />
+                            ) : '👤'}
+                          </div>
+                          <p className="play-group__student-name">{student.firstName}</p>
+                          {isSelected && (
+                            <div className="play-group__student-check">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                                <polyline points="20 6 9 17 4 12"/>
+                              </svg>
+                              Here
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={uploading}
+                className="play-group__submit-btn"
+              >
+                {uploading ? (
+                  'Uploading...'
+                ) : (
+                  <>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="17 8 12 3 7 8"/>
+                      <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    Upload Group Activity
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
         </div>
 
-        <button 
-          type="submit" 
-          disabled={uploading}
-          style={{
-            width: '100%',
-            padding: '16px',
-            backgroundColor: uploading ? '#94a3b8' : '#2ecc71',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '18px',
-            cursor: uploading ? 'not-allowed' : 'pointer',
-            fontWeight: 'bold',
-            boxShadow: '0 4px 6px rgba(46, 204, 113, 0.25)',
-            transition: 'background-color 0.2s'
-          }}
-        >
-          {uploading ? 'Uploading...' : '🚀 Upload Group Activity'}
-        </button>
-
-      </form>
+        {/* Footer */}
+        <footer className="play-group__footer">
+          <div className="play-group__footer-content">
+            <div className="play-group__footer-item">
+              <div className="play-group__footer-logo">
+                <img src={logo} alt="Little Lions" className="play-group__footer-logo-img" />
+              </div>
+              <span>Little Lions Learning and Development Center</span>
+            </div>
+            <span className="play-group__footer-divider">•</span>
+            <div className="play-group__footer-item">
+              <Mail size={18} className="play-group__footer-icon" />
+              <span>littlelionsldc@gmail.com</span>
+            </div>
+            <span className="play-group__footer-divider">•</span>
+            <div className="play-group__footer-item">
+              <Phone size={18} className="play-group__footer-icon" />
+              <span>(+63) 9677900930</span>
+            </div>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 };
