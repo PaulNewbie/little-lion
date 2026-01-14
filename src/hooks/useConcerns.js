@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import concernService from '../../../../services/concernService';
-import childService from '../../../../services/childService';
+import concernService from '../services/concernService';
+import childService from '../services/childService';
 
 /**
  * Custom hook for managing parent concerns

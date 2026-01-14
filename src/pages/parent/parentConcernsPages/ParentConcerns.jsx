@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../../hooks/useAuth'; 
 import ParentSidebar from '../../../components/sidebar/ParentSidebar';
 
-// Local components
+// components
 import {
   RaiseConcernModal,
   ConcernsList,
@@ -11,8 +11,8 @@ import {
 } from '../../../components/concerns';
 
 
-// Local hooks
-import { useConcerns } from './hooks';
+// hooks
+import useConcerns from '../../../hooks/useConcerns';
 
 // Styles
 import './ParentConcerns.css';
