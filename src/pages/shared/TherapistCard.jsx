@@ -1,30 +1,15 @@
-import React, { useState, useEffect } from "react";
-import userService from "../../services/userService";
+import React, { useState } from "react";
+// REMOVED: import userService from "../../services/userService"; 
+// REASON: We don't want to fetch again; we use the data passed from the parent.
 
-const TherapistCard = ({ therapistId, serviceName }) => {
-  const [therapist, setTherapist] = useState(null);
-  const [loading, setLoading] = useState(true);
+const TherapistCard = ({ therapist, serviceName }) => {
+  // REMOVED: const [therapist, setTherapist] = useState(null);
+  // REMOVED: const [loading, setLoading] = useState(true);
+  // REMOVED: useEffect fetching logic...
+  
   const [isExpanded, setIsExpanded] = useState(false);
 
-  useEffect(() => {
-    const fetchTherapist = async () => {
-      if (!therapistId) return;
-      try {
-        const data = await userService.getUserById(therapistId);
-        if (data && data.profileCompleted) {
-          setTherapist(data);
-        }
-      } catch (error) {
-        console.error("Could not fetch therapist info", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTherapist();
-  }, [therapistId]);
-
-  if (loading) return <div style={styles.loading}>Loading therapist info...</div>;
+  // If no therapist object is passed yet, don't render
   if (!therapist) return null;
 
   return (
@@ -48,7 +33,7 @@ const TherapistCard = ({ therapistId, serviceName }) => {
       {/* ================= RIGHT CONTENT CARD ================= */}
       <div style={styles.card}>
         {/* Service Badge */}
-        <div style={styles.serviceBadge}>{serviceName}</div>
+        <div style={styles.serviceBadge}>{serviceName || "Therapist Profile"}</div>
 
         {/* Header */}
         <div style={styles.header}>
@@ -180,21 +165,14 @@ wrapper: {
   display: "flex",
   gap: "2.5rem",
   marginBottom: "1rem",
-  alignItems: "flex-start", // 🔑 IMPORTANT
+  alignItems: "flex-start", 
 },
-
-  loading: {
-    padding: "1rem",
-    color: "#64748b",
-    fontSize: "0.875rem",
-    fontStyle: "italic",
-  },
 
   /* LEFT IMAGE CARD */
   imageCard: {
-  width: "300px",           // ✅ same ratio as student profile
-  height: "385px",          // ✅ fixed height (does NOT grow)
-  flexShrink: 0,            // 🔑 prevent resizing
+  width: "300px",           
+  height: "385px",          
+  flexShrink: 0,            
   backgroundColor: "white",
   borderRadius: "16px",
   border: "1px solid #e2e8f0",

@@ -108,8 +108,7 @@ const ManageTherapists = () => {
     <div className="ooo-container">
       <AdminSidebar />
 
-      <div className="ooo-main">
-        
+      <div className="ooo-main">  
         {/* ================= HEADER ================= */}
         <div className="ooo-header">
           <div className="mt-header-wrapper">
@@ -160,12 +159,11 @@ const ManageTherapists = () => {
         <div className="ooo-content-area">
           
           {selectedTherapistId ? (
-            /* ---------------- VIEW: DETAIL (Scrollable) ---------------- */
-            /* FIX: paddingBottom ensures button doesn't cover list */
-            <div style={{ paddingBottom: '120px', width: '100%' }}>
-              
-              <TherapistCard
-                therapistId={selectedTherapistId}
+              <div style={{ paddingBottom: '120px', width: '100%' }}>
+    
+                {/* FIXED: Passing the object 'therapist' instead of 'therapistId' */}
+                <TherapistCard
+                therapist={selectedTherapist}  
                 serviceName="Therapist Profile"
               />
 
