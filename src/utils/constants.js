@@ -20,6 +20,12 @@ export const ACTIVITY_TYPES = {
   PLAY_GROUP: 'play_group'
 };
 
+export const ACCOUNT_STATUS = {
+  PENDING_SETUP: 'pending_setup',
+  ACTIVE: 'active',
+  INACTIVE: 'inactive'
+};
+
 // UUID generator polyfill for browsers that don't support crypto.randomUUID
 export function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {

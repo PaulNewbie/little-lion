@@ -45,6 +45,12 @@ const ClockIcon = (
   </svg>
 );
 
+const ShieldIcon = (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+  </svg>
+);
+
 /**
  * Get admin sidebar configuration
  * @param {boolean} isSuperAdmin - Whether current user is super admin
@@ -72,6 +78,7 @@ export const getAdminConfig = (isSuperAdmin = false) => ({
         { path: "/admin/manage-teachers", icon: teacher_Icon, label: "TEACHER" },
         { path: "/admin/manage-therapists", icon: therapist_Icon, label: "THERAPIST" },
         { path: "/admin/pending-accounts", icon: ClockIcon, label: "PENDING ACCOUNTS" },
+        { path: "/admin/user-access", icon: ShieldIcon, label: "USER ACCESS" },
       ]
     }
   ]

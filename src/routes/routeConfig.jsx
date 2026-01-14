@@ -21,6 +21,7 @@ import Concerns from "../pages/admin/Concerns";
 import ManageAdmins from "../pages/admin/ManageAdmins";
 import StudentProfile from "../pages/admin/studentProfile/StudentProfile";
 import PendingAccounts from "../pages/admin/PendingAccounts";
+import UserAccessManagement from "../pages/admin/UserAccessManagement";
 
 // Teacher Components
 import TeacherDashboard from "../pages/teacher/TeacherDashboard";
@@ -70,6 +71,7 @@ export const ROUTES = {
     CONCERNS: "/admin/concerns",
     MANAGE_ADMINS: "/admin/manage-admins",
     PENDING_ACCOUNTS: "/admin/pending-accounts",
+    USER_ACCESS: "/admin/user-access",
   },
 
   TEACHER: {
@@ -243,10 +245,11 @@ export const AppRoutes = () => {
       <Route path={ROUTES.ADMIN.PLAY_GROUP} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><PlayGroup /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.MANAGE_TEACHERS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><ManageTeachers /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.MANAGE_THERAPISTS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><ManageTherapists /></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.ENROLLMENT} element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><EnrollStudent /></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.ENROLLMENT} element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.TEACHER, ROLES.THERAPIST]}><EnrollStudent /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.CONCERNS} element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><Concerns /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.MANAGE_ADMINS} element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><ManageAdmins /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.PENDING_ACCOUNTS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><PendingAccounts /></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.USER_ACCESS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><UserAccessManagement /></ProtectedRoute>} />
 
       {/* TEACHER ROUTES */}
       <Route path={ROUTES.TEACHER.DASHBOARD} element={<ProtectedRoute allowedRoles={[ROLES.TEACHER]}><TeacherDashboard /></ProtectedRoute>} />
