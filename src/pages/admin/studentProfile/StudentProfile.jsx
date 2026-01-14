@@ -366,17 +366,10 @@ const StudentProfile = ({
               
               {/* Pagination Load More Button */}
               {!isParentView && hasMore && (
-                <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                  <button 
+                <div className="sp-load-more-wrapper">
+                  <button
+                    className="sp-load-more-btn"
                     onClick={handleLoadMore}
-                    style={{
-                      padding: '10px 20px',
-                      background: 'transparent',
-                      border: '1px solid #4a90e2',
-                      color: '#4a90e2',
-                      borderRadius: '4px',
-                      cursor: 'pointer'
-                    }}
                   >
                     Load More Students
                   </button>
@@ -413,17 +406,7 @@ const StudentProfile = ({
                   />
                 ) : (
                   <div
-                    className="profile-photo-placeholder"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "3rem",
-                      background: "#eee",
-                    }}
-                  >
+                    className="profile-photo-placeholder">
                     {selectedStudent.firstName[0]}
                   </div>
                 )}
@@ -436,84 +419,64 @@ const StudentProfile = ({
                 <div className="profile-details">
                   <div className="profile-left">
                     <p>
-                      <span className="icon">🧒</span> <b>Nickname:</b>{" "}
+                      <b>Nickname:</b>{" "}
                       {selectedStudent.nickname || "N/A"}
                     </p>
                     <p>
-                      <span className="icon">🏠</span> <b>Address:</b>{" "}
+                      <b>Address:</b>{" "}
                       {selectedStudent.address || "N/A"}
                     </p>
                     <p>
-                      <span className="icon">🎂</span> <b>Date of Birth:</b>{" "}
+                      <b>Date of Birth:</b>{" "}
                       {selectedStudent.dateOfBirth || "N/A"}
                     </p>
                     <p>
-                      <span className="icon">📅</span> <b>Current Age:</b>{" "}
+                      <b>Current Age:</b>{" "}
                       {calculateAge(selectedStudent.dateOfBirth) ?? "N/A"}
                     </p>
                   </div>
 
                   <div className="profile-right">
                     <p>
-                      <span className="icon">🚻</span> <b>Gender:</b>{" "}
+                      <b>Gender:</b>{" "}
                       {selectedStudent.gender || "N/A"}
                     </p>
                     <p>
-                      <span className="icon">🏫</span> <b>School:</b>{" "}
+                      <b>Current School:</b>{" "}
                       {selectedStudent.school || "N/A"}
                     </p>
                     <p>
-                      <span className="icon">👨‍👩‍👧</span> <b>Relationship to Guardian:</b>{" "}
+                      <b>Relationship:</b>{" "}
                       {selectedStudent.relationshipToClient || "N/A"}
                     </p>
                   </div>
                 </div>
 
                 {parentData && (
-                  <div
-                    style={{
-                      marginTop: "15px",
-                      paddingTop: "15px",
-                      borderTop: "1px solid #eee",
-                      fontSize: "0.95rem",
-                    }}
-                  >
-                    <p style={{ marginBottom: "5px" }}>
-                      <span style={{ fontSize: "1.1em" }}>👪</span>{" "}
+                 <div className="guardian-section">
+
+                    <p className="guardian-name">
                       <b>Guardian:</b> {parentData.firstName}{" "}
                       {parentData.lastName}
                     </p>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "15px",
-                        flexWrap: "wrap",
-                        color: "#555",
-                      }}
-                    >
-                      <span>📧 {parentData.email}</span>
-                      <span>📞 {parentData.phone}</span>
+                    <div className="guardian-meta">
+
+                      <span> {parentData.email}</span>
+                      <span> {parentData.phone}</span>
                     </div>
                   </div>
                 )}
 
-                <div style={{ marginTop: "20px" }}>
+                <div className="assessment-btn-wrapper">
                   <button
-                    className="see-more-btn"
-                    style={{
-                      padding: "10px 20px",
-                      background: showAssessment ? "#e0e0e0" : "#4a90e2",
-                      color: showAssessment ? "#333" : "white",
-                      border: "none",
-                      borderRadius: "6px",
-                      cursor: "pointer",
-                      fontWeight: "bold",
-                    }}
+                    className={`see-more-btn assessment-btn ${
+                      showAssessment ? "active" : "inactive"
+                    }`}
                     onClick={() => setShowAssessment(!showAssessment)}
                   >
                     {showAssessment
                       ? "Hide Assessment History"
-                      : "See Assessment History"}
+                      : "Assessment History"}
                   </button>
                 </div>
               </div>
@@ -530,21 +493,15 @@ const StudentProfile = ({
               ))}
 
             <div
-              className="profile-content-scroll"
-              style={{ marginTop: "30px" }}
-            >
+              className="profile-content-scroll">
               <div className="services-split-row">
                 <div className="content-section">
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                    }}
-                  >
+                 <div className="services-header-row">
+
                     <h2 className="services-header">Therapy Services</h2>
                     {!isParentView && (
                       <button onClick={() => handleOpenAddModal("Therapy")}>
-                        + Add
+                        <b>+ Add</b>
                       </button>
                     )}
                   </div>
@@ -566,16 +523,12 @@ const StudentProfile = ({
                 </div>
 
                 <div className="content-section">
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                    }}
-                  >
+                 <div className="services-header-row">
+
                     <h2 className="services-header">Group Classes</h2>
                     {!isParentView && (
                       <button onClick={() => handleOpenAddModal("Class")}>
-                        + Add
+                        <b>+ Add</b>
                       </button>
                     )}
                   </div>
@@ -625,7 +578,7 @@ const StudentProfile = ({
             <h3>Enroll in {addServiceType}</h3>
             <div className="modal-form-body">
               {availableServices.length === 0 ? (
-                <p style={{ color: "#ef4444", marginBottom: "10px" }}>
+                <p className="modal-warning">
                   No services available for this student based on recorded
                   interventions. Please check Background History.
                 </p>
@@ -645,8 +598,7 @@ const StudentProfile = ({
                 ))}
               </select>
               <select
-                className="modal-select"
-                style={{ marginTop: "10px" }}
+                className="modal-select spaced"
                 onChange={(e) =>
                   setAddForm({ ...addForm, staffId: e.target.value })
                 }

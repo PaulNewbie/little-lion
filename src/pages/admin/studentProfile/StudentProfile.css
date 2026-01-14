@@ -48,12 +48,12 @@
 .header-title h1 {
   font-size: 28px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #333333;
   margin: 0 0 5px 0;
 }
 
 .header-subtitle {
-  color: #666;
+  color: #999;
   margin: 0;
   font-size: 14px;
 }
@@ -92,9 +92,9 @@
 
 .sp-search:focus {
   background: white;
-  border-color: #4a90e2;
+  border-color: #0052A1;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0);
 }
 
 .sp-filter-select {
@@ -103,11 +103,10 @@
   border: 1px solid #ddd;
   background: white;
   font-size: 14px;
-  color: #444;
+  color: #333333;
   cursor: pointer;
   min-width: 160px;
   outline: none;
-
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -129,10 +128,6 @@
   pointer-events: none;       /* keeps select clickable */
 }
 
-.sp-filter-select:focus {
-  border-color: #4a90e2;
-}
-
 /* ============================================================
    STUDENT GRID (COMPACT NAME TAG STYLE)
 ============================================================ */
@@ -150,7 +145,7 @@
   background: white;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0);
   border: 1px solid #e6e6e6;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   display: flex;
@@ -160,8 +155,8 @@
 
 .sp-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-  border-color: #4a90e2;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0);
+  border-color: #0052A1;
 }
 
 /* The Image Box - Shortened */
@@ -184,7 +179,7 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-  color: #555;
+  color: #333333;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -206,7 +201,7 @@
 .sp-name {
   font-size: 17px;
   font-weight: 700;
-  color: #2c3e50;
+  color: #333333;
   margin: 0 0 10px 0; /* Space between name and badges */
 }
 
@@ -230,27 +225,27 @@
 
 .badge-therapy {
   background: #e3f2fd;
-  color: #1976d2;
+  color: #0052A1;
 }
 
 .badge-group {
   background: #e8f5e9;
-  color: #2e7d32;
+  color: #00ab54;
 }
 
 .badge-none {
   background: #f5f5f5;
-  color: #757575;
+  color: #999;
 }
 
 /* Empty State */
 .empty-state {
   text-align: center;
   padding: 60px;
-  color: #888;
+  color: #999;
   background: white;
   border-radius: 12px;
-  border: 1px dashed #ccc;
+  border: 1px dashed #999;
 }
 
 /* ============================================================
@@ -315,7 +310,7 @@
 .left-group .back-arrow {
   font-size: 150px;
   cursor: pointer;
-  color: #636363;
+  color: #333333;
   margin-bottom: 20px;
   transition: transform 0.2s ease;
 }
@@ -327,7 +322,7 @@
 .left-group h2 {
   font-size: 24px;
   font-weight: 700;
-  color: #2c3e50;
+  color: #333333;
   margin: 0;
   margin-top: 20px;
 }
@@ -345,9 +340,9 @@
   height: 380px;
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0);
   overflow: hidden;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #999;
 }
 
 .profile-photo {
@@ -360,14 +355,14 @@
   background: white;
   border-radius: 16px;
   padding: 30px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0);
   border: 1px solid #e0e0e0;
 }
 
 .profile-fullname {
   font-size: 32px;
   font-weight: 700;
-  color: #2c3e50;
+  color: #333333;
   margin: 0 0 20px 0;
 }
 
@@ -382,12 +377,12 @@
 .profile-details p {
   margin: 10px 0;
   font-size: 15px;
-  color: #555;
+  color: #333;
   line-height: 1.6;
 }
 
 .profile-details b {
-  color: #2c3e50;
+  color: #333333;
 }
 
 .profile-content-scroll {
@@ -404,15 +399,15 @@
 .services-header {
   font-size: 18px;
   font-weight: 700;
-  color: #2c3e50;
+  color: #333333;
   margin-bottom: 15px;
   padding-bottom: 8px;
-  border-bottom: 2px solid #e0e0e0;
+  border-bottom: 2px solid #999;
   text-transform: uppercase;
 }
 
 .tracker-subtitle {
-  color: #4a90e2;
+  color: #0052A1;
   font-weight: 400;
   text-transform: none;
 }
@@ -431,7 +426,7 @@
   justify-content: space-between;
   align-items: center;
   border: 1px solid #e9ecef;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0);
   transition: all 0.2s ease;
 }
 
@@ -441,14 +436,13 @@
 
 .service-row.clickable:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border-color: #4a90e2;
+  box-shadow: 0 4px 12px#999;
+  border-color: #0052A1;
 }
 
 .service-row.active {
   background-color: #eaf4ff;
-  border: 2px solid #4a90e2;
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
+  border: 2px solid #0052A1;
 }
 
 .service-left {
@@ -456,7 +450,7 @@
   align-items: center;
   gap: 12px;
   font-weight: 600;
-  color: #34495e;
+  color: #333333;
 }
 
 .service-icon {
@@ -464,11 +458,11 @@
 }
 .teacher-name {
   font-size: 14px;
-  color: #777;
+  color: #999;
 }
 .selected-check {
   margin-left: 10px;
-  color: #4a90e2;
+  color: #0052A1;
   font-weight: bold;
 }
 
@@ -479,7 +473,7 @@
   background: white;
   border-radius: 16px;
   padding: 30px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0);
 }
 
 .calendar-section {
@@ -504,13 +498,13 @@
 .calendar-dot {
   width: 6px;
   height: 6px;
-  background-color: #4a90e2;
+  background-color: #0052A1;
   border-radius: 50%;
   margin-top: 4px;
 }
 
 .react-calendar__tile--active {
-  background: #4a90e2 !important;
+  background: #0052A1 !important;
   color: white !important;
   border-radius: 8px;
 }
@@ -525,7 +519,7 @@
 
 .date-heading {
   font-size: 22px;
-  color: #2c3e50;
+  color: #333333;
   margin-top: 0;
   margin-bottom: 20px;
   padding-bottom: 10px;
@@ -549,7 +543,7 @@
 
 .record-card {
   background: #f8f9fa;
-  border-left: 4px solid #4a90e2;
+  border-left: 4px solid #0052A1;
   border-radius: 8px;
   padding: 15px;
 }
@@ -559,7 +553,7 @@
 }
 .record-type {
   font-weight: 700;
-  color: #4a90e2;
+  color: #0052A1;
   text-transform: uppercase;
   font-size: 12px;
   letter-spacing: 0.5px;
@@ -568,11 +562,11 @@
 .record-card p {
   margin: 5px 0;
   font-size: 14px;
-  color: #444;
+  color: #999;
 }
 .record-card .label {
   font-weight: 600;
-  color: #222;
+  color: #333333;
 }
 
 @media (max-width: 1000px) {
@@ -672,7 +666,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0,0,0,0.5);
+  background-color: rgba(0,0,0,0);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -685,7 +679,7 @@
   padding: 25px;
   border-radius: 12px;
   width: 400px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 20px rgba(0,0,0,0);
 }
 
 
@@ -694,7 +688,7 @@
   margin-top: 0;
   margin-bottom: 5px;
   font-size: 20px;
-  color: #2c3e50;
+  color: #333333;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -703,7 +697,7 @@
 
 .modal-subtitle {
   font-size: 14px;
-  color: #666;
+  color: #999;
   margin-top: 0;
   margin-bottom: 25px;
 }
@@ -718,7 +712,7 @@
   display: block;
   font-size: 13px;
   font-weight: 600;
-  color: #444;
+  color: #999;
   margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -731,7 +725,7 @@
 .select-wrapper::after {
   content: "▼";
   font-size: 12px;
-  color: #888;
+  color: #999;
   position: absolute;
   right: 15px;
   top: 50%;
@@ -746,16 +740,16 @@
   border: 1px solid #dcdcdc;
   background-color: #f9f9f9;
   font-size: 15px;
-  color: #333;
+  color: #999;
   appearance: none; /* Hides default arrow */
   outline: none;
   transition: all 0.2s;
 }
 
 .modal-select:focus {
-  border-color: #4a90e2;
+  border-color: #0052A1;
   background-color: white;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  box-shadow: 0 0 0 3px #333333;
 }
 
 .modal-actions {
@@ -772,7 +766,7 @@
   background-color: white;
   border: 1px solid #ddd;
   border-radius: 6px;
-  color: #666;
+  color: #999;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
@@ -780,23 +774,23 @@
 
 .btn-cancel:hover {
   background-color: #f5f5f5;
-  color: #333;
+  color: #999;
 }
 
 .btn-confirm {
   padding: 10px 24px;
-  background-color: #4a90e2;
+  background-color: #0052A1;
   border: none;
   border-radius: 6px;
   color: white;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(74, 144, 226, 0.3);
+  box-shadow: 0 2px 5px #333333;
   transition: background 0.2s, transform 0.1s;
 }
 
 .btn-confirm:hover {
-  background-color: #357abd;
+  background-color: #0052A1;
 }
 
 .btn-confirm:disabled {
@@ -820,7 +814,7 @@
   margin-top: 0;
   margin-bottom: 20px;
   font-size: 18px;
-  color: #2c3e50;
+  color: #333333;
   border-bottom: 2px solid #e0e0e0;
   padding-bottom: 10px;
   text-transform: uppercase;
@@ -836,7 +830,7 @@
 .history-card {
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 5px rgba(0,0,0,0);
   border: 1px solid #e0e0e0;
   overflow: hidden;
 }
@@ -851,7 +845,7 @@
 }
 
 .history-number {
-  background: #4a90e2;
+  background: #0052A1;
   color: white;
   font-size: 12px;
   font-weight: bold;
@@ -862,7 +856,7 @@
 .history-tool-name {
   margin: 0;
   font-size: 16px;
-  color: #34495e;
+  color: #333333;
   font-weight: 700;
 }
 
@@ -882,7 +876,7 @@
   display: block;
   font-size: 13px;
   font-weight: 700;
-  color: #888;
+  color: #999;
   text-transform: uppercase;
   margin-bottom: 5px;
 }
@@ -890,7 +884,7 @@
 .history-text {
   margin: 0;
   font-size: 15px;
-  color: #444;
+  color: #999;
   line-height: 1.5;
 }
 
@@ -914,7 +908,7 @@
 /* === ASSESSMENT REPORT STYLES === */
 .report-main-title {
   text-align: center;
-  color: #2c3e50;
+  color: #333333;
   border-bottom: 3px solid #FFCB10;
   padding-bottom: 15px;
   margin-bottom: 25px;
@@ -926,13 +920,13 @@
   background: white;
   padding: 15px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0,0,0,0);
   margin-bottom: 30px;
 }
 
 .meta-item .label {
   font-weight: bold;
-  color: #4a90e2;
+  color: #0052A1;
   margin-right: 5px;
 }
 
@@ -941,13 +935,13 @@
   padding: 25px;
   border-radius: 8px;
   margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px #333333;
   border: 1px solid #eee;
 }
 
 .report-heading {
   margin-top: 0;
-  color: #2c3e50;
+  color: #333333;
   border-bottom: 1px solid #eee;
   padding-bottom: 10px;
   margin-bottom: 15px;
@@ -958,7 +952,7 @@
 
 .sub-section h4 {
   font-size: 14px;
-  color: #666;
+  color: #333333;
   margin-bottom: 5px;
   text-transform: uppercase;
   font-weight: 700;
@@ -966,7 +960,7 @@
 
 .report-text {
   line-height: 1.6;
-  color: #444;
+  color: #333;
   white-space: pre-line; /* Preserves paragraphs in textareas */
 }
 
@@ -975,7 +969,7 @@
 }
 .report-list li {
   margin-bottom: 8px;
-  color: #444;
+  color: #999;
 }
 
 /* Tool Cards */
@@ -995,7 +989,7 @@
 }
 .tool-header h4 {
   margin: 0;
-  color: #2c3e50;
+  color: #333333;
 }
 .tool-body {
   padding: 15px;
@@ -1009,6 +1003,107 @@
 .recommendation-box {
   background: #eaf4ff;
   padding: 10px;
-  border-left: 3px solid #4a90e2;
+  border-left: 3px solid #0052A1;
   margin-top: 10px;
+}
+
+.sp-load-more-wrapper {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.sp-load-more-btn {
+  padding: 10px 20px;
+  background: transparent;
+  border: 1px solid #0052A1;
+  color: #0052A1;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* ---------- Profile Photo Placeholder ---------- */
+.profile-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  background: #eee;
+}
+
+/* ---------- Guardian Section ---------- */
+.guardian-section {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+  font-size: 0.95rem;
+}
+
+.guardian-name {
+  margin-bottom: 5px;
+}
+
+.guardian-meta {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  color: #333;
+}
+
+/* ---------- Assessment Toggle Button ---------- */
+.assessment-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.assessment-btn.active {
+  background: #e0e0e0;
+  color: #999;
+}
+
+.assessment-btn.inactive {
+  background: #0052A1;
+  color: #fff;
+}
+
+.profile-content-scroll {
+  margin-top: 30px;
+}
+
+.services-header-row {
+  display: flex;
+  justify-content:left;
+  align-items: center;
+}
+
+.services-header-row button{
+  margin-left: 10px;
+  margin-bottom: 25px;
+  font-size: 15px;
+  color: white;
+  border: solid #0052A1;
+  padding-right: 10px;
+  padding-left: 10px;
+  background-color: #0052A1;
+  border-radius: 10px;
+}
+
+
+
+/* ---------- Modal ---------- */
+.modal-warning {
+  color: #ef4444;
+  margin-bottom: 10px;
+}
+
+.modal-select.spaced {
+  margin-top: 10px;
+}
+
+.assessment-btn-wrapper {
+  margin-top: 20px;
 }
