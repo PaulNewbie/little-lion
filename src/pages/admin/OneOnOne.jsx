@@ -176,7 +176,6 @@ const OneOnOne = () => {
 
                       <div className="ooo-card-info">
                         <h3>{service.name}</h3>
-                        <ServiceDescription description={service.description} />
                       </div>
 
                       {/* EDIT BUTTON */}
@@ -207,11 +206,21 @@ const OneOnOne = () => {
               <>
                 {/* --- RESTORED HEADER --- */}
                 <div className="ooo-header">
-                  <span className="back-arrow" onClick={goBack}>‹</span>
-                  <h1 className="service-name">{selectedService.name}</h1>
+                  
+                  <div className="ooo-service-name-desc">
+                    <span className="back-arrow" onClick={goBack}>‹</span>
+                    <h1 className="service-name">{selectedService.name}</h1>
+                    {selectedService.description && (
+                    <div className="ooo-service-description">
+                      <ServiceDescription
+                        description={selectedService.description}
+                        maxLength={120}
+                      />
+                    </div>
+                  )}
+                </div>
                 </div>
                 {/* ----------------------- */}
-
                 <div className="ooo-grid">
                     {enrolledStudents.length === 0 ? (
                       <p style={{ color: "#888", fontStyle: "italic" }}>No students enrolled for this service yet.</p>
@@ -253,22 +262,14 @@ const OneOnOne = () => {
                   <form onSubmit={createService} className="modal-form">
                     <input name="name" placeholder="Service Name" value={newService.name} onChange={handleServiceInputChange} required />
                     <textarea name="description" placeholder="Description" value={newService.description} onChange={handleServiceInputChange} />
-                    <div style={{ margin: "10px 0" }}>
-                      <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Service Type:</label>
-                      <select name="type" value={newService.type} onChange={handleServiceInputChange} style={{ width: "100%", padding: "8px" }}>
-                        <option value="Therapy">Therapy</option>
-                        <option value="Assessment">Assessment</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
                     <div style={{ marginBottom: "10px" }}>
                       <label>Service Image (Optional)</label>
                       <input type="file" accept="image/*" onChange={(e) => setNewServiceImage(e.target.files[0])} />
                       {newServiceImage && <span>Selected: {newServiceImage.name}</span>}
                     </div>
                     <div className="modal-actions">
-                      <button type="button" onClick={() => setShowAddServiceModal(false)} disabled={uploading}>Cancel</button>
-                      <button type="submit" disabled={uploading}>{uploading ? "Uploading..." : "Add Service"}</button>
+                      <button className="cancel-service-btn" type="button" onClick={() => setShowAddServiceModal(false)} disabled={uploading}>Cancel</button>
+                      <button className="add-edit-service-btn" type="submit" disabled={uploading}>{uploading ? "Uploading..." : "Add Service"}</button>
                     </div>
                   </form>
                 </div>
@@ -284,21 +285,13 @@ const OneOnOne = () => {
                     <input name="name" value={editServiceData.name} onChange={e => setEditServiceData({...editServiceData, name: e.target.value})} required autoFocus disabled={editing} />
                     <textarea name="description" value={editServiceData.description} onChange={e => setEditServiceData({...editServiceData, description: e.target.value})} disabled={editing} />
                     <div style={{ marginBottom: "10px" }}>
-                      <label>Service Type:</label>
-                      <select value={editServiceData.type} onChange={e => setEditServiceData({...editServiceData, type: e.target.value})} disabled={editing} style={{ width: "100%", padding: "8px" }}>
-                        <option value="Therapy">Therapy</option>
-                        <option value="Assessment">Assessment</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                    <div style={{ marginBottom: "10px" }}>
                       <label>Service Image (Optional)</label>
                       <input type="file" accept="image/*" onChange={e => setEditServiceImage(e.target.files[0])} disabled={editing} />
                       {editServiceImage ? <span>Selected: {editServiceImage.name}</span> : editServiceData.imageUrl ? <span>Current: {editServiceData.imageUrl.split('/').pop()}</span> : null}
                     </div>
                     <div className="modal-actions">
-                      <button type="button" onClick={() => setShowEditModal(false)} disabled={editing}>Cancel</button>
-                      <button type="submit" disabled={editing}>{editing ? "Saving..." : "Save Changes"}</button>
+                      <button className="cancel-service-btn" type="button" onClick={() => setShowEditModal(false)} disabled={editing}>Cancel</button>
+                      <button className="add-edit-service-btn" type="submit" disabled={editing}>{editing ? "Saving..." : "Save Changes"}</button>
                     </div>
                   </form>
                 </div>

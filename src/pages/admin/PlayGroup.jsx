@@ -209,9 +209,6 @@ const PlayGroup = () => {
                         <div className="pg-card-icon">🎨</div>
                       )}
                       <h3>{service.name}</h3>
-                      
-                      <ServiceDescription description={service.description || "No description provided."} />
-
                       <button 
                         className="pg-edit-btn"
                         onClick={(e) => {
@@ -247,12 +244,17 @@ const PlayGroup = () => {
         {currentView === 'service-dashboard' && selectedService && (
           <div className="pg-dashboard-view">
             <div className="pg-header">
-              <div style={{display:'flex', alignItems:'center', gap:'15px'}}>
-                <span onClick={goBackToServices} className="pg-back-btn">‹</span>
-                <div className="pg-service-name-desc">
-                  <h1>{selectedService.name}</h1>
-                  <p>Manage attendance and activities</p>
-                </div>
+              <div className="pg-service-name-desc">
+                  <span className="pg-back-btn" onClick={goBackToServices}>‹</span>
+                  <h1 className="pg-service-name">{selectedService.name}</h1>
+                  {selectedService.description && (
+                  <div className="pg-service-description">
+                    <ServiceDescription
+                      description={selectedService.description}
+                      maxLength={120}
+                    />
+                  </div>
+                )}
               </div>
             </div>
 

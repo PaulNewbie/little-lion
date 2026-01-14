@@ -24,3 +24,9 @@
 .app-footer-sep{
   opacity: 0.6;
 }
+
+.app-footer-logo img {
+  height: 32px;
+  width: auto;
+  display: block;
+}

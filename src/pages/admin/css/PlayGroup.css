@@ -5,7 +5,7 @@
   padding: 50px;
   text-align: center;
   font-size: 18px;
-  color: #666;
+  color: #999;
 }
 
 .pg-page {
@@ -35,7 +35,7 @@
   overflow-x: hidden;
   position: relative;
   box-sizing: border-box;  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 82, 161, 0.55) rgba(0, 0, 0, 0.08);
+  scrollbar-color: #0052a1 rgba(0, 0, 0, 0);
 }
 
 .pg-header{
@@ -56,36 +56,38 @@
 }
 
 .pg-title p{
-  color: #666;
+  color: #999;
   margin: 0;
   font-size: 14px;
 }
 
-.pg-header .pg-service-name-desc h1{
-  font-size: 28px;
-  font-weight: 700;
-  font-weight: bold;
-  color: #0052A1;
-  margin: 0 0 5px 0;
-  margin-left: 3rem;
+.pg-service-name-desc{
+margin-left: 70px;
+margin-bottom: 15px;
 }
 
-.pg-header .pg-service-name-desc p{
-  color: #666;
-  margin: 0;
-  margin-left: 3rem;
-  font-size: 14px;
-  margin-bottom: 25px;
-}
-
-.pg-back-btn {
-  position: absolute; /* keeps back arrow on the left */
-  margin-bottom: 45px;
+.pg-header .pg-back-btn {
+  position:absolute;
+  bottom: 580px;
   left: 40px;
   font-size: 150px;
   cursor: pointer;
-  color: #000000;
+  color: #333333;
 }
+
+.pg-header .pg-service-name{
+  font-size: 2rem;
+  color: #0052A1;
+  font-weight: bold;
+}
+
+.pg-header .pg-service-description{
+  font-size: 0.9rem;
+  color: #333;
+  max-width: 700px;
+}
+
+
 
 /* === FLOATING ACTION BUTTON (FAB) === */
 .pg-fab {
@@ -123,7 +125,7 @@
 
 .pg-fab:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 22px rgba(0,0,0,0);
 }
 
 /* === SERVICE LIST VIEW === */
@@ -150,7 +152,7 @@
 .pg-service-card:hover {
   transform: translateY(-5px); /* Moves the card slightly upward */
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Optional: adds subtle shadow */
-  border: 2px solid #4a90e2; /* Blue border */
+  border: 2px solid #0052a1; /* Blue border */
 }
 
 /* New Image Styling */
@@ -189,12 +191,12 @@
 
 .pg-service-card h3 {
   margin: 0 0 8px 0;
-  color: #2c3e50;
+  color: #333333;
   font-size: 18px;
 }
 
 .pg-service-card p {
-  color: #7f8c8d;
+  color: #333;
   font-size: 14px;
   flex: 1;
   display: -webkit-box;
@@ -218,7 +220,7 @@
   background: white;
   border-radius: 16px;
   padding: 25px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0);
   display: flex;
   flex-direction: column;
   overflow: hidden; 
@@ -230,7 +232,7 @@
   background: white;
   border-radius: 16px;
   padding: 25px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0);
   display: flex;
   flex-direction: column;
 }
@@ -280,7 +282,7 @@
 
 .pg-mini-back-btn:hover {
   background: #e4e6eb;
-  color: #000;
+  color: #333333;
 }
 
 .pg-subtitle-date {
@@ -432,23 +434,23 @@
 /* === MODAL STYLES === */
 .pg-modal-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(2px);
+  z-index: 9999;
 }
 
 .pg-modal-form-card {
-  background: white;
-  width: 500px;
+  background: #efecec;
+  width: 420px;
   max-width: 90%;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-  animation: pgFadeIn 0.2s ease-out;
+  padding: 24px 28px;
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0);
+  animation: modalPop 0.2s ease-out;
+  border: solid 1px #333333;
 }
 
 @keyframes pgFadeIn {
@@ -516,28 +518,21 @@
   margin-top: 30px;
 }
 
-.pg-cancel-btn {
-  background: #f1f3f5;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  color: #555;
-  cursor: pointer;
-  font-weight: 600;
-}
-
+.pg-cancel-btn,
 .pg-submit-btn {
-  background: #4ECDC4;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
   cursor: pointer;
-  font-weight: 600;
+  color: #333333;
+  border: solid 1px #333333;
+  background-color: transparent;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+.pg-cancel-btn:hover,
 .pg-submit-btn:hover {
-  background: #3cbdb4;
+  background-color: #FFCB10;
+  color: #fff;
 }
 
 .pg-submit-btn:disabled {
