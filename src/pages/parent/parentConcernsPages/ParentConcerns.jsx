@@ -3,12 +3,13 @@ import { useAuth } from '../../../hooks/useAuth';
 import ParentSidebar from '../../../components/sidebar/ParentSidebar';
 
 // Local components
-import { 
-  RaiseConcernModal, 
-  ConcernsList, 
+import {
+  RaiseConcernModal,
+  ConcernsList,
   ConcernDetail,
-  BackButton 
-} from './components';
+  BackButton
+} from '../../../components/concerns';
+
 
 // Local hooks
 import { useConcerns } from './hooks';
