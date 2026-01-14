@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import Loading from '../../components/common/Loading';
-import TherapistSidebar from '../../components/sidebar/TherapistSidebar';
+import Sidebar from '../../components/sidebar/Sidebar';
+import { getTherapistConfig } from '../../components/sidebar/sidebarConfigs';
 
 // Shared components
 import PersonalInfoSection from '../shared/profile/PersonalInfoSection';
@@ -203,7 +204,7 @@ const TherapistProfile = () => {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <TherapistSidebar forceActive="/therapist/profile" />
+      <Sidebar {...getTherapistConfig()} forceActive="/therapist/profile" />
       <div style={{ flex: 1, backgroundColor: '#f8f9fa' }}>
         <div className="tp-page">
 

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import useManageTherapists from '../../hooks/useManageTherapists';
-import AdminSidebar from "../../components/sidebar/AdminSidebar";
+import { useAuth } from '../../hooks/useAuth';
+import Sidebar from '../../components/sidebar/Sidebar';
+import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import TherapistCard from '../shared/TherapistCard';
 import ActivationModal from '../../components/admin/ActivationModal';
 // 1. IMPORT THE CACHED HOOK (Saves money!)
@@ -12,6 +14,9 @@ import "./css/ManageTeacher.css"; // Provides the main layout & search styles
 import "./css/managetherapist.css"; 
 
 const ManageTherapists = () => {
+  const { currentUser } = useAuth();
+  const isSuperAdmin = currentUser?.role === 'super_admin';
+
   const {
     therapists,
     services,
@@ -106,7 +111,7 @@ const ManageTherapists = () => {
 
   return (
     <div className="ooo-container">
-      <AdminSidebar />
+      <Sidebar {...getAdminConfig(isSuperAdmin)} />
 
       <div className="ooo-main">  
         {/* ================= HEADER ================= */}

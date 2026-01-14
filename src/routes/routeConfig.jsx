@@ -76,6 +76,7 @@ export const ROUTES = {
     DASHBOARD: "/teacher/dashboard",
     PROFILE: "/teacher/profile",
     PLAY_GROUP_UPLOAD: "/teacher/play-group-upload",
+    ENROLLMENT: "/teacher/enrollment",
   },
 
   THERAPIST: {
@@ -83,6 +84,7 @@ export const ROUTES = {
     SESSION: "/therapist/session/:studentId",
     SESSION_FORM: "/therapist/session-form",
     PROFILE: "/therapist/profile",
+    ENROLLMENT: "/therapist/enrollment",
   },
 
   PARENT: {
@@ -250,12 +252,14 @@ export const AppRoutes = () => {
       <Route path={ROUTES.TEACHER.DASHBOARD} element={<ProtectedRoute allowedRoles={[ROLES.TEACHER]}><TeacherDashboard /></ProtectedRoute>} />
       <Route path={ROUTES.TEACHER.PROFILE} element={<ProtectedRoute allowedRoles={[ROLES.TEACHER]}><TeacherProfile /></ProtectedRoute>} />
       <Route path={ROUTES.TEACHER.PLAY_GROUP_UPLOAD} element={<ProtectedRoute allowedRoles={[ROLES.TEACHER, ...ROLE_GROUPS.ADMINS]}><PlayGroupActivity /></ProtectedRoute>} />
+      <Route path={ROUTES.TEACHER.ENROLLMENT} element={<ProtectedRoute allowedRoles={[ROLES.TEACHER]}><EnrollStudent /></ProtectedRoute>} />
 
       {/* THERAPIST ROUTES */}
       <Route path={ROUTES.THERAPIST.DASHBOARD} element={<ProtectedRoute allowedRoles={[ROLES.THERAPIST]}><TherapistDashboard /></ProtectedRoute>} />
       <Route path={ROUTES.THERAPIST.SESSION} element={<ProtectedRoute allowedRoles={[ROLES.THERAPIST]}><TherapySessionForm /></ProtectedRoute>} />
       <Route path={ROUTES.THERAPIST.SESSION_FORM} element={<ProtectedRoute allowedRoles={[ROLES.THERAPIST]}><TherapySessionForm /></ProtectedRoute>} />
       <Route path={ROUTES.THERAPIST.PROFILE} element={<ProtectedRoute allowedRoles={[ROLES.THERAPIST]}><TherapistProfile /></ProtectedRoute>} />
+      <Route path={ROUTES.THERAPIST.ENROLLMENT} element={<ProtectedRoute allowedRoles={[ROLES.THERAPIST]}><EnrollStudent /></ProtectedRoute>} />
 
       {/* PARENT ROUTES */}
       <Route path={ROUTES.PARENT.DASHBOARD} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><ParentDashboard /></ProtectedRoute>} />

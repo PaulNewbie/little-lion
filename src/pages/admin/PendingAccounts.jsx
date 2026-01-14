@@ -1,7 +1,9 @@
 // src/pages/admin/PendingAccounts.jsx
 
 import React, { useState, useEffect } from 'react';
-import AdminSidebar from '../../components/sidebar/AdminSidebar';
+import { useAuth } from '../../hooks/useAuth';
+import Sidebar from '../../components/sidebar/Sidebar';
+import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import ActivationModal from '../../components/admin/ActivationModal';
 import activationService from '../../services/activationService';
 
@@ -145,6 +147,9 @@ const getDaysUntilExpiry = (expiry) => {
 };
 
 export default function PendingAccounts() {
+  const { currentUser } = useAuth();
+  const isSuperAdmin = currentUser?.role === 'super_admin';
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState('all');
@@ -193,7 +198,7 @@ export default function PendingAccounts() {
 
   return (
     <div style={styles.layout}>
-      <AdminSidebar />
+      <Sidebar {...getAdminConfig(isSuperAdmin)} />
       
       <main style={styles.main}>
         <div style={styles.header}>

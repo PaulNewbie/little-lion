@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
-import AdminSidebar from "../../../components/sidebar/AdminSidebar";
-import ParentSidebar from "../../../components/sidebar/ParentSidebar";
+import Sidebar from '../../../components/sidebar/Sidebar';
+import { getAdminConfig, getParentConfig } from '../../../components/sidebar/sidebarConfigs';
 import GeneralFooter from "../../../components/footer/generalfooter";
 import childService from "../../../services/childService";
 import offeringsService from "../../../services/offeringsService";
@@ -292,7 +292,8 @@ const StudentProfile = ({
     ? filteredStudents.filter((s) => s.parentId === currentUser.uid)
     : filteredStudents;
 
-  const SidebarComponent = isParentView ? ParentSidebar : AdminSidebar;
+  const isSuperAdmin = currentUser?.role === 'super_admin';
+  const sidebarConfig = isParentView ? getParentConfig() : getAdminConfig(isSuperAdmin);
 
   const mainContent = (
     <div className="sp-main">
@@ -653,7 +654,7 @@ const StudentProfile = ({
 
   return (
     <div className="sp-container">
-      <SidebarComponent />
+      <Sidebar {...sidebarConfig} />
       {mainContent}
     </div>
   );

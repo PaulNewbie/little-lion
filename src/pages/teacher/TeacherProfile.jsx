@@ -202,11 +202,9 @@ const TeacherProfile = () => {
     }
   };
 
-  const sidebarConfig = getTeacherConfig(!profileCompletion.isComplete);
-
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <Sidebar {...sidebarConfig} forceActive="/teacher/profile" />
+      <Sidebar {...getTeacherConfig()} forceActive="/teacher/profile" />
       <div style={{ flex: 1, backgroundColor: '#f8f9fa' }}>
         <div className="tp-page">
 
@@ -263,17 +261,6 @@ const TeacherProfile = () => {
                     {formData.yearsExperience || 0} Years Experience
                   </span>
 
-                  {/* License Status */}
-                  {licenseStatus && (
-                    <span className={`tp-badge ${
-                      licenseStatus === 'Active' ? 'tp-badge--success' :
-                      licenseStatus === 'Expiring Soon' ? 'tp-badge--warning' :
-                      'tp-badge--danger'
-                    }`}>
-                      <span className="tp-badge-dot"></span>
-                      {licenseStatus}
-                    </span>
-                  )}
 
                   {/* Specializations Count */}
                   <span className="tp-badge tp-badge--info">

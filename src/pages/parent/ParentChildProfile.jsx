@@ -1,11 +1,12 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import StudentProfile from "../admin/studentProfile/StudentProfile";
-import ParentSidebar from "../../components/sidebar/ParentSidebar";
+import Sidebar from "../../components/sidebar/Sidebar";
+import { getParentConfig } from "../../components/sidebar/sidebarConfigs";
 
 /**
  * ParentChildProfile - Wrapper component for parents viewing their child's profile
- * 
+ *
  * This component simply calls the StudentProfile component with parent-specific props.
  * All the profile logic is handled by StudentProfile itself.
  */
@@ -16,8 +17,8 @@ const ParentChildProfile = () => {
 
   return (
     <div className="sp-container">
-      <ParentSidebar />
-      <StudentProfile 
+      <Sidebar {...getParentConfig()} />
+      <StudentProfile
         isParentView={true}
         childIdFromRoute={childId}
         hideSidebar={true}

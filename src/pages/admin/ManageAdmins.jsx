@@ -1,6 +1,7 @@
 import React from 'react';
 import useManageAdmins from '../../hooks/useManageAdmins';
-import AdminSidebar from '../../components/sidebar/AdminSidebar';
+import Sidebar from '../../components/sidebar/Sidebar';
+import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 
 const ManageAdmins = () => {
   const {
@@ -17,7 +18,7 @@ const ManageAdmins = () => {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <AdminSidebar />
+      <Sidebar {...getAdminConfig(true)} />
       <div style={{ padding: '20px', width: '100%', backgroundColor: '#f8f9fa' }}>
         <h1 style={{ color: '#2c3e50' }}>Manage Administrators</h1>
         {error && <div style={{ color: 'red', marginBottom: '10px' }}>Error: {error}</div>}

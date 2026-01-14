@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import Loading from '../../components/common/Loading';
-import TherapistSidebar from '../../components/sidebar/TherapistSidebar';
+import Sidebar from '../../components/sidebar/Sidebar';
+import { getTherapistConfig } from '../../components/sidebar/sidebarConfigs';
 import { Mail, Phone } from 'lucide-react';
 import { useTherapistDashboardData } from '../../hooks/useCachedData';
 import logo from '../../images/logo.png';
@@ -98,7 +99,7 @@ const TherapistDashboard = () => {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <TherapistSidebar forceActive="/therapist/dashboard" />
+      <Sidebar {...getTherapistConfig()} forceActive="/therapist/dashboard" />
       <div style={{ display: 'flex', flexDirection: 'column', width: '100%', backgroundColor: '#f8f9fa' }}>
         <div style={{ padding: '20px', flex: 1 }}>
           <div className="therapist-dashboard__content">

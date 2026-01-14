@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import AdminSidebar from "../../components/sidebar/AdminSidebar";
+import { useAuth } from '../../hooks/useAuth';
+import Sidebar from '../../components/sidebar/Sidebar';
+import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import GeneralFooter from "../../components/footer/generalfooter";
 import childService from "../../services/childService";
 import offeringsService from "../../services/offeringsService";
@@ -30,6 +32,9 @@ const ServiceDescription = ({ description, maxLength = 38 }) => {
 };
 
 const OneOnOne = () => {
+  const { currentUser } = useAuth();
+  const isSuperAdmin = currentUser?.role === 'super_admin';
+
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
@@ -150,7 +155,7 @@ const OneOnOne = () => {
 
   return (
     <div className="ooo-container">
-      <AdminSidebar forceActive="/admin/one-on-one" />
+      <Sidebar {...getAdminConfig(isSuperAdmin)} forceActive="/admin/one-on-one" />
       <div className="ooo-main">
         <div className="ooo-page">
           <div className="ooo-content">

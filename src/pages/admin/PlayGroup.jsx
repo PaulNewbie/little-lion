@@ -13,7 +13,9 @@ import offeringsService from '../../services/offeringsService';
 import cloudinaryService from '../../services/cloudinaryService';
 
 // Components & Styles
-import AdminSidebar from '../../components/sidebar/AdminSidebar';
+import { useAuth } from '../../hooks/useAuth';
+import Sidebar from '../../components/sidebar/Sidebar';
+import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import './css/PlayGroup.css';
 import './studentProfile/StudentProfile.css'; 
 
@@ -42,6 +44,9 @@ const ServiceDescription = ({ description, maxLength = 70 }) => {
 };
 
 const PlayGroup = () => {
+  const { currentUser } = useAuth();
+  const isSuperAdmin = currentUser?.role === 'super_admin';
+
   const queryClient = useQueryClient();
 
   // Navigation: 'service-list' | 'service-dashboard'
@@ -178,7 +183,7 @@ const PlayGroup = () => {
 
   return (
     <div className="pg-container">
-      <AdminSidebar />
+      <Sidebar {...getAdminConfig(isSuperAdmin)} />
       <div className="pg-main">
         <div className="pg-page">
         <div className="pg-content">
