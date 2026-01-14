@@ -141,6 +141,50 @@ class ConcernService {
     return concerns;
   }
 
+  /* ----------------------------------------------------
+   5. GET ALL CONCERNS (ADMIN)
+   ---------------------------------------------------- */
+    async getAllConcerns() {
+      try {
+        const q = query(
+          collection(db, 'concerns'),
+          orderBy('createdAt', 'desc')
+        );
+
+        const snapshot = await getDocs(q);
+
+        const concerns = await Promise.all(
+          snapshot.docs.map(async (docSnap) => {
+            const concern = {
+              id: docSnap.id,
+              ...docSnap.data()
+            };
+
+            const messagesSnapshot = await getDocs(
+              query(
+                collection(db, 'concerns', docSnap.id, 'messages'),
+                orderBy('createdAt', 'asc')
+              )
+            );
+
+            concern.messages = messagesSnapshot.docs.map(m => ({
+              id: m.id,
+              ...m.data()
+            }));
+
+            return concern;
+          })
+        );
+
+        return concerns;
+
+      } catch (error) {
+        console.error('getAllConcerns error:', error);
+        throw new Error('Failed to fetch all concerns');
+      }
+    }
+
+
 
   // async getConcernsByStaff(staffId) {
   //   const q = query(
