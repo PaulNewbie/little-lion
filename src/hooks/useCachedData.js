@@ -130,10 +130,16 @@ export function useUser(userId) {
  * Get all children - CACHED (use sparingly!)
  */
 export function useAllChildren() {
+  const queryClient = useQueryClient();
   return useQuery({
-    queryKey: ['children', 'all'],
-    queryFn: () => childService.getAllChildren(),
-    ...CACHE_CONFIG.standard,
+    queryKey: QUERY_KEYS.students(), // matches ['students']
+    queryFn: async () => {
+        const res = await childService.getAllChildren();
+        // Seed cache for individual lookups
+        seedStudentCache(queryClient, res);
+        return res;
+    },
+    ...QUERY_OPTIONS.semiStatic,
   });
 }
 
@@ -147,7 +153,30 @@ export function useChildrenByParent(parentId) {
   return useQuery({
     queryKey: QUERY_KEYS.studentsByParent(parentId),
     queryFn: async () => {
+      // 1. SMART CHECK: Do we have the full student list already?
+      // (e.g. from Student Profile or Manage Teachers)
+      const allStudents = queryClient.getQueryData(QUERY_KEYS.students());
+      
+      const studentsArray = Array.isArray(allStudents) 
+        ? allStudents 
+        : (allStudents?.students || []);
+
+      if (studentsArray.length > 0) {
+        // Filter in memory (Cost: 0 Reads)
+        const parentChildren = studentsArray.filter(s => s.parentId === parentId);
+        
+        // If we found their kids in the master list, use them!
+        if (parentChildren.length > 0) {
+          console.log("♻️ Found Parent's Children in Master List! (0 Reads)");
+          return parentChildren;
+        }
+      }
+
+      // 2. If not found, fetch from DB
+      console.log("⚡ Fetching Parent's Kids from DB...");
       const children = await childService.getChildrenByParentId(parentId);
+      
+      // 3. Seed the individual cache
       seedStudentCache(queryClient, children);
       return children;
     },
@@ -165,10 +194,32 @@ export function useChildrenByStaff(staffId) {
   return useQuery({
     queryKey: QUERY_KEYS.studentsByStaff(staffId),
     queryFn: async () => {
-      // 1. Fetch ONLY this staff's students (Cheap!)
+      // 1. SMART CHECK: Do we have the full class list already?
+      const allStudents = queryClient.getQueryData(QUERY_KEYS.students());
+      
+      // Handle different cache structures (array vs object with pagination)
+      const studentsArray = Array.isArray(allStudents) 
+        ? allStudents 
+        : (allStudents?.students || []);
+
+      if (studentsArray.length > 0) {
+        console.log("♻️ Found Master List! Filtering in memory (0 Reads)");
+        // Filter in memory
+        const staffStudents = studentsArray.filter(s => 
+          s.assignedStaffIds && s.assignedStaffIds.includes(staffId)
+        );
+        
+        // If we found them in memory, return them!
+        // (Optional: If we found 0, maybe the master list is stale? 
+        //  Safe bet is to return the empty list or fetch if critical).
+        if (staffStudents.length > 0) return staffStudents;
+      }
+
+      // 2. If no master list (or student not found), fetch from DB
+      console.log("⚡ Fetching Staff Subset from DB...");
       const children = await childService.getChildrenByStaffId(staffId);
       
-      // 2. Seed the cache so Profile View is free
+      // 3. Seed the individual cache
       seedStudentCache(queryClient, children);
       
       return children;
@@ -254,14 +305,13 @@ export function useCacheInvalidation() {
     invalidateAdmins: () => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.users('admin') }),
     
     invalidateChildren: () => {
-      // Invalidate lists
       queryClient.invalidateQueries({ queryKey: ['students'] });
-      // We don't necessarily want to wipe every individual student cache immediately
-      // unless we know data changed significantly.
     },
     
+    // UPDATED: Invalidate Master List too when a parent's child is updated
     invalidateChildrenByParent: (parentId) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.studentsByParent(parentId) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.students() }); // <--- ADD THIS LINE
     },
 
     invalidateServices: () => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.services() }),

@@ -1,10 +1,10 @@
 // src/hooks/useManageTeachers.js
-// UPDATED: Uses optimized queries and caching
+// OPTIMIZED: Uses 'useCachedData' to share cache with Admin/Therapist pages
 
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useStaff, useServices } from './useRoleBasedData';
-import { QUERY_KEYS, invalidateRelatedCaches } from '../config/queryClient';
+import { useTeachers, useServicesByType } from './useCachedData'; // IMPORT FROM UNIFIED CACHE
+import { invalidateRelatedCaches } from '../config/queryClient';
 import authService from '../services/authService';
 import userService from '../services/userService';
 
@@ -12,16 +12,17 @@ const useManageTeachers = () => {
   const queryClient = useQueryClient();
   const [error, setError] = useState(null);
 
-  // Using optimized hooks instead of direct queries
+  // 1. USE UNIFIED CACHED HOOKS
+  // This shares the ['users', 'teacher'] key with the rest of the app
   const { 
     data: teachers = [], 
     isLoading: loadingTeachers 
-  } = useStaff({ role: 'teacher' });
+  } = useTeachers();
 
   const { 
     data: services = [], 
     isLoading: loadingServices 
-  } = useServices({ type: 'Class' });
+  } = useServicesByType('Class'); // Explicitly fetch Class services
 
   const loading = loadingTeachers || loadingServices;
 
@@ -58,7 +59,6 @@ const useManageTeachers = () => {
         newTeacher
       );
 
-      // Reset form
       setNewTeacher({
         firstName: '',
         lastName: '',
@@ -67,7 +67,8 @@ const useManageTeachers = () => {
         specializations: []
       });
 
-      // Invalidate caches using optimized helper
+      // 2. INVALIDATE CACHE
+      // This forces the "useTeachers" hook to refresh automatically
       await invalidateRelatedCaches('teacher');
 
       return { success: true, user: result };
