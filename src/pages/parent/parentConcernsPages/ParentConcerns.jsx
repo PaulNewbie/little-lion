@@ -1,6 +1,6 @@
 import { useAuth } from '../../../hooks/useAuth';
 import ParentSidebar from '../../../components/sidebar/ParentSidebar';
-import useConcerns from '../../../hooks/useConcerns';
+import useParentConcerns from '../../../hooks/useParentConcerns';
 import ConcernsPage from '../../../components/concerns/ConcernsPage';
 
 const ParentConcerns = () => {
@@ -9,7 +9,7 @@ const ParentConcerns = () => {
   return (
     <ConcernsPage
       sidebar={ParentSidebar}
-      useConcernsHook={useConcerns}
+      useConcernsHook={useParentConcerns}
       currentUser={currentUser}
     />
   );

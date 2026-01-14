@@ -8,7 +8,7 @@ import childService from '../services/childService';
  * - Creates concerns
  * - Sends replies (messages subcollection)
  */
-const useConcerns = (userId) => {
+const useParentConcerns = (userId) => {
   // =======================
   // STATE
   // =======================
@@ -150,4 +150,4 @@ const useConcerns = (userId) => {
   };
 };
 
-export default useConcerns;
+export default useParentConcerns;
