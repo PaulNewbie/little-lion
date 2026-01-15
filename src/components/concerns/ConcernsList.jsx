@@ -50,6 +50,15 @@ const ConcernsList = ({
           ))
         )}
       </div>
+
+      <button 
+          onClick={onNewConcern} 
+          className="pc-fab-compose-btn" 
+          title="New Concern"
+          aria-label="Compose new concern"
+        >
+          +
+      </button>
     </section>
   );
 };
@@ -146,3 +155,8 @@ EmptyState.propTypes = {
 };
 
 export default ConcernsList;
+
+
+
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// ADD FLOATING BUTTON FOR RAISE CONCERN HERE

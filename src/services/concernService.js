@@ -61,7 +61,7 @@ class ConcernService {
         {
           senderId: senderInfo.id,
           senderName: senderInfo.name,
-          role, // 'parent' | 'staff'
+          role, // 'parent' | 'super_admin' | 'admin'
           text,
           createdAt: serverTimestamp()
         }
