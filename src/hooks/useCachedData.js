@@ -7,6 +7,7 @@ import { useAuth } from './useAuth';
 import childService from '../services/childService';
 import userService from '../services/userService';
 import offeringsService from '../services/offeringsService';
+import activityService from '../services/activityService';
 import { QUERY_KEYS, QUERY_OPTIONS } from '../config/queryClient';
 
 // =============================================================================
@@ -294,6 +295,76 @@ export function useServicesByType(type) {
 }
 
 // =============================================================================
+// PARENT ACTIVITY HOOKS - CACHED
+// =============================================================================
+
+/**
+ * Get activities for a specific child - CACHED
+ * Used by parents to view their child's activities
+ */
+export function useChildActivities(childId) {
+  return useQuery({
+    queryKey: QUERY_KEYS.activities(childId),
+    queryFn: async () => {
+      console.log("⚡ Fetching child activities from DB...");
+      const activities = await activityService.getActivitiesByChild(childId);
+      return activities;
+    },
+    enabled: !!childId,
+    ...QUERY_OPTIONS.dynamic, // 5 min stale time for activity data
+  });
+}
+
+/**
+ * Get therapy sessions for a specific child - CACHED
+ * Returns sessions that are visible to parents
+ */
+export function useChildTherapySessions(childId) {
+  return useQuery({
+    queryKey: ['therapySessions', 'byChild', childId],
+    queryFn: async () => {
+      console.log("⚡ Fetching child therapy sessions from DB...");
+      // Import dynamically to avoid circular deps
+      const { collection, query, where, getDocs, orderBy } = await import('firebase/firestore');
+      const { db } = await import('../config/firebase');
+
+      const q = query(
+        collection(db, 'therapy_sessions'),
+        where('childId', '==', childId),
+        orderBy('date', 'desc')
+      );
+
+      const snapshot = await getDocs(q);
+      return snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(session => session.visibleToParents !== false);
+    },
+    enabled: !!childId,
+    ...QUERY_OPTIONS.dynamic,
+  });
+}
+
+/**
+ * Combined child activities and therapy sessions - OPTIMIZED
+ * Single hook for ChildActivities page
+ */
+export function useChildAllActivities(childId) {
+  const activitiesQuery = useChildActivities(childId);
+  const therapyQuery = useChildTherapySessions(childId);
+
+  return {
+    activities: activitiesQuery.data || [],
+    therapySessions: therapyQuery.data || [],
+    isLoading: activitiesQuery.isLoading || therapyQuery.isLoading,
+    error: activitiesQuery.error || therapyQuery.error,
+    refetch: () => {
+      activitiesQuery.refetch();
+      therapyQuery.refetch();
+    },
+  };
+}
+
+// =============================================================================
 // CACHE INVALIDATION - Call these after create/update/delete operations
 // =============================================================================
 
@@ -371,6 +442,9 @@ export default {
   useChild,
   useAllServices,
   useServicesByType,
+  useChildActivities,
+  useChildTherapySessions,
+  useChildAllActivities,
   useCacheInvalidation,
   useTherapistDashboardData,
   useTeacherDashboardData,

@@ -33,6 +33,7 @@ const StudentProfile = ({
   const parentFromEnrollment = location.state?.parent;
 
   // 1. THE CUSTOM HOOK (Data & Pagination)
+  // OPTIMIZED: Pass isParentView and parentId so parents only fetch their own children
   const {
     loading,
     selectedStudent,
@@ -49,7 +50,10 @@ const StudentProfile = ({
     isAssessmentLoading,
     hasMore,
     handleLoadMore
-  } = useStudentProfileData(location.state);
+  } = useStudentProfileData(location.state, {
+    isParentView,
+    parentId: isParentView ? currentUser?.uid : null
+  });
 
   // 2. UI State
   const [viewMode, setViewMode] = useState(

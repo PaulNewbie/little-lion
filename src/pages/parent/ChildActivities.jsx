@@ -1,39 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import activityService from '../../services/activityService';
+import { useChildActivities } from '../../hooks/useCachedData';
 import Loading from '../../components/common/Loading';
 
 const ChildActivities = () => {
   const { childId } = useParams();
   const navigate = useNavigate();
-  
-  const [activities, setActivities] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await activityService.getActivitiesByChild(childId);
-        
-        // PRIVACY FILTER: 
-        // 1. Group Activities: The backend query already filtered by 'participatingStudentIds'.
-        // 2. Therapy Sessions: We must check the 'visibleToParents' flag.
-        const visibleActivities = data.filter(activity => {
-          if (activity.type === 'therapy_session') {
-            return activity.visibleToParents !== false; // Show unless explicitly set to false
-          }
-          return true; // Group activities are always visible if fetched
-        });
+  // Use cached activities - prevents re-fetching when navigating back
+  const { data: rawActivities = [], isLoading: loading } = useChildActivities(childId);
 
-        setActivities(visibleActivities);
-      } catch (err) {
-        console.error("Failed to load activities", err);
-      } finally {
-        setLoading(false);
+  // PRIVACY FILTER: Memoized to prevent re-computing on every render
+  const activities = useMemo(() => {
+    return rawActivities.filter(activity => {
+      // 1. Group Activities: The backend query already filtered by 'participatingStudentIds'.
+      // 2. Therapy Sessions: We must check the 'visibleToParents' flag.
+      if (activity.type === 'therapy_session') {
+        return activity.visibleToParents !== false; // Show unless explicitly set to false
       }
-    };
-    fetchData();
-  }, [childId]);
+      return true; // Group activities are always visible if fetched
+    });
+  }, [rawActivities]);
 
   if (loading) return <Loading />;
 

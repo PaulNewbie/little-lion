@@ -88,6 +88,13 @@ export const getAdminConfig = (isSuperAdmin = false) => ({
  * Get parent sidebar configuration
  * @returns {Object} Sidebar configuration
  */
+// Chart/Report Icon for Summary
+const ChartIcon = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="24" height="24">
+    <path d="M18 20V10M12 20V4M6 20v-6"/>
+  </svg>
+);
+
 export const getParentConfig = () => ({
   role: "parent",
   roleLabel: "PARENT",
@@ -97,7 +104,8 @@ export const getParentConfig = () => ({
       title: "MAIN",
       items: [
         { path: "/parent/dashboard", icon: HomeIcon, label: "MY CHILDREN" },
-        { path: "/parent/inquiries", icon: MessageIcon, label: "INQUIRIES" },
+        { path: "/parent/summary", icon: ChartIcon, label: "MONTHLY SUMMARY" },
+        { path: "/parent/concerns", icon: MessageIcon, label: "CONCERNS" },
       ]
     }
   ]

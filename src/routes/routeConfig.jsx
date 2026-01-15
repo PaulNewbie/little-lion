@@ -37,6 +37,7 @@ import TherapistProfile from "../pages/therapist/TherapistProfile";
 import ParentDashboard from "../pages/parent/ParentChildProfile";
 import ChildActivities from "../pages/parent/ChildActivities";
 import ParentConcerns from "../pages/parent/parentConcernsPages/ParentConcerns";
+import MonthlySummary from "../pages/parent/MonthlySummary";
 
 // Staff Shared Components
 import StaffInquiries from "../pages/shared/StaffInquiries";
@@ -93,6 +94,7 @@ export const ROUTES = {
     DASHBOARD: "/parent/dashboard",
     CHILD: "/parent/child/:childId",
     CONCERNS: "/parent/concerns",
+    SUMMARY: "/parent/summary",
   },
 
   STAFF: {
@@ -268,6 +270,7 @@ export const AppRoutes = () => {
       <Route path={ROUTES.PARENT.DASHBOARD} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><ParentDashboard /></ProtectedRoute>} />
       <Route path={ROUTES.PARENT.CHILD} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><ChildActivities /></ProtectedRoute>} />
       <Route path={ROUTES.PARENT.CONCERNS} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><ParentConcerns /></ProtectedRoute>} />
+      <Route path={ROUTES.PARENT.SUMMARY} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><MonthlySummary /></ProtectedRoute>} />
 
       {/* SHARED STAFF ROUTES */}
       <Route path={ROUTES.STAFF.INQUIRIES} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.STAFF}><StaffInquiries /></ProtectedRoute>} />
