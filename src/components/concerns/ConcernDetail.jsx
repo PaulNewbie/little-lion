@@ -58,11 +58,6 @@ const ConcernDetail = ({
  */
 const ConcernHeader = ({ concern }) => {
   const getStatusBadgeClass = (status) => status.replace(/_/g, '_');
-  
-  const statusText = concern.status === 'waiting_for_parent' 
-    ? '⏳ Awaiting Your Response' 
-    : '📝 Pending Review';
-
  
   return (
     <div className="pc-message-header">
@@ -74,7 +69,6 @@ const ConcernHeader = ({ concern }) => {
       </div>
       <div className="pc-header-meta">
         <span><strong>Child:</strong> {concern.childName}</span>
-        {/* <span><strong>Status:</strong> {statusText}</span> */}
         <span><strong>Created:</strong> {formatDateTime(concern.createdAt)}</span>
       </div>
     </div>

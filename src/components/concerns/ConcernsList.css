@@ -94,7 +94,7 @@
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   cursor: pointer;
   transition: var(--pc-transition);
-  z-index: 100000; /* Above other content */
+  z-index: 100; /* Above other content */
 }
 
 /* Hide compose button on small screens (mobile) */
