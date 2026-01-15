@@ -178,29 +178,15 @@
 
 /* Status badge */
 .pc-card-status {
-  font-size: 0.75rem;
+  font-size: 12px;
   font-weight: 600;
-  padding: 2px 6px;
+  padding: 4px 6px;
   border-radius: 4px;
   text-transform: capitalize;
   white-space: nowrap;
   color: white;
 }
-
-.pc-card-status.waiting {
-  background-color: var(--pc-primary);
-}
-
-.pc-card-status.pending {
-  background-color: var(--pc-warning);
-}
-
-.pc-card-status {
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  text-transform: capitalize;
-}
+  
 
 .status-orange {
   background: #ff9800;
