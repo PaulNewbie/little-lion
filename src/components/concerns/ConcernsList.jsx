@@ -16,14 +16,14 @@ const ConcernsList = ({
 }) => {
   const getStatusClass = (status) => {
     switch (status) {
-      case 'waiting_for_staff':
+      case 'pending':
         return 'status-orange';
-      case 'in_progress':
+      case 'ongoing':
         return 'status-blue';
-      case 'waiting_for_parent':
-        return 'status-yellow';
       case 'solved':
         return 'status-green';
+      case 'waiting_for_parent':
+        return 'status-yellow';
       default:
         return '';
     }
@@ -117,9 +117,8 @@ const ConcernCard = ({ concern, isActive, statusClass, onSelect, onStatusChange,
             value={concern.status}
             onChange={(e) => onStatusChange(concern.id, e.target.value)}
           >
-            <option value="waiting_for_staff">Needs immediate attention</option>
-            <option value="in_progress">In progress</option>
-            <option value="waiting_for_parent">Waiting for parent</option>
+            <option value="pending">Pending</option>
+            <option value="ongoing">Ongoing</option>
             <option value="solved">Solved</option>
           </select>
         ) : (

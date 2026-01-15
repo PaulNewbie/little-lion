@@ -27,7 +27,7 @@ class ConcernService {
         childId: concernData.childId,
         childName: concernData.childName,
         subject: concernData.subject,
-        status: 'waiting_for_staff',
+        status: 'pending',
         createdAt: serverTimestamp(),
         lastUpdated: serverTimestamp()
       });
