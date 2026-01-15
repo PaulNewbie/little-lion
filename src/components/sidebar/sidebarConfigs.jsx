@@ -104,7 +104,10 @@ export const getParentConfig = () => ({
       title: "MAIN",
       items: [
         { path: "/parent/dashboard", icon: HomeIcon, label: "MY CHILDREN" },
+<<<<<<< HEAD
         { path: "/parent/summary", icon: ChartIcon, label: "MONTHLY SUMMARY" },
+=======
+>>>>>>> 8be344ddf69e960d2c64aab47049ad04c86e9a8d
         { path: "/parent/concerns", icon: MessageIcon, label: "CONCERNS" },
       ]
     }

@@ -242,7 +242,7 @@ export const AppRoutes = () => {
 
       {/* ADMIN ROUTES */}
       <Route path={ROUTES.ADMIN.DASHBOARD} element={<Navigate to={ROUTES.ADMIN.STUDENT_PROFILE} replace />} />
-      <Route path={ROUTES.ADMIN.STUDENT_PROFILE} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><StudentProfile /></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.STUDENT_PROFILE} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ALL_STAFF}><StudentProfile /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.ONE_ON_ONE} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><OneOnOne /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.PLAY_GROUP} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><PlayGroup /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.MANAGE_TEACHERS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><ManageTeachers /></ProtectedRoute>} />

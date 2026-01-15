@@ -135,7 +135,7 @@
 }
 
 .sidebar__menu-item.active {
-  background-color: #FFCB10;
+  background:  #fbbf24;
   font-weight: bold;
   color: #ffffff;
 }
