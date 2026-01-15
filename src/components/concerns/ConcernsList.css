@@ -195,6 +195,34 @@
   background-color: var(--pc-warning);
 }
 
+.pc-card-status {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.status-orange {
+  background: #ff9800;
+  color: #fff;
+}
+
+.status-blue {
+  background: #2196f3;
+  color: #fff;
+}
+
+.status-yellow {
+  background: #bdbdbd;
+  color: #333;
+}
+
+.status-green {
+  background: #4caf50;
+  color: #fff;
+}
+
+
 /* Meta info: child + date */
 .pc-card-meta {
   display: flex;

@@ -94,6 +94,17 @@ const useAdminConcerns = () => {
     fetchConcerns();
   }, [fetchConcerns]);
 
+
+
+  // ====
+  const updateStatus = useCallback(async (concernId, status) => {
+    await concernService.updateConcernStatus(concernId, status);
+    fetchConcerns(); // refresh list
+  }, [fetchConcerns]);
+
+
+
+
   // =======================
   // RETURN API (SAME SHAPE)
   // =======================
@@ -111,7 +122,8 @@ const useAdminConcerns = () => {
     sendReply,
     selectConcern,
     clearSelection,
-    refresh
+    refresh,
+    updateStatus
   };
 };
 

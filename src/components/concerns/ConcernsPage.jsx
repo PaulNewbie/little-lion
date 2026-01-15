@@ -23,7 +23,8 @@ const ConcernsPage = ({
     createConcern,
     sendReply,
     selectConcern,
-    clearSelection
+    clearSelection,
+    updateStatus
   } = useConcernsHook(currentUser?.uid);
 
   const [mobileView, setMobileView] = useState('list');
@@ -79,6 +80,8 @@ const ConcernsPage = ({
           onSelectConcern={handleSelectConcern}
           onNewConcern={() => setShowNewModal(true)}
           isHidden={mobileView === 'detail'}
+          userRole={currentUser?.role}
+          updateStatus={updateStatus}
         />
 
         <section className={`pc-detail-column ${selectedConcern ? 'visible' : ''}`}>

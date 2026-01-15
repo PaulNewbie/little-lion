@@ -10,13 +10,25 @@ const ConcernsList = ({
   selectedConcernId, 
   onSelectConcern, 
   onNewConcern,
-  isHidden 
+  isHidden, 
+  userRole,
+  updateStatus
 }) => {
   const getStatusClass = (status) => {
-    if (status === 'waiting_for_parent') return 'waiting';
-    if (status === 'waiting_for_staff') return 'pending';
-    return '';
+    switch (status) {
+      case 'waiting_for_staff':
+        return 'status-orange';
+      case 'in_progress':
+        return 'status-blue';
+      case 'waiting_for_parent':
+        return 'status-yellow';
+      case 'solved':
+        return 'status-green';
+      default:
+        return '';
+    }
   };
+
 
   return (
     <section className={`pc-list-column ${isHidden ? 'hidden' : ''}`}>
@@ -46,6 +58,8 @@ const ConcernsList = ({
               isActive={selectedConcernId === concern.id}
               statusClass={getStatusClass(concern.status)}
               onSelect={() => onSelectConcern(concern)}
+              onStatusChange={updateStatus}   // ✅ NEW
+              userRole={userRole} 
             />
           ))
         )}
@@ -66,7 +80,7 @@ const ConcernsList = ({
 /**
  * Individual concern card in the list
  */
-const ConcernCard = ({ concern, isActive, statusClass, onSelect }) => {
+const ConcernCard = ({ concern, isActive, statusClass, onSelect, onStatusChange, userRole }) => {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -97,9 +111,23 @@ const ConcernCard = ({ concern, isActive, statusClass, onSelect }) => {
     >
       <div className="pc-card-header">
         <span className="pc-card-subject">{concern.subject}</span>
-        <span className={`pc-card-status ${statusClass}`}>
-          {concern.status.replace(/_/g, ' ')}
-        </span>
+       {(userRole === 'admin' || userRole === 'super_admin') ? (
+          <select
+            className={`pc-card-status ${statusClass}`}
+            value={concern.status}
+            onChange={(e) => onStatusChange(concern.id, e.target.value)}
+          >
+            <option value="waiting_for_staff">Needs immediate attention</option>
+            <option value="in_progress">In progress</option>
+            <option value="waiting_for_parent">Waiting for parent</option>
+            <option value="solved">Solved</option>
+          </select>
+        ) : (
+          <span className={`pc-card-status ${statusClass}`}>
+            {concern.status.replace(/_/g, ' ')}
+          </span>
+        )}
+
       </div>
 
       <div className="pc-card-meta">
