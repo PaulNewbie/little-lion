@@ -170,7 +170,7 @@ const TeacherDashboard = () => {
     setter(trimmed ? `${trimmed}. ${newText}. ` : `${newText}. `);
   };
 
-  if (loading) return <Loading />;
+  if (loading) return <Loading role="teacher" message="Loading classes" />;
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>

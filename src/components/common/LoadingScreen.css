@@ -1,0 +1,482 @@
+/* ===========================================
+   UNIFIED LOADING SCREEN COMPONENT
+   Beautiful, animated loading screen for Little Lions
+   =========================================== */
+
+/* Container */
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated background circles */
+.loading-screen::before,
+.loading-screen::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.1;
+  animation: float 6s ease-in-out infinite;
+}
+
+.loading-screen::before {
+  width: 300px;
+  height: 300px;
+  background: linear-gradient(135deg, #0052A1, #667eea);
+  top: -100px;
+  right: -100px;
+  animation-delay: 0s;
+}
+
+.loading-screen::after {
+  width: 200px;
+  height: 200px;
+  background: linear-gradient(135deg, #FFCB10, #f59e0b);
+  bottom: -50px;
+  left: -50px;
+  animation-delay: 3s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(20px, -20px) scale(1.05);
+  }
+}
+
+/* Content wrapper */
+.loading-screen__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  z-index: 1;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Logo container with pulse ring */
+.loading-screen__logo-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Animated ring around logo */
+.loading-screen__ring {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-top-color: var(--loading-primary, #0052A1);
+  border-right-color: var(--loading-accent, #FFCB10);
+  animation: spin 1.5s linear infinite;
+}
+
+.loading-screen__ring--outer {
+  width: 160px;
+  height: 160px;
+  border-width: 2px;
+  opacity: 0.5;
+  animation: spin 2s linear infinite reverse;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Logo wrapper with pulse effect */
+.loading-screen__logo-wrapper {
+  width: 120px;
+  height: 120px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 4px 20px rgba(0, 82, 161, 0.15),
+    0 8px 40px rgba(0, 82, 161, 0.1);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow:
+      0 4px 20px rgba(0, 82, 161, 0.15),
+      0 8px 40px rgba(0, 82, 161, 0.1);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow:
+      0 6px 30px rgba(0, 82, 161, 0.2),
+      0 12px 50px rgba(0, 82, 161, 0.15);
+  }
+}
+
+/* Logo image */
+.loading-screen__logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+/* Text content */
+.loading-screen__text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Brand name */
+.loading-screen__brand {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0052A1;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+/* Loading message with animated dots */
+.loading-screen__message {
+  font-size: 16px;
+  font-weight: 500;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Animated dots */
+.loading-screen__dots {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: 4px;
+}
+
+.loading-screen__dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--loading-accent, #FFCB10);
+  border-radius: 50%;
+  animation: bounce 1.4s ease-in-out infinite;
+}
+
+.loading-screen__dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.loading-screen__dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loading-screen__dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+
+/* Progress bar variant */
+.loading-screen__progress {
+  width: 200px;
+  height: 4px;
+  background-color: #e2e8f0;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.loading-screen__progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--loading-primary, #0052A1), var(--loading-accent, #FFCB10));
+  border-radius: 2px;
+  animation: progress 1.5s ease-in-out infinite;
+}
+
+@keyframes progress {
+  0% {
+    width: 0%;
+    margin-left: 0%;
+  }
+  50% {
+    width: 60%;
+    margin-left: 20%;
+  }
+  100% {
+    width: 0%;
+    margin-left: 100%;
+  }
+}
+
+/* ===========================================
+   ROLE-SPECIFIC THEMES
+   =========================================== */
+
+/* Admin/Super Admin Theme */
+.loading-screen--admin {
+  --loading-primary: #0052A1;
+  --loading-accent: #FFCB10;
+}
+
+/* Parent Theme */
+.loading-screen--parent {
+  --loading-primary: #0052A1;
+  --loading-accent: #10b981;
+}
+
+/* Therapist Theme */
+.loading-screen--therapist {
+  --loading-primary: #0052A1;
+  --loading-accent: #FFCB10;
+}
+
+/* Teacher Theme */
+.loading-screen--teacher {
+  --loading-primary: #0052A1;
+  --loading-accent: #f59e0b;
+}
+
+/* ===========================================
+   SIZE VARIANTS
+   =========================================== */
+
+/* Full page (default) */
+.loading-screen--fullpage {
+  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+}
+
+/* Inline/Content area loading */
+.loading-screen--inline {
+  min-height: 400px;
+  background: transparent;
+}
+
+.loading-screen--inline::before,
+.loading-screen--inline::after {
+  display: none;
+}
+
+.loading-screen--inline .loading-screen__logo-wrapper {
+  width: 80px;
+  height: 80px;
+}
+
+.loading-screen--inline .loading-screen__logo {
+  width: 50px;
+  height: 50px;
+}
+
+.loading-screen--inline .loading-screen__ring {
+  width: 100px;
+  height: 100px;
+}
+
+.loading-screen--inline .loading-screen__ring--outer {
+  width: 120px;
+  height: 120px;
+}
+
+.loading-screen--inline .loading-screen__brand {
+  font-size: 18px;
+}
+
+.loading-screen--inline .loading-screen__message {
+  font-size: 14px;
+}
+
+/* Compact variant */
+.loading-screen--compact {
+  min-height: 200px;
+  background: transparent;
+  gap: 16px;
+}
+
+.loading-screen--compact::before,
+.loading-screen--compact::after {
+  display: none;
+}
+
+.loading-screen--compact .loading-screen__content {
+  gap: 16px;
+}
+
+.loading-screen--compact .loading-screen__logo-wrapper {
+  width: 60px;
+  height: 60px;
+}
+
+.loading-screen--compact .loading-screen__logo {
+  width: 40px;
+  height: 40px;
+}
+
+.loading-screen--compact .loading-screen__ring {
+  width: 80px;
+  height: 80px;
+  border-width: 2px;
+}
+
+.loading-screen--compact .loading-screen__ring--outer {
+  width: 96px;
+  height: 96px;
+}
+
+.loading-screen--compact .loading-screen__brand {
+  display: none;
+}
+
+.loading-screen--compact .loading-screen__message {
+  font-size: 13px;
+}
+
+/* ===========================================
+   RESPONSIVE STYLES
+   =========================================== */
+
+@media (max-width: 480px) {
+  .loading-screen__logo-wrapper {
+    width: 100px;
+    height: 100px;
+  }
+
+  .loading-screen__logo {
+    width: 65px;
+    height: 65px;
+  }
+
+  .loading-screen__ring {
+    width: 120px;
+    height: 120px;
+  }
+
+  .loading-screen__ring--outer {
+    width: 140px;
+    height: 140px;
+  }
+
+  .loading-screen__brand {
+    font-size: 20px;
+  }
+
+  .loading-screen__message {
+    font-size: 14px;
+  }
+
+  .loading-screen::before {
+    width: 200px;
+    height: 200px;
+    top: -80px;
+    right: -80px;
+  }
+
+  .loading-screen::after {
+    width: 150px;
+    height: 150px;
+    bottom: -40px;
+    left: -40px;
+  }
+}
+
+/* ===========================================
+   ANIMATION VARIANTS
+   =========================================== */
+
+/* Minimal animation */
+.loading-screen--minimal .loading-screen__ring,
+.loading-screen--minimal .loading-screen__ring--outer {
+  display: none;
+}
+
+.loading-screen--minimal .loading-screen__logo-wrapper {
+  animation: gentlePulse 2.5s ease-in-out infinite;
+}
+
+@keyframes gentlePulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* No animation */
+.loading-screen--static .loading-screen__ring,
+.loading-screen--static .loading-screen__ring--outer,
+.loading-screen--static .loading-screen__logo-wrapper,
+.loading-screen--static .loading-screen__dot,
+.loading-screen--static .loading-screen__progress-bar {
+  animation: none;
+}
+
+.loading-screen--static .loading-screen__dot {
+  opacity: 1;
+}
+
+/* ===========================================
+   DARK MODE SUPPORT
+   =========================================== */
+
+@media (prefers-color-scheme: dark) {
+  .loading-screen--auto-dark {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  }
+
+  .loading-screen--auto-dark .loading-screen__brand {
+    color: #f1f5f9;
+  }
+
+  .loading-screen--auto-dark .loading-screen__message {
+    color: #94a3b8;
+  }
+
+  .loading-screen--auto-dark .loading-screen__logo-wrapper {
+    background: #1e293b;
+    box-shadow:
+      0 4px 20px rgba(0, 0, 0, 0.3),
+      0 8px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  .loading-screen--auto-dark .loading-screen__progress {
+    background-color: #334155;
+  }
+}

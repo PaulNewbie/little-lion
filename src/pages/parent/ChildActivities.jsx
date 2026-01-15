@@ -22,7 +22,7 @@ const ChildActivities = () => {
     });
   }, [rawActivities]);
 
-  if (loading) return <Loading />;
+  if (loading) return <Loading role="parent" message="Loading activities" />;
 
   // --- COMPONENT: THERAPY CARD (Updated for Detailed Clinical Data) ---
   const TherapyCard = ({ activity }) => {

@@ -5,9 +5,10 @@ import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import TeacherCard from '../shared/TeacherCard';
 import ActivationModal from '../../components/admin/ActivationModal';
+import Loading from '../../components/common/Loading';
 // 1. IMPORT THE CACHED HOOK
-import { useChildrenByStaff } from '../../hooks/useCachedData'; 
-import "./css/OneOnOne.css"; 
+import { useChildrenByStaff } from '../../hooks/useCachedData';
+import "./css/OneOnOne.css";
 import "./css/ManageTeacher.css";
 
 const ManageTeachers = () => {
@@ -41,7 +42,7 @@ const ManageTeachers = () => {
     isLoading: loadingStudents 
   } = useChildrenByStaff(selectedTeacherId);
 
-  if (loading) return <div className="pg-loading">Loading teachers...</div>;
+  if (loading) return <Loading role="admin" message="Loading teachers" />;
 
   // Filter teachers based on search query
   const filteredTeachers = teachers.filter(teacher =>

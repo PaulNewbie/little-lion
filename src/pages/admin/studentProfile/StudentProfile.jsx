@@ -260,7 +260,7 @@ const StudentProfile = ({
   };
 
   if (loading) {
-    return <div className="loading-spinner">Loading Student Data...</div>;
+    return <Loading role="admin" message="Loading students" variant="inline" />;
   }
 
   const calculateAge = (dob) => {
@@ -519,7 +519,7 @@ const StudentProfile = ({
 
             {showAssessment &&
               (isAssessmentLoading ? (
-                <Loading />
+                <Loading variant="compact" message="Loading assessment" showBrand={false} />
               ) : (
                 <AssessmentHistory
                   childData={selectedStudent}

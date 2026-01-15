@@ -227,7 +227,7 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
 export const AppRoutes = () => {
   const { loading } = useAuth();
 
-  if (loading) return <Loading />;
+  if (loading) return <Loading message="Initializing" showProgress />;
 
   return (
     <Routes>

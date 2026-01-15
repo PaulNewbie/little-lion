@@ -5,6 +5,7 @@ import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import TherapistCard from '../shared/TherapistCard';
 import ActivationModal from '../../components/admin/ActivationModal';
+import Loading from '../../components/common/Loading';
 // 1. IMPORT THE CACHED HOOK (Saves money!)
 import { useChildrenByStaff } from '../../hooks/useCachedData';
 
@@ -43,7 +44,7 @@ const ManageTherapists = () => {
     isLoading: loadingStudents 
   } = useChildrenByStaff(selectedTherapistId);
 
-  if (loading) return <div className="pg-loading">Loading therapists...</div>;
+  if (loading) return <Loading role="admin" message="Loading therapists" />;
 
   const filteredTherapists = therapists.filter(t =>
     `${t.firstName} ${t.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||

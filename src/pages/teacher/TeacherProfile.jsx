@@ -52,7 +52,7 @@ const TeacherProfile = () => {
     handleSaveProfile
   } = useProfileForm(currentUser, 'teacher', navigate);
 
-  if (loading) return <Loading />;
+  if (loading) return <Loading role="teacher" message="Loading profile" />;
 
   const fullName = `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim();
   const licenseStatus = formData.licenseExpirationDate ? getExpirationStatus(formData.licenseExpirationDate) : null;

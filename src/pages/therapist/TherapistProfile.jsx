@@ -52,7 +52,7 @@ const TherapistProfile = () => {
     handleSaveProfile
   } = useProfileForm(currentUser, 'therapist', navigate);
 
-  if (loading) return <Loading />;
+  if (loading) return <Loading role="therapist" message="Loading profile" />;
 
   const fullName = `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim();
   const licenseStatus = formData.licenseExpirationDate ? getExpirationStatus(formData.licenseExpirationDate) : null;

@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import GeneralFooter from "../../components/footer/generalfooter";
+import Loading from "../../components/common/Loading";
 import childService from "../../services/childService";
 import offeringsService from "../../services/offeringsService";
 import cloudinaryService from "../../services/cloudinaryService"; // Added for image upload
@@ -151,7 +152,7 @@ const OneOnOne = () => {
     } finally { setEditing(false); }
   };
 
-  if (loading) return <div className="loading-container">Loading...</div>;
+  if (loading) return <Loading role="admin" message="Loading services" />;
 
   return (
     <div className="ooo-container">

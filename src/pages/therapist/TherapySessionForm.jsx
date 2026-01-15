@@ -387,7 +387,7 @@ const TherapySessionForm = () => {
   };
 
   if (!child || !service) return <div style={{padding:'2rem'}}>No session details provided.</div>;
-  if (loading) return <Loading />;
+  if (loading) return <Loading role="therapist" message="Loading session" />;
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>

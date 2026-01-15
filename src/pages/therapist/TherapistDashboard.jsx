@@ -95,7 +95,7 @@ const TherapistDashboard = () => {
     setShowServiceModal(false);
   };
 
-  if (loading) return <Loading />;
+  if (loading) return <Loading role="therapist" message="Loading students" />;
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>

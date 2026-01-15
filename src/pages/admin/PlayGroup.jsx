@@ -1,4 +1,4 @@
-import React, { useState } from 'react'; 
+import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import GeneralFooter from "../../components/footer/generalfooter";
@@ -16,6 +16,7 @@ import cloudinaryService from '../../services/cloudinaryService';
 import { useAuth } from '../../hooks/useAuth';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
+import Loading from '../../components/common/Loading';
 import './css/PlayGroup.css';
 import './studentProfile/StudentProfile.css'; 
 
@@ -178,7 +179,7 @@ const PlayGroup = () => {
   };
 
   if (isLoading && services.length === 0) {
-    return <div className="pg-loading">Loading Play Group Data...</div>;
+    return <Loading role="admin" message="Loading play groups" />;
   }
 
   return (
