@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
-import AdminSidebar from "../../../components/sidebar/AdminSidebar";
-import ParentSidebar from "../../../components/sidebar/ParentSidebar";
+import Sidebar from '../../../components/sidebar/Sidebar';
+import { getAdminConfig, getParentConfig, getTeacherConfig, getTherapistConfig } from '../../../components/sidebar/sidebarConfigs';
 import GeneralFooter from "../../../components/footer/generalfooter";
 import childService from "../../../services/childService";
 import offeringsService from "../../../services/offeringsService";
@@ -33,6 +33,7 @@ const StudentProfile = ({
   const parentFromEnrollment = location.state?.parent;
 
   // 1. THE CUSTOM HOOK (Data & Pagination)
+  // OPTIMIZED: Pass isParentView and parentId so parents only fetch their own children
   const {
     loading,
     selectedStudent,
@@ -49,7 +50,10 @@ const StudentProfile = ({
     isAssessmentLoading,
     hasMore,
     handleLoadMore
-  } = useStudentProfileData(location.state);
+  } = useStudentProfileData(location.state, {
+    isParentView,
+    parentId: isParentView ? currentUser?.uid : null
+  });
 
   // 2. UI State
   const [viewMode, setViewMode] = useState(
@@ -134,6 +138,7 @@ const StudentProfile = ({
       return;
     }
 
+    // Handle navigation based on where user came from
     if (location.state?.fromOneOnOne) {
       navigate("/admin/one-on-one", {
         state: { ...location.state, level: "students" },
@@ -144,6 +149,12 @@ const StudentProfile = ({
           selectedParent: parentFromEnrollment,
         },
       });
+    } else if (currentUser?.role === 'therapist') {
+      // Therapist goes back to their dashboard
+      navigate('/therapist/dashboard');
+    } else if (currentUser?.role === 'teacher') {
+      // Teacher goes back to their dashboard
+      navigate('/teacher/dashboard');
     } else {
       setSelectedStudent(null);
       setViewMode("list");
@@ -249,7 +260,7 @@ const StudentProfile = ({
   };
 
   if (loading) {
-    return <div className="loading-spinner">Loading Student Data...</div>;
+    return <Loading role="admin" message="Loading students" variant="inline" />;
   }
 
   const calculateAge = (dob) => {
@@ -292,7 +303,23 @@ const StudentProfile = ({
     ? filteredStudents.filter((s) => s.parentId === currentUser.uid)
     : filteredStudents;
 
-  const SidebarComponent = isParentView ? ParentSidebar : AdminSidebar;
+  // Determine sidebar config based on user role
+  const getSidebarConfigByRole = () => {
+    if (isParentView) return getParentConfig();
+
+    switch (currentUser?.role) {
+      case 'therapist':
+        return getTherapistConfig();
+      case 'teacher':
+        return getTeacherConfig();
+      case 'super_admin':
+        return getAdminConfig(true);
+      case 'admin':
+      default:
+        return getAdminConfig(false);
+    }
+  };
+  const sidebarConfig = getSidebarConfigByRole();
 
   const mainContent = (
     <div className="sp-main">
@@ -301,35 +328,43 @@ const StudentProfile = ({
         {viewMode === "list" && (
           <>
             <div className="sp-header">
-              <div className="header-title">
-                <h1>{isParentView ? "MY CHILDREN" : "STUDENT PROFILES"}</h1>
-                <p className="header-subtitle">
-                  {isParentView 
-                    ? "View your children's profiles and activities" 
-                    : "Manage enrolled students and view activities"
-                  }
-                </p>
-              </div>
-              <div className="filter-actions">
-                <div className="search-wrapper">
-                  <span className="search-icon">🔍</span>
-                  <input
-                    className="sp-search"
-                    placeholder="Search by name..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+              <div className="sp-header-content">
+                <div className="header-title">
+                  <h1>{isParentView ? "MY CHILDREN" : "STUDENT PROFILES"}</h1>
+                  <p className="header-subtitle">
+                    {isParentView
+                      ? "View your children's profiles and activities"
+                      : "Manage enrolled students and view activities"
+                    }
+                  </p>
                 </div>
-                <div className="filter-wrapper">
-                  <select
-                    className="sp-filter-select"
-                    value={filterType}
-                    onChange={(e) => setFilterType(e.target.value)}
-                  >
-                    <option value="all">All Students</option>
-                    <option value="therapy">Therapy Only</option>
-                    <option value="group">Group Class Only</option>
-                  </select>
+                <div className="filter-actions">
+                  <div className="search-wrapper">
+                    <span className="search-icon">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                      </svg>
+                    </span>
+                    <input
+                      type="text"
+                      className="sp-search"
+                      placeholder="Search student name..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <div className="filter-wrapper">
+                    <select
+                      className="sp-filter-select"
+                      value={filterType}
+                      onChange={(e) => setFilterType(e.target.value)}
+                    >
+                      <option value="all">All Students</option>
+                      <option value="therapy">Therapy Only</option>
+                      <option value="group">Group Class Only</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
@@ -487,7 +522,7 @@ const StudentProfile = ({
 
             {showAssessment &&
               (isAssessmentLoading ? (
-                <Loading />
+                <Loading variant="compact" message="Loading assessment" showBrand={false} />
               ) : (
                 <AssessmentHistory
                   childData={selectedStudent}
@@ -654,9 +689,21 @@ const StudentProfile = ({
     return <div className="sp-container">{mainContent}</div>;
   }
 
+  // Determine forceActive based on role
+  const getForceActive = () => {
+    switch (currentUser?.role) {
+      case 'therapist':
+        return '/therapist/dashboard';
+      case 'teacher':
+        return '/teacher/dashboard';
+      default:
+        return '/admin/StudentProfile';
+    }
+  };
+
   return (
     <div className="sp-container">
-      <SidebarComponent />
+      <Sidebar {...sidebarConfig} forceActive={getForceActive()} />
       {mainContent}
     </div>
   );

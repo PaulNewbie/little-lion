@@ -4,9 +4,17 @@ import childService from "../../../../services/childService";
 import activityService from "../../../../services/activityService";
 import userService from "../../../../services/userService";
 import assessmentService from "../../../../services/assessmentService";
+import { QUERY_KEYS, QUERY_OPTIONS } from "../../../../config/queryClient";
 
-export const useStudentProfileData = (locationState) => {
+/**
+ * @param {Object} locationState - React Router location state
+ * @param {Object} options - Additional options
+ * @param {boolean} options.isParentView - If true, only fetches parent's children (not all students)
+ * @param {string} options.parentId - Parent's user ID (required when isParentView is true)
+ */
+export const useStudentProfileData = (locationState, options = {}) => {
   const queryClient = useQueryClient();
+  const { isParentView = false, parentId = null } = options;
 
   const passedStudent = locationState?.student || null;
   const passedActivities = locationState?.activities || [];
@@ -18,10 +26,21 @@ export const useStudentProfileData = (locationState) => {
   const [filterType, setFilterType] = useState("all");
 
   // ================= STUDENTS =================
+  // OPTIMIZED: Parents only fetch their own children, admins fetch all
   const { data: students = [], isLoading } = useQuery({
-    queryKey: ["students"],
-    queryFn: () => childService.getAllChildren(),
+    queryKey: isParentView
+      ? QUERY_KEYS.studentsByParent(parentId)  // Parent-specific cache key
+      : ["students"],                           // Admin cache key
+    queryFn: () => {
+      if (isParentView && parentId) {
+        console.log("📋 Parent View: Fetching only parent's children");
+        return childService.getChildrenByParentId(parentId);
+      }
+      console.log("📋 Admin View: Fetching all students");
+      return childService.getAllChildren();
+    },
     initialData: passedStudent ? [passedStudent] : undefined,
+    ...(isParentView ? QUERY_OPTIONS.semiStatic : {}), // Cache parent data longer
   });
 
   // ================= AUTO SELECT FROM NAV =================
@@ -96,7 +115,12 @@ export const useStudentProfileData = (locationState) => {
 
   // ================= HELPERS =================
   const refreshData = () => {
-    queryClient.invalidateQueries({ queryKey: ["students"] });
+    // Invalidate the correct cache based on view type
+    if (isParentView && parentId) {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.studentsByParent(parentId) });
+    } else {
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+    }
     if (selectedStudent?.assessmentId) {
       queryClient.invalidateQueries({
         queryKey: ["assessment", selectedStudent.assessmentId],

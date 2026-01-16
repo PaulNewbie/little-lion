@@ -1,0 +1,6 @@
+
+.ac-page-wrapper {
+  display: flex;
+  height: 100vh;
+  background-color: var(--pc-gray-100);
+}

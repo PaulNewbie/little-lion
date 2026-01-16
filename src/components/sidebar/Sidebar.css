@@ -1,6 +1,6 @@
-/* ===========================================
-   UNIFIED SIDEBAR STYLES
-   =========================================== */
+/* ============================================================================
+   UNIFIED SIDEBAR - Consistent design across all roles
+   ============================================================================ */
 
 /* Base sidebar */
 .sidebar {
@@ -29,26 +29,11 @@
   transform: translateX(-100%);
 }
 
-/* Close button inside sidebar */
-.sidebar__close-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  align-self: flex-end;
-  cursor: pointer;
-  margin-bottom: 20px;
-  color: #666;
-}
-
-.sidebar__close-btn:hover {
-  color: #333;
-}
-
-/* Open button outside sidebar (hamburger) */
+/* Open button (hamburger) */
 .sidebar__open-btn {
   position: fixed;
   top: 15px;
-  left: 15px;
+  right: 15px;
   font-size: 24px;
   padding: 10px 15px;
   border: none;
@@ -59,11 +44,27 @@
   z-index: 1100;
 }
 
-.sidebar__open-btn:hover {
-  background-color: #333;
+/* Close button inside sidebar */
+.sidebar__close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 5px;
+  line-height: 1;
 }
 
-/* Profile Section */
+.sidebar__close-btn:hover {
+  color: #333;
+}
+
+/* ===========================================
+   PROFILE SECTION
+   =========================================== */
 .sidebar__profile {
   margin-bottom: 40px;
   display: flex;
@@ -72,31 +73,33 @@
 }
 
 .sidebar__avatar {
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
-  border: 3px solid var(--sidebar-accent, #ffd700);
+  border: 3px solid #ffd700;
   background-color: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 28px;
 }
 
 .sidebar__role {
   font-size: 12px;
   color: #666;
-  text-transform: uppercase;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
 .sidebar__name {
   font-size: 20px;
   font-weight: bold;
-  color: var(--sidebar-primary, #0052A1);
+  color: #0052A1;
 }
 
-/* Menu Section */
+/* ===========================================
+   MENU SECTIONS
+   =========================================== */
 .sidebar__menu-section {
   margin-bottom: 30px;
 }
@@ -109,14 +112,16 @@
   text-transform: uppercase;
 }
 
-/* Menu Item */
+/* ===========================================
+   MENU ITEMS
+   =========================================== */
 .sidebar__menu-item {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 10px 15px;
   cursor: pointer;
-  color: #374151;
+  color: #000000;
   font-weight: 500;
   font-size: 16px;
   border-radius: 8px;
@@ -130,47 +135,71 @@
 }
 
 .sidebar__menu-item.active {
-  background-color: var(--sidebar-active, #FFCB10);
+  background:  #fbbf24;
   font-weight: bold;
-  color: #000;
+  color: #ffffff;
 }
 
-.sidebar__menu-item.active .sidebar__menu-label {
-  color: #000;
-}
-
-.sidebar__menu-item.active .sidebar__menu-icon {
-  filter: brightness(0);
-}
-
-/* Menu Icon */
+/* Menu icon - image type */
 .sidebar__menu-icon {
-  width: 25px;
-  height: 25px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
   flex-shrink: 0;
 }
 
+/* Menu icon - SVG type */
 .sidebar__menu-icon--svg {
-  fill: currentColor;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0052A1;
 }
 
-/* Menu Label */
+.sidebar__menu-icon--svg svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Active state for icons */
+.sidebar__menu-item.active .sidebar__menu-icon {
+  filter: brightness(0) invert(1);
+}
+
+.sidebar__menu-item.active .sidebar__menu-icon--svg {
+  color: #ffffff;
+  filter: none;
+}
+
+.sidebar__menu-item.active .sidebar__menu-icon--svg svg {
+  fill: #ffffff;
+  color: #ffffff;
+}
+
+/* Menu label */
 .sidebar__menu-label {
   color: #374151;
 }
 
-/* Notification Dot */
+.sidebar__menu-item.active .sidebar__menu-label {
+  color: #ffffff;
+}
+
+/* Notification dot */
 .sidebar__notification-dot {
   width: 8px;
   height: 8px;
   background-color: #ef4444;
   border-radius: 50%;
-  position: absolute;
-  right: 15px;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
-/* Logout Button */
+/* ===========================================
+   LOGOUT BUTTON
+   =========================================== */
 .sidebar__logout-btn {
   margin-top: auto;
   background-color: #ef4444;
@@ -181,6 +210,7 @@
   font-weight: bold;
   cursor: pointer;
   width: 100%;
+  font-size: 14px;
   transition: background-color 0.2s ease;
 }
 
@@ -189,9 +219,8 @@
 }
 
 /* ===========================================
-   RESPONSIVE STYLES
+   DESKTOP RESPONSIVE
    =========================================== */
-
 @media (min-width: 768px) {
   .sidebar__open-btn {
     display: none;
@@ -199,7 +228,9 @@
 
   .sidebar {
     transform: translateX(0);
-    position: relative;
+    position: sticky;
+    top: 0;
+    height: 100vh;
   }
 
   .sidebar__close-btn {
@@ -208,57 +239,54 @@
 }
 
 /* ===========================================
-   ROLE-SPECIFIC THEME VARIABLES
+   MOBILE RESPONSIVE
+   =========================================== */
+@media (max-width: 767px) {
+  .sidebar {
+    width: 280px;
+    padding: 20px;
+  }
+
+  .sidebar__profile {
+    margin-bottom: 30px;
+    margin-top: 40px;
+  }
+
+  .sidebar__avatar {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+  }
+
+  .sidebar__name {
+    font-size: 18px;
+  }
+
+  .sidebar__menu-item {
+    padding: 12px 15px;
+  }
+}
+
+/* ===========================================
+   ROLE-SPECIFIC THEMING (optional variations)
    =========================================== */
 
 /* Admin theme */
-.sidebar--admin {
-  --sidebar-accent: #ffd700;
-  --sidebar-primary: #0052A1;
-  --sidebar-active: #FFCB10;
-}
-
-/* Parent theme */
-.sidebar--parent {
-  --sidebar-accent: #10b981;
-  --sidebar-primary: #0052A1;
-  --sidebar-active: #10b981;
-}
-
-.sidebar--parent .sidebar__menu-item.active {
-  color: #fff;
-}
-
-.sidebar--parent .sidebar__menu-item.active .sidebar__menu-label {
-  color: #fff;
-}
-
-.sidebar--parent .sidebar__menu-item.active .sidebar__menu-icon {
-  filter: brightness(0) invert(1);
-}
-
-/* Therapist theme */
-.sidebar--therapist {
-  --sidebar-accent: #667eea;
-  --sidebar-primary: #0052A1;
-  --sidebar-active: #667eea;
-}
-
-.sidebar--therapist .sidebar__menu-item.active {
-  color: #fff;
-}
-
-.sidebar--therapist .sidebar__menu-item.active .sidebar__menu-label {
-  color: #fff;
-}
-
-.sidebar--therapist .sidebar__menu-item.active .sidebar__menu-icon {
-  filter: brightness(0) invert(1);
+.sidebar--admin .sidebar__avatar {
+  border-color: #ffd700;
 }
 
 /* Teacher theme */
-.sidebar--teacher {
-  --sidebar-accent: #f59e0b;
-  --sidebar-primary: #0052A1;
-  --sidebar-active: #f59e0b;
+.sidebar--teacher .sidebar__avatar {
+  border-color: #ffd700;
+}
+
+/* Therapist theme */
+.sidebar--therapist .sidebar__avatar {
+  border-color: #ffd700;
+}
+
+/* Parent theme */
+.sidebar--parent .sidebar__avatar {
+  border-color: #ffd700;
 }

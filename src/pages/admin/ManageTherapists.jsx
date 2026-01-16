@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import useManageTherapists from '../../hooks/useManageTherapists';
-import AdminSidebar from "../../components/sidebar/AdminSidebar";
+import { useAuth } from '../../hooks/useAuth';
+import Sidebar from '../../components/sidebar/Sidebar';
+import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import TherapistCard from '../shared/TherapistCard';
 import ActivationModal from '../../components/admin/ActivationModal';
+import Loading from '../../components/common/Loading';
 // 1. IMPORT THE CACHED HOOK (Saves money!)
 import { useChildrenByStaff } from '../../hooks/useCachedData';
 
@@ -12,6 +15,9 @@ import "./css/ManageTeacher.css"; // Provides the main layout & search styles
 import "./css/managetherapist.css"; 
 
 const ManageTherapists = () => {
+  const { currentUser } = useAuth();
+  const isSuperAdmin = currentUser?.role === 'super_admin';
+
   const {
     therapists,
     services,
@@ -38,7 +44,7 @@ const ManageTherapists = () => {
     isLoading: loadingStudents 
   } = useChildrenByStaff(selectedTherapistId);
 
-  if (loading) return <div className="pg-loading">Loading therapists...</div>;
+  if (loading) return <Loading role="admin" message="Loading therapists" />;
 
   const filteredTherapists = therapists.filter(t =>
     `${t.firstName} ${t.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -106,10 +112,9 @@ const ManageTherapists = () => {
 
   return (
     <div className="ooo-container">
-      <AdminSidebar />
+      <Sidebar {...getAdminConfig(isSuperAdmin)} />
 
-      <div className="ooo-main">
-        
+      <div className="ooo-main">  
         {/* ================= HEADER ================= */}
         <div className="ooo-header">
           <div className="mt-header-wrapper">
@@ -160,12 +165,11 @@ const ManageTherapists = () => {
         <div className="ooo-content-area">
           
           {selectedTherapistId ? (
-            /* ---------------- VIEW: DETAIL (Scrollable) ---------------- */
-            /* FIX: paddingBottom ensures button doesn't cover list */
-            <div style={{ paddingBottom: '120px', width: '100%' }}>
-              
-              <TherapistCard
-                therapistId={selectedTherapistId}
+              <div style={{ paddingBottom: '120px', width: '100%' }}>
+    
+                {/* FIXED: Passing the object 'therapist' instead of 'therapistId' */}
+                <TherapistCard
+                therapist={selectedTherapist}  
                 serviceName="Therapist Profile"
               />
 

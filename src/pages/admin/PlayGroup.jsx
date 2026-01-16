@@ -1,4 +1,4 @@
-import React, { useState } from 'react'; 
+import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import GeneralFooter from "../../components/footer/generalfooter";
@@ -13,7 +13,10 @@ import offeringsService from '../../services/offeringsService';
 import cloudinaryService from '../../services/cloudinaryService';
 
 // Components & Styles
-import AdminSidebar from '../../components/sidebar/AdminSidebar';
+import { useAuth } from '../../hooks/useAuth';
+import Sidebar from '../../components/sidebar/Sidebar';
+import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
+import Loading from '../../components/common/Loading';
 import './css/PlayGroup.css';
 import './studentProfile/StudentProfile.css'; 
 
@@ -42,6 +45,9 @@ const ServiceDescription = ({ description, maxLength = 70 }) => {
 };
 
 const PlayGroup = () => {
+  const { currentUser } = useAuth();
+  const isSuperAdmin = currentUser?.role === 'super_admin';
+
   const queryClient = useQueryClient();
 
   // Navigation: 'service-list' | 'service-dashboard'
@@ -173,12 +179,12 @@ const PlayGroup = () => {
   };
 
   if (isLoading && services.length === 0) {
-    return <div className="pg-loading">Loading Play Group Data...</div>;
+    return <Loading role="admin" message="Loading play groups" />;
   }
 
   return (
     <div className="pg-container">
-      <AdminSidebar />
+      <Sidebar {...getAdminConfig(isSuperAdmin)} />
       <div className="pg-main">
         <div className="pg-page">
         <div className="pg-content">

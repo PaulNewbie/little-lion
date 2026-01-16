@@ -3,7 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { saveSessionActivity } from '../../services/activityService';
 import { useAuth } from '../../hooks/useAuth';
 import Loading from '../../components/common/Loading';
-import TherapistSidebar from '../../components/sidebar/TherapistSidebar';
+import Sidebar from '../../components/sidebar/Sidebar';
+import { getTherapistConfig } from '../../components/sidebar/sidebarConfigs';
 import QuickSelectTags from '../../components/common/form-elements/QuickSelectTags';
 import VoiceInput from '../../components/common/form-elements/VoiceInput';
 import './css/TherapySessionForm.css';
@@ -386,11 +387,11 @@ const TherapySessionForm = () => {
   };
 
   if (!child || !service) return <div style={{padding:'2rem'}}>No session details provided.</div>;
-  if (loading) return <Loading />;
+  if (loading) return <Loading role="therapist" message="Loading session" />;
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <TherapistSidebar />
+      <Sidebar {...getTherapistConfig()} />
       <div style={{ flex: 1, backgroundColor: '#f8f9fa' }}>
         <div className="tsf-page">
 

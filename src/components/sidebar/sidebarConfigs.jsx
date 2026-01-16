@@ -40,8 +40,14 @@ const MailIcon = (
 );
 
 const ClockIcon = (
-  <svg width="25" height="25" viewBox="0 0 24 24" fill="currentColor">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/>
+  </svg>
+);
+
+const ShieldIcon = (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
   </svg>
 );
 
@@ -62,6 +68,7 @@ export const getAdminConfig = (isSuperAdmin = false) => ({
         { path: "/admin/one-on-one", icon: ooo_Icon, label: "1 on 1 SERVICES" },
         { path: "/admin/play-group", icon: group_Icon, label: "GROUP CLASSES" },
         { path: "/admin/enrollment", icon: enroll_Icon, label: "ENROLL STUDENT", hidden: !isSuperAdmin },
+        { path: "/admin/concerns", icon: MailIcon, label: "CONCERNS" },
       ]
     },
     {
@@ -71,6 +78,7 @@ export const getAdminConfig = (isSuperAdmin = false) => ({
         { path: "/admin/manage-teachers", icon: teacher_Icon, label: "TEACHER" },
         { path: "/admin/manage-therapists", icon: therapist_Icon, label: "THERAPIST" },
         { path: "/admin/pending-accounts", icon: ClockIcon, label: "PENDING ACCOUNTS" },
+        { path: "/admin/user-access", icon: ShieldIcon, label: "USER ACCESS" },
       ]
     }
   ]
@@ -80,6 +88,13 @@ export const getAdminConfig = (isSuperAdmin = false) => ({
  * Get parent sidebar configuration
  * @returns {Object} Sidebar configuration
  */
+// Chart/Report Icon for Summary
+const ChartIcon = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="24" height="24">
+    <path d="M18 20V10M12 20V4M6 20v-6"/>
+  </svg>
+);
+
 export const getParentConfig = () => ({
   role: "parent",
   roleLabel: "PARENT",
@@ -89,7 +104,8 @@ export const getParentConfig = () => ({
       title: "MAIN",
       items: [
         { path: "/parent/dashboard", icon: HomeIcon, label: "MY CHILDREN" },
-        { path: "/parent/inquiries", icon: MessageIcon, label: "INQUIRIES" },
+        { path: "/parent/summary", icon: ChartIcon, label: "MONTHLY SUMMARY" },
+        { path: "/parent/concerns", icon: MessageIcon, label: "CONCERNS" },
       ]
     }
   ]
@@ -115,6 +131,7 @@ export const getTherapistConfig = (profileCompleted = true) => ({
           label: "MY PROFILE",
           showNotification: !profileCompleted
         },
+        { path: "/therapist/enrollment", icon: enroll_Icon, label: "ENROLL STUDENT" },
         { path: "/staff/inquiries", icon: MailIcon, label: "INQUIRIES" },
       ]
     }
@@ -141,6 +158,7 @@ export const getTeacherConfig = (profileCompleted = true) => ({
           label: "MY PROFILE",
           showNotification: !profileCompleted
         },
+        { path: "/teacher/enrollment", icon: enroll_Icon, label: "ENROLL STUDENT" },
         { path: "/staff/inquiries", icon: MailIcon, label: "INQUIRIES" },
       ]
     }

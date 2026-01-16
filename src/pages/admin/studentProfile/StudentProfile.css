@@ -31,78 +31,122 @@
    HEADER + FILTER BAR
 ============================================================ */
 .sp-header {
-  background: #f0f2f5;
   background-image: url("../../../images/little-lions-bg.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  padding: 40px 40px;
-  border-bottom: 1px solid #e0e0e0;
+  border-radius: 1rem;
+  padding: 2.5rem 2rem;
+  margin: 20px;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.sp-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.25) 100%);
+}
+
+.sp-header-content {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 1.5rem;
 }
 
-.header-title h1 {
-  font-size: 28px;
-  font-weight: 700;
-  color: #333333;
-  margin: 0 0 5px 0;
+.sp-header .header-title {
+  flex: 1;
+  min-width: 200px;
+  text-align: left;
 }
 
-.header-subtitle {
-  color: #999;
+.sp-header .header-title h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #ffffff !important;
+  margin: 0 0 0.3rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+  text-align: left;
+}
+
+.sp-header .header-subtitle {
+  color: rgba(255, 255, 255, 0.9) !important;
   margin: 0;
-  font-size: 14px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  text-align: left;
 }
 
 .filter-actions {
   display: flex;
   gap: 15px;
+  align-items: center;
 }
 
-.search-wrapper {
+/* Search Bar - Cloned from Therapist Dashboard */
+.sp-header .search-wrapper {
   position: relative;
-  width: 300px;
+  min-width: 280px;
+  max-width: 320px;
 }
 
-.search-wrapper .search-icon {
+.sp-header .search-wrapper .search-icon {
   position: absolute;
-  left: 15px;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #999;
-  font-size: 14px;
-  border: solid #FFCB10 2px;
-  background-color: #FFCB10;
-  border-radius: 5px;
-}
-
-.sp-search {
-  width: 100%;
-  padding: 10px 15px 10px 40px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   border-radius: 8px;
-  border: 1px solid #ddd;
-  font-size: 14px;
-  background: #f9f9f9;
-  transition: all 0.2s;
+  font-size: 0.875rem;
+  z-index: 1;
+  color: white;
+  border: none;
 }
 
-.sp-search:focus {
-  background: white;
-  border-color: #0052A1;
+.sp-header .sp-search {
+  width: 100%;
+  padding: 0.875rem 1rem 0.875rem 3.5rem;
+  background-color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.9375rem;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0);
+  box-sizing: border-box;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+.sp-header .sp-search:focus {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.sp-header .sp-search::placeholder {
+  color: #9ca3af;
 }
 
 .sp-filter-select {
-  padding: 10px 40px 10px 15px; /* space for arrow */
-  border-radius: 8px;
-  border: 1px solid #ddd;
+  padding: 0.875rem 2.5rem 0.875rem 1rem;
+  border-radius: 12px;
+  border: none;
   background: white;
-  font-size: 14px;
+  font-size: 0.9375rem;
   color: #333333;
   cursor: pointer;
   min-width: 160px;
@@ -110,6 +154,7 @@
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .filter-wrapper {
@@ -118,14 +163,45 @@
 }
 
 .filter-wrapper::after {
-  content: "▼";               /* arrow shape */
+  content: "▼";
   position: absolute;
   right: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: #FFCB10;             /* 🔹 arrow color */
-  font-size: 18px;            /* 🔹 arrow size */
-  pointer-events: none;       /* keeps select clickable */
+  color: #fbbf24;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+/* Header Responsive */
+@media (max-width: 768px) {
+  .sp-header {
+    padding: 1.5rem;
+    margin: 15px;
+  }
+
+  .sp-header .header-title h1 {
+    font-size: 1.5rem;
+  }
+
+  .filter-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .sp-header .search-wrapper {
+    min-width: unset;
+    max-width: unset;
+    width: 100%;
+  }
+
+  .filter-wrapper {
+    width: 100%;
+  }
+
+  .sp-filter-select {
+    width: 100%;
+  }
 }
 
 /* ============================================================

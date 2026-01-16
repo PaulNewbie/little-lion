@@ -1,52 +1,53 @@
 import { useState, useEffect, useCallback } from 'react';
-import concernService from '../../../../services/concernService';
-import childService from '../../../../services/childService';
+import concernService from '../services/concernService';
+import { useChildrenByParent } from './useCachedData';
 
 /**
  * Custom hook for managing parent concerns
  * - Fetches concerns list
  * - Creates concerns
  * - Sends replies (messages subcollection)
+ * - Uses cached children data to prevent redundant reads
  */
-const useConcerns = (userId) => {
+const useParentConcerns = (userId) => {
   // =======================
   // STATE
   // =======================
   const [concerns, setConcerns] = useState([]);
-  const [children, setChildren] = useState([]);
   const [selectedConcern, setSelectedConcern] = useState(null);
 
-  const [loading, setLoading] = useState(true);
+  const [concernsLoading, setConcernsLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
 
   const [messages, setMessages] = useState([]);
 
+  // Use cached children data - prevents re-fetching across parent pages
+  const { data: children = [], isLoading: childrenLoading } = useChildrenByParent(userId);
+
+  // Combined loading state
+  const loading = concernsLoading || childrenLoading;
 
   // =======================
-  // FETCH INITIAL DATA
+  // FETCH CONCERNS ONLY (children from cache)
   // =======================
- const fetchData = useCallback(async () => {
-  if (!userId) return;
-  setLoading(true);
-  setError(null);
-  try {
-    const [concernData, childData] = await Promise.all([
-      concernService.getConcernsByParent(userId), // messages now included
-      childService.getChildrenByParentId(userId)
-    ]);
-    setConcerns(concernData);
-    setChildren(childData);
-  } catch (err) {
-    setError("Failed to load concerns. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-}, [userId]);
+  const fetchConcerns = useCallback(async () => {
+    if (!userId) return;
+    setConcernsLoading(true);
+    setError(null);
+    try {
+      const concernData = await concernService.getConcernsByParent(userId);
+      setConcerns(concernData);
+    } catch (err) {
+      setError("Failed to load concerns. Please try again.");
+    } finally {
+      setConcernsLoading(false);
+    }
+  }, [userId]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchConcerns();
+  }, [fetchConcerns]);
 
   useEffect(() => {
     if (!selectedConcern) return;
@@ -83,7 +84,7 @@ const useConcerns = (userId) => {
         message: concernData.message
       });
 
-      await fetchData();
+      await fetchConcerns();
       return true;
     } catch (err) {
       console.error('Error creating concern:', err);
@@ -91,7 +92,7 @@ const useConcerns = (userId) => {
     } finally {
       setSending(false);
     }
-  }, [children, fetchData]);
+  }, [children, fetchConcerns]);
 
   // =======================
   // SEND REPLY (SUBCOLLECTION)
@@ -126,8 +127,8 @@ const useConcerns = (userId) => {
   }, []);
 
   const refresh = useCallback(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchConcerns();
+  }, [fetchConcerns]);
 
   // =======================
   // RETURN API
@@ -150,4 +151,4 @@ const useConcerns = (userId) => {
   };
 };
 
-export default useConcerns;
+export default useParentConcerns;

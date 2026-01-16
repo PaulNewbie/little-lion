@@ -42,9 +42,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin: 8px;
-  background-color: #fff;
-  border-radius: var(--pc-border-radius);
+  /* margin: 0 px; */
+  background-color: blue;
+  /* border-radius: var(--pc-border-radius); */
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   overflow: hidden;
   position: relative;
@@ -83,9 +83,9 @@
   .pc-mobile-fab{
     display: none;
   }
-  .pc-content-container {
+  /* .pc-content-container {
     margin: 16px;
-  }
+  } */
 } 
 
 /* ============================================
@@ -95,7 +95,7 @@
 @media (min-width: 1024px) {
   .pc-content-container {
     flex-direction: row;
-    margin: 20px;
+    /* margin: 20px; */
     gap: 0;
   }
 } 
@@ -105,9 +105,9 @@
    ============================================ */
 
 @media (min-width: 1280px) {
-  .pc-content-container {
+  /* .pc-content-container {
     margin: 24px;
-  }
+  } */
 } 
 
 /* ============================================

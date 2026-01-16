@@ -277,6 +277,88 @@ class UserService {
       throw error;
     }
   }
+
+  /**
+   * Get all users with account status
+   * @param {string|null} roleFilter - Optional role to filter by
+   */
+  async getAllUsersWithStatus(roleFilter = null) {
+    try {
+      let q;
+
+      if (roleFilter) {
+        q = query(
+          collection(db, COLLECTION_NAME),
+          where('role', '==', roleFilter)
+        );
+      } else {
+        // Get all non-super_admin users
+        q = query(
+          collection(db, COLLECTION_NAME),
+          where('role', 'in', ['admin', 'teacher', 'therapist', 'parent'])
+        );
+      }
+
+      const snapshot = await getDocs(q);
+      trackRead(COLLECTION_NAME, snapshot.docs.length);
+
+      const users = snapshot.docs.map(doc => ({
+        id: doc.id,
+        uid: doc.id,
+        ...doc.data()
+      }));
+
+      // Sort by lastName
+      return users.sort((a, b) =>
+        (a.lastName || '').localeCompare(b.lastName || '')
+      );
+    } catch (error) {
+      console.error('Error fetching users with status:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Deactivate a user account
+   * @param {string} uid - User ID to deactivate
+   */
+  async deactivateUser(uid) {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, uid);
+
+      await updateDoc(docRef, {
+        accountStatus: 'inactive',
+        deactivatedAt: new Date().toISOString(),
+        updatedAt: serverTimestamp()
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error deactivating user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Reactivate a user account
+   * @param {string} uid - User ID to reactivate
+   */
+  async reactivateUser(uid) {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, uid);
+
+      await updateDoc(docRef, {
+        accountStatus: 'active',
+        reactivatedAt: new Date().toISOString(),
+        updatedAt: serverTimestamp()
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error reactivating user:', error);
+      throw error;
+    }
+  }
 }
 
 const userService = new UserService();
