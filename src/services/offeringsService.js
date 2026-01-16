@@ -47,12 +47,11 @@ class ServiceService {
   // 3. Get active services only
   async getActiveServices() {
     try {
-      const q = query(collection(db, 'services'), where('active', '==', true));
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      // Simplified: Get all and filter in JS to avoid index issues if 'active' is missing
+      const querySnapshot = await getDocs(collection(db, 'services'));
+      return querySnapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(s => s.active !== false);
     } catch (error) {
       throw new Error('Failed to fetch active services: ' + error.message);
     }
@@ -61,17 +60,22 @@ class ServiceService {
   // 4. Get services by Type (Therapy vs Class)
   async getServicesByType(type) {
     try {
+      // FIX: Query ONLY by type. This avoids the "Composite Index" error from Firestore.
       const q = query(
         collection(db, 'services'), 
-        where('active', '==', true),
         where('type', '==', type)
       );
+      
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      
+      // Filter for active status here in JavaScript
+      // (We use s.active !== false so that if the field is missing, it still shows up)
+      return querySnapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(s => s.active !== false);
+
     } catch (error) {
+      console.error("Detailed Firestore Error:", error);
       throw new Error(`Failed to fetch ${type} services: ` + error.message);
     }
   }
