@@ -139,6 +139,13 @@ const useParentConcerns = (userId) => {
     setSelectedConcern(concern);
   }, []);
 
+
+  //UI HELPERS
+  const clearSelection = useCallback(() => {
+    setSelectedConcern(null);
+    setMessages([]);
+  }, []);
+
   // =======================
   // RETURN VALUES
   // =======================
@@ -153,6 +160,7 @@ const useParentConcerns = (userId) => {
     createConcern,
     sendReply,
     selectConcern,
+    clearSelection,
     setError
   };
 };
