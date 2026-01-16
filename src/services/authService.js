@@ -20,9 +20,15 @@ class AuthService {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      
+
       const userData = await this.getUserData(user.uid);
-      
+
+      // Check if account is deactivated
+      if (userData.accountStatus === 'inactive') {
+        await signOut(auth); // Sign out immediately
+        throw new Error('Your account has been deactivated. Please contact an administrator.');
+      }
+
       return {
         uid: user.uid,
         email: user.email,

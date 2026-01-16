@@ -24,7 +24,7 @@
 ================================================================ */
 .ooo-main {
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 82, 161, 0.55) rgba(0, 0, 0, 0.08);
+  scrollbar-color: #0052a1 rgba(0, 0, 0, 0);
 }
 
 .ooo-main::-webkit-scrollbar {
@@ -32,17 +32,17 @@
 }
 
 .ooo-main::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0);
   border-radius: 10px;
 }
 
 .ooo-main::-webkit-scrollbar-thumb {
-  background: rgba(0, 82, 161, 0.55);
+  background: #0052a1;
   border-radius: 10px;
 }
 
 .ooo-main::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 82, 161, 0.75);
+  background: #0052a1;
 }
 
 /* ================================================================
@@ -66,28 +66,35 @@
 }
 
 .ooo-subtitle {
-  color: #666;
+  color: #999;
   margin: 0;
   font-size: 14px;
 }
 
+.ooo-service-name-desc{
+margin-left: 70px;
+margin-bottom: 15px;
+}
+
 .ooo-header .back-arrow {
-  position: absolute;
+  position:absolute;
   margin-bottom: 45px;
   left: 40px;
   font-size: 150px;
   cursor: pointer;
-  color: #000;
+  color: #333333;
 }
 
 .ooo-header .service-name {
-  margin: 0;
-  text-align: center;
   font-size: 2rem;
   color: #0052A1;
   font-weight: bold;
-  margin-bottom: 25px;
-  margin-left: 3rem;
+}
+
+.ooo-service-description {
+  font-size: 0.9rem;
+  color: #333;
+  max-width: 700px;
 }
 
 /* ================================================================
@@ -114,7 +121,7 @@
 }
 
 .ooo-card:hover {
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0,0,0,0);
 }
 
 /* Card image box for service */
@@ -150,7 +157,7 @@
 .ooo-card-info p {
   margin: 0;
   font-size: 0.9rem;
-  color: #555;
+  color: #333333;
 }
 
 /* See more / see less link */
@@ -183,7 +190,7 @@
 
 .ooo-edit-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 10px rgba(0,0,0,0);
 }
 
 /* Student photo area */
@@ -211,7 +218,7 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -219,13 +226,14 @@
 }
 
 .modal-box {
-  background: #fff;
+  background: #efecec;
   width: 420px;
   max-width: 90%;
   padding: 24px 28px;
   border-radius: 10px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  box-shadow: 0 10px 40px rgba(0,0,0,0);
   animation: modalPop 0.2s ease-out;
+  border: solid 1px #333333;
 }
 
 @keyframes modalPop {
@@ -254,12 +262,22 @@
   gap: 12px;
 }
 
-.modal-actions button {
+.modal-actions .cancel-service-btn,
+.modal-actions .add-edit-service-btn {
   padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
+  color: #333333;
+  border: solid 1px #333333;
+  background-color: transparent;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+.modal-actions .cancel-service-btn:hover,
+.modal-actions .add-edit-service-btn:hover {
+  background-color: #FFCB10;
+  color: #fff;
+}
 /* ================================================================
    FLOATING BUTTON
 ================================================================ */
@@ -271,7 +289,7 @@
   position: fixed;
   right: 40px;
   bottom: 70px;
-  box-shadow: 0 4px 15px #4ecdc466;
+  box-shadow: 0 4px 15px #999;
   color: #fff;
   cursor: pointer;
   display: flex;
@@ -285,7 +303,7 @@
 
 .floating-add-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 22px rgba(0,0,0,0);
 }
 
 /* ================================================================
@@ -304,3 +322,4 @@
   width: 100%;
   box-sizing: border-box;
 }
+

@@ -1,16 +1,13 @@
 import React from 'react';
+import LoadingScreen from './LoadingScreen';
 
-const Loading = () => {
-  return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '100vh'
-    }}>
-      <div>Loading...</div>
-    </div>
-  );
+/**
+ * Loading Component
+ * Wrapper around LoadingScreen for backward compatibility
+ * All props are passed through to LoadingScreen
+ */
+const Loading = (props) => {
+  return <LoadingScreen {...props} />;
 };
 
 export default Loading;

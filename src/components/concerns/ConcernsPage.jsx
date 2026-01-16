@@ -5,6 +5,7 @@ import {
   ConcernDetail,
   BackButton
 } from './index';
+import Loading from '../common/Loading';
 
 import './ConcernsPage.css';
 
@@ -57,7 +58,7 @@ const ConcernsPage = ({
   };
 
   if (loading) {
-    return <div className="pc-loading">Loading Concerns...</div>;
+    return <Loading message="Loading concerns" variant="inline" />;
   }
 
   return (

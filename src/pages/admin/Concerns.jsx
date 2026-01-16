@@ -1,14 +1,18 @@
 import { useAuth } from '../../hooks/useAuth';
-import AdminSidebar from '../../components/sidebar/AdminSidebar';
+import Sidebar from '../../components/sidebar/Sidebar';
+import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import useAdminConcerns from '../../hooks/useAdminConcerns';
 import ConcernsPage from '../../components/concerns/ConcernsPage';
 
 const Concerns = () => {
   const { currentUser } = useAuth();
+  const isSuperAdmin = currentUser?.role === 'super_admin';
+
+  const AdminSidebarWrapper = () => <Sidebar {...getAdminConfig(isSuperAdmin)} />;
 
   return (
     <ConcernsPage
-      sidebar={AdminSidebar}
+      sidebar={AdminSidebarWrapper}
       useConcernsHook={useAdminConcerns}
       currentUser={currentUser}
     />

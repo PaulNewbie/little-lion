@@ -128,9 +128,11 @@ class ChildService {
 
     try {
       // Try with assignedStaffIds array first
+      // UPDATED: Added status filter to avoid reading inactive/archived students
       const q = query(
         collection(db, COLLECTION_NAME),
-        where('assignedStaffIds', 'array-contains', staffId)
+        where('assignedStaffIds', 'array-contains', staffId),
+        where('status', '==', 'ENROLLED') 
       );
 
       const snapshot = await getDocs(q);
@@ -156,6 +158,8 @@ class ChildService {
       );
     } catch (error) {
       // Fallback: search through enrolled services
+      // Note: If the new query requires an index you haven't created yet, 
+      // this catch block will safely trigger the fallback automatically.
       console.warn('Falling back to service-based staff query:', error.message);
       return this.getChildrenByStaffIdFallback(staffId);
     }

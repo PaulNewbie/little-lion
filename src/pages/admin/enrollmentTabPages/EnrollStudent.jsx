@@ -1,7 +1,9 @@
 // EnrollStudent.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import AdminSidebar from "../../../components/sidebar/AdminSidebar";
+import { useAuth } from '../../../hooks/useAuth';
+import Sidebar from '../../../components/sidebar/Sidebar';
+import { getAdminConfig, getTeacherConfig, getTherapistConfig } from '../../../components/sidebar/sidebarConfigs';
 import EnrollStudentFormModal from "./enrollmentForm/EnrollStudentFormModal";
 import ActivationModal from "../../../components/admin/ActivationModal";
 import GeneralFooter from "../../../components/footer/generalfooter";
@@ -18,6 +20,22 @@ import { useParents, useChildrenByParent, useCacheInvalidation } from "../../../
 // REMOVED: generatePassword function - no longer needed!
 
 export default function EnrollStudent() {
+  const { currentUser } = useAuth();
+
+  // Determine sidebar config based on user role
+  const getSidebarConfig = () => {
+    switch (currentUser?.role) {
+      case 'teacher':
+        return getTeacherConfig();
+      case 'therapist':
+        return getTherapistConfig();
+      case 'super_admin':
+        return getAdminConfig(true);
+      default:
+        return getAdminConfig(false);
+    }
+  };
+
   const { data: allParents = [], isLoading: isLoadingParents } = useParents();
   const [selectedParent, setSelectedParent] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -171,7 +189,7 @@ export default function EnrollStudent() {
 
   return (
     <div className="ooo-container">
-      <AdminSidebar />
+      <Sidebar {...getSidebarConfig()} />
       <div className="ooo-main">
         {/* HEADER */}
         <div className="ooo-header">

@@ -54,5 +54,33 @@ firebase-debug.log
 .public/
 .public*
 
+# Build output
+dist/
+build/
+out/
 
+# Claude / AI tooling
+.claude/
+.mcp.json
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+
+# Node / frontend (if applicable)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Vite / bundlers
+.vite/
+
+# Windows weird files
+nul
+$RECYCLE.BIN/
 

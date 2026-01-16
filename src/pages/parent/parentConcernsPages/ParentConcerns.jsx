@@ -1,15 +1,18 @@
 import { useAuth } from '../../../hooks/useAuth';
-import ParentSidebar from '../../../components/sidebar/ParentSidebar';
-import useParentConcerns from '../../../hooks/useParentConcerns';
+import Sidebar from '../../../components/sidebar/Sidebar';
+import { getParentConfig } from '../../../components/sidebar/sidebarConfigs';
+import useConcerns from '../../../hooks/useParentConcerns';
 import ConcernsPage from '../../../components/concerns/ConcernsPage';
+
+const ParentSidebarWrapper = () => <Sidebar {...getParentConfig()} />;
 
 const ParentConcerns = () => {
   const { currentUser } = useAuth();
 
   return (
     <ConcernsPage
-      sidebar={ParentSidebar}
-      useConcernsHook={useParentConcerns}
+      sidebar={ParentSidebarWrapper}
+      useConcernsHook={useConcerns}
       currentUser={currentUser}
     />
   );

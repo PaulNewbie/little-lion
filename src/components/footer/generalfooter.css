@@ -1,26 +1,85 @@
 /* ============================================================
-   GLOBAL APP FOOTER
+   GLOBAL APP FOOTER - Matches Therapist/Teacher Design
 ============================================================ */
 
-.app-footer{
-  margin-top: auto;              /* ✅ pushes footer down when content is short */
-  padding: 16px 40px;
-  border-top: 1px solid #e5e7eb;
+.app-footer {
   background: #0052A1;
+  padding: 10px 40px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: auto;
 }
 
-.app-footer-inner{
-  max-width: 1200px;
-  margin: 0 auto;
-  margin-left: 180px;            /* aligns with admin sidebar */
+.app-footer-inner {
   display: flex;
-  gap: 10px;
+  justify-content: center;
   align-items: center;
+  gap: 10px;
   color: #FFCB10;
   font-weight: bold;
   font-size: 14px;
 }
 
-.app-footer-sep{
+.app-footer-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-footer-logo {
+  width: 30px;
+  height: 30px;
+  background-color: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  padding: 3px;
+  flex-shrink: 0;
+}
+
+.app-footer-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.app-footer-divider {
+  color: #FFCB10;
   opacity: 0.6;
+}
+
+.app-footer-icon {
+  flex-shrink: 0;
+  color: #FFCB10;
+}
+
+/* Footer Responsive */
+@media (max-width: 768px) {
+  .app-footer {
+    padding: 12px 20px;
+  }
+
+  .app-footer-inner {
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .app-footer-logo {
+    width: 24px;
+    height: 24px;
+  }
+
+  .app-footer-divider {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-footer-inner {
+    flex-direction: column;
+    gap: 6px;
+    font-size: 11px;
+  }
 }

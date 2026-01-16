@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import Loading from '../../components/common/Loading';
-import TherapistSidebar from '../../components/sidebar/TherapistSidebar';
+import Sidebar from '../../components/sidebar/Sidebar';
+import { getTherapistConfig } from '../../components/sidebar/sidebarConfigs';
 import { Mail, Phone } from 'lucide-react';
 import { useTherapistDashboardData } from '../../hooks/useCachedData';
 import logo from '../../images/logo.png';
@@ -94,11 +95,11 @@ const TherapistDashboard = () => {
     setShowServiceModal(false);
   };
 
-  if (loading) return <Loading />;
+  if (loading) return <Loading role="therapist" message="Loading students" />;
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <TherapistSidebar forceActive="/therapist/dashboard" />
+      <Sidebar {...getTherapistConfig()} forceActive="/therapist/dashboard" />
       <div style={{ display: 'flex', flexDirection: 'column', width: '100%', backgroundColor: '#f8f9fa' }}>
         <div style={{ padding: '20px', flex: 1 }}>
           <div className="therapist-dashboard__content">
@@ -189,10 +190,22 @@ const TherapistDashboard = () => {
                   </div>
                   <div className="therapist-dashboard__student-card-footer">
                     <button
+                      onClick={() => navigate('/admin/StudentProfile', { state: { studentId: student.id } })}
+                      className="therapist-dashboard__view-profile-button"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                      </svg>
+                      View Profile
+                    </button>
+                    <button
                       onClick={() => handleStartSessionClick(student)}
                       className="therapist-dashboard__start-session-button"
                     >
-                      📝 Start Session
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z"/>
+                      </svg>
+                      Start Session
                     </button>
                   </div>
                 </div>

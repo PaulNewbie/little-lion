@@ -7,6 +7,8 @@ import { useAuth } from './useAuth';
 import childService from '../services/childService';
 import userService from '../services/userService';
 import offeringsService from '../services/offeringsService';
+import activityService from '../services/activityService';
+import { QUERY_KEYS, QUERY_OPTIONS } from '../config/queryClient';
 
 // =============================================================================
 // CACHE CONFIGURATION - Data won't refetch for these durations
@@ -34,6 +36,23 @@ const CACHE_CONFIG = {
 };
 
 // =============================================================================
+// HELPER: CACHE SEEDING
+// =============================================================================
+// This function takes a list of students and puts them into the individual cache.
+// This is the magic that makes clicking a profile "Free" (0 reads).
+const seedStudentCache = (queryClient, students) => {
+  if (!students || !Array.isArray(students)) return;
+  
+  students.forEach(student => {
+    if (student && student.id) {
+      // We use QUERY_KEYS.student(id) to match what useRoleBasedData uses
+      queryClient.setQueryData(QUERY_KEYS.student(student.id), student);
+    }
+  });
+  console.log(`🌱 Seeded ${students.length} students into individual cache`);
+};
+
+// =============================================================================
 // USER HOOKS
 // =============================================================================
 
@@ -42,9 +61,9 @@ const CACHE_CONFIG = {
  */
 export function useParents() {
   return useQuery({
-    queryKey: ['users', 'parent'],
+    queryKey: QUERY_KEYS.users('parent'),
     queryFn: () => userService.getUsersByRole('parent'),
-    ...CACHE_CONFIG.standard,
+    ...QUERY_OPTIONS.semiStatic,
   });
 }
 
@@ -53,9 +72,9 @@ export function useParents() {
  */
 export function useTeachers() {
   return useQuery({
-    queryKey: ['users', 'teacher'],
+    queryKey: QUERY_KEYS.users('teacher'),
     queryFn: () => userService.getUsersByRole('teacher'),
-    ...CACHE_CONFIG.standard,
+    ...QUERY_OPTIONS.semiStatic,
   });
 }
 
@@ -64,9 +83,9 @@ export function useTeachers() {
  */
 export function useTherapists() {
   return useQuery({
-    queryKey: ['users', 'therapist'],
+    queryKey: QUERY_KEYS.users('therapist'),
     queryFn: () => userService.getUsersByRole('therapist'),
-    ...CACHE_CONFIG.standard,
+    ...QUERY_OPTIONS.semiStatic,
   });
 }
 
@@ -75,9 +94,9 @@ export function useTherapists() {
  */
 export function useAdmins() {
   return useQuery({
-    queryKey: ['users', 'admin'],
+    queryKey: QUERY_KEYS.users('admin'),
     queryFn: () => userService.getUsersByRole('admin'),
-    ...CACHE_CONFIG.standard,
+    ...QUERY_OPTIONS.semiStatic,
   });
 }
 
@@ -86,9 +105,9 @@ export function useAdmins() {
  */
 export function useAllStaff() {
   return useQuery({
-    queryKey: ['users', 'staff'],
+    queryKey: QUERY_KEYS.staff(),
     queryFn: () => userService.getAllStaff(),
-    ...CACHE_CONFIG.standard,
+    ...QUERY_OPTIONS.semiStatic,
   });
 }
 
@@ -97,10 +116,10 @@ export function useAllStaff() {
  */
 export function useUser(userId) {
   return useQuery({
-    queryKey: ['user', userId],
+    queryKey: QUERY_KEYS.user(userId),
     queryFn: () => userService.getUserById(userId),
     enabled: !!userId,
-    ...CACHE_CONFIG.standard,
+    ...QUERY_OPTIONS.semiStatic,
   });
 }
 
@@ -112,10 +131,16 @@ export function useUser(userId) {
  * Get all children - CACHED (use sparingly!)
  */
 export function useAllChildren() {
+  const queryClient = useQueryClient();
   return useQuery({
-    queryKey: ['children', 'all'],
-    queryFn: () => childService.getAllChildren(),
-    ...CACHE_CONFIG.standard,
+    queryKey: QUERY_KEYS.students(), // matches ['students']
+    queryFn: async () => {
+        const res = await childService.getAllChildren();
+        // Seed cache for individual lookups
+        seedStudentCache(queryClient, res);
+        return res;
+    },
+    ...QUERY_OPTIONS.semiStatic,
   });
 }
 
@@ -127,38 +152,37 @@ export function useChildrenByParent(parentId) {
   const queryClient = useQueryClient();
 
   return useQuery({
-    queryKey: ['children', 'byParent', parentId],
-    queryFn: () => childService.getChildrenByParentId(parentId),
-    enabled: !!parentId,
-    ...CACHE_CONFIG.standard,
-    // SMART INITIALIZATION: Check if these kids are already in the main list
-    initialData: () => {
-      // 1. Try to find the main list cache (from useStudents hook)
-      // Note: This key must match what is used in useRoleBasedData.js
-      const allStudentsCache = queryClient.getQueryData(['students']);
-
-      if (!allStudentsCache) return undefined;
-
-      // 2. Extract the array (handle both paginated object and simple array formats)
-      const studentsArray = Array.isArray(allStudentsCache) 
-        ? allStudentsCache 
-        : (allStudentsCache.students || []);
-
-      // 3. Filter for this parent's children
-      const children = studentsArray.filter(s => s.parentId === parentId);
-
-      // 4. Only use as initial data if we found some children
-      // WARNING: If a parent has children but they aren't in the *current page* of the list,
-      // this might return an incomplete list. 
-      // However, usually if you just created them or are viewing them, they are likely cached.
-      // If we return undefined, it triggers a fetch, which is safer for completeness.
+    queryKey: QUERY_KEYS.studentsByParent(parentId),
+    queryFn: async () => {
+      // 1. SMART CHECK: Do we have the full student list already?
+      // (e.g. from Student Profile or Manage Teachers)
+      const allStudents = queryClient.getQueryData(QUERY_KEYS.students());
       
-      return children.length > 0 ? children : undefined;
+      const studentsArray = Array.isArray(allStudents) 
+        ? allStudents 
+        : (allStudents?.students || []);
+
+      if (studentsArray.length > 0) {
+        // Filter in memory (Cost: 0 Reads)
+        const parentChildren = studentsArray.filter(s => s.parentId === parentId);
+        
+        // If we found their kids in the master list, use them!
+        if (parentChildren.length > 0) {
+          console.log("♻️ Found Parent's Children in Master List! (0 Reads)");
+          return parentChildren;
+        }
+      }
+
+      // 2. If not found, fetch from DB
+      console.log("⚡ Fetching Parent's Kids from DB...");
+      const children = await childService.getChildrenByParentId(parentId);
+      
+      // 3. Seed the individual cache
+      seedStudentCache(queryClient, children);
+      return children;
     },
-    // If we found data in cache, consider it fresh for 30 mins (matches standard config)
-    initialDataUpdatedAt: () => {
-      return queryClient.getQueryState(['students'])?.dataUpdatedAt;
-    }
+    enabled: !!parentId,
+    ...QUERY_OPTIONS.semiStatic,
   });
 }
 
@@ -166,11 +190,43 @@ export function useChildrenByParent(parentId) {
  * Get children by staff ID - CACHED
  */
 export function useChildrenByStaff(staffId) {
+  const queryClient = useQueryClient();
+
   return useQuery({
-    queryKey: ['children', 'byStaff', staffId],
-    queryFn: () => childService.getChildrenByStaffId(staffId),
+    queryKey: QUERY_KEYS.studentsByStaff(staffId),
+    queryFn: async () => {
+      // 1. SMART CHECK: Do we have the full class list already?
+      const allStudents = queryClient.getQueryData(QUERY_KEYS.students());
+      
+      // Handle different cache structures (array vs object with pagination)
+      const studentsArray = Array.isArray(allStudents) 
+        ? allStudents 
+        : (allStudents?.students || []);
+
+      if (studentsArray.length > 0) {
+        console.log("♻️ Found Master List! Filtering in memory (0 Reads)");
+        // Filter in memory
+        const staffStudents = studentsArray.filter(s => 
+          s.assignedStaffIds && s.assignedStaffIds.includes(staffId)
+        );
+        
+        // If we found them in memory, return them!
+        // (Optional: If we found 0, maybe the master list is stale? 
+        //  Safe bet is to return the empty list or fetch if critical).
+        if (staffStudents.length > 0) return staffStudents;
+      }
+
+      // 2. If no master list (or student not found), fetch from DB
+      console.log("⚡ Fetching Staff Subset from DB...");
+      const children = await childService.getChildrenByStaffId(staffId);
+      
+      // 3. Seed the individual cache
+      seedStudentCache(queryClient, children);
+      
+      return children;
+    },
     enabled: !!staffId,
-    ...CACHE_CONFIG.standard,
+    ...QUERY_OPTIONS.semiStatic,
   });
 }
 
@@ -193,19 +249,21 @@ export function useChild(childId) {
   const queryClient = useQueryClient();
   
   return useQuery({
-    queryKey: ['child', childId],
-    queryFn: () => childService.getChildById(childId),
+    queryKey: QUERY_KEYS.student(childId), // Matches the seed key!
+    queryFn: async () => {
+      // 1. Check if we already have it in memory (from a list fetch)
+      const existing = queryClient.getQueryData(QUERY_KEYS.student(childId));
+      if (existing) {
+        console.log("♻️ Found student in cache! (0 Reads)");
+        return existing;
+      }
+      
+      // 2. Only fetch from DB if truly missing
+      console.log("⚠️ Student not in cache, fetching...");
+      return childService.getChildById(childId);
+    },
     enabled: !!childId,
-    ...CACHE_CONFIG.standard,
-    // Look for this child in the main list cache first
-    initialData: () => {
-      const allStudentsCache = queryClient.getQueryData(['students']);
-      const studentsArray = Array.isArray(allStudentsCache) 
-        ? allStudentsCache 
-        : (allStudentsCache?.students || []);
-        
-      return studentsArray.find(d => d.id === childId);
-    }
+    ...QUERY_OPTIONS.semiStatic,
   });
 }
 
@@ -218,9 +276,9 @@ export function useChild(childId) {
  */
 export function useAllServices() {
   return useQuery({
-    queryKey: ['services', 'all'],
+    queryKey: QUERY_KEYS.services('all'),
     queryFn: () => offeringsService.getAllServices(),
-    ...CACHE_CONFIG.static,
+    ...QUERY_OPTIONS.static,
   });
 }
 
@@ -229,11 +287,81 @@ export function useAllServices() {
  */
 export function useServicesByType(type) {
   return useQuery({
-    queryKey: ['services', type],
+    queryKey: QUERY_KEYS.services(type),
     queryFn: () => offeringsService.getServicesByType(type),
     enabled: !!type,
-    ...CACHE_CONFIG.static,
+    ...QUERY_OPTIONS.static,
   });
+}
+
+// =============================================================================
+// PARENT ACTIVITY HOOKS - CACHED
+// =============================================================================
+
+/**
+ * Get activities for a specific child - CACHED
+ * Used by parents to view their child's activities
+ */
+export function useChildActivities(childId) {
+  return useQuery({
+    queryKey: QUERY_KEYS.activities(childId),
+    queryFn: async () => {
+      console.log("⚡ Fetching child activities from DB...");
+      const activities = await activityService.getActivitiesByChild(childId);
+      return activities;
+    },
+    enabled: !!childId,
+    ...QUERY_OPTIONS.dynamic, // 5 min stale time for activity data
+  });
+}
+
+/**
+ * Get therapy sessions for a specific child - CACHED
+ * Returns sessions that are visible to parents
+ */
+export function useChildTherapySessions(childId) {
+  return useQuery({
+    queryKey: ['therapySessions', 'byChild', childId],
+    queryFn: async () => {
+      console.log("⚡ Fetching child therapy sessions from DB...");
+      // Import dynamically to avoid circular deps
+      const { collection, query, where, getDocs, orderBy } = await import('firebase/firestore');
+      const { db } = await import('../config/firebase');
+
+      const q = query(
+        collection(db, 'therapy_sessions'),
+        where('childId', '==', childId),
+        orderBy('date', 'desc')
+      );
+
+      const snapshot = await getDocs(q);
+      return snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(session => session.visibleToParents !== false);
+    },
+    enabled: !!childId,
+    ...QUERY_OPTIONS.dynamic,
+  });
+}
+
+/**
+ * Combined child activities and therapy sessions - OPTIMIZED
+ * Single hook for ChildActivities page
+ */
+export function useChildAllActivities(childId) {
+  const activitiesQuery = useChildActivities(childId);
+  const therapyQuery = useChildTherapySessions(childId);
+
+  return {
+    activities: activitiesQuery.data || [],
+    therapySessions: therapyQuery.data || [],
+    isLoading: activitiesQuery.isLoading || therapyQuery.isLoading,
+    error: activitiesQuery.error || therapyQuery.error,
+    refetch: () => {
+      activitiesQuery.refetch();
+      therapyQuery.refetch();
+    },
+  };
 }
 
 // =============================================================================
@@ -242,41 +370,23 @@ export function useServicesByType(type) {
 
 export function useCacheInvalidation() {
   const queryClient = useQueryClient();
-
   return {
-    invalidateParents: () => {
-      queryClient.invalidateQueries({ queryKey: ['users', 'parent'] });
-    },
+    invalidateParents: () => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.users('parent') }),
+    invalidateStaff: () => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.staff() }),
+    invalidateAdmins: () => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.users('admin') }),
     
     invalidateChildren: () => {
-      queryClient.invalidateQueries({ queryKey: ['children'] });
-      // Also invalidate the main student list so it refreshes
       queryClient.invalidateQueries({ queryKey: ['students'] });
     },
     
+    // UPDATED: Invalidate Master List too when a parent's child is updated
     invalidateChildrenByParent: (parentId) => {
-      queryClient.invalidateQueries({ queryKey: ['children', 'byParent', parentId] });
-      // Also invalidate main list
-      queryClient.invalidateQueries({ queryKey: ['students'] });
-    },
-    
-    invalidateStaff: () => {
-      queryClient.invalidateQueries({ queryKey: ['users', 'teacher'] });
-      queryClient.invalidateQueries({ queryKey: ['users', 'therapist'] });
-      queryClient.invalidateQueries({ queryKey: ['users', 'staff'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.studentsByParent(parentId) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.students() }); // <--- ADD THIS LINE
     },
 
-    invalidateAdmins: () => {
-      queryClient.invalidateQueries({ queryKey: ['users', 'admin'] });
-    },
-    
-    invalidateServices: () => {
-      queryClient.invalidateQueries({ queryKey: ['services'] });
-    },
-    
-    invalidateAll: () => {
-      queryClient.invalidateQueries();
-    },
+    invalidateServices: () => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.services() }),
+    invalidateAll: () => queryClient.invalidateQueries(),
   };
 }
 
@@ -290,7 +400,6 @@ export function useCacheInvalidation() {
 export function useTherapistDashboardData() {
   const { currentUser } = useAuth();
   const studentsQuery = useChildrenByStaff(currentUser?.uid);
-  
   return {
     students: studentsQuery.data || [],
     isLoading: studentsQuery.isLoading,
@@ -299,13 +408,9 @@ export function useTherapistDashboardData() {
   };
 }
 
-/**
- * For Teacher Dashboard
- */
 export function useTeacherDashboardData() {
   const { currentUser } = useAuth();
   const studentsQuery = useChildrenByStaff(currentUser?.uid);
-  
   return {
     students: studentsQuery.data || [],
     isLoading: studentsQuery.isLoading,
@@ -314,13 +419,9 @@ export function useTeacherDashboardData() {
   };
 }
 
-/**
- * For Parent Dashboard
- */
 export function useParentDashboardData() {
   const { currentUser } = useAuth();
   const childrenQuery = useChildrenByParent(currentUser?.uid);
-  
   return {
     children: childrenQuery.data || [],
     isLoading: childrenQuery.isLoading,
@@ -336,13 +437,14 @@ export default {
   useAdmins,
   useAllStaff,
   useUser,
-  useAllChildren,
   useChildrenByParent,
   useChildrenByStaff,
-  useChildrenByService,
   useChild,
   useAllServices,
   useServicesByType,
+  useChildActivities,
+  useChildTherapySessions,
+  useChildAllActivities,
   useCacheInvalidation,
   useTherapistDashboardData,
   useTeacherDashboardData,

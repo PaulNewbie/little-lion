@@ -21,6 +21,7 @@ import Concerns from "../pages/admin/Concerns";
 import ManageAdmins from "../pages/admin/ManageAdmins";
 import StudentProfile from "../pages/admin/studentProfile/StudentProfile";
 import PendingAccounts from "../pages/admin/PendingAccounts";
+import UserAccessManagement from "../pages/admin/UserAccessManagement";
 
 // Teacher Components
 import TeacherDashboard from "../pages/teacher/TeacherDashboard";
@@ -36,6 +37,7 @@ import TherapistProfile from "../pages/therapist/TherapistProfile";
 import ParentDashboard from "../pages/parent/ParentChildProfile";
 import ChildActivities from "../pages/parent/ChildActivities";
 import ParentConcerns from "../pages/parent/parentConcernsPages/ParentConcerns";
+import MonthlySummary from "../pages/parent/MonthlySummary";
 
 // Staff Shared Components
 import StaffInquiries from "../pages/shared/StaffInquiries";
@@ -70,12 +72,14 @@ export const ROUTES = {
     CONCERNS: "/admin/concerns",
     MANAGE_ADMINS: "/admin/manage-admins",
     PENDING_ACCOUNTS: "/admin/pending-accounts",
+    USER_ACCESS: "/admin/user-access",
   },
 
   TEACHER: {
     DASHBOARD: "/teacher/dashboard",
     PROFILE: "/teacher/profile",
     PLAY_GROUP_UPLOAD: "/teacher/play-group-upload",
+    ENROLLMENT: "/teacher/enrollment",
   },
 
   THERAPIST: {
@@ -83,12 +87,14 @@ export const ROUTES = {
     SESSION: "/therapist/session/:studentId",
     SESSION_FORM: "/therapist/session-form",
     PROFILE: "/therapist/profile",
+    ENROLLMENT: "/therapist/enrollment",
   },
 
   PARENT: {
     DASHBOARD: "/parent/dashboard",
     CHILD: "/parent/child/:childId",
     CONCERNS: "/parent/concerns",
+    SUMMARY: "/parent/summary",
   },
 
   STAFF: {
@@ -221,7 +227,7 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
 export const AppRoutes = () => {
   const { loading } = useAuth();
 
-  if (loading) return <Loading />;
+  if (loading) return <Loading message="Initializing" showProgress />;
 
   return (
     <Routes>
@@ -236,31 +242,35 @@ export const AppRoutes = () => {
 
       {/* ADMIN ROUTES */}
       <Route path={ROUTES.ADMIN.DASHBOARD} element={<Navigate to={ROUTES.ADMIN.STUDENT_PROFILE} replace />} />
-      <Route path={ROUTES.ADMIN.STUDENT_PROFILE} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><StudentProfile /></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.STUDENT_PROFILE} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ALL_STAFF}><StudentProfile /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.ONE_ON_ONE} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><OneOnOne /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.PLAY_GROUP} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><PlayGroup /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.MANAGE_TEACHERS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><ManageTeachers /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.MANAGE_THERAPISTS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><ManageTherapists /></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.ENROLLMENT} element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><EnrollStudent /></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.ENROLLMENT} element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.TEACHER, ROLES.THERAPIST]}><EnrollStudent /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.CONCERNS} element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><Concerns /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.MANAGE_ADMINS} element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><ManageAdmins /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.PENDING_ACCOUNTS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><PendingAccounts /></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.USER_ACCESS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><UserAccessManagement /></ProtectedRoute>} />
 
       {/* TEACHER ROUTES */}
       <Route path={ROUTES.TEACHER.DASHBOARD} element={<ProtectedRoute allowedRoles={[ROLES.TEACHER]}><TeacherDashboard /></ProtectedRoute>} />
       <Route path={ROUTES.TEACHER.PROFILE} element={<ProtectedRoute allowedRoles={[ROLES.TEACHER]}><TeacherProfile /></ProtectedRoute>} />
       <Route path={ROUTES.TEACHER.PLAY_GROUP_UPLOAD} element={<ProtectedRoute allowedRoles={[ROLES.TEACHER, ...ROLE_GROUPS.ADMINS]}><PlayGroupActivity /></ProtectedRoute>} />
+      <Route path={ROUTES.TEACHER.ENROLLMENT} element={<ProtectedRoute allowedRoles={[ROLES.TEACHER]}><EnrollStudent /></ProtectedRoute>} />
 
       {/* THERAPIST ROUTES */}
       <Route path={ROUTES.THERAPIST.DASHBOARD} element={<ProtectedRoute allowedRoles={[ROLES.THERAPIST]}><TherapistDashboard /></ProtectedRoute>} />
       <Route path={ROUTES.THERAPIST.SESSION} element={<ProtectedRoute allowedRoles={[ROLES.THERAPIST]}><TherapySessionForm /></ProtectedRoute>} />
       <Route path={ROUTES.THERAPIST.SESSION_FORM} element={<ProtectedRoute allowedRoles={[ROLES.THERAPIST]}><TherapySessionForm /></ProtectedRoute>} />
       <Route path={ROUTES.THERAPIST.PROFILE} element={<ProtectedRoute allowedRoles={[ROLES.THERAPIST]}><TherapistProfile /></ProtectedRoute>} />
+      <Route path={ROUTES.THERAPIST.ENROLLMENT} element={<ProtectedRoute allowedRoles={[ROLES.THERAPIST]}><EnrollStudent /></ProtectedRoute>} />
 
       {/* PARENT ROUTES */}
       <Route path={ROUTES.PARENT.DASHBOARD} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><ParentDashboard /></ProtectedRoute>} />
       <Route path={ROUTES.PARENT.CHILD} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><ChildActivities /></ProtectedRoute>} />
       <Route path={ROUTES.PARENT.CONCERNS} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><ParentConcerns /></ProtectedRoute>} />
+      <Route path={ROUTES.PARENT.SUMMARY} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><MonthlySummary /></ProtectedRoute>} />
 
       {/* SHARED STAFF ROUTES */}
       <Route path={ROUTES.STAFF.INQUIRIES} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.STAFF}><StaffInquiries /></ProtectedRoute>} />
