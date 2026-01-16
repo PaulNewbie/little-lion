@@ -3,10 +3,10 @@ import concernService from '../services/concernService';
 
 /**
  * Custom hook for managing ADMIN concerns
- * - Fetches ALL concerns
- * - Listens to messages
+ * - Real-time listening to ALL concerns
+ * - Real-time listening to messages
  * - Sends admin replies
- * - Admin DOES NOT create concerns
+ * - Updates concern status
  */
 const useAdminConcerns = () => {
   // =======================
@@ -21,32 +21,36 @@ const useAdminConcerns = () => {
   const [error, setError] = useState(null);
 
   // =======================
-  // FETCH ALL CONCERNS
+  // LISTEN TO ALL CONCERNS (Real-time)
   // =======================
-  const fetchConcerns = useCallback(async () => {
+  useEffect(() => {
     setLoading(true);
     setError(null);
 
-    try {
-      const data = await concernService.getAllConcerns();
-      setConcerns(data);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to load concerns.');
-    } finally {
+    const unsubscribe = concernService.listenToAllConcerns((concernsData) => {
+      setConcerns(concernsData);
       setLoading(false);
-    }
+      
+      // Update selected concern if it exists in the new data
+      setSelectedConcern(prevSelected => {
+        if (!prevSelected) return null;
+        return concernsData.find(c => c.id === prevSelected.id) || null;
+      });
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
-  useEffect(() => {
-    fetchConcerns();
-  }, [fetchConcerns]);
-
   // =======================
-  // REALTIME MESSAGES
+  // LISTEN TO MESSAGES (Real-time)
   // =======================
   useEffect(() => {
-    if (!selectedConcern) return;
+    if (!selectedConcern) {
+      setMessages([]);
+      return;
+    }
 
     const unsubscribe = concernService.listenToConcernMessages(
       selectedConcern.id,
@@ -65,6 +69,8 @@ const useAdminConcerns = () => {
     }
 
     setSending(true);
+    setError(null);
+    
     try {
       await concernService.addMessageToConcern(
         concernId,
@@ -73,8 +79,29 @@ const useAdminConcerns = () => {
         'admin'
       );
       return true;
+    } catch (err) {
+      console.error('Error sending reply:', err);
+      setError('Failed to send reply');
+      throw err;
     } finally {
       setSending(false);
+    }
+  }, []);
+
+  // =======================
+  // UPDATE STATUS
+  // =======================
+  const updateStatus = useCallback(async (concernId, status) => {
+    setError(null);
+    
+    try {
+      await concernService.updateConcernStatus(concernId, status);
+      // No need to manually refresh - snapshot listener will update automatically
+      return true;
+    } catch (err) {
+      console.error('Error updating status:', err);
+      setError('Failed to update status');
+      throw err;
     }
   }, []);
 
@@ -83,27 +110,20 @@ const useAdminConcerns = () => {
   // =======================
   const selectConcern = useCallback((concern) => {
     setSelectedConcern(concern);
+    setError(null);
   }, []);
 
   const clearSelection = useCallback(() => {
     setSelectedConcern(null);
     setMessages([]);
+    setError(null);
   }, []);
 
   const refresh = useCallback(() => {
-    fetchConcerns();
-  }, [fetchConcerns]);
-
-
-
-  // ====
-  const updateStatus = useCallback(async (concernId, status) => {
-    await concernService.updateConcernStatus(concernId, status);
-    fetchConcerns(); // refresh list
-  }, [fetchConcerns]);
-
-
-
+    // With real-time listeners, manual refresh is not needed
+    // But we keep this for API compatibility
+    console.log('Refresh called - using real-time listeners, no action needed');
+  }, []);
 
   // =======================
   // RETURN API (SAME SHAPE)
