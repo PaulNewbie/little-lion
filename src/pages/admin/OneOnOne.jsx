@@ -70,11 +70,7 @@ const OneOnOne = () => {
     staleTime: 1000 * 60 * 5,
   });
 
-  const services = allServices.filter((s) => {
-    const type = s.type ? s.type.toLowerCase() : "";
-    return type !== "class"; 
-  });
-  
+  const services = allServices.filter((s) => s.type !== "Class");
   const loading = loadingStudents || loadingServices;
 
   useEffect(() => {
