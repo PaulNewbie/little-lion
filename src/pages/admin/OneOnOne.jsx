@@ -208,7 +208,11 @@ const OneOnOne = () => {
                 <div className="ooo-header">
                   
                   <div className="ooo-service-name-desc">
-                    <span className="back-arrow" onClick={goBack}>‹</span>
+                    <span className="back-arrow" onClick={goBack}>
+                  <svg width="32" height="52" viewBox="0 0 32 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M11.6255 22.8691C9.89159 24.4549 9.89159 27.1866 11.6255 28.7724L30.3211 45.8712C31.7604 47.1876 31.7604 49.455 30.3211 50.7714C29.0525 51.9316 27.1081 51.9316 25.8395 50.7714L1.01868 28.0705C0.366419 27.4738 0 26.6645 0 25.8208C0 24.977 0.366419 24.1678 1.01868 23.571L25.8395 0.87018C27.1081 -0.290054 29.0525 -0.290057 30.3211 0.870177C31.7604 2.1865 31.7604 4.45398 30.3211 5.7703L11.6255 22.8691Z" fill="#636363"/>
+                  </svg>
+                    </span>
                     <h1 className="service-name">{selectedService.name}</h1>
                     {selectedService.description && (
                     <div className="ooo-service-description">
@@ -258,9 +262,11 @@ const OneOnOne = () => {
             {showAddServiceModal && (
               <div className="modal-overlay" onClick={() => !uploading && setShowAddServiceModal(false)}>
                 <div className="modal-box" onClick={e => e.stopPropagation()}>
-                  <h2>Add New Service</h2>
+                  <h2>Create New Service</h2>
                   <form onSubmit={createService} className="modal-form">
+                    <label>Service Name</label>
                     <input name="name" placeholder="Service Name" value={newService.name} onChange={handleServiceInputChange} required />
+                    <label>Description</label>
                     <textarea name="description" placeholder="Description" value={newService.description} onChange={handleServiceInputChange} />
                     <div style={{ marginBottom: "10px" }}>
                       <label>Service Image (Optional)</label>
@@ -282,12 +288,13 @@ const OneOnOne = () => {
                 <div className="modal-box" onClick={e => e.stopPropagation()}>
                   <h2>Edit Service</h2>
                   <form onSubmit={handleEditServiceSubmit} className="modal-form">
+                    <label>Service Name</label>
                     <input name="name" value={editServiceData.name} onChange={e => setEditServiceData({...editServiceData, name: e.target.value})} required autoFocus disabled={editing} />
+                    <label>Description</label>
                     <textarea name="description" value={editServiceData.description} onChange={e => setEditServiceData({...editServiceData, description: e.target.value})} disabled={editing} />
                     <div style={{ marginBottom: "10px" }}>
                       <label>Service Image (Optional)</label>
                       <input type="file" accept="image/*" onChange={e => setEditServiceImage(e.target.files[0])} disabled={editing} />
-                      {editServiceImage ? <span>Selected: {editServiceImage.name}</span> : editServiceData.imageUrl ? <span>Current: {editServiceData.imageUrl.split('/').pop()}</span> : null}
                     </div>
                     <div className="modal-actions">
                       <button className="cancel-service-btn" type="button" onClick={() => setShowEditModal(false)} disabled={editing}>Cancel</button>
