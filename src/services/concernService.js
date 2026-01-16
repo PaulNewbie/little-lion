@@ -67,12 +67,12 @@ class ConcernService {
         }
       );
 
-      // 2️⃣ Update concern metadata
+      // 2️⃣ Update concern metadata with lastUpdated timestamp
       await updateDoc(doc(db, 'concerns', concernId), {
         status: role === 'admin' || role === 'super_admin'
           ? 'ongoing'
           : 'pending',
-        lastUpdated: serverTimestamp()
+        lastUpdated: serverTimestamp() // ✅ This updates the activity timestamp
       });
 
     } catch (error) {
@@ -133,12 +133,12 @@ class ConcernService {
 
   /* ----------------------------------------------------
      6. LISTEN TO ALL CONCERNS (Admin - Real-time)
-     SAME QUERY AS BEFORE, JUST WITH SNAPSHOT
+     ✅ UPDATED: Now orders by lastUpdated for most recent activity
      ---------------------------------------------------- */
   listenToAllConcerns(callback) {
     const q = query(
       collection(db, 'concerns'),
-      orderBy('createdAt', 'desc')
+      orderBy('lastUpdated', 'desc') // ✅ Changed from createdAt to lastUpdated
     );
 
     return onSnapshot(q, (snapshot) => {
@@ -155,15 +155,14 @@ class ConcernService {
 
   /* ----------------------------------------------------
      7. LISTEN TO CONCERNS BY PARENT (Real-time)
-     ⚠️ MINIMAL CHANGE - SAME QUERY AS ORIGINAL, JUST SNAPSHOT
+     ⚠️ NO orderBy in query to avoid composite index requirement
+     Sorting happens client-side in the hook
      ---------------------------------------------------- */
   listenToConcernsByParent(parentId, callback) {
-    // EXACT SAME QUERY AS YOUR WORKING getConcernsByParent
-    // Just changed getDocs → onSnapshot
     const q = query(
       collection(db, 'concerns'),
       where('createdByUserId', '==', parentId)
-      // NO orderBy! Keeping it simple like your original
+      // NO orderBy! To avoid needing composite index
     );
 
     return onSnapshot(q, (snapshot) => {
@@ -179,13 +178,14 @@ class ConcernService {
   }
 
   /* ----------------------------------------------------
-     8. GET ALL CONCERNS (One-time fetch - KEPT AS-IS)
+     8. GET ALL CONCERNS (One-time fetch)
+     ✅ UPDATED: Now orders by lastUpdated
      ---------------------------------------------------- */
   async getAllConcerns() {
     try {
       const q = query(
         collection(db, 'concerns'),
-        orderBy('createdAt', 'desc')
+        orderBy('lastUpdated', 'desc') // ✅ Changed from createdAt to lastUpdated
       );
 
       const snapshot = await getDocs(q);
@@ -204,7 +204,8 @@ class ConcernService {
   }
 
   /* ----------------------------------------------------
-     9. GET CONCERNS BY PARENT (One-time fetch - KEPT AS-IS)
+     9. GET CONCERNS BY PARENT (One-time fetch)
+     ⚠️ NO orderBy to avoid composite index requirement
      ---------------------------------------------------- */
   async getConcernsByParent(parentId) {
     const q = query(

@@ -4,7 +4,7 @@ import childService from '../services/childService';
 
 /**
  * Custom hook for managing parent concerns
- * MINIMAL CHANGE VERSION - Just converted to snapshots
+ * ✅ UPDATED: Added client-side sorting by lastUpdated
  */
 const useParentConcerns = (userId) => {
   // =======================
@@ -37,7 +37,7 @@ const useParentConcerns = (userId) => {
   }, [fetchChildren]);
 
   // =======================
-  // LISTEN TO CONCERNS (CHANGED FROM fetchData TO SNAPSHOT)
+  // LISTEN TO CONCERNS (✅ UPDATED WITH CLIENT-SIDE SORTING)
   // =======================
   useEffect(() => {
     if (!userId) {
@@ -48,11 +48,17 @@ const useParentConcerns = (userId) => {
     setLoading(true);
     setError(null);
 
-    // Changed from getDocs to onSnapshot
     const unsubscribe = concernService.listenToConcernsByParent(
       userId,
       (concernsData) => {
-        setConcerns(concernsData);
+        // ✅ Sort client-side by lastUpdated (most recent first)
+        const sortedConcerns = concernsData.sort((a, b) => {
+          const aTime = a.lastUpdated?.toMillis?.() || a.lastUpdated || 0;
+          const bTime = b.lastUpdated?.toMillis?.() || b.lastUpdated || 0;
+          return bTime - aTime; // Descending order (most recent first)
+        });
+        
+        setConcerns(sortedConcerns);
         setLoading(false);
       }
     );
@@ -76,7 +82,7 @@ const useParentConcerns = (userId) => {
   }, [selectedConcern]);
 
   // =======================
-  // CREATE CONCERN (CHANGED - REMOVED fetchData CALL)
+  // CREATE CONCERN (UNCHANGED)
   // =======================
   const createConcern = useCallback(async (concernData, userInfo) => {
     if (!concernData.childId || !concernData.message.trim()) {
@@ -98,12 +104,9 @@ const useParentConcerns = (userId) => {
         message: concernData.message
       });
 
-      // REMOVED: await fetchData();
       // Snapshot listener will auto-update!
-      return true;
     } catch (err) {
-      console.error('Error creating concern:', err);
-      throw err;
+      throw new Error('Failed to create concern: ' + err.message);
     } finally {
       setSending(false);
     }
@@ -112,7 +115,7 @@ const useParentConcerns = (userId) => {
   // =======================
   // SEND REPLY (UNCHANGED)
   // =======================
-  const sendReply = useCallback(async (concernId, replyText, senderInfo) => {
+ const sendReply = useCallback(async (concernId, replyText, senderInfo) => {
     if (!replyText.trim()) throw new Error('Reply text is required');
 
     setSending(true);
@@ -130,39 +133,27 @@ const useParentConcerns = (userId) => {
   }, []);
 
   // =======================
-  // UI HELPERS (UNCHANGED)
+  // SELECT CONCERN (UNCHANGED)
   // =======================
   const selectConcern = useCallback((concern) => {
     setSelectedConcern(concern);
   }, []);
 
-  const clearSelection = useCallback(() => {
-    setSelectedConcern(null);
-  }, []);
-
-  const refresh = useCallback(() => {
-    // With snapshots, this does nothing
-    // But kept for API compatibility
-  }, []);
-
   // =======================
-  // RETURN API (UNCHANGED)
+  // RETURN VALUES
   // =======================
   return {
     concerns,
     children,
     selectedConcern,
     messages,
-
     loading,
     sending,
     error,
-
     createConcern,
     sendReply,
     selectConcern,
-    clearSelection,
-    refresh
+    setError
   };
 };
 
