@@ -10,13 +10,25 @@ const ConcernsList = ({
   selectedConcernId, 
   onSelectConcern, 
   onNewConcern,
-  isHidden 
+  isHidden, 
+  userRole,
+  updateStatus
 }) => {
   const getStatusClass = (status) => {
-    if (status === 'waiting_for_parent') return 'waiting';
-    if (status === 'waiting_for_staff') return 'pending';
-    return '';
+    switch (status) {
+      case 'pending':
+        return 'status-orange';
+      case 'ongoing':
+        return 'status-blue';
+      case 'solved':
+        return 'status-green';
+      case 'waiting_for_parent':
+        return 'status-yellow';
+      default:
+        return '';
+    }
   };
+
 
   return (
     <section className={`pc-list-column ${isHidden ? 'hidden' : ''}`}>
@@ -46,10 +58,21 @@ const ConcernsList = ({
               isActive={selectedConcernId === concern.id}
               statusClass={getStatusClass(concern.status)}
               onSelect={() => onSelectConcern(concern)}
+              onStatusChange={updateStatus}   // ✅ NEW
+              userRole={userRole} 
             />
           ))
         )}
       </div>
+
+      <button 
+          onClick={onNewConcern} 
+          className="pc-fab-compose-btn" 
+          title="New Concern"
+          aria-label="Compose new concern"
+        >
+          +
+      </button>
     </section>
   );
 };
@@ -57,7 +80,7 @@ const ConcernsList = ({
 /**
  * Individual concern card in the list
  */
-const ConcernCard = ({ concern, isActive, statusClass, onSelect }) => {
+const ConcernCard = ({ concern, isActive, statusClass, onSelect, onStatusChange, userRole }) => {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -88,9 +111,22 @@ const ConcernCard = ({ concern, isActive, statusClass, onSelect }) => {
     >
       <div className="pc-card-header">
         <span className="pc-card-subject">{concern.subject}</span>
-        <span className={`pc-card-status ${statusClass}`}>
-          {concern.status.replace(/_/g, ' ')}
-        </span>
+       {(userRole === 'admin' || userRole === 'super_admin') ? (
+          <select
+            className={`pc-card-status ${statusClass}`}
+            value={concern.status}
+            onChange={(e) => onStatusChange(concern.id, e.target.value)}
+          >
+            <option value="pending">Pending</option>
+            <option value="ongoing">Ongoing</option>
+            <option value="solved">Solved</option>
+          </select>
+        ) : (
+          <span className={`pc-card-status ${statusClass}`}>
+            {concern.status.replace(/_/g, ' ')}
+          </span>
+        )}
+
       </div>
 
       <div className="pc-card-meta">
@@ -146,3 +182,8 @@ EmptyState.propTypes = {
 };
 
 export default ConcernsList;
+
+
+
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// ADD FLOATING BUTTON FOR RAISE CONCERN HERE

@@ -9,7 +9,7 @@ import { useChildrenByParent } from './useCachedData';
  * - Sends replies (messages subcollection)
  * - Uses cached children data to prevent redundant reads
  */
-const useConcerns = (userId) => {
+const useParentConcerns = (userId) => {
   // =======================
   // STATE
   // =======================
@@ -151,4 +151,4 @@ const useConcerns = (userId) => {
   };
 };
 
-export default useConcerns;
+export default useParentConcerns;
