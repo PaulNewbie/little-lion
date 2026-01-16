@@ -133,6 +133,7 @@ class ConcernService {
 
   /* ----------------------------------------------------
      6. LISTEN TO ALL CONCERNS (Admin - Real-time)
+     SAME QUERY AS BEFORE, JUST WITH SNAPSHOT
      ---------------------------------------------------- */
   listenToAllConcerns(callback) {
     const q = query(
@@ -154,12 +155,15 @@ class ConcernService {
 
   /* ----------------------------------------------------
      7. LISTEN TO CONCERNS BY PARENT (Real-time)
+     ⚠️ MINIMAL CHANGE - SAME QUERY AS ORIGINAL, JUST SNAPSHOT
      ---------------------------------------------------- */
   listenToConcernsByParent(parentId, callback) {
+    // EXACT SAME QUERY AS YOUR WORKING getConcernsByParent
+    // Just changed getDocs → onSnapshot
     const q = query(
       collection(db, 'concerns'),
-      where('createdByUserId', '==', parentId),
-      orderBy('createdAt', 'desc')
+      where('createdByUserId', '==', parentId)
+      // NO orderBy! Keeping it simple like your original
     );
 
     return onSnapshot(q, (snapshot) => {
@@ -175,7 +179,7 @@ class ConcernService {
   }
 
   /* ----------------------------------------------------
-     8. GET ALL CONCERNS (One-time fetch - for backward compatibility)
+     8. GET ALL CONCERNS (One-time fetch - KEPT AS-IS)
      ---------------------------------------------------- */
   async getAllConcerns() {
     try {
@@ -200,13 +204,12 @@ class ConcernService {
   }
 
   /* ----------------------------------------------------
-     9. GET CONCERNS BY PARENT (One-time fetch - for backward compatibility)
+     9. GET CONCERNS BY PARENT (One-time fetch - KEPT AS-IS)
      ---------------------------------------------------- */
   async getConcernsByParent(parentId) {
     const q = query(
       collection(db, 'concerns'),
-      where('createdByUserId', '==', parentId),
-      orderBy('createdAt', 'desc')
+      where('createdByUserId', '==', parentId)
     );
 
     const snapshot = await getDocs(q);

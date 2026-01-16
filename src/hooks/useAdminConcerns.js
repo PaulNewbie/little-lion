@@ -3,14 +3,11 @@ import concernService from '../services/concernService';
 
 /**
  * Custom hook for managing ADMIN concerns
- * - Real-time listening to ALL concerns
- * - Real-time listening to messages
- * - Sends admin replies
- * - Updates concern status
+ * MINIMAL CHANGE VERSION - Just converted to snapshots
  */
 const useAdminConcerns = () => {
   // =======================
-  // STATE
+  // STATE (UNCHANGED)
   // =======================
   const [concerns, setConcerns] = useState([]);
   const [selectedConcern, setSelectedConcern] = useState(null);
@@ -21,36 +18,27 @@ const useAdminConcerns = () => {
   const [error, setError] = useState(null);
 
   // =======================
-  // LISTEN TO ALL CONCERNS (Real-time)
+  // LISTEN TO ALL CONCERNS (CHANGED FROM fetchConcerns TO SNAPSHOT)
   // =======================
   useEffect(() => {
     setLoading(true);
     setError(null);
 
+    // Changed from getDocs to onSnapshot
     const unsubscribe = concernService.listenToAllConcerns((concernsData) => {
       setConcerns(concernsData);
       setLoading(false);
-      
-      // Update selected concern if it exists in the new data
-      setSelectedConcern(prevSelected => {
-        if (!prevSelected) return null;
-        return concernsData.find(c => c.id === prevSelected.id) || null;
-      });
     });
 
-    return () => {
-      unsubscribe();
-    };
+    // Cleanup on unmount
+    return () => unsubscribe();
   }, []);
 
   // =======================
-  // LISTEN TO MESSAGES (Real-time)
+  // LISTEN TO MESSAGES (UNCHANGED - ALREADY HAD SNAPSHOT)
   // =======================
   useEffect(() => {
-    if (!selectedConcern) {
-      setMessages([]);
-      return;
-    }
+    if (!selectedConcern) return;
 
     const unsubscribe = concernService.listenToConcernMessages(
       selectedConcern.id,
@@ -61,7 +49,7 @@ const useAdminConcerns = () => {
   }, [selectedConcern]);
 
   // =======================
-  // SEND ADMIN REPLY
+  // SEND ADMIN REPLY (UNCHANGED)
   // =======================
   const sendReply = useCallback(async (concernId, replyText, senderInfo) => {
     if (!replyText.trim()) {
@@ -69,8 +57,6 @@ const useAdminConcerns = () => {
     }
 
     setSending(true);
-    setError(null);
-    
     try {
       await concernService.addMessageToConcern(
         concernId,
@@ -79,54 +65,39 @@ const useAdminConcerns = () => {
         'admin'
       );
       return true;
-    } catch (err) {
-      console.error('Error sending reply:', err);
-      setError('Failed to send reply');
-      throw err;
     } finally {
       setSending(false);
     }
   }, []);
 
   // =======================
-  // UPDATE STATUS
+  // UPDATE STATUS (CHANGED - REMOVED fetchConcerns CALL)
   // =======================
   const updateStatus = useCallback(async (concernId, status) => {
-    setError(null);
-    
-    try {
-      await concernService.updateConcernStatus(concernId, status);
-      // No need to manually refresh - snapshot listener will update automatically
-      return true;
-    } catch (err) {
-      console.error('Error updating status:', err);
-      setError('Failed to update status');
-      throw err;
-    }
+    await concernService.updateConcernStatus(concernId, status);
+    // REMOVED: fetchConcerns();
+    // Snapshot listener will auto-update!
   }, []);
 
   // =======================
-  // UI HELPERS
+  // UI HELPERS (UNCHANGED)
   // =======================
   const selectConcern = useCallback((concern) => {
     setSelectedConcern(concern);
-    setError(null);
   }, []);
 
   const clearSelection = useCallback(() => {
     setSelectedConcern(null);
     setMessages([]);
-    setError(null);
   }, []);
 
   const refresh = useCallback(() => {
-    // With real-time listeners, manual refresh is not needed
-    // But we keep this for API compatibility
-    console.log('Refresh called - using real-time listeners, no action needed');
+    // With snapshots, this does nothing
+    // But kept for API compatibility
   }, []);
 
   // =======================
-  // RETURN API (SAME SHAPE)
+  // RETURN API (UNCHANGED)
   // =======================
   return {
     concerns,

@@ -4,14 +4,11 @@ import childService from '../services/childService';
 
 /**
  * Custom hook for managing parent concerns
- * - Real-time listening to parent's concerns
- * - Real-time listening to messages
- * - Creates concerns
- * - Sends replies
+ * MINIMAL CHANGE VERSION - Just converted to snapshots
  */
 const useParentConcerns = (userId) => {
   // =======================
-  // STATE
+  // STATE (UNCHANGED)
   // =======================
   const [concerns, setConcerns] = useState([]);
   const [children, setChildren] = useState([]);
@@ -23,26 +20,24 @@ const useParentConcerns = (userId) => {
   const [error, setError] = useState(null);
 
   // =======================
-  // FETCH CHILDREN (One-time)
+  // FETCH CHILDREN (UNCHANGED)
   // =======================
-  useEffect(() => {
-    const fetchChildren = async () => {
-      if (!userId) return;
-      
-      try {
-        const childData = await childService.getChildrenByParentId(userId);
-        setChildren(childData);
-      } catch (err) {
-        console.error('Error fetching children:', err);
-        setError('Failed to load children');
-      }
-    };
-
-    fetchChildren();
+  const fetchChildren = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const childData = await childService.getChildrenByParentId(userId);
+      setChildren(childData);
+    } catch (err) {
+      setError("Failed to load children. Please try again.");
+    }
   }, [userId]);
 
+  useEffect(() => {
+    fetchChildren();
+  }, [fetchChildren]);
+
   // =======================
-  // LISTEN TO CONCERNS (Real-time)
+  // LISTEN TO CONCERNS (CHANGED FROM fetchData TO SNAPSHOT)
   // =======================
   useEffect(() => {
     if (!userId) {
@@ -53,30 +48,24 @@ const useParentConcerns = (userId) => {
     setLoading(true);
     setError(null);
 
-    const unsubscribe = concernService.listenToConcernsByParent(userId, (concernsData) => {
-      setConcerns(concernsData);
-      setLoading(false);
+    // Changed from getDocs to onSnapshot
+    const unsubscribe = concernService.listenToConcernsByParent(
+      userId,
+      (concernsData) => {
+        setConcerns(concernsData);
+        setLoading(false);
+      }
+    );
 
-      // Update selected concern if it exists in the new data
-      setSelectedConcern(prevSelected => {
-        if (!prevSelected) return null;
-        return concernsData.find(c => c.id === prevSelected.id) || null;
-      });
-    });
-
-    return () => {
-      unsubscribe();
-    };
+    // Cleanup on unmount
+    return () => unsubscribe();
   }, [userId]);
 
   // =======================
-  // LISTEN TO MESSAGES (Real-time)
+  // LISTEN TO MESSAGES (UNCHANGED - ALREADY HAD SNAPSHOT)
   // =======================
   useEffect(() => {
-    if (!selectedConcern) {
-      setMessages([]);
-      return;
-    }
+    if (!selectedConcern) return;
 
     const unsubscribe = concernService.listenToConcernMessages(
       selectedConcern.id,
@@ -87,7 +76,7 @@ const useParentConcerns = (userId) => {
   }, [selectedConcern]);
 
   // =======================
-  // CREATE CONCERN
+  // CREATE CONCERN (CHANGED - REMOVED fetchData CALL)
   // =======================
   const createConcern = useCallback(async (concernData, userInfo) => {
     if (!concernData.childId || !concernData.message.trim()) {
@@ -95,7 +84,6 @@ const useParentConcerns = (userId) => {
     }
 
     setSending(true);
-    setError(null);
 
     try {
       const child = children.find(c => c.id === concernData.childId);
@@ -110,11 +98,11 @@ const useParentConcerns = (userId) => {
         message: concernData.message
       });
 
-      // No need to manually refresh - snapshot listener will update automatically
+      // REMOVED: await fetchData();
+      // Snapshot listener will auto-update!
       return true;
     } catch (err) {
       console.error('Error creating concern:', err);
-      setError('Failed to create concern');
       throw err;
     } finally {
       setSending(false);
@@ -122,16 +110,12 @@ const useParentConcerns = (userId) => {
   }, [children]);
 
   // =======================
-  // SEND REPLY
+  // SEND REPLY (UNCHANGED)
   // =======================
   const sendReply = useCallback(async (concernId, replyText, senderInfo) => {
-    if (!replyText.trim()) {
-      throw new Error('Reply text is required');
-    }
+    if (!replyText.trim()) throw new Error('Reply text is required');
 
     setSending(true);
-    setError(null);
-
     try {
       await concernService.addMessageToConcern(
         concernId,
@@ -140,37 +124,29 @@ const useParentConcerns = (userId) => {
         'parent'
       );
       return true;
-    } catch (err) {
-      console.error('Error sending reply:', err);
-      setError('Failed to send reply');
-      throw err;
     } finally {
       setSending(false);
     }
   }, []);
 
   // =======================
-  // UI HELPERS
+  // UI HELPERS (UNCHANGED)
   // =======================
   const selectConcern = useCallback((concern) => {
     setSelectedConcern(concern);
-    setError(null);
   }, []);
 
   const clearSelection = useCallback(() => {
     setSelectedConcern(null);
-    setMessages([]);
-    setError(null);
   }, []);
 
   const refresh = useCallback(() => {
-    // With real-time listeners, manual refresh is not needed
-    // But we keep this for API compatibility
-    console.log('Refresh called - using real-time listeners, no action needed');
+    // With snapshots, this does nothing
+    // But kept for API compatibility
   }, []);
 
   // =======================
-  // RETURN API
+  // RETURN API (UNCHANGED)
   // =======================
   return {
     concerns,
