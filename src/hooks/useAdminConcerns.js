@@ -74,10 +74,22 @@ const useAdminConcerns = () => {
   // UPDATE STATUS (CHANGED - REMOVED fetchConcerns CALL)
   // =======================
   const updateStatus = useCallback(async (concernId, status) => {
-    await concernService.updateConcernStatus(concernId, status);
-    // REMOVED: fetchConcerns();
-    // Snapshot listener will auto-update!
+      // 1️⃣ Optimistically update local state
+      setConcerns(prev =>
+        prev.map(c =>
+          c.id === concernId ? { ...c, status } : c
+        )
+      );  
+
+    try {
+      // 2️⃣ Persist to Firestore
+      await concernService.updateConcernStatus(concernId, status);
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      // (optional) rollback if needed
+    }
   }, []);
+
 
   // =======================
   // UI HELPERS (UNCHANGED)

@@ -61,6 +61,12 @@ const ConcernsPage = ({
     return <Loading message="Loading concerns" variant="inline" />;
   }
 
+  //for live update of concern detail dropdown status
+  const activeConcern = selectedConcern
+  ? concerns.find(c => c.id === selectedConcern.id)
+  : null;
+
+
   return (
     <div className="pc-page-wrapper">
       <Sidebar />
@@ -89,7 +95,8 @@ const ConcernsPage = ({
           <BackButton onClick={handleBackToList} />
 
           <ConcernDetail
-            concern={selectedConcern}
+            // concern={selectedConcern}
+            concern={activeConcern}
             messages={messages}
             currentUserId={currentUser?.uid}
             replyText={replyText}
