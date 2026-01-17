@@ -32,9 +32,18 @@ const StudentProfile = ({
   const studentIdFromEnrollment = location.state?.studentId;
   const fromEnrollment = location.state?.fromEnrollment;
   const parentFromEnrollment = location.state?.parent;
+  const isStaffViewFromNav = location.state?.isStaffView;
+  const studentFromNav = location.state?.student;
+
+  // Determine if this is a staff view (therapist/teacher viewing their student)
+  const isStaffRole = currentUser?.role === 'therapist' || currentUser?.role === 'teacher';
+  const isStaffView = isStaffViewFromNav || (isStaffRole && !isParentView);
+
+  // Single student mode: when navigating directly to view one student (no need to fetch list)
+  const singleStudentMode = !!(studentFromNav && isStaffView);
 
   // 1. THE CUSTOM HOOK (Data & Pagination)
-  // OPTIMIZED: Pass isParentView and parentId so parents only fetch their own children
+  // OPTIMIZED: Pass view mode so it fetches only the relevant students
   const {
     loading,
     selectedStudent,
@@ -53,7 +62,10 @@ const StudentProfile = ({
     handleLoadMore
   } = useStudentProfileData(location.state, {
     isParentView,
-    parentId: isParentView ? currentUser?.uid : null
+    parentId: isParentView ? currentUser?.uid : null,
+    isStaffView: isStaffView && !singleStudentMode, // If single student mode, don't need staff view
+    staffId: isStaffView ? currentUser?.uid : null,
+    singleStudentMode
   });
 
   // 2. UI State

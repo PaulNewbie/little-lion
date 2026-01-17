@@ -33,14 +33,14 @@
 .sp-header {
   background-image: url("../../../images/little-lions-bg.jpg");
   background-size: cover;
-  background-position: center;
+  background-position: center top;
   background-repeat: no-repeat;
   border-radius: 1rem;
   padding: 2.5rem 2rem;
   margin: 20px;
   margin-bottom: 2rem;
   position: relative;
-  overflow: hidden;
+  min-height: 120px;
 }
 
 .sp-header::before {

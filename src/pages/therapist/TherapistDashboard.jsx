@@ -191,7 +191,7 @@ const TherapistDashboard = () => {
                   </div>
                   <div className="therapist-dashboard__student-card-footer">
                     <button
-                      onClick={() => navigate('/admin/StudentProfile', { state: { studentId: student.id } })}
+                      onClick={() => navigate('/admin/StudentProfile', { state: { studentId: student.id, student, isStaffView: true } })}
                       className="therapist-dashboard__view-profile-button"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">

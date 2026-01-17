@@ -24,6 +24,68 @@ const ENROLLMENT_KEYS = {
 };
 
 // =============================================================================
+// HELPER: Get child from cache (prevents redundant reads)
+// =============================================================================
+
+const getChildFromCache = (queryClient, childId) => {
+  // 1. Check individual student cache
+  const cachedChild = queryClient.getQueryData(QUERY_KEYS.student(childId));
+  if (cachedChild) {
+    console.log('♻️ ServiceEnrollments: Found child in individual cache (0 reads)');
+    return cachedChild;
+  }
+
+  // 2. Check master students list
+  const allStudents = queryClient.getQueryData(QUERY_KEYS.students());
+  if (allStudents && Array.isArray(allStudents)) {
+    const foundChild = allStudents.find(s => s.id === childId);
+    if (foundChild) {
+      console.log('♻️ ServiceEnrollments: Found child in master list cache (0 reads)');
+      return foundChild;
+    }
+  }
+
+  return null;
+};
+
+// Helper to extract staff history from enrollments (same logic as childService.getStaffHistory)
+const extractStaffHistoryFromEnrollments = (serviceEnrollments) => {
+  if (!serviceEnrollments || !Array.isArray(serviceEnrollments)) return [];
+
+  const allHistory = [];
+
+  for (const enrollment of serviceEnrollments) {
+    // Include current staff for active services
+    if (enrollment.currentStaff && enrollment.status === SERVICE_ENROLLMENT_STATUS.ACTIVE) {
+      allHistory.push({
+        ...enrollment.currentStaff,
+        serviceName: enrollment.serviceName,
+        serviceType: enrollment.serviceType,
+        enrollmentId: enrollment.enrollmentId,
+        isCurrent: true,
+        removedAt: null,
+        removalReason: null,
+      });
+    }
+
+    // Include historical staff
+    if (enrollment.staffHistory && Array.isArray(enrollment.staffHistory)) {
+      for (const historyEntry of enrollment.staffHistory) {
+        allHistory.push({
+          ...historyEntry,
+          serviceName: enrollment.serviceName,
+          serviceType: enrollment.serviceType,
+          enrollmentId: enrollment.enrollmentId,
+          isCurrent: false,
+        });
+      }
+    }
+  }
+
+  return allHistory;
+};
+
+// =============================================================================
 // MAIN HOOK: useServiceEnrollments
 // =============================================================================
 
@@ -37,25 +99,47 @@ export function useServiceEnrollments(childId) {
   const [error, setError] = useState(null);
 
   // ─────────────────────────────────────────────────────────────────────────
-  // QUERIES
+  // QUERIES - OPTIMIZED: Check cache first before DB read
   // ─────────────────────────────────────────────────────────────────────────
 
   /**
    * Fetch all service enrollments for the child
+   * OPTIMIZED: Checks cache first to avoid redundant reads
    */
   const enrollmentsQuery = useQuery({
     queryKey: ENROLLMENT_KEYS.enrollments(childId),
-    queryFn: () => childService.getServiceEnrollments(childId),
+    queryFn: async () => {
+      // 1. Check if child is already in cache
+      const cachedChild = getChildFromCache(queryClient, childId);
+      if (cachedChild) {
+        return cachedChild.serviceEnrollments || [];
+      }
+
+      // 2. Fall back to DB read only if not in cache
+      console.log('📋 ServiceEnrollments: Fetching from DB...');
+      return childService.getServiceEnrollments(childId);
+    },
     enabled: !!childId,
     ...QUERY_OPTIONS.dynamic,
   });
 
   /**
    * Fetch complete staff history across all services
+   * OPTIMIZED: Extract from cached enrollments to avoid separate DB read
    */
   const staffHistoryQuery = useQuery({
     queryKey: ENROLLMENT_KEYS.staffHistory(childId),
-    queryFn: () => childService.getStaffHistory(childId),
+    queryFn: async () => {
+      // 1. Check if child is already in cache
+      const cachedChild = getChildFromCache(queryClient, childId);
+      if (cachedChild) {
+        return extractStaffHistoryFromEnrollments(cachedChild.serviceEnrollments);
+      }
+
+      // 2. Fall back to DB read only if not in cache
+      console.log('📋 StaffHistory: Fetching from DB...');
+      return childService.getStaffHistory(childId);
+    },
     enabled: !!childId,
     ...QUERY_OPTIONS.dynamic,
   });
