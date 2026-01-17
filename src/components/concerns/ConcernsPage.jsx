@@ -96,6 +96,8 @@ const ConcernsPage = ({
             onReplyChange={setReplyText}
             onSendReply={handleSendReply}
             isSending={sending}
+            userRole={currentUser?.role} 
+            updateStatus={updateStatus}
           />
         </section>
       </main>
