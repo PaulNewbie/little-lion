@@ -1,8 +1,166 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import "../StudentProfile.css"; // Shared CSS
+import "../StudentProfile.css"; 
+import { AuthContext } from "../../../../context/AuthContext";
+import activityService from "./activityService"; 
 
+// ==========================================
+// 1. Internal Comment Section Component
+// ==========================================
+const CommentSection = ({ contextId, collectionName }) => {
+  const { currentUser } = useContext(AuthContext);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
+  const [showComments, setShowComments] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Load comments only when the user expands the section
+  useEffect(() => {
+    if (showComments && contextId && collectionName) {
+      loadComments();
+    }
+  }, [showComments, contextId, collectionName]);
+
+  const loadComments = async () => {
+    setLoading(true);
+    try {
+      const fetchedComments = await activityService.getComments(contextId, collectionName);
+      setComments(fetchedComments);
+    } catch (error) {
+      console.error("Failed to load comments", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendComment = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim() || !currentUser) return;
+
+    const commentData = {
+      text: newComment,
+      authorId: currentUser.uid,
+      authorName: `${currentUser.firstName || 'User'} ${currentUser.lastName || ''}`.trim() || currentUser.email,
+      authorRole: currentUser.role || 'user'
+    };
+
+    try {
+      await activityService.addComment(contextId, collectionName, commentData);
+      setNewComment("");
+      loadComments(); // Refresh to show the new message
+    } catch (error) {
+      console.error("Full error object:", error);
+      alert(`Failed to send message: ${error.message}`);
+    }
+  };
+
+  return (
+    <div style={{ marginTop: "15px", borderTop: "1px dashed #eee", paddingTop: "10px" }}>
+      <button 
+        onClick={() => setShowComments(!showComments)}
+        style={{
+          background: "transparent",
+          border: "none",
+          color: "#0056b3",
+          cursor: "pointer",
+          fontSize: "0.85rem",
+          display: "flex",
+          alignItems: "center",
+          gap: "5px",
+          fontWeight: "600",
+          padding: "5px 0"
+        }}
+      >
+        💬 {showComments ? "Hide Comments" : "Discuss this Activity"}
+      </button>
+
+      {showComments && (
+        <div className="comments-container" style={{ marginTop: "10px" }}>
+          {/* Messages List */}
+          <div className="comments-list" style={{ 
+            maxHeight: "200px", 
+            overflowY: "auto", 
+            marginBottom: "10px", 
+            display: "flex", 
+            flexDirection: "column", 
+            gap: "8px",
+            background: "#f9f9f9",
+            padding: "10px",
+            borderRadius: "8px",
+          }}>
+            {loading ? (
+              <p style={{ fontSize: "0.8rem", color: "#888" }}>Loading messages...</p>
+            ) : comments.length === 0 ? (
+              <p style={{ fontSize: "0.8rem", color: "#888", fontStyle: "italic", textAlign: "center" }}>
+                No messages yet.
+              </p>
+            ) : (
+              comments.map((comment) => (
+                <div key={comment.id} style={{ 
+                  background: comment.authorId === currentUser?.uid ? "#e3f2fd" : "#fff", 
+                  padding: "8px 10px", 
+                  borderRadius: "8px",
+                  fontSize: "0.85rem",
+                  alignSelf: comment.authorId === currentUser?.uid ? "flex-end" : "flex-start",
+                  maxWidth: "90%",
+                  border: "1px solid #eee"
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "2px", gap: "8px" }}>
+                    <span style={{ fontWeight: "bold", fontSize: "0.75rem", color: "#444" }}>{comment.authorName}</span>
+                    <span style={{ fontSize: "0.7rem", color: "#888" }}>
+                      {new Date(comment.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </span>
+                  </div>
+                  <div style={{ color: "#333" }}>{comment.text}</div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Input Form */}
+          <form onSubmit={handleSendComment} style={{ display: "flex", gap: "8px" }}>
+            <input
+              type="text"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Write a message..."
+              style={{
+                flex: 1,
+                padding: "8px 12px",
+                borderRadius: "15px",
+                border: "1px solid #ddd",
+                fontSize: "0.85rem",
+                outline: "none"
+              }}
+            />
+            <button 
+              type="submit" 
+              disabled={!newComment.trim()}
+              style={{
+                backgroundColor: "#4CAF50",
+                color: "white",
+                border: "none",
+                borderRadius: "15px",
+                padding: "5px 15px",
+                cursor: newComment.trim() ? "pointer" : "default",
+                opacity: newComment.trim() ? 1 : 0.6,
+                fontSize: "0.8rem",
+                fontWeight: "bold"
+              }}
+            >
+              Send
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ==========================================
+// 2. Main Calendar Component
+// ==========================================
 const ActivityCalendar = ({ activities, teachers, selectedServiceName }) => {
   const [date, setDate] = useState(new Date());
 
@@ -24,25 +182,35 @@ const ActivityCalendar = ({ activities, teachers, selectedServiceName }) => {
 
   const selectedActivities = getActivitiesForDate(date);
 
-  const tileContent = ({ date, view }) => {
-    if (view === "month") {
-      const hasActivity = getActivitiesForDate(date).length > 0;
-      return hasActivity ? <div className="calendar-dot"></div> : null;
-    }
-    return null;
-  };
-
+  // Helper to get staff name
   const getTeacherName = (id) => {
     const staff = teachers.find((t) => t.id === id || t.uid === id);
     return staff ? `${staff.firstName} ${staff.lastName}` : "—";
   };
 
+  // Helper to map mood to emoji
   const getEmojiForMood = (mood) => {
     const map = {
       Happy: "😊", Focused: "🧐", Active: "⚡",
       Tired: "🥱", Upset: "😢", Social: "👋",
     };
     return map[mood] || "•";
+  };
+
+  // Helper to determine collection name for comments
+  const getCollectionName = (rec) => {
+    if (rec.type === 'therapy_session' || rec._collection === 'therapy_sessions') {
+      return 'therapy_sessions';
+    }
+    return 'activities';
+  };
+
+  const tileContent = ({ date, view }) => {
+    if (view === "month") {
+      const hasActivity = getActivitiesForDate(date).length > 0;
+      return hasActivity ? <div className="calendar-dot"></div> : null;
+    }
+    return null;
   };
 
   return (
@@ -60,6 +228,8 @@ const ActivityCalendar = ({ activities, teachers, selectedServiceName }) => {
           <div className="daily-records-list">
             {selectedActivities.map((rec, i) => {
               const isTherapy = rec.type === "therapy_session" || rec._collection === "therapy_sessions";
+              const targetCollection = getCollectionName(rec);
+
               return (
                 <div key={i} className="record-card">
                   <div className="record-header">
@@ -123,6 +293,13 @@ const ActivityCalendar = ({ activities, teachers, selectedServiceName }) => {
                       ))}
                     </div>
                   )}
+
+                  {/* === COMMENTS SPECIFIC TO THIS ACTIVITY === */}
+                  <CommentSection 
+                    contextId={rec.id} 
+                    collectionName={targetCollection} 
+                  />
+                  
                 </div>
               );
             })}
