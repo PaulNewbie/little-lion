@@ -10,7 +10,7 @@
 .pc-list-column {
   display: flex;
   flex-direction: column;
-  background-color: #fff;
+  background-color: var(--pc-gray-100);
   width: 100%;
   height: 100%; /* Ensure the container has a limit */
   overflow-y: auto; /* This makes this specific element the scrollable area */
@@ -76,9 +76,36 @@
   transform: scale(0.95);
 }
 
+.pc-fab-compose-btn{
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background-color: var(--pc-primary);
+  color: white;
+  font-size: 32px;
+  line-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: var(--pc-transition);
+  z-index: 100; /* Above other content */
+}
+
 /* Hide compose button on small screens (mobile) */
 @media (max-width: 767px) {
   .pc-compose-btn {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .pc-fab-compose-btn {
     display: none;
   }
 }
@@ -151,22 +178,36 @@
 
 /* Status badge */
 .pc-card-status {
-  font-size: 0.75rem;
+  font-size: 12px;
   font-weight: 600;
-  padding: 2px 6px;
+  padding: 4px 6px;
   border-radius: 4px;
   text-transform: capitalize;
   white-space: nowrap;
   color: white;
 }
+  
 
-.pc-card-status.waiting {
-  background-color: var(--pc-primary);
+.status-orange {
+  background: #ff9800;
+  color: #fff;
 }
 
-.pc-card-status.pending {
-  background-color: var(--pc-warning);
+.status-blue {
+  background: #2196f3;
+  color: #fff;
 }
+
+.status-yellow {
+  background: #bdbdbd;
+  color: #333;
+}
+
+.status-green {
+  background: #4caf50;
+  color: #fff;
+}
+
 
 /* Meta info: child + date */
 .pc-card-meta {

@@ -27,7 +27,7 @@ class ConcernService {
         childId: concernData.childId,
         childName: concernData.childName,
         subject: concernData.subject,
-        status: 'waiting_for_staff',
+        status: 'pending',
         createdAt: serverTimestamp(),
         lastUpdated: serverTimestamp()
       });
@@ -61,7 +61,7 @@ class ConcernService {
         {
           senderId: senderInfo.id,
           senderName: senderInfo.name,
-          role, // 'parent' | 'staff'
+          role, // 'parent' | 'super_admin' | 'admin'
           text,
           createdAt: serverTimestamp()
         }
@@ -102,7 +102,7 @@ class ConcernService {
   async closeConcern(concernId, closedByName) {
     try {
       await updateDoc(doc(db, 'concerns', concernId), {
-        status: 'closed',
+        status: 'solved',
         closedBy: closedByName,
         closedAt: serverTimestamp()
       });
@@ -183,6 +183,19 @@ class ConcernService {
         throw new Error('Failed to fetch all concerns');
       }
     }
+
+
+    async updateConcernStatus(concernId, status) {
+      try {
+        await updateDoc(doc(db, 'concerns', concernId), {
+          status,
+          lastUpdated: serverTimestamp()
+        });
+      } catch (error) {
+        throw new Error('Failed to update status');
+      }
+    }
+
 
 
 

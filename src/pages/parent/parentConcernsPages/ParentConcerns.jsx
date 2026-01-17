@@ -1,7 +1,7 @@
 import { useAuth } from '../../../hooks/useAuth';
 import Sidebar from '../../../components/sidebar/Sidebar';
 import { getParentConfig } from '../../../components/sidebar/sidebarConfigs';
-import useConcerns from '../../../hooks/useConcerns';
+import useConcerns from '../../../hooks/useParentConcerns';
 import ConcernsPage from '../../../components/concerns/ConcernsPage';
 
 const ParentSidebarWrapper = () => <Sidebar {...getParentConfig()} />;
