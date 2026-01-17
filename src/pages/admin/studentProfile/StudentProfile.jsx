@@ -259,9 +259,7 @@ const StudentProfile = ({
     }
   };
 
-  if (loading) {
-    return <Loading role="admin" message="Loading students" variant="inline" />;
-  }
+  // Loading state is now handled inside the return with sidebar visible
 
   const calculateAge = (dob) => {
     if (!dob) return "N/A";
@@ -701,7 +699,11 @@ const StudentProfile = ({
   return (
     <div className="sp-container">
       <Sidebar {...sidebarConfig} forceActive={getForceActive()} />
-      {mainContent}
+      {loading ? (
+        <Loading role="admin" message="Loading students" variant="content" />
+      ) : (
+        mainContent
+      )}
     </div>
   );
 };

@@ -2,6 +2,7 @@ import React from 'react';
 import useManageAdmins from '../../hooks/useManageAdmins';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
+import Loading from '../../components/common/Loading';
 
 const ManageAdmins = () => {
   const {
@@ -14,11 +15,12 @@ const ManageAdmins = () => {
     deleteAdmin
   } = useManageAdmins();
 
-  if (loading) return <div>Loading admins...</div>;
-
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar {...getAdminConfig(true)} />
+      {loading ? (
+        <Loading role="admin" message="Loading admins" variant="content" />
+      ) : (
       <div style={{ padding: '20px', width: '100%', backgroundColor: '#f8f9fa' }}>
         <h1 style={{ color: '#2c3e50' }}>Manage Administrators</h1>
         {error && <div style={{ color: 'red', marginBottom: '10px' }}>Error: {error}</div>}
@@ -124,6 +126,7 @@ const ManageAdmins = () => {
           </table>
         </div>
       </div>
+      )}
     </div>
   );
 };

@@ -170,11 +170,12 @@ const TeacherDashboard = () => {
     setter(trimmed ? `${trimmed}. ${newText}. ` : `${newText}. `);
   };
 
-  if (loading) return <Loading role="teacher" message="Loading classes" />;
-
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar {...getTeacherConfig()} forceActive="/teacher/dashboard" />
+      {loading ? (
+        <Loading role="teacher" message="Loading classes" variant="content" />
+      ) : (
       <div style={{ display: 'flex', flexDirection: 'column', width: '100%', backgroundColor: '#f8f9fa' }}>
         <div style={{ padding: '20px', flex: 1 }}>
           <div className="teacher-dashboard__content">
@@ -446,6 +447,7 @@ const TeacherDashboard = () => {
           </div>
         </footer>
       </div>
+      )}
     </div>
   );
 };

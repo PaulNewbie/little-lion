@@ -95,11 +95,12 @@ const TherapistDashboard = () => {
     setShowServiceModal(false);
   };
 
-  if (loading) return <Loading role="therapist" message="Loading students" />;
-
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar {...getTherapistConfig()} forceActive="/therapist/dashboard" />
+      {loading ? (
+        <Loading role="therapist" message="Loading students" variant="content" />
+      ) : (
       <div style={{ display: 'flex', flexDirection: 'column', width: '100%', backgroundColor: '#f8f9fa' }}>
         <div style={{ padding: '20px', flex: 1 }}>
           <div className="therapist-dashboard__content">
@@ -265,6 +266,7 @@ const TherapistDashboard = () => {
           </div>
         </footer>
       </div>
+      )}
     </div>
   );
 };

@@ -42,8 +42,6 @@ const ManageTeachers = () => {
     isLoading: loadingStudents 
   } = useChildrenByStaff(selectedTeacherId);
 
-  if (loading) return <Loading role="admin" message="Loading teachers" />;
-
   // Filter teachers based on search query
   const filteredTeachers = teachers.filter(teacher =>
     `${teacher.firstName} ${teacher.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -84,8 +82,11 @@ const ManageTeachers = () => {
   return (
     <div className="ooo-container">
       <Sidebar {...getAdminConfig(isSuperAdmin)} />
+      {loading ? (
+        <Loading role="admin" message="Loading teachers" variant="content" />
+      ) : (
       <div className="ooo-main">
-        
+
         {/* ================= HEADER ================= */}
         <div className="ooo-header">
           <div className="mt-header-wrapper">
@@ -328,6 +329,7 @@ const ManageTeachers = () => {
           userData={newUserData}
         />
       </div>
+      )}
     </div>
   );
 };

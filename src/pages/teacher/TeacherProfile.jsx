@@ -52,8 +52,6 @@ const TeacherProfile = () => {
     handleSaveProfile
   } = useProfileForm(currentUser, 'teacher', navigate);
 
-  if (loading) return <Loading role="teacher" message="Loading profile" />;
-
   const fullName = `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim();
   const licenseStatus = formData.licenseExpirationDate ? getExpirationStatus(formData.licenseExpirationDate) : null;
 
@@ -205,6 +203,9 @@ const TeacherProfile = () => {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar {...getTeacherConfig()} forceActive="/teacher/profile" />
+      {loading ? (
+        <Loading role="teacher" message="Loading profile" variant="content" />
+      ) : (
       <div style={{ flex: 1, backgroundColor: '#f8f9fa' }}>
         <div className="tp-page">
 
@@ -318,12 +319,9 @@ const TeacherProfile = () => {
             </div>
           )}
 
-        </div>
-      </div>
-
-      {/* Profile Completion Modal */}
-      {showProfileModal && (
-        <div className="tp-modal-overlay" onClick={closeProfileModal}>
+          {/* Profile Completion Modal */}
+          {showProfileModal && (
+            <div className="tp-modal-overlay" onClick={closeProfileModal}>
           <div className="tp-modal-container" onClick={(e) => e.stopPropagation()}>
             {/* Modal Header */}
             <div className="tp-modal-header">
@@ -442,6 +440,9 @@ const TeacherProfile = () => {
             </form>
           </div>
         </div>
+      )}
+        </div>
+      </div>
       )}
     </div>
   );
