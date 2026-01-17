@@ -178,13 +178,12 @@ const PlayGroup = () => {
     setSelectedDate(date);
   };
 
-  if (isLoading && services.length === 0) {
-    return <Loading role="admin" message="Loading play groups" />;
-  }
-
   return (
     <div className="pg-container">
       <Sidebar {...getAdminConfig(isSuperAdmin)} />
+      {(isLoading && services.length === 0) ? (
+        <Loading role="admin" message="Loading play groups" variant="content" />
+      ) : (
       <div className="pg-main">
         <div className="pg-page">
         <div className="pg-content">
@@ -482,6 +481,7 @@ const PlayGroup = () => {
         <GeneralFooter pageLabel="PlayGroup" />
         </div>
       </div>
+      )}
     </div>
   );
 };

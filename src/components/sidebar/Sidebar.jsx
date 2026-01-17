@@ -1,6 +1,9 @@
+// src/components/sidebar/Sidebar.jsx
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { hasPermission } from "../../utils/permissions"; // ADD THIS IMPORT
 import "./Sidebar.css";
 
 /**
@@ -51,8 +54,31 @@ const Sidebar = ({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleMenuClick = (path) => {
-    navigate(path);
+  /**
+   * Check if menu item is restricted due to missing permission
+   * @param {Object} item - Menu item object
+   * @returns {boolean} True if user lacks required permission
+   */
+  const isItemRestricted = (item) => {
+    // No permission required for this item
+    if (!item.requiresPermission) return false;
+    
+    // Check if user has the required permission
+    return !hasPermission(currentUser, item.requiresPermission);
+  };
+
+  /**
+   * Handle menu item click
+   * Shows tooltip/alert for restricted items, navigates for allowed items
+   */
+  const handleMenuClick = (item) => {
+    if (isItemRestricted(item)) {
+      // Show feedback for restricted access
+      alert("You don't have permission to access this feature. Please contact your administrator.");
+      return;
+    }
+    
+    navigate(item.path);
     if (!isDesktop) {
       setIsOpen(false);
     }
@@ -95,27 +121,49 @@ const Sidebar = ({
             )}
             {section.items
               .filter(item => !item.hidden)
-              .map((item, itemIndex) => (
-                <div
-                  key={itemIndex}
-                  className={`sidebar__menu-item ${isActive(item.path) ? "active" : ""}`}
-                  onClick={() => handleMenuClick(item.path)}
-                >
-                  {item.icon && (
-                    typeof item.icon === 'string' ? (
-                      <img src={item.icon} className="sidebar__menu-icon" alt={item.label} />
-                    ) : (
-                      <span className="sidebar__menu-icon sidebar__menu-icon--svg">
-                        {item.icon}
+              .map((item, itemIndex) => {
+                const restricted = isItemRestricted(item);
+                
+                return (
+                  <div
+                    key={itemIndex}
+                    className={`sidebar__menu-item ${isActive(item.path) ? "active" : ""} ${restricted ? "restricted" : ""}`}
+                    onClick={() => handleMenuClick(item)}
+                    title={restricted ? "Permission required - Contact admin" : item.label}
+                    style={restricted ? { opacity: 0.6, cursor: "not-allowed" } : {}}
+                  >
+                    {item.icon && (
+                      typeof item.icon === 'string' ? (
+                        <img src={item.icon} className="sidebar__menu-icon" alt={item.label} />
+                      ) : (
+                        <span className="sidebar__menu-icon sidebar__menu-icon--svg">
+                          {item.icon}
+                        </span>
+                      )
+                    )}
+                    <span className="sidebar__menu-label">{item.label}</span>
+                    
+                    {/* Show lock icon for restricted items */}
+                    {restricted && (
+                      <span 
+                        className="sidebar__lock-icon" 
+                        style={{ 
+                          marginLeft: "auto", 
+                          fontSize: "14px",
+                          opacity: 0.7 
+                        }}
+                      >
+                        🔒
                       </span>
-                    )
-                  )}
-                  <span className="sidebar__menu-label">{item.label}</span>
-                  {item.showNotification && (
-                    <span className="sidebar__notification-dot"></span>
-                  )}
-                </div>
-              ))}
+                    )}
+                    
+                    {/* Show notification dot (only if not restricted) */}
+                    {!restricted && item.showNotification && (
+                      <span className="sidebar__notification-dot"></span>
+                    )}
+                  </div>
+                );
+              })}
           </div>
         ))}
 

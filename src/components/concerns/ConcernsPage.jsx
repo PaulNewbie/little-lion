@@ -57,14 +57,12 @@ const ConcernsPage = ({
     setReplyText('');
   };
 
-  if (loading) {
-    return <Loading message="Loading concerns" variant="inline" />;
-  }
-
   return (
     <div className="pc-page-wrapper">
       <Sidebar />
-
+      {loading ? (
+        <Loading message="Loading concerns" variant="content" role="admin" />
+      ) : (
       <main className="pc-content-container">
 
         <RaiseConcernModal
@@ -99,6 +97,7 @@ const ConcernsPage = ({
           />
         </section>
       </main>
+      )}
     </div>
   );
 };

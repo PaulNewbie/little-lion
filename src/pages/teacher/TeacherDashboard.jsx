@@ -170,11 +170,12 @@ const TeacherDashboard = () => {
     setter(trimmed ? `${trimmed}. ${newText}. ` : `${newText}. `);
   };
 
-  if (loading) return <Loading role="teacher" message="Loading classes" />;
-
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar {...getTeacherConfig()} forceActive="/teacher/dashboard" />
+      {loading ? (
+        <Loading role="teacher" message="Loading classes" variant="content" />
+      ) : (
       <div style={{ display: 'flex', flexDirection: 'column', width: '100%', backgroundColor: '#f8f9fa' }}>
         <div style={{ padding: '20px', flex: 1 }}>
           <div className="teacher-dashboard__content">
@@ -309,7 +310,14 @@ const TeacherDashboard = () => {
                 ) : (
                   <div className="teacher-dashboard__students-grid">
                     {filteredStudents.map(student => (
-                      <div key={student.id} className="teacher-dashboard__student-card">
+                      <div 
+                        key={student.id} 
+                        className="teacher-dashboard__student-card"
+                        // ADDED: Click handler for the whole card
+                        onClick={() => navigate('/admin/StudentProfile', { state: { studentId: student.id, student, isStaffView: true } })}
+                        // ADDED: Pointer cursor
+                        style={{ cursor: 'pointer' }}
+                      >
                         <div className="teacher-dashboard__student-card-header">
                           <div className="teacher-dashboard__student-info">
                             <div className="teacher-dashboard__student-avatar">
@@ -327,7 +335,11 @@ const TeacherDashboard = () => {
                         </div>
                         <div className="teacher-dashboard__student-card-footer">
                           <button
-                            onClick={() => openObservationModal(student)}
+                            onClick={(e) => {
+                                // ADDED: Stop Propagation to prevent card click
+                                e.stopPropagation(); 
+                                openObservationModal(student)
+                            }}
                             className="teacher-dashboard__observation-button"
                           >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -446,6 +458,7 @@ const TeacherDashboard = () => {
           </div>
         </footer>
       </div>
+      )}
     </div>
   );
 };

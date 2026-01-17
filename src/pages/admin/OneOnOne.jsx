@@ -152,11 +152,12 @@ const OneOnOne = () => {
     } finally { setEditing(false); }
   };
 
-  if (loading) return <Loading role="admin" message="Loading services" />;
-
   return (
     <div className="ooo-container">
       <Sidebar {...getAdminConfig(isSuperAdmin)} forceActive="/admin/one-on-one" />
+      {loading ? (
+        <Loading role="admin" message="Loading services" variant="content" />
+      ) : (
       <div className="ooo-main">
         <div className="ooo-page">
           <div className="ooo-content">
@@ -314,6 +315,7 @@ const OneOnOne = () => {
           <GeneralFooter pageLabel="OneOnOne" />
         </div>
       </div>
+      )}
     </div>
   );
 };

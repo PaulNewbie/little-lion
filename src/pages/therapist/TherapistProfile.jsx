@@ -52,8 +52,6 @@ const TherapistProfile = () => {
     handleSaveProfile
   } = useProfileForm(currentUser, 'therapist', navigate);
 
-  if (loading) return <Loading role="therapist" message="Loading profile" />;
-
   const fullName = `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim();
   const licenseStatus = formData.licenseExpirationDate ? getExpirationStatus(formData.licenseExpirationDate) : null;
 
@@ -205,6 +203,9 @@ const TherapistProfile = () => {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar {...getTherapistConfig()} forceActive="/therapist/profile" />
+      {loading ? (
+        <Loading role="therapist" message="Loading profile" variant="content" />
+      ) : (
       <div style={{ flex: 1, backgroundColor: '#f8f9fa' }}>
         <div className="tp-page">
 
@@ -329,130 +330,130 @@ const TherapistProfile = () => {
             </div>
           )}
 
+          {/* Profile Completion Modal */}
+          {showProfileModal && (
+            <div className="tp-modal-overlay" onClick={closeProfileModal}>
+              <div className="tp-modal-container" onClick={(e) => e.stopPropagation()}>
+                {/* Modal Header */}
+                <div className="tp-modal-header">
+                  <div className="tp-modal-header-content">
+                    <h2 className="tp-modal-title">Complete Your Profile</h2>
+                    <p className="tp-modal-subtitle">Fill out all required information</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="tp-modal-close"
+                    onClick={closeProfileModal}
+                    aria-label="Close modal"
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18"/>
+                      <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Modal Step Indicator */}
+                <div className="tp-modal-steps">
+                  {modalSteps.map((step, index) => (
+                    <button
+                      key={step.id}
+                      type="button"
+                      className={`tp-modal-step ${index === modalStep ? 'tp-modal-step--active' : ''} ${index < modalStep ? 'tp-modal-step--completed' : ''}`}
+                      onClick={() => goToModalStep(index)}
+                    >
+                      <span className="tp-modal-step-number">
+                        {index < modalStep ? (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        ) : (
+                          index + 1
+                        )}
+                      </span>
+                      <span className="tp-modal-step-title">{step.title}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Modal Body */}
+                <form onSubmit={handleModalSave}>
+                  <div className="tp-modal-body">
+                    <div className="tp-modal-step-header">
+                      <h3>{modalSteps[modalStep].title}</h3>
+                      <p>{modalSteps[modalStep].description}</p>
+                    </div>
+                    <div className="tp-modal-step-content">
+                      {renderModalStepContent()}
+                    </div>
+                  </div>
+
+                  {/* Modal Footer */}
+                  <div className="tp-modal-footer">
+                    <div className="tp-modal-footer-left">
+                      {modalStep > 0 && (
+                        <button
+                          type="button"
+                          className="tp-btn tp-btn--secondary"
+                          onClick={prevModalStep}
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                          </svg>
+                          Previous
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="tp-modal-footer-center">
+                      <span className="tp-modal-step-counter">
+                        Step {modalStep + 1} of {modalSteps.length}
+                      </span>
+                    </div>
+
+                    <div className="tp-modal-footer-right">
+                      {modalStep < modalSteps.length - 1 ? (
+                        <button
+                          type="button"
+                          className="tp-btn tp-btn--primary"
+                          onClick={nextModalStep}
+                        >
+                          Next
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                          </svg>
+                        </button>
+                      ) : (
+                        <button
+                          type="submit"
+                          className="tp-btn tp-btn--save"
+                          disabled={saving}
+                        >
+                          {saving ? (
+                            <>
+                              <span className="tp-btn-spinner"></span>
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                <polyline points="17 21 17 13 7 13 7 21"/>
+                                <polyline points="7 3 7 8 15 8"/>
+                              </svg>
+                              Save Profile
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Profile Completion Modal */}
-      {showProfileModal && (
-        <div className="tp-modal-overlay" onClick={closeProfileModal}>
-          <div className="tp-modal-container" onClick={(e) => e.stopPropagation()}>
-            {/* Modal Header */}
-            <div className="tp-modal-header">
-              <div className="tp-modal-header-content">
-                <h2 className="tp-modal-title">Complete Your Profile</h2>
-                <p className="tp-modal-subtitle">Fill out all required information</p>
-              </div>
-              <button
-                type="button"
-                className="tp-modal-close"
-                onClick={closeProfileModal}
-                aria-label="Close modal"
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"/>
-                  <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </button>
-            </div>
-
-            {/* Modal Step Indicator */}
-            <div className="tp-modal-steps">
-              {modalSteps.map((step, index) => (
-                <button
-                  key={step.id}
-                  type="button"
-                  className={`tp-modal-step ${index === modalStep ? 'tp-modal-step--active' : ''} ${index < modalStep ? 'tp-modal-step--completed' : ''}`}
-                  onClick={() => goToModalStep(index)}
-                >
-                  <span className="tp-modal-step-number">
-                    {index < modalStep ? (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
-                    ) : (
-                      index + 1
-                    )}
-                  </span>
-                  <span className="tp-modal-step-title">{step.title}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Modal Body */}
-            <form onSubmit={handleModalSave}>
-              <div className="tp-modal-body">
-                <div className="tp-modal-step-header">
-                  <h3>{modalSteps[modalStep].title}</h3>
-                  <p>{modalSteps[modalStep].description}</p>
-                </div>
-                <div className="tp-modal-step-content">
-                  {renderModalStepContent()}
-                </div>
-              </div>
-
-              {/* Modal Footer */}
-              <div className="tp-modal-footer">
-                <div className="tp-modal-footer-left">
-                  {modalStep > 0 && (
-                    <button
-                      type="button"
-                      className="tp-btn tp-btn--secondary"
-                      onClick={prevModalStep}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M19 12H5M12 19l-7-7 7-7"/>
-                      </svg>
-                      Previous
-                    </button>
-                  )}
-                </div>
-
-                <div className="tp-modal-footer-center">
-                  <span className="tp-modal-step-counter">
-                    Step {modalStep + 1} of {modalSteps.length}
-                  </span>
-                </div>
-
-                <div className="tp-modal-footer-right">
-                  {modalStep < modalSteps.length - 1 ? (
-                    <button
-                      type="button"
-                      className="tp-btn tp-btn--primary"
-                      onClick={nextModalStep}
-                    >
-                      Next
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
-                      </svg>
-                    </button>
-                  ) : (
-                    <button
-                      type="submit"
-                      className="tp-btn tp-btn--save"
-                      disabled={saving}
-                    >
-                      {saving ? (
-                        <>
-                          <span className="tp-btn-spinner"></span>
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                            <polyline points="17 21 17 13 7 13 7 21"/>
-                            <polyline points="7 3 7 8 15 8"/>
-                          </svg>
-                          Save Profile
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
       )}
     </div>
   );

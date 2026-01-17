@@ -1,0 +1,685 @@
+/* src/pages/admin/css/UserAccessManagement.css */
+
+/* ===========================================
+   LAYOUT - Matches sp-container pattern
+   =========================================== */
+.uam-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f0f2f5;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.uam-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.uam-page {
+  flex: 1;
+  padding: 20px 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ===========================================
+   PAGE HEADER
+   =========================================== */
+.uam-header {
+  margin-bottom: 24px;
+}
+
+.uam-header h1 {
+  font-size: 26px;
+  color: #1a1a2e;
+  margin: 0 0 8px 0;
+  font-weight: 700;
+}
+
+.uam-header p {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* ===========================================
+   PERMISSION CARD
+   =========================================== */
+.uam-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.uam-card-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafbfc;
+}
+
+.uam-card-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.uam-card-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.uam-card-title h2 {
+  font-size: 18px;
+  color: #1a1a2e;
+  margin: 0 0 4px 0;
+  font-weight: 600;
+}
+
+.uam-card-title p {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ===========================================
+   CONTROLS SECTION
+   =========================================== */
+.uam-controls {
+  padding: 16px 24px;
+  background: #fafbfc;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.uam-filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Search Box */
+.uam-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.uam-search-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 14px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.uam-search-box input {
+  padding: 10px 32px 10px 36px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  width: 260px;
+  transition: all 0.2s;
+  background: white;
+}
+
+.uam-search-box input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.uam-clear-search {
+  position: absolute;
+  right: 8px;
+  background: #e5e7eb;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  line-height: 1;
+}
+
+.uam-clear-search:hover {
+  background: #d1d5db;
+}
+
+/* Role Filter */
+.uam-role-filter {
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  min-width: 130px;
+  cursor: pointer;
+}
+
+.uam-role-filter:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+/* Bulk Actions */
+.uam-bulk-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.uam-selected-count {
+  font-size: 13px;
+  color: #4338ca;
+  font-weight: 500;
+  padding: 6px 12px;
+  background: #e0e7ff;
+  border-radius: 16px;
+}
+
+.uam-btn-grant,
+.uam-btn-revoke {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.uam-btn-grant {
+  background: #10b981;
+  color: white;
+}
+
+.uam-btn-grant:hover:not(:disabled) {
+  background: #059669;
+}
+
+.uam-btn-revoke {
+  background: #ef4444;
+  color: white;
+}
+
+.uam-btn-revoke:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.uam-btn-grant:disabled,
+.uam-btn-revoke:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===========================================
+   TABLE STYLES
+   =========================================== */
+.uam-table-wrapper {
+  overflow-x: auto;
+  padding: 0 24px;
+}
+
+.uam-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.uam-table th {
+  background: #f8fafc;
+  padding: 12px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.uam-table td {
+  padding: 12px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+
+.uam-table tbody tr {
+  transition: background-color 0.15s;
+}
+
+.uam-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.uam-table tbody tr.selected {
+  background: #eff6ff;
+}
+
+/* Column widths - using percentages for better fit */
+.uam-col-checkbox {
+  width: 40px;
+  text-align: center;
+}
+
+.uam-col-name {
+  width: 30%;
+}
+
+.uam-col-role {
+  width: 12%;
+}
+
+.uam-col-status {
+  width: 14%;
+}
+
+.uam-col-permission {
+  width: 12%;
+}
+
+.uam-col-action {
+  width: 12%;
+}
+
+/* Checkbox styling */
+.uam-table input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #3b82f6;
+}
+
+/* User Info Cell */
+.uam-user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.uam-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.uam-user-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.uam-user-name {
+  font-weight: 600;
+  color: #1a1a2e;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.uam-user-email {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+/* ===========================================
+   BADGES
+   =========================================== */
+/* Role Badges */
+.uam-role-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.uam-role-admin {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.uam-role-teacher {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.uam-role-therapist {
+  background: #f3e8ff;
+  color: #6b21a8;
+}
+
+/* Status Badges */
+.uam-status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.uam-status-active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.uam-status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.uam-status-inactive {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Permission Badges */
+.uam-permission-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.uam-permission-badge.granted {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.uam-permission-badge.denied {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ===========================================
+   ACTION BUTTONS
+   =========================================== */
+.uam-action-btn {
+  padding: 7px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s;
+  min-width: 70px;
+}
+
+.uam-action-btn.grant {
+  background: #3b82f6;
+  color: white;
+}
+
+.uam-action-btn.grant:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.uam-action-btn.revoke {
+  background: #f87171;
+  color: white;
+}
+
+.uam-action-btn.revoke:hover:not(:disabled) {
+  background: #ef4444;
+}
+
+.uam-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===========================================
+   LOADING & EMPTY STATES
+   =========================================== */
+.uam-loading {
+  padding: 50px 20px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.uam-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: uam-spin 0.8s linear infinite;
+  margin: 0 auto 14px;
+}
+
+@keyframes uam-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.uam-loading p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.uam-empty {
+  padding: 50px 20px;
+  text-align: center;
+}
+
+.uam-empty-icon {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.uam-empty p {
+  color: #6b7280;
+  font-size: 14px;
+  margin-bottom: 14px;
+}
+
+.uam-empty button {
+  padding: 8px 16px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #374151;
+}
+
+.uam-empty button:hover {
+  background: #e5e7eb;
+}
+
+/* ===========================================
+   TABLE FOOTER
+   =========================================== */
+.uam-table-footer {
+  padding: 14px 24px;
+  background: #fafbfc;
+  border-top: 1px solid #f0f0f0;
+  font-size: 13px;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.uam-divider {
+  color: #d1d5db;
+}
+
+.uam-granted-count {
+  color: #059669;
+  font-weight: 500;
+}
+
+/* ===========================================
+   INFO BOX
+   =========================================== */
+.uam-info-box {
+  display: flex;
+  gap: 14px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+  border-radius: 10px;
+  border: 1px solid #bfdbfe;
+}
+
+.uam-info-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.uam-info-content strong {
+  display: block;
+  color: #1e40af;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.uam-info-content p {
+  color: #3b82f6;
+  font-size: 13px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ===========================================
+   RESPONSIVE - TABLET & MOBILE
+   =========================================== */
+@media (max-width: 767px) {
+  .uam-page {
+    padding: 16px;
+  }
+
+  .uam-header h1 {
+    font-size: 22px;
+  }
+
+  .uam-card-header {
+    padding: 16px 20px;
+  }
+
+  .uam-controls {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px 20px;
+  }
+
+  .uam-filters {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .uam-search-box {
+    width: 100%;
+  }
+
+  .uam-search-box input {
+    width: 100%;
+  }
+
+  .uam-role-filter {
+    width: 100%;
+  }
+
+  .uam-bulk-actions {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .uam-table-wrapper {
+    padding: 0 12px;
+  }
+
+  .uam-table th,
+  .uam-table td {
+    padding: 10px 8px;
+  }
+
+  /* Hide some columns on mobile */
+  .uam-col-status {
+    display: none;
+  }
+
+  .uam-col-role {
+    display: none;
+  }
+
+  .uam-user-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 11px;
+  }
+
+  .uam-user-email {
+    display: none;
+  }
+
+  .uam-info-box {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .uam-table-footer {
+    padding: 12px 20px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .uam-action-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+    min-width: 60px;
+  }
+
+  .uam-permission-badge {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .uam-btn-grant,
+  .uam-btn-revoke {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}

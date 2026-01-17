@@ -7,11 +7,12 @@ import GeneralFooter from "../../../components/footer/generalfooter";
 import childService from "../../../services/childService";
 import offeringsService from "../../../services/offeringsService";
 import userService from "../../../services/userService";
-import { useTeachers, useTherapists } from "../../../hooks/useRoleBasedData"; 
+import { useTeachers, useTherapists } from "../../../hooks/useRoleBasedData";
 import { useStudentProfileData } from "./hooks/useStudentProfileData";
 import AssessmentHistory from "../../shared/AssessmentHistory";
 import ActivityCalendar from "./components/ActivityCalendar";
 import Loading from "../../../components/common/Loading";
+import { ServiceEnrollmentsPanel } from "../../../components/serviceEnrollments";
 import "./StudentProfile.css";
 
 const StudentProfile = ({ 
@@ -31,9 +32,18 @@ const StudentProfile = ({
   const studentIdFromEnrollment = location.state?.studentId;
   const fromEnrollment = location.state?.fromEnrollment;
   const parentFromEnrollment = location.state?.parent;
+  const isStaffViewFromNav = location.state?.isStaffView;
+  const studentFromNav = location.state?.student;
+
+  // Determine if this is a staff view (therapist/teacher viewing their student)
+  const isStaffRole = currentUser?.role === 'therapist' || currentUser?.role === 'teacher';
+  const isStaffView = isStaffViewFromNav || (isStaffRole && !isParentView);
+
+  // Single student mode: when navigating directly to view one student (no need to fetch list)
+  const singleStudentMode = !!(studentFromNav && isStaffView);
 
   // 1. THE CUSTOM HOOK (Data & Pagination)
-  // OPTIMIZED: Pass isParentView and parentId so parents only fetch their own children
+  // OPTIMIZED: Pass view mode so it fetches only the relevant students
   const {
     loading,
     selectedStudent,
@@ -52,7 +62,10 @@ const StudentProfile = ({
     handleLoadMore
   } = useStudentProfileData(location.state, {
     isParentView,
-    parentId: isParentView ? currentUser?.uid : null
+    parentId: isParentView ? currentUser?.uid : null,
+    isStaffView: isStaffView && !singleStudentMode, // If single student mode, don't need staff view
+    staffId: isStaffView ? currentUser?.uid : null,
+    singleStudentMode
   });
 
   // 2. UI State
@@ -259,9 +272,7 @@ const StudentProfile = ({
     }
   };
 
-  if (loading) {
-    return <Loading role="admin" message="Loading students" variant="inline" />;
-  }
+  // Loading state is now handled inside the return with sidebar visible
 
   const calculateAge = (dob) => {
     if (!dob) return "N/A";
@@ -530,62 +541,71 @@ const StudentProfile = ({
                 />
               ))}
 
-            <div
-              className="profile-content-scroll">
-              <div className="services-split-row">
-                <div className="content-section">
-                 <div className="services-header-row">
-
-                    <h2 className="services-header">Therapy Services</h2>
-                    {!isParentView && (
-                      <button onClick={() => handleOpenAddModal("Therapy")}>
-                        <b>+ Add</b>
-                      </button>
-                    )}
+            <div className="profile-content-scroll">
+              {/* New Service Enrollments Panel - uses new data model if available */}
+              {selectedStudent?.serviceEnrollments?.length > 0 ? (
+                <ServiceEnrollmentsPanel
+                  childId={selectedStudent.id}
+                  onServiceClick={handleServiceClick}
+                  selectedService={selectedService}
+                  isReadOnly={isParentView}
+                  onAddService={!isParentView ? () => handleOpenAddModal("Therapy") : undefined}
+                />
+              ) : (
+                /* Legacy UI - for students not yet migrated */
+                <div className="services-split-row">
+                  <div className="content-section">
+                    <div className="services-header-row">
+                      <h2 className="services-header">Therapy Services</h2>
+                      {!isParentView && (
+                        <button onClick={() => handleOpenAddModal("Therapy")}>
+                          <b>+ Add</b>
+                        </button>
+                      )}
+                    </div>
+                    <div className="services-list">
+                      {therapyServices.map((s, i) => (
+                        <div key={i}>
+                          <div
+                            className={`service-row clickable ${
+                              selectedService === s.serviceName ? "active" : ""
+                            }`}
+                            onClick={() => handleServiceClick(s.serviceName)}
+                          >
+                            <div className="service-left">🧠 {s.serviceName}</div>
+                            <div>{s.staffName}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="services-list">
-                    {therapyServices.map((s, i) => (
-                      <div key={i}>
+
+                  <div className="content-section">
+                    <div className="services-header-row">
+                      <h2 className="services-header">Group Classes</h2>
+                      {!isParentView && (
+                        <button onClick={() => handleOpenAddModal("Class")}>
+                          <b>+ Add</b>
+                        </button>
+                      )}
+                    </div>
+                    <div className="services-list">
+                      {groupServices.map((s, i) => (
                         <div
+                          key={i}
                           className={`service-row clickable ${
                             selectedService === s.serviceName ? "active" : ""
                           }`}
                           onClick={() => handleServiceClick(s.serviceName)}
                         >
-                          <div className="service-left">🧠 {s.serviceName}</div>
+                          <div className="service-left">👥 {s.serviceName}</div>
                           <div>{s.staffName}</div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
-
-                <div className="content-section">
-                 <div className="services-header-row">
-
-                    <h2 className="services-header">Group Classes</h2>
-                    {!isParentView && (
-                      <button onClick={() => handleOpenAddModal("Class")}>
-                        <b>+ Add</b>
-                      </button>
-                    )}
-                  </div>
-                  <div className="services-list">
-                    {groupServices.map((s, i) => (
-                      <div
-                        key={i}
-                        className={`service-row clickable ${
-                          selectedService === s.serviceName ? "active" : ""
-                        }`}
-                        onClick={() => handleServiceClick(s.serviceName)}
-                      >
-                        <div className="service-left">👥 {s.serviceName}</div>
-                        <div>{s.staffName}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              )}
 
               {selectedService && (
                 <div ref={calendarRef}>
@@ -704,7 +724,11 @@ const StudentProfile = ({
   return (
     <div className="sp-container">
       <Sidebar {...sidebarConfig} forceActive={getForceActive()} />
-      {mainContent}
+      {loading ? (
+        <Loading role="admin" message="Loading students" variant="content" />
+      ) : (
+        mainContent
+      )}
     </div>
   );
 };

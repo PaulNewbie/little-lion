@@ -131,7 +131,12 @@ export const getTherapistConfig = (profileCompleted = true) => ({
           label: "MY PROFILE",
           showNotification: !profileCompleted
         },
-        { path: "/therapist/enrollment", icon: enroll_Icon, label: "ENROLL STUDENT" },
+        {
+          path: "/therapist/enrollment",
+          icon: enroll_Icon,
+          label: "ENROLL STUDENT",
+          requiresPermission: "canEnrollStudents"  // Add this flag
+        },
         { path: "/staff/inquiries", icon: MailIcon, label: "INQUIRIES" },
       ]
     }
@@ -158,8 +163,14 @@ export const getTeacherConfig = (profileCompleted = true) => ({
           label: "MY PROFILE",
           showNotification: !profileCompleted
         },
-        { path: "/teacher/enrollment", icon: enroll_Icon, label: "ENROLL STUDENT" },
-        { path: "/staff/inquiries", icon: MailIcon, label: "INQUIRIES" },
+        {
+          path: "/teacher/enrollment",
+          icon: enroll_Icon,
+          label: "ENROLL STUDENT",
+          requiresPermission: "canEnrollStudents"  // Add this flag
+        },
+
+        { path: "/staff/inquiries", icon: MailIcon, label: "INQUIRIES" }
       ]
     }
   ]
