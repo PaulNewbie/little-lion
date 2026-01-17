@@ -7,11 +7,12 @@ import GeneralFooter from "../../../components/footer/generalfooter";
 import childService from "../../../services/childService";
 import offeringsService from "../../../services/offeringsService";
 import userService from "../../../services/userService";
-import { useTeachers, useTherapists } from "../../../hooks/useRoleBasedData"; 
+import { useTeachers, useTherapists } from "../../../hooks/useRoleBasedData";
 import { useStudentProfileData } from "./hooks/useStudentProfileData";
 import AssessmentHistory from "../../shared/AssessmentHistory";
 import ActivityCalendar from "./components/ActivityCalendar";
 import Loading from "../../../components/common/Loading";
+import { ServiceEnrollmentsPanel } from "../../../components/serviceEnrollments";
 import "./StudentProfile.css";
 
 const StudentProfile = ({ 
@@ -525,62 +526,71 @@ const StudentProfile = ({
                 />
               ))}
 
-            <div
-              className="profile-content-scroll">
-              <div className="services-split-row">
-                <div className="content-section">
-                 <div className="services-header-row">
-
-                    <h2 className="services-header">Therapy Services</h2>
-                    {!isParentView && (
-                      <button onClick={() => handleOpenAddModal("Therapy")}>
-                        <b>+ Add</b>
-                      </button>
-                    )}
+            <div className="profile-content-scroll">
+              {/* New Service Enrollments Panel - uses new data model if available */}
+              {selectedStudent?.serviceEnrollments?.length > 0 ? (
+                <ServiceEnrollmentsPanel
+                  childId={selectedStudent.id}
+                  onServiceClick={handleServiceClick}
+                  selectedService={selectedService}
+                  isReadOnly={isParentView}
+                  onAddService={!isParentView ? () => handleOpenAddModal("Therapy") : undefined}
+                />
+              ) : (
+                /* Legacy UI - for students not yet migrated */
+                <div className="services-split-row">
+                  <div className="content-section">
+                    <div className="services-header-row">
+                      <h2 className="services-header">Therapy Services</h2>
+                      {!isParentView && (
+                        <button onClick={() => handleOpenAddModal("Therapy")}>
+                          <b>+ Add</b>
+                        </button>
+                      )}
+                    </div>
+                    <div className="services-list">
+                      {therapyServices.map((s, i) => (
+                        <div key={i}>
+                          <div
+                            className={`service-row clickable ${
+                              selectedService === s.serviceName ? "active" : ""
+                            }`}
+                            onClick={() => handleServiceClick(s.serviceName)}
+                          >
+                            <div className="service-left">🧠 {s.serviceName}</div>
+                            <div>{s.staffName}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="services-list">
-                    {therapyServices.map((s, i) => (
-                      <div key={i}>
+
+                  <div className="content-section">
+                    <div className="services-header-row">
+                      <h2 className="services-header">Group Classes</h2>
+                      {!isParentView && (
+                        <button onClick={() => handleOpenAddModal("Class")}>
+                          <b>+ Add</b>
+                        </button>
+                      )}
+                    </div>
+                    <div className="services-list">
+                      {groupServices.map((s, i) => (
                         <div
+                          key={i}
                           className={`service-row clickable ${
                             selectedService === s.serviceName ? "active" : ""
                           }`}
                           onClick={() => handleServiceClick(s.serviceName)}
                         >
-                          <div className="service-left">🧠 {s.serviceName}</div>
+                          <div className="service-left">👥 {s.serviceName}</div>
                           <div>{s.staffName}</div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
-
-                <div className="content-section">
-                 <div className="services-header-row">
-
-                    <h2 className="services-header">Group Classes</h2>
-                    {!isParentView && (
-                      <button onClick={() => handleOpenAddModal("Class")}>
-                        <b>+ Add</b>
-                      </button>
-                    )}
-                  </div>
-                  <div className="services-list">
-                    {groupServices.map((s, i) => (
-                      <div
-                        key={i}
-                        className={`service-row clickable ${
-                          selectedService === s.serviceName ? "active" : ""
-                        }`}
-                        onClick={() => handleServiceClick(s.serviceName)}
-                      >
-                        <div className="service-left">👥 {s.serviceName}</div>
-                        <div>{s.staffName}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              )}
 
               {selectedService && (
                 <div ref={calendarRef}>

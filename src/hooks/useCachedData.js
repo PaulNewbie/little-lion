@@ -430,6 +430,13 @@ export function useParentDashboardData() {
   };
 }
 
+// Re-export service enrollment hooks for convenience
+export {
+  useServiceEnrollments,
+  useServiceEnrollmentMigration,
+  useStaffForEnrollment
+} from './useServiceEnrollments';
+
 export default {
   useParents,
   useTeachers,
