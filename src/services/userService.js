@@ -94,7 +94,7 @@ class UserService {
       const docRef = doc(db, COLLECTION_NAME, userId);
       const docSnap = await getDoc(docRef);
       trackRead(COLLECTION_NAME, 1);
-      
+
       if (!docSnap.exists()) {
         return null;
       }
@@ -106,6 +106,30 @@ class UserService {
       };
     } catch (error) {
       console.error('Error fetching user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get multiple staff members by IDs
+   * @param {string[]} staffIds - Array of staff user IDs
+   * @returns {Promise<Array>} Array of staff user objects
+   */
+  async getStaffByIds(staffIds) {
+    if (!staffIds || staffIds.length === 0) return [];
+
+    try {
+      // Remove duplicates
+      const uniqueIds = [...new Set(staffIds)];
+
+      // Fetch all staff members in parallel
+      const staffPromises = uniqueIds.map(id => this.getUserById(id));
+      const staffResults = await Promise.all(staffPromises);
+
+      // Filter out null results (in case some IDs don't exist)
+      return staffResults.filter(staff => staff !== null);
+    } catch (error) {
+      console.error('Error fetching staff by IDs:', error);
       throw error;
     }
   }

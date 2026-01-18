@@ -281,8 +281,9 @@ const ServiceEnrollmentsPanel = ({
         </div>
       )}
 
-      {/* Staff Summary (Quick View) - Only show for admins/parents who see all services */}
-      {hasActiveServices && (!viewerRole || viewerRole === 'admin' || viewerRole === 'super_admin' || viewerRole === 'parent') && (
+      {/* Staff Summary (Quick View) - Only show for admins who see all services */}
+      {/* Note: Parents see the dedicated CurrentTeamSection with full credentials instead */}
+      {hasActiveServices && (!viewerRole || viewerRole === 'admin' || viewerRole === 'super_admin') && (
         <div className="se-panel__summary">
           <h3 className="se-panel__summary-title">Current Team</h3>
           <div className="se-panel__avatars">

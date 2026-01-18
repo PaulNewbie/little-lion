@@ -11,40 +11,44 @@ import cloudinaryService from "../../../services/cloudinaryService";
 import { useTeachers, useTherapists } from "../../../hooks/useRoleBasedData";
 import { useStudentProfileData } from "./hooks/useStudentProfileData";
 import AssessmentHistory from "../../shared/AssessmentHistory";
-import ActivityCalendar from "./components/ActivityCalendar";
 import Loading from "../../../components/common/Loading";
 import { ServiceEnrollmentsPanel } from "../../../components/serviceEnrollments";
+import { CurrentTeamSection } from "../../../components/staffCredentials";
+
+// Local components
+import {
+  ActivityCalendar,
+  StudentListView,
+  StudentProfileHeader,
+  AddServiceModal
+} from "./components";
+
 import "./StudentProfile.css";
 
-const StudentProfile = ({ 
+const StudentProfile = ({
   isParentView = false,
   childIdFromRoute = null,
   hideSidebar = false,
   noContainer = false,
 }) => {
-  useEffect(() => {
-    console.log("StudentProfile mounted", { isParentView, childIdFromRoute });
-  }, [isParentView, childIdFromRoute]);
-
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const calendarRef = useRef(null);
 
+  // Navigation state
   const studentIdFromEnrollment = location.state?.studentId;
   const fromEnrollment = location.state?.fromEnrollment;
   const parentFromEnrollment = location.state?.parent;
   const isStaffViewFromNav = location.state?.isStaffView;
   const studentFromNav = location.state?.student;
 
-  // Determine if this is a staff view (therapist/teacher viewing their student)
+  // Determine view type
   const isStaffRole = currentUser?.role === 'therapist' || currentUser?.role === 'teacher';
   const isStaffView = isStaffViewFromNav || (isStaffRole && !isParentView);
-
-  // Single student mode: when navigating directly to view one student (no need to fetch list)
   const singleStudentMode = !!(studentFromNav && isStaffView);
 
-  // 1. THE CUSTOM HOOK (Data & Pagination)
-  // OPTIMIZED: Pass view mode so it fetches only the relevant students
+  // Data hook
   const {
     loading,
     selectedStudent,
@@ -64,46 +68,34 @@ const StudentProfile = ({
   } = useStudentProfileData(location.state, {
     isParentView,
     parentId: isParentView ? currentUser?.uid : null,
-    isStaffView: isStaffView && !singleStudentMode, // If single student mode, don't need staff view
+    isStaffView: isStaffView && !singleStudentMode,
     staffId: isStaffView ? currentUser?.uid : null,
     singleStudentMode
   });
 
-  // 2. UI State
+  // UI State
   const [viewMode, setViewMode] = useState(
     (studentIdFromEnrollment || selectedStudent || childIdFromRoute) ? "profile" : "list"
   );
   const [selectedService, setSelectedService] = useState("");
   const [showAssessment, setShowAssessment] = useState(false);
   const [ignoreRouteChild, setIgnoreRouteChild] = useState(false);
-  const [isSingleChildParent, setIsSingleChildParent] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
-  // 3. Modal State (Moved UP so hooks can use it)
+  // Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addServiceType, setAddServiceType] = useState(null);
   const [availableServices, setAvailableServices] = useState([]);
   const [addForm, setAddForm] = useState({ serviceId: "", staffId: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const calendarRef = useRef(null);
 
-  // 4. Staff Data (LAZY LOAD OPTIMIZATION)
-  // Only fetch staff when the Add Modal is open. 
-  // This prevents reading all 50+ users just by viewing a student profile.
+  // Staff Data (lazy loaded)
   const shouldFetchStaff = !isParentView && isAddModalOpen;
+  const { data: teachers, isLoading: loadingTeachers } = useTeachers({ enabled: shouldFetchStaff });
+  const { data: therapists, isLoading: loadingTherapists } = useTherapists({ enabled: shouldFetchStaff });
+  const combinedStaff = useMemo(() => [...(teachers || []), ...(therapists || [])], [teachers, therapists]);
 
-  const { data: teachers, isLoading: loadingTeachers } = useTeachers({ 
-    enabled: shouldFetchStaff 
-  });
-  
-  const { data: therapists, isLoading: loadingTherapists } = useTherapists({ 
-    enabled: shouldFetchStaff 
-  });
-  
-  const combinedStaff = useMemo(() => {
-    return [...(teachers || []), ...(therapists || [])];
-  }, [teachers, therapists]);
+  // === Effects ===
 
   // Auto-load child for parent view
   useEffect(() => {
@@ -112,22 +104,18 @@ const StudentProfile = ({
         try {
           const children = await childService.getChildrenByParentId(currentUser.uid);
           const child = children.find(c => c.id === childIdFromRoute);
-          
           if (!child) {
             alert("Child not found or access denied");
             navigate("/parent/dashboard");
             return;
           }
-          
           setSelectedStudent(child);
           setViewMode("profile");
         } catch (error) {
           console.error("Error loading child:", error);
-          alert("Failed to load child data");
           navigate("/parent/dashboard");
         }
       };
-      
       loadChildForParent();
     }
   }, [isParentView, childIdFromRoute, selectedStudent, currentUser, navigate, setSelectedStudent, ignoreRouteChild]);
@@ -138,21 +126,19 @@ const StudentProfile = ({
     }
   }, [studentIdFromEnrollment, selectedStudent]);
 
-  // Auto-select single child for parent view (no grid needed)
+  // Auto-select single child for parent
   useEffect(() => {
     if (isParentView && !loading && !selectedStudent && !childIdFromRoute && !ignoreRouteChild) {
       const parentChildren = filteredStudents.filter((s) => s.parentId === currentUser?.uid);
       if (parentChildren.length === 1) {
-        setIsSingleChildParent(true);
         setSelectedStudent(parentChildren[0]);
         setViewMode("profile");
-      } else {
-        setIsSingleChildParent(false);
       }
     }
   }, [isParentView, loading, filteredStudents, currentUser, selectedStudent, childIdFromRoute, ignoreRouteChild, setSelectedStudent]);
 
-  // --- Handlers ---
+  // === Handlers ===
+
   const handleSelectStudent = (student) => {
     setSelectedStudent(student);
     setViewMode("profile");
@@ -167,23 +153,13 @@ const StudentProfile = ({
       setViewMode("list");
       return;
     }
-
-    // Handle navigation based on where user came from
     if (location.state?.fromOneOnOne) {
-      navigate("/admin/one-on-one", {
-        state: { ...location.state, level: "students" },
-      });
+      navigate("/admin/one-on-one", { state: { ...location.state, level: "students" } });
     } else if (fromEnrollment) {
-      navigate("/admin/enrollment", {
-        state: {
-          selectedParent: parentFromEnrollment,
-        },
-      });
+      navigate("/admin/enrollment", { state: { selectedParent: parentFromEnrollment } });
     } else if (currentUser?.role === 'therapist') {
-      // Therapist goes back to their dashboard
       navigate('/therapist/dashboard');
     } else if (currentUser?.role === 'teacher') {
-      // Teacher goes back to their dashboard
       navigate('/teacher/dashboard');
     } else {
       setSelectedStudent(null);
@@ -194,51 +170,27 @@ const StudentProfile = ({
   const handleServiceClick = (serviceName) => {
     setSelectedService(serviceName);
     setTimeout(() => {
-      calendarRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+      calendarRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
   };
 
-  // Parent photo upload handler
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    // Validate file type
     if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
       alert('Please upload a JPG or PNG image.');
       return;
     }
-
-    // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       alert('File size must be less than 5MB.');
       return;
     }
-
     setUploadingPhoto(true);
     try {
-      // Upload to Cloudinary
-      const photoUrl = await cloudinaryService.uploadImage(
-        file,
-        'little-lions/children'
-      );
-
-      // Update child photo in Firestore (uses parent-safe method)
-      await childService.updateChildPhoto(
-        selectedStudent.id,
-        currentUser.uid,
-        photoUrl
-      );
-
-      // Update local state
+      const photoUrl = await cloudinaryService.uploadImage(file, 'little-lions/children');
+      await childService.updateChildPhoto(selectedStudent.id, currentUser.uid, photoUrl);
       setSelectedStudent(prev => ({ ...prev, photoUrl }));
-
-      // Refresh data to ensure consistency
       await refreshData();
-
       alert('Photo uploaded successfully!');
     } catch (error) {
       console.error('Photo upload failed:', error);
@@ -248,49 +200,25 @@ const StudentProfile = ({
     }
   };
 
-  // Admin-only: Add service functionality
   const handleOpenAddModal = async (type) => {
-    if (isParentView) return; 
-    
+    if (isParentView) return;
     setAddServiceType(type);
     setAddForm({ serviceId: "", staffId: "" });
-    
-    // Start by showing the modal (this triggers the staff fetch via hooks)
     setIsAddModalOpen(true);
 
     try {
       const services = await offeringsService.getServicesByType(type);
-      const interventionsFromAssessment =
-        assessmentData?.backgroundHistory?.interventions || [];
+      const interventions = assessmentData?.backgroundHistory?.interventions || [];
+      const savedServiceIds = [...new Set(interventions.map((i) => i.serviceId).filter(Boolean))];
+      const currentEnrolled = [...(selectedStudent?.oneOnOneServices || []), ...(selectedStudent?.groupClassServices || [])];
+      const enrolledServiceIds = new Set(currentEnrolled.map((es) => es.serviceId));
+      const filtered = services.filter((s) => savedServiceIds.includes(s.id) && !enrolledServiceIds.has(s.id));
 
-      const savedServiceIds = [
-        ...new Set(
-          interventionsFromAssessment.map((i) => i.serviceId).filter(Boolean)
-        ),
-      ];
-
-      const currentEnrolled = [
-        ...(selectedStudent?.oneOnOneServices || []),
-        ...(selectedStudent?.groupClassServices || [])
-      ];
-
-      const enrolledServiceIds = new Set(
-        currentEnrolled.map((es) => es.serviceId)
-      );
-
-      const filteredServices = services.filter(
-        (s) => savedServiceIds.includes(s.id) && !enrolledServiceIds.has(s.id)
-      );
-
-      if (filteredServices.length === 0) {
-        // Keep empty array but warn user
+      if (filtered.length === 0) {
         setAvailableServices([]);
-        // Optional: you can alert here, or just show the message in the modal
-        alert(
-          "No services match the student's recorded interventions. Please review Step IV - Background History."
-        );
+        alert("No services match the student's recorded interventions. Please review Step IV - Background History.");
       } else {
-        setAvailableServices(filteredServices);
+        setAvailableServices(filtered);
       }
     } catch (error) {
       alert("Error loading services: " + error.message);
@@ -298,34 +226,24 @@ const StudentProfile = ({
   };
 
   const handleAddSubmit = async () => {
-    if (!addForm.serviceId || !addForm.staffId)
-      return alert("Select service and staff.");
+    if (!addForm.serviceId || !addForm.staffId) return alert("Select service and staff.");
     setIsSubmitting(true);
     try {
-      const serviceObj = availableServices.find(
-        (s) => s.id === addForm.serviceId
-      );
+      const serviceObj = availableServices.find((s) => s.id === addForm.serviceId);
       const isTherapy = addServiceType === "Therapy";
       const staffList = isTherapy ? therapists : teachers;
-      
-      const staffObj = staffList?.find(
-        (s) => (s.uid || s.id) === addForm.staffId
-      );
-
+      const staffObj = staffList?.find((s) => (s.uid || s.id) === addForm.staffId);
       if (!staffObj) throw new Error("Staff member not found.");
 
-      const assignData = {
+      await childService.assignService(selectedStudent.id, {
         serviceId: serviceObj.id,
         serviceName: serviceObj.name,
         staffId: addForm.staffId,
         staffName: `${staffObj.firstName} ${staffObj.lastName}`,
         type: addServiceType,
         staffRole: isTherapy ? "therapist" : "teacher",
-      };
-
-      await childService.assignService(selectedStudent.id, assignData);
+      });
       await userService.addSpecialization(addForm.staffId, serviceObj.name);
-
       await refreshData();
       setIsAddModalOpen(false);
       alert("Service added and Staff updated!");
@@ -336,51 +254,14 @@ const StudentProfile = ({
     }
   };
 
-  // Loading state is now handled inside the return with sidebar visible
-
-  const calculateAge = (dob) => {
-    if (!dob) return "N/A";
-    const age = Math.abs(
-      new Date(Date.now() - new Date(dob).getTime()).getUTCFullYear() - 1970
-    );
-    return isNaN(age) ? "N/A" : age;
-  };
-
-  const enrolled = [
-    ...(selectedStudent?.enrolledServices || []),
-    ...(selectedStudent?.oneOnOneServices || []),
-    ...(selectedStudent?.groupClassServices || []),
-  ];
-  // Filter services - Staff can only see their own services (privacy)
-  const filterServicesByRole = (services) => {
-    // Admins and parents see everything
-    if (!isStaffView || currentUser?.role === 'admin' || currentUser?.role === 'super_admin') {
-      return services;
-    }
-    // Staff only see services where they are the assigned staff
-    return services.filter(s => s.staffId === currentUser?.uid);
-  };
-
-  const therapyServices = filterServicesByRole(
-    enrolled.filter((s) => s.serviceType === "Therapy" || s.staffRole === "therapist")
-  );
-  const groupServices = filterServicesByRole(
-    enrolled.filter((s) => s.serviceType === "Class" || s.staffRole === "teacher")
-  );
+  // === Computed Values ===
 
   const getQualifiedStaff = (serviceName, serviceType) => {
-    if (!serviceName || !serviceType) return [];
-    
-    // If we are still loading, return empty to prevent errors
-    if (loadingTeachers || loadingTherapists) return [];
-
+    if (!serviceName || !serviceType || loadingTeachers || loadingTherapists) return [];
     const staffList = serviceType === "Therapy" ? therapists : teachers;
     if (!staffList) return [];
-
     return staffList.filter((staff) =>
-      staff.specializations?.some(
-        (spec) => spec.trim().toLowerCase() === serviceName.trim().toLowerCase()
-      )
+      staff.specializations?.some((spec) => spec.trim().toLowerCase() === serviceName.trim().toLowerCase())
     );
   };
 
@@ -388,453 +269,128 @@ const StudentProfile = ({
     ? filteredStudents.filter((s) => s.parentId === currentUser.uid)
     : filteredStudents;
 
-  // Determine sidebar config based on user role
-  const getSidebarConfigByRole = () => {
+  const getSidebarConfig = () => {
     if (isParentView) return getParentConfig();
-
     switch (currentUser?.role) {
-      case 'therapist':
-        return getTherapistConfig();
-      case 'teacher':
-        return getTeacherConfig();
-      case 'super_admin':
-        return getAdminConfig(true);
-      case 'admin':
-      default:
-        return getAdminConfig(false);
+      case 'therapist': return getTherapistConfig();
+      case 'teacher': return getTeacherConfig();
+      case 'super_admin': return getAdminConfig(true);
+      default: return getAdminConfig(false);
     }
   };
-  const sidebarConfig = getSidebarConfigByRole();
+
+  const getForceActive = () => {
+    switch (currentUser?.role) {
+      case 'therapist': return '/therapist/dashboard';
+      case 'teacher': return '/teacher/dashboard';
+      default: return '/admin/StudentProfile';
+    }
+  };
+
+  // === Render ===
 
   const mainContent = (
     <div className="sp-main">
       <div className="sp-page">
-        {/* === VIEW 1: LIST === */}
+        {/* LIST VIEW */}
         {viewMode === "list" && (
-          <>
-            <div className="sp-header">
-              <div className="sp-header-content">
-                <div className="header-title">
-                  <h1>{isParentView ? "MY CHILDREN" : "STUDENT PROFILES"}</h1>
-                  <p className="header-subtitle">
-                    {isParentView
-                      ? "View your children's profiles and activities"
-                      : "Manage enrolled students and view activities"
-                    }
-                  </p>
-                </div>
-                <div className="filter-actions">
-                  <div className="search-wrapper">
-                    <span className="search-icon">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <circle cx="11" cy="11" r="8"/>
-                        <path d="M21 21l-4.35-4.35"/>
-                      </svg>
-                    </span>
-                    <input
-                      type="text"
-                      className="sp-search"
-                      placeholder="Search student name..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  <div className="filter-wrapper">
-                    <select
-                      className="sp-filter-select"
-                      value={filterType}
-                      onChange={(e) => setFilterType(e.target.value)}
-                    >
-                      <option value="all">All Students</option>
-                      <option value="therapy">Therapy Only</option>
-                      <option value="group">Group Class Only</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="sp-content-area">
-              <div className="sp-grid">
-                {effectiveFilteredStudents.map((student) => (
-                  <div
-                    key={student.id}
-                    className="sp-card"
-                    onClick={() => handleSelectStudent(student)}
-                  >
-                    <div className="sp-card-image-box">
-                      {student.photoUrl ? (
-                        <img
-                          src={student.photoUrl}
-                          className="sp-photo"
-                          alt=""
-                        />
-                      ) : (
-                        <div className="sp-photo-placeholder">
-                          {student.firstName[0]}
-                        </div>
-                      )}
-                    </div>
-                    <div className="sp-card-body">
-                      <h3 className="sp-name">
-                        {student.firstName} {student.lastName}
-                      </h3>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Pagination Load More Button */}
-              {!isParentView && hasMore && (
-                <div className="sp-load-more-wrapper">
-                  <button
-                    className="sp-load-more-btn"
-                    onClick={handleLoadMore}
-                  >
-                    Load More Students
-                  </button>
-                </div>
-              )}
-            </div>
-          </>
+          <StudentListView
+            isParentView={isParentView}
+            students={effectiveFilteredStudents}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            filterType={filterType}
+            onFilterChange={setFilterType}
+            onSelectStudent={handleSelectStudent}
+            hasMore={hasMore}
+            onLoadMore={handleLoadMore}
+          />
         )}
 
-        {/* === VIEW 2: PROFILE === */}
+        {/* PROFILE VIEW */}
         {viewMode === "profile" && selectedStudent && (
-          <>
           <div className="profile-wrapper">
-            <div className="profile-top">
-              <div className="left-group">
-                <span className="back-arrow" onClick={handleBack}>
-                  <svg width="32" height="52" viewBox="0 0 32 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path fill-rule="evenodd" clip-rule="evenodd" d="M11.6255 22.8691C9.89159 24.4549 9.89159 27.1866 11.6255 28.7724L30.3211 45.8712C31.7604 47.1876 31.7604 49.455 30.3211 50.7714C29.0525 51.9316 27.1081 51.9316 25.8395 50.7714L1.01868 28.0705C0.366419 27.4738 0 26.6645 0 25.8208C0 24.977 0.366419 24.1678 1.01868 23.571L25.8395 0.87018C27.1081 -0.290054 29.0525 -0.290057 30.3211 0.870177C31.7604 2.1865 31.7604 4.45398 30.3211 5.7703L11.6255 22.8691Z" fill="#636363"/>
-                  </svg>
+            <StudentProfileHeader
+              student={selectedStudent}
+              parentData={parentData}
+              isParentView={isParentView}
+              uploadingPhoto={uploadingPhoto}
+              onBack={handleBack}
+              onPhotoUpload={handlePhotoUpload}
+              showAssessment={showAssessment}
+              onToggleAssessment={() => setShowAssessment(!showAssessment)}
+            />
 
-                </span>
-                <h2>
-                  {isParentView
-                    ? `${selectedStudent.firstName}'S PROFILE`
-                    : "STUDENT PROFILE"
-                  }
-                </h2>
-              </div>
-            </div>
-
-            <div className="profile-3col">
-              <div className="profile-photo-frame">
-                {selectedStudent.photoUrl ? (
-                  <img
-                    src={selectedStudent.photoUrl}
-                    className="profile-photo"
-                    alt="profile"
-                  />
-                ) : (
-                  <div
-                    className="profile-photo-placeholder">
-                    {selectedStudent.firstName[0]}
-                  </div>
-                )}
-
-                {/* Parent photo upload button */}
-                {isParentView && (
-                  <label className="photo-upload-label">
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/jpg,image/png"
-                      onChange={handlePhotoUpload}
-                      disabled={uploadingPhoto}
-                      className="photo-upload-input"
-                    />
-                    <span className="photo-upload-button">
-                      {uploadingPhoto ? (
-                        <>
-                          <svg className="upload-spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="12" cy="12" r="10" strokeOpacity="0.25"/>
-                            <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round"/>
-                          </svg>
-                          Uploading...
-                        </>
-                      ) : (
-                        <>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="17 8 12 3 7 8"/>
-                            <line x1="12" y1="3" x2="12" y2="15"/>
-                          </svg>
-                          {selectedStudent.photoUrl ? 'Change Photo' : 'Upload Photo'}
-                        </>
-                      )}
-                    </span>
-                  </label>
-                )}
-              </div>
-
-              <div className="profile-info">
-                <h1 className="profile-fullname">
-                  {selectedStudent.lastName}, {selectedStudent.firstName}
-                </h1>
-                <div className="profile-details">
-                  <div className="profile-left">
-                    <p>
-                      <b>Nickname:</b>{" "}
-                      {selectedStudent.nickname || "N/A"}
-                    </p>
-                    <p>
-                      <b>Address:</b>{" "}
-                      {selectedStudent.address || "N/A"}
-                    </p>
-                    <p>
-                      <b>Date of Birth:</b>{" "}
-                      {selectedStudent.dateOfBirth || "N/A"}
-                    </p>
-                    <p>
-                      <b>Current Age:</b>{" "}
-                      {calculateAge(selectedStudent.dateOfBirth) ?? "N/A"}
-                    </p>
-                  </div>
-
-                  <div className="profile-right">
-                    <p>
-                      <b>Gender:</b>{" "}
-                      {selectedStudent.gender || "N/A"}
-                    </p>
-                    <p>
-                      <b>Current School:</b>{" "}
-                      {selectedStudent.school || "N/A"}
-                    </p>
-                    <p>
-                      <b>Relationship:</b>{" "}
-                      {selectedStudent.relationshipToClient || "N/A"}
-                    </p>
-                  </div>
-                </div>
-
-                {parentData && (
-                 <div className="guardian-section">
-
-                    <p className="guardian-name">
-                      <b>Guardian:</b> {parentData.firstName}{" "}
-                      {parentData.lastName}
-                    </p>
-                    <div className="guardian-meta">
-
-                      <span> {parentData.email}</span>
-                      <span> {parentData.phone}</span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="assessment-btn-wrapper">
-                  <button
-                    className={`see-more-btn assessment-btn ${
-                      showAssessment ? "active" : "inactive"
-                    }`}
-                    onClick={() => setShowAssessment(!showAssessment)}
-                  >
-                    {showAssessment
-                      ? "Hide Assessment History"
-                      : "Assessment History"}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {showAssessment &&
-              (isAssessmentLoading ? (
+            {showAssessment && (
+              isAssessmentLoading ? (
                 <Loading variant="compact" message="Loading assessment" showBrand={false} />
               ) : (
-                <AssessmentHistory
-                  childData={selectedStudent}
-                  assessmentData={assessmentData}
-                />
-              ))}
+                <AssessmentHistory childData={selectedStudent} assessmentData={assessmentData} />
+              )
+            )}
 
             <div className="profile-content-scroll">
-              {/* New Service Enrollments Panel - uses new data model if available */}
-              {selectedStudent?.serviceEnrollments?.length > 0 ? (
-                <ServiceEnrollmentsPanel
-                  childId={selectedStudent.id}
-                  onServiceClick={handleServiceClick}
-                  selectedService={selectedService}
-                  isReadOnly={isParentView || isStaffView}
-                  onAddService={!isParentView && !isStaffView ? () => handleOpenAddModal("Therapy") : undefined}
-                  viewerRole={isParentView ? 'parent' : currentUser?.role}
-                  viewerId={currentUser?.uid}
-                />
-              ) : (
-                /* Legacy UI - for students not yet migrated */
-                <div className="services-split-row">
-                  <div className="content-section">
-                    <div className="services-header-row">
-                      <h2 className="services-header">Therapy Services</h2>
-                      {!isParentView && !isStaffView && (
-                        <button onClick={() => handleOpenAddModal("Therapy")}>
-                          <b>+ Add</b>
-                        </button>
-                      )}
-                    </div>
-                    <div className="services-list">
-                      {therapyServices.map((s, i) => (
-                        <div key={i}>
-                          <div
-                            className={`service-row clickable ${
-                              selectedService === s.serviceName ? "active" : ""
-                            }`}
-                            onClick={() => handleServiceClick(s.serviceName)}
-                          >
-                            <div className="service-left">🧠 {s.serviceName}</div>
-                            <div>{s.staffName}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+              {/* Service Enrollments Panel */}
+              <ServiceEnrollmentsPanel
+                childId={selectedStudent.id}
+                onServiceClick={handleServiceClick}
+                selectedService={selectedService}
+                isReadOnly={isParentView || isStaffView}
+                onAddService={!isParentView && !isStaffView ? () => handleOpenAddModal("Therapy") : undefined}
+                viewerRole={isParentView ? 'parent' : currentUser?.role}
+                viewerId={currentUser?.uid}
+              />
 
-                  <div className="content-section">
-                    <div className="services-header-row">
-                      <h2 className="services-header">Group Classes</h2>
-                      {!isParentView && !isStaffView && (
-                        <button onClick={() => handleOpenAddModal("Class")}>
-                          <b>+ Add</b>
-                        </button>
-                      )}
-                    </div>
-                    <div className="services-list">
-                      {groupServices.map((s, i) => (
-                        <div
-                          key={i}
-                          className={`service-row clickable ${
-                            selectedService === s.serviceName ? "active" : ""
-                          }`}
-                          onClick={() => handleServiceClick(s.serviceName)}
-                        >
-                          <div className="service-left">👥 {s.serviceName}</div>
-                          <div>{s.staffName}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
+              {/* Activity Calendar */}
               {selectedService && (
                 <div ref={calendarRef}>
                   <ActivityCalendar
                     activities={studentActivities.filter(
-                      (a) =>
-                        a.serviceName === selectedService ||
-                        a.serviceType === selectedService ||
-                        a.className === selectedService
+                      (a) => a.serviceName === selectedService || a.serviceType === selectedService || a.className === selectedService
                     )}
-                    // Pass empty array if staff not loaded; ActivityCalendar will use denormalized names
                     teachers={combinedStaff}
                     selectedServiceName={selectedService}
                   />
                 </div>
               )}
+
+              {/* Care Team - Parent view only */}
+              {isParentView && (
+                <CurrentTeamSection student={selectedStudent} />
+              )}
             </div>
           </div>
-          </>
         )}
 
         <GeneralFooter pageLabel={isParentView ? "Child Profile" : "Student Profile"} />
       </div>
-      
-      {/* Admin-only Add Service Modal */}
-      {!isParentView && isAddModalOpen && (
-        <div className="add-service-overlay">
-          <div className="add-service-modal">
-            <h3>Enroll in {addServiceType}</h3>
-            <div className="modal-form-body">
-              {availableServices.length === 0 ? (
-                <p className="modal-warning">
-                  No services available for this student based on recorded
-                  interventions. Please check Background History.
-                </p>
-              ) : null}
-              <select
-                className="modal-select"
-                onChange={(e) =>
-                  setAddForm({ ...addForm, serviceId: e.target.value })
-                }
-                value={addForm.serviceId}
-              >
-                <option value="">Select Service...</option>
-                {availableServices.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-              <select
-                className="modal-select spaced"
-                onChange={(e) =>
-                  setAddForm({ ...addForm, staffId: e.target.value })
-                }
-                value={addForm.staffId}
-                disabled={!addForm.serviceId || loadingTeachers || loadingTherapists}
-              >
-                <option value="">
-                  {(loadingTeachers || loadingTherapists) 
-                    ? "Loading Staff..." 
-                    : "Select Staff..."}
-                </option>
-                {getQualifiedStaff(
-                  availableServices.find((s) => s.id === addForm.serviceId)
-                    ?.name,
-                  addServiceType
-                ).map((t) => (
-                  <option key={t.uid || t.id} value={t.uid || t.id}>
-                    {t.firstName} {t.lastName}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="modal-actions">
-              <button
-                className="btn-cancel"
-                onClick={() => setIsAddModalOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="btn-confirm"
-                disabled={isSubmitting || loadingTeachers || loadingTherapists}
-                onClick={handleAddSubmit}
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
+      {/* Add Service Modal */}
+      <AddServiceModal
+        isOpen={!isParentView && isAddModalOpen}
+        serviceType={addServiceType}
+        availableServices={availableServices}
+        formData={addForm}
+        onFormChange={setAddForm}
+        qualifiedStaff={getQualifiedStaff(
+          availableServices.find((s) => s.id === addForm.serviceId)?.name,
+          addServiceType
+        )}
+        isLoadingStaff={loadingTeachers || loadingTherapists}
+        isSubmitting={isSubmitting}
+        onSubmit={handleAddSubmit}
+        onClose={() => setIsAddModalOpen(false)}
+      />
     </div>
   );
 
-  // Handle container/sidebar wrapping
-  if (noContainer) {
-    return mainContent;
-  }
-
-  if (hideSidebar) {
-    return <div className="sp-container">{mainContent}</div>;
-  }
-
-  // Determine forceActive based on role
-  const getForceActive = () => {
-    switch (currentUser?.role) {
-      case 'therapist':
-        return '/therapist/dashboard';
-      case 'teacher':
-        return '/teacher/dashboard';
-      default:
-        return '/admin/StudentProfile';
-    }
-  };
+  // Container handling
+  if (noContainer) return mainContent;
+  if (hideSidebar) return <div className="sp-container">{mainContent}</div>;
 
   return (
     <div className="sp-container">
-      <Sidebar {...sidebarConfig} forceActive={getForceActive()} />
+      <Sidebar {...getSidebarConfig()} forceActive={getForceActive()} />
       {loading ? (
         <Loading role="admin" message="Loading students" variant="content" />
       ) : (
