@@ -84,3 +84,19 @@ yarn-error.log*
 nul
 $RECYCLE.BIN/
 
+
+"dev-dist"
+dev-dist/
+dist/
+out/
+build/
+.next/
+.next/
+.cache/
+.tmp/
+.temp/
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+
