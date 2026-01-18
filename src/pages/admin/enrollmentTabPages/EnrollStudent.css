@@ -45,10 +45,10 @@
   left: 15px;
   top: 50%;
   transform: translateY(-50%);
-  color: #999;
+  color: white;
   font-size: 14px;
-  border: solid #FFCB10 2px;
-  background-color: #FFCB10;
+  border: none;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   border-radius: 5px;
 }
 

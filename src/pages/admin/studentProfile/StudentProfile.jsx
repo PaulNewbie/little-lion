@@ -7,6 +7,7 @@ import GeneralFooter from "../../../components/footer/generalfooter";
 import childService from "../../../services/childService";
 import offeringsService from "../../../services/offeringsService";
 import userService from "../../../services/userService";
+import cloudinaryService from "../../../services/cloudinaryService";
 import { useTeachers, useTherapists } from "../../../hooks/useRoleBasedData";
 import { useStudentProfileData } from "./hooks/useStudentProfileData";
 import AssessmentHistory from "../../shared/AssessmentHistory";
@@ -75,7 +76,9 @@ const StudentProfile = ({
   const [selectedService, setSelectedService] = useState("");
   const [showAssessment, setShowAssessment] = useState(false);
   const [ignoreRouteChild, setIgnoreRouteChild] = useState(false);
-  
+  const [isSingleChildParent, setIsSingleChildParent] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
   // 3. Modal State (Moved UP so hooks can use it)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addServiceType, setAddServiceType] = useState(null);
@@ -135,6 +138,20 @@ const StudentProfile = ({
     }
   }, [studentIdFromEnrollment, selectedStudent]);
 
+  // Auto-select single child for parent view (no grid needed)
+  useEffect(() => {
+    if (isParentView && !loading && !selectedStudent && !childIdFromRoute && !ignoreRouteChild) {
+      const parentChildren = filteredStudents.filter((s) => s.parentId === currentUser?.uid);
+      if (parentChildren.length === 1) {
+        setIsSingleChildParent(true);
+        setSelectedStudent(parentChildren[0]);
+        setViewMode("profile");
+      } else {
+        setIsSingleChildParent(false);
+      }
+    }
+  }, [isParentView, loading, filteredStudents, currentUser, selectedStudent, childIdFromRoute, ignoreRouteChild, setSelectedStudent]);
+
   // --- Handlers ---
   const handleSelectStudent = (student) => {
     setSelectedStudent(student);
@@ -182,6 +199,53 @@ const StudentProfile = ({
         block: "start",
       });
     }, 100);
+  };
+
+  // Parent photo upload handler
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
+      alert('Please upload a JPG or PNG image.');
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB.');
+      return;
+    }
+
+    setUploadingPhoto(true);
+    try {
+      // Upload to Cloudinary
+      const photoUrl = await cloudinaryService.uploadImage(
+        file,
+        'little-lions/children'
+      );
+
+      // Update child photo in Firestore (uses parent-safe method)
+      await childService.updateChildPhoto(
+        selectedStudent.id,
+        currentUser.uid,
+        photoUrl
+      );
+
+      // Update local state
+      setSelectedStudent(prev => ({ ...prev, photoUrl }));
+
+      // Refresh data to ensure consistency
+      await refreshData();
+
+      alert('Photo uploaded successfully!');
+    } catch (error) {
+      console.error('Photo upload failed:', error);
+      alert('Failed to upload photo. Please try again.');
+    } finally {
+      setUploadingPhoto(false);
+    }
   };
 
   // Admin-only: Add service functionality
@@ -427,20 +491,38 @@ const StudentProfile = ({
 
         {/* === VIEW 2: PROFILE === */}
         {viewMode === "profile" && selectedStudent && (
-          <div className="profile-wrapper">
-            <div className="profile-top">
-              <div className="left-group">
-                <span className="back-arrow" onClick={handleBack}>
-                  ‹
-                </span>
-                <h2>
-                  {isParentView 
-                    ? `${selectedStudent.firstName}'S PROFILE` 
-                    : "STUDENT PROFILE"
-                  }
-                </h2>
+          <>
+            {/* Show header for single-child parent */}
+            {isParentView && isSingleChildParent && (
+              <div className="sp-header">
+                <div className="sp-header-content">
+                  <div className="header-title">
+                    <h1>MY CHILDREN</h1>
+                    <p className="header-subtitle">
+                      View your children's profiles and activities
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            <div className="profile-wrapper">
+              <div className="profile-top">
+                <div className="left-group">
+                  {/* Hide back arrow for single-child parents */}
+                  {!(isParentView && isSingleChildParent) && (
+                    <span className="back-arrow" onClick={handleBack}>
+                      ‹
+                    </span>
+                  )}
+                  <h2 className={isParentView && isSingleChildParent ? "no-back-arrow" : ""}>
+                    {isParentView
+                      ? `${selectedStudent.firstName}'S PROFILE`
+                      : "STUDENT PROFILE"
+                    }
+                  </h2>
+                </div>
+              </div>
 
             <div className="profile-3col">
               <div className="profile-photo-frame">
@@ -455,6 +537,39 @@ const StudentProfile = ({
                     className="profile-photo-placeholder">
                     {selectedStudent.firstName[0]}
                   </div>
+                )}
+
+                {/* Parent photo upload button */}
+                {isParentView && (
+                  <label className="photo-upload-label">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png"
+                      onChange={handlePhotoUpload}
+                      disabled={uploadingPhoto}
+                      className="photo-upload-input"
+                    />
+                    <span className="photo-upload-button">
+                      {uploadingPhoto ? (
+                        <>
+                          <svg className="upload-spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10" strokeOpacity="0.25"/>
+                            <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round"/>
+                          </svg>
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                          </svg>
+                          {selectedStudent.photoUrl ? 'Change Photo' : 'Upload Photo'}
+                        </>
+                      )}
+                    </span>
+                  </label>
                 )}
               </div>
 
@@ -621,6 +736,7 @@ const StudentProfile = ({
               )}
             </div>
           </div>
+          </>
         )}
 
         <GeneralFooter pageLabel={isParentView ? "Child Profile" : "Student Profile"} />

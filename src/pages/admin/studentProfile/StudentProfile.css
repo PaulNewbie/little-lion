@@ -3,8 +3,7 @@
 ============================================================ */
 .sp-container{
   display: flex;
-  height: 100vh;         /* IMPORTANT: real height */
-  overflow: hidden;      /* prevent double scrollbars */
+  min-height: 100vh;
   background: #f0f2f5;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
@@ -16,6 +15,8 @@
   flex-direction: column;
   min-height: 0;         /* IMPORTANT for flex children to scroll */
   overflow-y: auto;      /* ✅ the only main scrollbar */
+  padding: 20px;
+  background-color: #f8f9fa;
 }
 
 /* ✅ NEW: wrapper so footer sits at bottom when content is short,
@@ -37,10 +38,9 @@
   background-repeat: no-repeat;
   border-radius: 1rem;
   padding: 2.5rem 2rem;
-  margin: 20px;
   margin-bottom: 2rem;
   position: relative;
-  min-height: 120px;
+  overflow: hidden;
 }
 
 .sp-header::before {
@@ -209,6 +209,7 @@
 ============================================================ */
 .sp-content-area {
   padding: 40px;
+  flex: 1;               /* ✅ grow to fill space, pushing footer down */
 }
 
 .sp-grid {
@@ -333,7 +334,7 @@
   margin: 0 auto;
   padding: 30px 40px 60px 40px;
   overflow: visible;     /* ✅ stop fighting with sp-main */
-  flex: 0;               /* optional */
+  flex: 1;               /* ✅ grow to fill space, pushing footer down */
 }
 
 .services-split-row {
@@ -403,6 +404,12 @@
   margin-top: 20px;
 }
 
+/* Single-child parent - no back arrow, reset margin */
+.left-group h2.no-back-arrow {
+  margin-top: 0;
+  margin-left: 0;
+}
+
 .profile-3col {
   display: grid;
   grid-template-columns: 300px 1fr;
@@ -413,18 +420,91 @@
 
 .profile-photo-frame {
   width: 100%;
-  height: 380px;
   background: white;
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0);
-  overflow: hidden;
   border: 1px solid #999;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-photo-frame .profile-photo {
+  height: 350px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.profile-photo-frame .profile-photo-placeholder {
+  height: 350px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 6rem;
+  color: white;
+  text-transform: uppercase;
+  font-weight: 700;
 }
 
 .profile-photo {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* Parent Photo Upload Button */
+.photo-upload-input {
+  display: none;
+}
+
+.photo-upload-label {
+  display: block;
+  margin-top: 12px;
+}
+
+.photo-upload-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: #78350f;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
+}
+
+.photo-upload-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+}
+
+.photo-upload-label input:disabled + .photo-upload-button {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.upload-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .profile-info {
@@ -650,9 +730,12 @@
     grid-template-columns: 1fr;
   }
   .profile-photo-frame {
-    height: 300px;
     width: 300px;
     margin: 0 auto;
+  }
+  .profile-photo-frame .profile-photo,
+  .profile-photo-frame .profile-photo-placeholder {
+    height: 280px;
   }
   .calendar-view-container {
     grid-template-columns: 1fr;
