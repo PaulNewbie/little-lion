@@ -492,37 +492,23 @@ const StudentProfile = ({
         {/* === VIEW 2: PROFILE === */}
         {viewMode === "profile" && selectedStudent && (
           <>
-            {/* Show header for single-child parent */}
-            {isParentView && isSingleChildParent && (
-              <div className="sp-header">
-                <div className="sp-header-content">
-                  <div className="header-title">
-                    <h1>MY CHILDREN</h1>
-                    <p className="header-subtitle">
-                      View your children's profiles and activities
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
+          <div className="profile-wrapper">
+            <div className="profile-top">
+              <div className="left-group">
+                <span className="back-arrow" onClick={handleBack}>
+                  <svg width="32" height="52" viewBox="0 0 32 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M11.6255 22.8691C9.89159 24.4549 9.89159 27.1866 11.6255 28.7724L30.3211 45.8712C31.7604 47.1876 31.7604 49.455 30.3211 50.7714C29.0525 51.9316 27.1081 51.9316 25.8395 50.7714L1.01868 28.0705C0.366419 27.4738 0 26.6645 0 25.8208C0 24.977 0.366419 24.1678 1.01868 23.571L25.8395 0.87018C27.1081 -0.290054 29.0525 -0.290057 30.3211 0.870177C31.7604 2.1865 31.7604 4.45398 30.3211 5.7703L11.6255 22.8691Z" fill="#636363"/>
+                  </svg>
 
-            <div className="profile-wrapper">
-              <div className="profile-top">
-                <div className="left-group">
-                  {/* Hide back arrow for single-child parents */}
-                  {!(isParentView && isSingleChildParent) && (
-                    <span className="back-arrow" onClick={handleBack}>
-                      ‹
-                    </span>
-                  )}
-                  <h2 className={isParentView && isSingleChildParent ? "no-back-arrow" : ""}>
-                    {isParentView
-                      ? `${selectedStudent.firstName}'S PROFILE`
-                      : "STUDENT PROFILE"
-                    }
-                  </h2>
-                </div>
+                </span>
+                <h2>
+                  {isParentView
+                    ? `${selectedStudent.firstName}'S PROFILE`
+                    : "STUDENT PROFILE"
+                  }
+                </h2>
               </div>
+            </div>
 
             <div className="profile-3col">
               <div className="profile-photo-frame">

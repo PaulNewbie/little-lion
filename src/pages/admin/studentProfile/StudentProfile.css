@@ -385,10 +385,7 @@
 }
 
 .left-group .back-arrow {
-  font-size: 150px;
   cursor: pointer;
-  color: #333333;
-  margin-bottom: 20px;
   transition: transform 0.2s ease;
 }
 
@@ -401,7 +398,7 @@
   font-weight: 700;
   color: #333333;
   margin: 0;
-  margin-top: 20px;
+  margin-top: 1px;
 }
 
 /* Single-child parent - no back arrow, reset margin */
@@ -1244,10 +1241,10 @@
   margin-bottom: 25px;
   font-size: 15px;
   color: white;
-  border: solid #0052A1;
+  border: solid #FFCB10;
   padding-right: 10px;
   padding-left: 10px;
-  background-color: #0052A1;
+  background-color: #FFCB10;
   border-radius: 10px;
 }
 

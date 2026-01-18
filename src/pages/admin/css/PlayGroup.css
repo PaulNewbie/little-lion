@@ -23,7 +23,6 @@
 .pg-container{
   display: flex;
   height: 100vh;
-  font-family: Arial, sans-serif;
   background-color: #f5f5f5;
   overflow: hidden; /* prevent double scrollbars */
 }
@@ -62,17 +61,16 @@
 }
 
 .pg-service-name-desc{
-margin-left: 70px;
+margin-left: 50px;
 margin-bottom: 15px;
 }
 
 .pg-header .pg-back-btn {
   position:absolute;
-  bottom: 580px;
+  bottom: 592px;
   left: 40px;
   font-size: 150px;
   cursor: pointer;
-  color: #333333;
 }
 
 .pg-header .pg-service-name{
@@ -479,6 +477,7 @@ margin-bottom: 15px;
 }
 
 .pg-form-group input[type="text"],
+.pg-form-group input[type="file"],
 .pg-form-group textarea {
   width: 100%;
   padding: 12px;
