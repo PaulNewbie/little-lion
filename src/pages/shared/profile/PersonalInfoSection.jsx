@@ -138,23 +138,24 @@ const PersonalInfoSection = ({
         </div>
         
         <div className="tp-input-group">
-          <label className="tp-label">State</label>
+          <label className="tp-label">Province</label>
           <input
             type="text"
             className="tp-input"
             value={formData.address.state}
             onChange={(e) => onNestedChange('address', 'state', e.target.value)}
+            placeholder="e.g., Metro Manila"
           />
         </div>
-        
+
         <div className="tp-input-group">
-          <label className="tp-label">ZIP Code</label>
+          <label className="tp-label">Postal Code</label>
           <input
             type="text"
             className="tp-input"
             value={formData.address.zip}
             onChange={(e) => onNestedChange('address', 'zip', e.target.value)}
-            placeholder="12345"
+            placeholder="e.g., 1200"
           />
         </div>
       </div>

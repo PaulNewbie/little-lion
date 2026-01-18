@@ -42,6 +42,9 @@ export const useProfileForm = (currentUser, role, navigate) => {
     email: '',
     address: { street: '', city: '', state: '', zip: '' },
     emergencyContact: { name: '', phone: '' },
+    // Therapist: multiple licenses
+    licenses: [],
+    // Teacher: single license fields
     licenseType: '',
     licenseNumber: '',
     licenseState: '',
@@ -76,6 +79,14 @@ export const useProfileForm = (currentUser, role, navigate) => {
     ceusCompleted: ''
   });
 
+  const [newLicense, setNewLicense] = useState({
+    licenseType: '',
+    licenseNumber: '',
+    licenseState: '',
+    licenseIssueDate: '',
+    licenseExpirationDate: ''
+  });
+
   // Populate form when cached user data is available
   useEffect(() => {
     if (userData && !formInitialized) {
@@ -91,6 +102,9 @@ export const useProfileForm = (currentUser, role, navigate) => {
         email: userData.email || '',
         address: userData.address || { street: '', city: '', state: '', zip: '' },
         emergencyContact: userData.emergencyContact || { name: '', phone: '' },
+        // Therapist: multiple licenses
+        licenses: userData.licenses || [],
+        // Teacher: single license fields
         licenseType: userData.licenseType || '',
         licenseNumber: userData.licenseNumber || '',
         teachingLicense: userData.teachingLicense || '',
@@ -316,6 +330,49 @@ export const useProfileForm = (currentUser, role, navigate) => {
     }
   };
 
+  // License handlers (for therapists with multiple licenses)
+  const handleNewLicenseChange = (field, value) => {
+    setNewLicense(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddLicense = () => {
+    if (!newLicense.licenseType || !newLicense.licenseNumber) {
+      alert('Please fill in License Type and License Number.');
+      return;
+    }
+
+    const licenseEntry = {
+      id: Date.now().toString(),
+      licenseType: newLicense.licenseType,
+      licenseNumber: newLicense.licenseNumber,
+      licenseState: newLicense.licenseState,
+      licenseIssueDate: newLicense.licenseIssueDate,
+      licenseExpirationDate: newLicense.licenseExpirationDate
+    };
+
+    setFormData(prev => ({
+      ...prev,
+      licenses: [...prev.licenses, licenseEntry]
+    }));
+
+    setNewLicense({
+      licenseType: '',
+      licenseNumber: '',
+      licenseState: '',
+      licenseIssueDate: '',
+      licenseExpirationDate: ''
+    });
+  };
+
+  const handleRemoveLicense = (index) => {
+    if (window.confirm('Are you sure you want to remove this license?')) {
+      setFormData(prev => ({
+        ...prev,
+        licenses: prev.licenses.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
   // Save profile
   const handleSaveProfile = async (e) => {
     e.preventDefault();
@@ -372,6 +429,7 @@ export const useProfileForm = (currentUser, role, navigate) => {
     formData,
     newEducation,
     newCertification,
+    newLicense,
     handleInputChange,
     handleNestedChange,
     handleSpecializationToggle,
@@ -385,6 +443,9 @@ export const useProfileForm = (currentUser, role, navigate) => {
     handleNewCertificationChange,
     handleAddCertification,
     handleRemoveCertification,
+    handleNewLicenseChange,
+    handleAddLicense,
+    handleRemoveLicense,
     handleSaveProfile
   };
 };
