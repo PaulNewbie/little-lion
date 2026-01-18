@@ -351,11 +351,21 @@ const StudentProfile = ({
     ...(selectedStudent?.oneOnOneServices || []),
     ...(selectedStudent?.groupClassServices || []),
   ];
-  const therapyServices = enrolled.filter(
-    (s) => s.serviceType === "Therapy" || s.staffRole === "therapist"
+  // Filter services - Staff can only see their own services (privacy)
+  const filterServicesByRole = (services) => {
+    // Admins and parents see everything
+    if (!isStaffView || currentUser?.role === 'admin' || currentUser?.role === 'super_admin') {
+      return services;
+    }
+    // Staff only see services where they are the assigned staff
+    return services.filter(s => s.staffId === currentUser?.uid);
+  };
+
+  const therapyServices = filterServicesByRole(
+    enrolled.filter((s) => s.serviceType === "Therapy" || s.staffRole === "therapist")
   );
-  const groupServices = enrolled.filter(
-    (s) => s.serviceType === "Class" || s.staffRole === "teacher"
+  const groupServices = filterServicesByRole(
+    enrolled.filter((s) => s.serviceType === "Class" || s.staffRole === "teacher")
   );
 
   const getQualifiedStaff = (serviceName, serviceType) => {
@@ -646,8 +656,10 @@ const StudentProfile = ({
                   childId={selectedStudent.id}
                   onServiceClick={handleServiceClick}
                   selectedService={selectedService}
-                  isReadOnly={isParentView}
-                  onAddService={!isParentView ? () => handleOpenAddModal("Therapy") : undefined}
+                  isReadOnly={isParentView || isStaffView}
+                  onAddService={!isParentView && !isStaffView ? () => handleOpenAddModal("Therapy") : undefined}
+                  viewerRole={isParentView ? 'parent' : currentUser?.role}
+                  viewerId={currentUser?.uid}
                 />
               ) : (
                 /* Legacy UI - for students not yet migrated */
@@ -655,7 +667,7 @@ const StudentProfile = ({
                   <div className="content-section">
                     <div className="services-header-row">
                       <h2 className="services-header">Therapy Services</h2>
-                      {!isParentView && (
+                      {!isParentView && !isStaffView && (
                         <button onClick={() => handleOpenAddModal("Therapy")}>
                           <b>+ Add</b>
                         </button>
@@ -681,7 +693,7 @@ const StudentProfile = ({
                   <div className="content-section">
                     <div className="services-header-row">
                       <h2 className="services-header">Group Classes</h2>
-                      {!isParentView && (
+                      {!isParentView && !isStaffView && (
                         <button onClick={() => handleOpenAddModal("Class")}>
                           <b>+ Add</b>
                         </button>
