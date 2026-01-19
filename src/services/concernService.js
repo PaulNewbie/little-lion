@@ -60,7 +60,10 @@ class ConcernService {
         collection(db, 'concerns', concernId, 'messages'),
         {
           senderId: senderInfo.id,
-          senderName: 'Admin',
+          senderName:
+            role === 'admin' || role === 'super_admin'
+              ? 'Admin'
+              : senderInfo.name,
           role, // 'parent' | 'super_admin' | 'admin'
           text,
           createdAt: serverTimestamp()
