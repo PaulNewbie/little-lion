@@ -114,8 +114,11 @@ const ConcernHeader = ({ concern, statusClass, updateStatus, userRole }) => {
         )}
       </div>
       <div className="pc-header-meta">
+        <span><strong>Created by: </strong> {concern.createdByUserName}</span>
+      </div>
+      <div className="pc-header-meta">
         <span><strong>Child:</strong> {concern.childName}</span>
-        <span><strong>Created:</strong> {formatDateTime(concern.createdAt)}</span>
+        <span><strong>Created at:</strong> {formatDateTime(concern.createdAt)}</span>
       </div>
     </div>
   );
