@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import Loading from '../../components/common/Loading';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getTherapistConfig } from '../../components/sidebar/sidebarConfigs';
-import { Mail, Phone } from 'lucide-react';
+import { Mail, Phone, X, Play } from 'lucide-react';
 import { useTherapistDashboardData } from '../../hooks/useCachedData';
 import logo from '../../images/logo.png';
 import './css/TherapistDashboard.css';
@@ -65,6 +65,7 @@ const TherapistDashboard = () => {
     );
   };
 
+  // UPDATED: Always show modal for service selection
   const handleStartSessionClick = (student) => {
     const myServices = getMyServices(student);
 
@@ -73,13 +74,10 @@ const TherapistDashboard = () => {
       return;
     }
 
-    if (myServices.length === 1) {
-      goToSessionForm(student, myServices[0]);
-    } else {
-      setSelectedStudentForModal(student);
-      setAvailableServices(myServices);
-      setShowServiceModal(true);
-    }
+    // Always show modal - even with 1 service, let therapist confirm
+    setSelectedStudentForModal(student);
+    setAvailableServices(myServices);
+    setShowServiceModal(true);
   };
 
   const goToSessionForm = (student, serviceAssignment) => {
@@ -93,6 +91,28 @@ const TherapistDashboard = () => {
       }
     });
     setShowServiceModal(false);
+  };
+
+  // Helper to get service icon based on service name
+  const getServiceIcon = (serviceName) => {
+    const name = serviceName?.toLowerCase() || '';
+    if (name.includes('speech')) return '🗣️';
+    if (name.includes('occupational') || name.includes('ot')) return '🖐️';
+    if (name.includes('physical') || name.includes('pt')) return '🏃';
+    if (name.includes('behavior') || name.includes('aba')) return '🧠';
+    if (name.includes('developmental')) return '📈';
+    if (name.includes('sped') || name.includes('special')) return '📚';
+    return '💼';
+  };
+
+  // Helper to get service type badge color
+  const getServiceBadgeClass = (serviceName) => {
+    const name = serviceName?.toLowerCase() || '';
+    if (name.includes('speech')) return 'service-badge--speech';
+    if (name.includes('occupational') || name.includes('ot')) return 'service-badge--ot';
+    if (name.includes('physical') || name.includes('pt')) return 'service-badge--pt';
+    if (name.includes('behavior') || name.includes('aba')) return 'service-badge--behavior';
+    return 'service-badge--default';
   };
 
   return (
@@ -148,28 +168,32 @@ const TherapistDashboard = () => {
               </p>
             </div>
             <button
-              onClick={() => navigate('/therapist/profile')}
               className="therapist-dashboard__profile-banner-button"
+              onClick={() => navigate('/therapist/profile')}
             >
-              Complete Now →
+              Complete Profile
             </button>
           </div>
         )}
 
-        {/* Students List */}
+        {/* Student Cards */}
         {filteredStudents.length === 0 ? (
-          <div className="therapist-dashboard__empty-state">
-            <h3 className="therapist-dashboard__empty-state-title">No students found</h3>
+          <div className="therapist-dashboard__empty">
+            <p>
+              {searchTerm
+                ? 'No students found matching your search.'
+                : 'No students assigned to you yet.'}
+            </p>
           </div>
         ) : (
-          <div className="therapist-dashboard__students-grid">
-            {filteredStudents.map(student => {
+          <div className="therapist-dashboard__grid">
+            {filteredStudents.map((student) => {
               const myServices = getMyServices(student);
               return (
                 <div key={student.id} className="therapist-dashboard__student-card">
-                  <div className="therapist-dashboard__student-card-header">
+                  <div className="therapist-dashboard__student-card-body">
                     <div className="therapist-dashboard__student-info">
-                      <div className="therapist-dashboard__student-avatar">
+                      <div className="therapist-dashboard__avatar-wrapper">
                         {student.photoUrl ? <img src={student.photoUrl} alt="" /> : '👤'}
                       </div>
                       <div>
@@ -216,31 +240,89 @@ const TherapistDashboard = () => {
         )}
       </div>
 
-        {/* Service Selection Modal */}
-        {showServiceModal && (
-          <div className="therapist-dashboard__modal-overlay">
-            <div className="therapist-dashboard__modal">
-              <h3 className="therapist-dashboard__modal-title">Select Service</h3>
-              <p className="therapist-dashboard__modal-subtitle">
-                Which session are you starting for <strong>{selectedStudentForModal?.firstName}</strong>?
-              </p>
-              <div className="therapist-dashboard__modal-services">
-                {availableServices.map((service) => (
-                  <button
-                    key={service.serviceId}
-                    onClick={() => goToSessionForm(selectedStudentForModal, service)}
-                    className="therapist-dashboard__modal-service-button"
-                  >
-                    {service.serviceName}
-                  </button>
-                ))}
+        {/* ENHANCED: Service Selection Modal */}
+        {showServiceModal && selectedStudentForModal && (
+          <div className="therapist-dashboard__modal-overlay" onClick={() => setShowServiceModal(false)}>
+            <div className="therapist-dashboard__modal therapist-dashboard__modal--enhanced" onClick={(e) => e.stopPropagation()}>
+              {/* Modal Header */}
+              <div className="therapist-dashboard__modal-header">
+                <div className="therapist-dashboard__modal-header-content">
+                  <h3 className="therapist-dashboard__modal-title">Start Session</h3>
+                  <p className="therapist-dashboard__modal-subtitle">
+                    Select the service for <strong>{selectedStudentForModal?.firstName} {selectedStudentForModal?.lastName}</strong>
+                  </p>
+                </div>
+                <button 
+                  className="therapist-dashboard__modal-close"
+                  onClick={() => setShowServiceModal(false)}
+                  aria-label="Close modal"
+                >
+                  <X size={20} />
+                </button>
               </div>
-              <button
-                onClick={() => setShowServiceModal(false)}
-                className="therapist-dashboard__modal-cancel-button"
-              >
-                Cancel
-              </button>
+
+              {/* Student Info Mini Card */}
+              <div className="therapist-dashboard__modal-student-info">
+                <div className="therapist-dashboard__modal-avatar">
+                  {selectedStudentForModal?.photoUrl ? (
+                    <img src={selectedStudentForModal.photoUrl} alt="" />
+                  ) : (
+                    <span>👤</span>
+                  )}
+                </div>
+                <div className="therapist-dashboard__modal-student-details">
+                  <span className="therapist-dashboard__modal-student-name">
+                    {selectedStudentForModal?.firstName} {selectedStudentForModal?.lastName}
+                  </span>
+                  <span className="therapist-dashboard__modal-student-dob">
+                    DOB: {selectedStudentForModal?.dateOfBirth}
+                  </span>
+                </div>
+              </div>
+
+              {/* Service Options */}
+              <div className="therapist-dashboard__modal-body">
+                <p className="therapist-dashboard__modal-instruction">
+                  {availableServices.length > 1 
+                    ? 'You have multiple services enrolled with this student. Please select which service to start:'
+                    : 'Confirm the service you want to start:'}
+                </p>
+                
+                <div className="therapist-dashboard__modal-services">
+                  {availableServices.map((service, index) => (
+                    <button
+                      key={service.serviceId || index}
+                      onClick={() => goToSessionForm(selectedStudentForModal, service)}
+                      className={`therapist-dashboard__modal-service-button therapist-dashboard__modal-service-button--enhanced ${getServiceBadgeClass(service.serviceName)}`}
+                    >
+                      <span className="therapist-dashboard__modal-service-icon">
+                        {getServiceIcon(service.serviceName)}
+                      </span>
+                      <div className="therapist-dashboard__modal-service-info">
+                        <span className="therapist-dashboard__modal-service-name">
+                          {service.serviceName}
+                        </span>
+                        {service.enrolledAt && (
+                          <span className="therapist-dashboard__modal-service-date">
+                            Enrolled: {new Date(service.enrolledAt?.toDate?.() || service.enrolledAt).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                      <Play size={18} className="therapist-dashboard__modal-service-play" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="therapist-dashboard__modal-footer">
+                <button
+                  onClick={() => setShowServiceModal(false)}
+                  className="therapist-dashboard__modal-cancel-button"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         )}
