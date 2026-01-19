@@ -94,7 +94,7 @@ class UserService {
       const docRef = doc(db, COLLECTION_NAME, userId);
       const docSnap = await getDoc(docRef);
       trackRead(COLLECTION_NAME, 1);
-      
+
       if (!docSnap.exists()) {
         return null;
       }
@@ -106,6 +106,30 @@ class UserService {
       };
     } catch (error) {
       console.error('Error fetching user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get multiple staff members by IDs
+   * @param {string[]} staffIds - Array of staff user IDs
+   * @returns {Promise<Array>} Array of staff user objects
+   */
+  async getStaffByIds(staffIds) {
+    if (!staffIds || staffIds.length === 0) return [];
+
+    try {
+      // Remove duplicates
+      const uniqueIds = [...new Set(staffIds)];
+
+      // Fetch all staff members in parallel
+      const staffPromises = uniqueIds.map(id => this.getUserById(id));
+      const staffResults = await Promise.all(staffPromises);
+
+      // Filter out null results (in case some IDs don't exist)
+      return staffResults.filter(staff => staff !== null);
+    } catch (error) {
+      console.error('Error fetching staff by IDs:', error);
       throw error;
     }
   }
@@ -356,6 +380,115 @@ class UserService {
       return true;
     } catch (error) {
       console.error('Error reactivating user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update a single permission for a user
+   * @param {string} userId - Target user ID
+   * @param {string} permission - Permission key (e.g., 'canEnrollStudents')
+   * @param {boolean} value - Permission value
+   * @param {string} adminUid - Admin performing the action
+   * @param {string} reason - Optional reason for the change
+   */
+  async updatePermission(userId, permission, value, adminUid, reason = '') {
+    try {
+      const userRef = doc(db, COLLECTION_NAME, userId);
+      
+      const historyEntry = {
+        permission,
+        value,
+        changedBy: adminUid,
+        changedAt: new Date().toISOString(),
+        ...(reason && { reason })
+      };
+      
+      await updateDoc(userRef, {
+        [`permissions.${permission}`]: value,
+        permissionsHistory: arrayUnion(historyEntry)
+      });
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating permission:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Bulk update enrollment permission for multiple users
+   * @param {string[]} userIds - Array of user IDs
+   * @param {boolean} canEnroll - Permission value
+   * @param {string} adminUid - Admin performing the action
+   * @param {string} reason - Optional reason
+   */
+  async bulkUpdateEnrollmentPermission(userIds, canEnroll, adminUid, reason = '') {
+    try {
+      const batch = writeBatch(db);
+      const historyEntry = {
+        permission: 'canEnrollStudents',
+        value: canEnroll,
+        changedBy: adminUid,
+        changedAt: new Date().toISOString(),
+        ...(reason && { reason })
+      };
+      
+      userIds.forEach(userId => {
+        const userRef = doc(db, COLLECTION_NAME, userId);
+        batch.update(userRef, {
+          'permissions.canEnrollStudents': canEnroll,
+          permissionsHistory: arrayUnion(historyEntry)
+        });
+      });
+      
+      await batch.commit();
+      return { success: true, count: userIds.length };
+    } catch (error) {
+      console.error('Error bulk updating permissions:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all staff with their permission status
+   * @param {string} roleFilter - Optional role filter ('teacher', 'therapist', or null for all)
+   */
+  async getStaffWithPermissions(roleFilter = null) {
+    try {
+      let users;
+      if (roleFilter) {
+        users = await this.getUsersByRole(roleFilter);
+      } else {
+        users = await this.getAllStaff();
+      }
+      
+      // Also include admins since they need explicit permission too
+      if (!roleFilter) {
+        const admins = await this.getUsersByRole('admin');
+        users = [...users, ...admins];
+      }
+      
+      return users.map(user => ({
+        ...user,
+        canEnrollStudents: user.permissions?.canEnrollStudents ?? false
+      }));
+    } catch (error) {
+      console.error('Error fetching staff with permissions:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get permission history for a user
+   * @param {string} userId - User ID
+   */
+  async getPermissionHistory(userId) {
+    try {
+      const user = await this.getUserById(userId);
+      return user?.permissionsHistory || [];
+    } catch (error) {
+      console.error('Error fetching permission history:', error);
       throw error;
     }
   }

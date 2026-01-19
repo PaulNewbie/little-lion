@@ -1593,6 +1593,335 @@
 }
 
 /* ===========================================
+   PROFILE DISPLAY SECTION (When Complete)
+   =========================================== */
+.tp-profile-display {
+  background: white;
+  border-radius: var(--tp-radius-lg);
+  box-shadow: var(--tp-shadow-sm);
+  border: 1px solid var(--tp-gray-200);
+  overflow: hidden;
+}
+
+.tp-profile-display__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, var(--tp-blue-700) 0%, var(--tp-blue-600) 100%);
+}
+
+.tp-profile-display__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+}
+
+.tp-profile-display__header .tp-btn--secondary {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.tp-profile-display__header .tp-btn--secondary:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.tp-profile-section {
+  padding: 24px;
+  border-bottom: 1px solid var(--tp-gray-200);
+}
+
+.tp-profile-section:last-child {
+  border-bottom: none;
+}
+
+.tp-profile-section__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--tp-blue-700);
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--tp-yellow-500);
+  display: inline-block;
+}
+
+.tp-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.tp-profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tp-profile-field--full {
+  grid-column: 1 / -1;
+}
+
+.tp-profile-field__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tp-gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tp-profile-field__value {
+  font-size: 14px;
+  color: var(--tp-gray-800);
+  font-weight: 500;
+}
+
+.tp-profile-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.tp-profile-tag {
+  display: inline-flex;
+  padding: 6px 12px;
+  background: var(--tp-blue-100);
+  color: var(--tp-blue-700);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tp-profile-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.tp-profile-card {
+  background: var(--tp-gray-50);
+  border: 1px solid var(--tp-gray-200);
+  border-radius: var(--tp-radius-md);
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.tp-profile-card:hover {
+  border-color: var(--tp-blue-300);
+  box-shadow: var(--tp-shadow-sm);
+}
+
+/* Card with image layout */
+.tp-profile-card--with-image {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.tp-profile-card__image {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: var(--tp-radius-sm);
+  overflow: hidden;
+  border: 2px solid var(--tp-gray-200);
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.tp-profile-card__image:hover {
+  border-color: var(--tp-blue-500);
+  transform: scale(1.05);
+}
+
+.tp-profile-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tp-profile-card__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.tp-profile-card__header {
+  font-size: 15px;
+  color: var(--tp-blue-700);
+  margin-bottom: 8px;
+}
+
+.tp-profile-card__body p {
+  font-size: 14px;
+  color: var(--tp-gray-700);
+  margin: 4px 0;
+}
+
+.tp-profile-card__meta {
+  font-size: 13px;
+  color: var(--tp-gray-500);
+}
+
+.tp-profile-empty {
+  font-size: 14px;
+  color: var(--tp-gray-500);
+  font-style: italic;
+  padding: 16px;
+  background: var(--tp-gray-50);
+  border-radius: var(--tp-radius-sm);
+  text-align: center;
+}
+
+/* Responsive Profile Display */
+@media (max-width: 768px) {
+  .tp-profile-display__header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .tp-profile-display__header .tp-btn--secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .tp-profile-section {
+    padding: 20px 16px;
+  }
+
+  .tp-profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tp-profile-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .tp-profile-card__image {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tp-profile-card--with-image {
+    flex-direction: column;
+  }
+
+  .tp-profile-card__image {
+    width: 100%;
+    height: 120px;
+  }
+}
+
+/* ===========================================
+   LICENSE CARDS (Multiple Licenses)
+   =========================================== */
+.tp-licenses-list {
+  margin-bottom: 24px;
+}
+
+.tp-license-card {
+  background: white;
+  border: 1px solid var(--tp-gray-200);
+  border-radius: var(--tp-radius-sm);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.tp-license-card:last-child {
+  margin-bottom: 0;
+}
+
+.tp-license-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.tp-license-card__type {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--tp-blue-700);
+}
+
+.tp-license-card__details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 14px;
+  color: var(--tp-gray-600);
+}
+
+.tp-license-card__details span {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.tp-warning-badge {
+  color: var(--tp-warning);
+  font-weight: 600;
+}
+
+.tp-error-badge {
+  color: var(--tp-danger);
+  font-weight: 600;
+}
+
+.tp-add-license-section {
+  background: var(--tp-gray-50);
+  border: 2px dashed var(--tp-gray-300);
+  border-radius: var(--tp-radius-md);
+  padding: 20px;
+}
+
+.tp-label--small {
+  font-size: 12px;
+  color: var(--tp-gray-600);
+  font-weight: 500;
+}
+
+.tp-input-group--button {
+  display: flex;
+  align-items: flex-end;
+}
+
+/* Status badge for license cards in profile display */
+.tp-status-badge {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.tp-status-badge--success {
+  background: var(--tp-success-light);
+  color: #065f46;
+}
+
+.tp-status-badge--warning {
+  background: var(--tp-warning-light);
+  color: #92400e;
+}
+
+.tp-status-badge--danger {
+  background: var(--tp-danger-light);
+  color: #991b1b;
+}
+
+@media (max-width: 768px) {
+  .tp-license-card__details {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* ===========================================
    PRINT STYLES
    =========================================== */
 @media print {

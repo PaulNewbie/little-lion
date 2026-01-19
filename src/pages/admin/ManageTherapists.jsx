@@ -44,8 +44,6 @@ const ManageTherapists = () => {
     isLoading: loadingStudents 
   } = useChildrenByStaff(selectedTherapistId);
 
-  if (loading) return <Loading role="admin" message="Loading therapists" />;
-
   const filteredTherapists = therapists.filter(t =>
     `${t.firstName} ${t.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
     t.email.toLowerCase().includes(searchQuery.toLowerCase())
@@ -113,8 +111,10 @@ const ManageTherapists = () => {
   return (
     <div className="ooo-container">
       <Sidebar {...getAdminConfig(isSuperAdmin)} />
-
-      <div className="ooo-main">  
+      {loading ? (
+        <Loading role="admin" message="Loading therapists" variant="content" />
+      ) : (
+      <div className="ooo-main">
         {/* ================= HEADER ================= */}
         <div className="ooo-header">
           <div className="mt-header-wrapper">
@@ -489,6 +489,7 @@ const ManageTherapists = () => {
           userData={newUserData}
         />
       </div>
+      )}
     </div>
   );
 };

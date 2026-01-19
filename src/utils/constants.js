@@ -33,3 +33,63 @@ export function generateUUID() {
   return (c === 'x' ? r : ((r & 0x3) | 0x8)).toString(16);
   });
 }
+
+// =============================================================================
+// SERVICE ENROLLMENT CONSTANTS
+// =============================================================================
+
+/**
+ * Service enrollment status at the student level
+ */
+export const SERVICE_ENROLLMENT_STATUS = {
+  ACTIVE: 'active',
+  INACTIVE: 'inactive'
+};
+
+/**
+ * Predefined reasons for staff removal/change
+ */
+export const STAFF_REMOVAL_REASONS = [
+  { value: 'staff_transferred', label: 'Staff Transferred' },
+  { value: 'scheduling_conflict', label: 'Scheduling Conflict' },
+  { value: 'staff_resigned', label: 'Staff Resigned' },
+  { value: 'parent_request', label: 'Parent Request' },
+  { value: 'admin_decision', label: 'Administrative Decision' },
+  { value: 'service_deactivated', label: 'Service Deactivated' },
+  { value: 'other', label: 'Other' }
+];
+
+/**
+ * Predefined reasons for service deactivation
+ */
+export const SERVICE_DEACTIVATION_REASONS = [
+  { value: 'goal_met', label: 'IEP/Service Goal Met' },
+  { value: 'no_longer_needed', label: 'Service No Longer Needed' },
+  { value: 'funding_ended', label: 'Funding/Authorization Ended' },
+  { value: 'student_transferred', label: 'Student Transferred' },
+  { value: 'parent_request', label: 'Parent Request' },
+  { value: 'temporary_hold', label: 'Temporary Hold' },
+  { value: 'other', label: 'Other' }
+];
+
+/**
+ * Service offering types
+ */
+export const SERVICE_OFFERING_TYPES = {
+  THERAPY: 'Therapy',
+  CLASS: 'Class'
+};
+
+/**
+ * Generate a unique enrollment ID
+ */
+export function generateEnrollmentId() {
+  return `se_${generateUUID().substring(0, 8)}`;
+}
+
+/**
+ * Generate a unique staff history ID
+ */
+export function generateStaffHistoryId() {
+  return `sh_${generateUUID().substring(0, 8)}`;
+}

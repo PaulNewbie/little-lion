@@ -1,9 +1,6 @@
-// src/components/admin/TeacherCard.jsx
-
 import React, { useState } from 'react';
 
 const TeacherCard = ({ teacher }) => {
-  // We keep the expand logic state in case you want to use it for bio/details later
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (!teacher) return null;
@@ -29,11 +26,8 @@ const TeacherCard = ({ teacher }) => {
 
         {/* ================= RIGHT CONTENT CARD ================= */}
         <div style={styles.card}>
-          
           {/* Service Badge */}
-          <div style={styles.serviceBadge}>
-            Teacher Profile • ID: {teacher.uid}
-          </div>
+          <div style={styles.serviceBadge}>Teacher Profile</div>
 
           {/* Header */}
           <div style={styles.header}>
@@ -44,15 +38,15 @@ const TeacherCard = ({ teacher }) => {
 
               {/* Status Row */}
               <div style={styles.credentialRow}>
-                <span style={{ 
-                  ...styles.verifiedIcon, 
-                  color: teacher.profileCompleted ? '#059669' : '#d97706' 
+                <span style={{
+                  ...styles.verifiedIcon,
+                  color: teacher.profileCompleted ? '#059669' : '#d97706'
                 }}>
                   {teacher.profileCompleted ? '✓' : '⚠️'}
                 </span>
-                <span style={{ 
-                  ...styles.credentialText, 
-                  color: teacher.profileCompleted ? '#059669' : '#d97706' 
+                <span style={{
+                  ...styles.credentialText,
+                  color: teacher.profileCompleted ? '#059669' : '#d97706'
                 }}>
                   {teacher.profileCompleted ? 'Profile Active' : 'Setup Pending'}
                 </span>
@@ -60,7 +54,10 @@ const TeacherCard = ({ teacher }) => {
 
               {/* Meta Row */}
               <div style={styles.metaRow}>
-                📧 {teacher.email}
+                <span>🗓️ {teacher.yearsExperience || 0} Years Experience</span>
+                {teacher.employmentStatus && (
+                  <span style={{ marginLeft: '12px' }}>• {teacher.employmentStatus}</span>
+                )}
               </div>
             </div>
           </div>
@@ -69,47 +66,128 @@ const TeacherCard = ({ teacher }) => {
 
           {/* Body */}
           <div style={styles.body}>
-            
-            {/* Contact / Info Section */}
-            <div style={styles.section}>
-              <div style={styles.sectionHeader}>📋 Account Details</div>
-              <div style={styles.eduItem}>
-                <strong>System Role</strong>
-                <span style={styles.subText}> • Teacher Access</span>
+            {/* License Information */}
+            {(teacher.teachingLicense || teacher.certificationLevel) && (
+              <div style={styles.section}>
+                <div style={styles.sectionHeader}>📋 Teaching Credentials</div>
+                <div style={styles.licenseGrid}>
+                  {teacher.certificationLevel && (
+                    <div style={styles.licenseCard}>
+                      <div style={styles.licenseLabel}>Certification Level</div>
+                      <div style={styles.licenseValue}>{teacher.certificationLevel}</div>
+                    </div>
+                  )}
+                  {teacher.teachingLicense && (
+                    <div style={styles.licenseCard}>
+                      <div style={styles.licenseLabel}>Teaching License</div>
+                      <div style={styles.licenseValue}>{teacher.teachingLicense}</div>
+                    </div>
+                  )}
+                  {teacher.prcIdNumber && (
+                    <div style={styles.licenseCard}>
+                      <div style={styles.licenseLabel}>PRC ID</div>
+                      <div style={styles.licenseValue}>{teacher.prcIdNumber}</div>
+                    </div>
+                  )}
+                  {teacher.licenseState && (
+                    <div style={styles.licenseCard}>
+                      <div style={styles.licenseLabel}>State/Region</div>
+                      <div style={styles.licenseValue}>{teacher.licenseState}</div>
+                    </div>
+                  )}
+                  {teacher.licenseExpirationDate && (
+                    <div style={styles.licenseCard}>
+                      <div style={styles.licenseLabel}>License Expiration</div>
+                      <div style={styles.licenseValue}>{teacher.licenseExpirationDate}</div>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div style={styles.eduItem}>
-                <strong>Email Status</strong>
-                <span style={styles.subText}> • {teacher.email ? 'Linked' : 'Missing'}</span>
-              </div>
-            </div>
+            )}
 
             {/* Specializations */}
-            <div style={styles.bioContainer}>
-              <div style={styles.sectionHeader}>Specializations</div>
-              
-              {teacher.specializations && teacher.specializations.length > 0 ? (
+            {teacher.specializations?.length > 0 && (
+              <div style={styles.section}>
+                <div style={styles.sectionHeader}>🎯 Specializations</div>
                 <div style={styles.tagContainer}>
                   {teacher.specializations.map((spec, index) => (
-                    <span key={index} style={styles.tag}>
+                    <span key={index} style={styles.specTag}>
                       {spec}
                     </span>
                   ))}
                 </div>
-              ) : (
-                <p style={styles.bio}>No specializations listed yet.</p>
-              )}
-            </div>
-
-            {/* Verified Badge */}
-            {teacher.profileCompleted && (
-              <div style={styles.certSection}>
-                 <div style={styles.certTag}>
-                    <div>
-                      🏆 Verified Teacher Account
-                    </div>
-                 </div>
               </div>
             )}
+
+            {/* Education */}
+            {teacher.educationHistory?.length > 0 && (
+              <div style={styles.section}>
+                <div style={styles.sectionHeader}>🎓 Education</div>
+                {teacher.educationHistory.map((edu, idx) => (
+                  <div key={idx} style={styles.eduItem}>
+                    <strong>{edu.degree}</strong>
+                    <span style={styles.subText}>
+                      {" "}• {edu.institution}
+                      {edu.graduationYear && ` (${edu.graduationYear})`}
+                    </span>
+                    {edu.certificateURL && (
+                      <a href={edu.certificateURL} target="_blank" rel="noreferrer" style={styles.viewLink}>
+                        View Certificate
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Expand Button for Certifications */}
+            {teacher.certifications?.length > 0 && (
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                style={styles.expandBtn}
+              >
+                {isExpanded ? "Hide Certifications" : `View ${teacher.certifications.length} Certification(s)`}
+              </button>
+            )}
+
+            {/* Certifications - Expandable */}
+            {isExpanded && teacher.certifications?.length > 0 && (
+              <div style={styles.certSection}>
+                <div style={styles.certHeader}>Verified Certifications</div>
+                <div style={styles.certGrid}>
+                  {teacher.certifications.map((cert, idx) => (
+                    <div key={idx} style={styles.certTag}>
+                      <div style={styles.certInfo}>
+                        <span style={styles.certName}>🏆 {cert.name}</span>
+                        {cert.issuingOrg && (
+                          <span style={styles.certIssuer}>{cert.issuingOrg}</span>
+                        )}
+                        {cert.expirationDate && (
+                          <span style={styles.certMeta}>Exp: {cert.expirationDate}</span>
+                        )}
+                      </div>
+                      {cert.certificateURL && (
+                        <a
+                          href={cert.certificateURL}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={styles.proofLink}
+                        >
+                          View 📎
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Contact Info */}
+            <div style={styles.contactSection}>
+              <div style={styles.sectionHeader}>📧 Contact</div>
+              <div style={styles.contactItem}>{teacher.email}</div>
+              {teacher.phone && <div style={styles.contactItem}>{teacher.phone}</div>}
+            </div>
           </div>
         </div>
       </div>
@@ -122,7 +200,7 @@ const TeacherCard = ({ teacher }) => {
 const styles = {
   mainContainer: {
     width: '100%',
-    maxWidth: '1000px', 
+    maxWidth: '1000px',
     margin: '0 0 0 20px',
     animation: 'fadeIn 0.3s ease-in-out',
   },
@@ -134,7 +212,6 @@ const styles = {
     alignItems: "flex-start",
   },
 
-  /* LEFT IMAGE CARD */
   imageCard: {
     width: "300px",
     height: "385px",
@@ -168,7 +245,6 @@ const styles = {
     color: "white",
   },
 
-  /* RIGHT CARD */
   card: {
     flex: 1,
     backgroundColor: "white",
@@ -193,7 +269,7 @@ const styles = {
 
   name: {
     margin: "0 0 0.25rem 0",
-    fontSize: "1.1rem",
+    fontSize: "1.25rem",
     fontWeight: 700,
     color: "#0f172a",
   },
@@ -202,7 +278,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "0.25rem",
-    marginBottom: "0.25rem",
+    marginBottom: "0.5rem",
   },
 
   verifiedIcon: {
@@ -210,12 +286,12 @@ const styles = {
   },
 
   credentialText: {
-    fontSize: "0.8rem",
+    fontSize: "0.85rem",
     fontWeight: 600,
   },
 
   metaRow: {
-    fontSize: "0.8rem",
+    fontSize: "0.85rem",
     color: "#64748b",
   },
 
@@ -229,7 +305,7 @@ const styles = {
   },
 
   section: {
-    marginBottom: "0.75rem",
+    marginBottom: "1rem",
   },
 
   sectionHeader: {
@@ -240,29 +316,32 @@ const styles = {
     textTransform: "uppercase",
   },
 
-  eduItem: {
+  licenseGrid: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "12px",
+  },
+
+  licenseCard: {
+    backgroundColor: "#f0fdf4",
+    border: "1px solid #86efac",
+    borderRadius: "8px",
+    padding: "10px 14px",
+    minWidth: "120px",
+  },
+
+  licenseLabel: {
+    fontSize: "0.7rem",
+    fontWeight: 600,
+    color: "#15803d",
+    textTransform: "uppercase",
+    marginBottom: "2px",
+  },
+
+  licenseValue: {
     fontSize: "0.9rem",
-    color: "#334155",
-    marginBottom: "4px",
-  },
-
-  subText: {
-    fontSize: "0.8rem",
-    color: "#94a3b8",
-  },
-
-  bioContainer: {
-    backgroundColor: "#f8fafc",
-    padding: "0.75rem",
-    borderRadius: "0.5rem",
-    marginTop: "1rem",
-  },
-
-  bio: {
-    margin: 0,
-    fontSize: "0.875rem",
-    color: "#475569",
-    lineHeight: "1.5",
+    fontWeight: 600,
+    color: "#166534",
   },
 
   tagContainer: {
@@ -270,15 +349,50 @@ const styles = {
     flexWrap: 'wrap',
     gap: '8px',
   },
-  
-  tag: {
-    backgroundColor: 'white',
-    color: '#334155',
-    padding: '4px 10px',
-    borderRadius: '6px',
-    fontSize: '0.8rem',
-    fontWeight: '500',
-    border: '1px solid #e2e8f0',
+
+  specTag: {
+    backgroundColor: "#eff6ff",
+    color: "#1d4ed8",
+    padding: "4px 12px",
+    borderRadius: "16px",
+    fontSize: "0.8rem",
+    fontWeight: 500,
+    border: "1px solid #bfdbfe",
+  },
+
+  eduItem: {
+    fontSize: "0.9rem",
+    color: "#334155",
+    marginBottom: "8px",
+    display: "flex",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: "8px",
+  },
+
+  subText: {
+    fontSize: "0.8rem",
+    color: "#94a3b8",
+  },
+
+  viewLink: {
+    fontSize: "0.75rem",
+    color: "#2563eb",
+    textDecoration: "none",
+    fontWeight: 600,
+  },
+
+  expandBtn: {
+    background: "none",
+    border: "1px solid #e2e8f0",
+    color: "#2563eb",
+    fontSize: "0.8rem",
+    fontWeight: 600,
+    cursor: "pointer",
+    padding: "8px 16px",
+    borderRadius: "6px",
+    marginTop: "0.5rem",
+    width: "100%",
   },
 
   certSection: {
@@ -287,16 +401,73 @@ const styles = {
     borderTop: "1px dashed #e2e8f0",
   },
 
+  certHeader: {
+    fontSize: "0.75rem",
+    fontWeight: 700,
+    color: "#94a3b8",
+    marginBottom: "0.5rem",
+    textTransform: "uppercase",
+  },
+
+  certGrid: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.5rem",
+  },
+
   certTag: {
     fontSize: "0.8rem",
     backgroundColor: "#fffbeb",
     color: "#b45309",
-    padding: "0.5rem",
-    borderRadius: "0.25rem",
+    padding: "0.75rem",
+    borderRadius: "8px",
     border: "1px solid #fcd34d",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+
+  certInfo: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "2px",
+  },
+
+  certName: {
+    fontWeight: 600,
+  },
+
+  certIssuer: {
+    fontSize: "0.75rem",
+    color: "#92400e",
+  },
+
+  certMeta: {
+    fontSize: "0.7rem",
+    color: "#d97706",
+  },
+
+  proofLink: {
+    fontSize: "0.75rem",
+    color: "#2563eb",
+    textDecoration: "none",
+    fontWeight: 600,
+    border: "1px solid #bfdbfe",
+    padding: "4px 10px",
+    borderRadius: "4px",
+    backgroundColor: "white",
+  },
+
+  contactSection: {
+    marginTop: "1rem",
+    paddingTop: "1rem",
+    borderTop: "1px solid #f1f5f9",
+  },
+
+  contactItem: {
+    fontSize: "0.85rem",
+    color: "#475569",
+    marginBottom: "4px",
   },
 };
 

@@ -1,402 +1,384 @@
 // src/pages/admin/UserAccessManagement.jsx
 
-import React, { useState, useEffect } from "react";
-import { useAuth } from "../../hooks/useAuth";
-import userService from "../../services/userService";
-import Sidebar from "../../components/sidebar/Sidebar";
-import { getAdminConfig } from "../../components/sidebar/sidebarConfigs";
-
-const styles = {
-  layout: {
-    display: "flex",
-    minHeight: "100vh"
-  },
-  main: {
-    flex: 1,
-    padding: "24px",
-    backgroundColor: "#f5f5f5"
-  },
-  header: {
-    marginBottom: "24px"
-  },
-  title: {
-    fontSize: "24px",
-    fontWeight: "600",
-    marginBottom: "4px"
-  },
-  subtitle: {
-    color: "#666",
-    fontSize: "14px"
-  },
-  card: {
-    backgroundColor: "white",
-    borderRadius: "8px",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-    overflow: "hidden"
-  },
-  table: {
-    width: "100%",
-    borderCollapse: "collapse"
-  },
-  th: {
-    textAlign: "left",
-    padding: "12px 16px",
-    backgroundColor: "#f9fafb",
-    borderBottom: "1px solid #e5e7eb",
-    fontSize: "12px",
-    fontWeight: "600",
-    textTransform: "uppercase",
-    color: "#6b7280"
-  },
-  td: {
-    padding: "12px 16px",
-    borderBottom: "1px solid #e5e7eb",
-    fontSize: "14px"
-  },
-  roleBadge: {
-    display: "inline-block",
-    padding: "2px 8px",
-    borderRadius: "4px",
-    fontSize: "12px",
-    fontWeight: "500"
-  },
-  statusBadge: {
-    display: "inline-block",
-    padding: "4px 10px",
-    borderRadius: "12px",
-    fontSize: "12px",
-    fontWeight: "500"
-  },
-  actionBtn: {
-    padding: "6px 12px",
-    border: "1px solid #ddd",
-    borderRadius: "4px",
-    backgroundColor: "white",
-    cursor: "pointer",
-    fontSize: "13px",
-    marginRight: "8px"
-  },
-  deactivateBtn: {
-    padding: "6px 12px",
-    border: "none",
-    borderRadius: "4px",
-    backgroundColor: "#ef4444",
-    color: "white",
-    cursor: "pointer",
-    fontSize: "13px"
-  },
-  reactivateBtn: {
-    padding: "6px 12px",
-    border: "none",
-    borderRadius: "4px",
-    backgroundColor: "#10b981",
-    color: "white",
-    cursor: "pointer",
-    fontSize: "13px"
-  },
-  emptyState: {
-    padding: "48px",
-    textAlign: "center",
-    color: "#666"
-  },
-  loading: {
-    padding: "48px",
-    textAlign: "center",
-    color: "#666"
-  },
-  filterRow: {
-    display: "flex",
-    gap: "12px",
-    marginBottom: "16px",
-    flexWrap: "wrap",
-    alignItems: "center"
-  },
-  select: {
-    padding: "8px 12px",
-    border: "1px solid #ddd",
-    borderRadius: "6px",
-    fontSize: "14px"
-  },
-  searchInput: {
-    padding: "8px 12px",
-    border: "1px solid #ddd",
-    borderRadius: "6px",
-    fontSize: "14px",
-    minWidth: "200px",
-    flex: 1,
-    maxWidth: "300px"
-  },
-  refreshBtn: {
-    padding: "8px 16px",
-    border: "1px solid #ddd",
-    borderRadius: "6px",
-    backgroundColor: "white",
-    cursor: "pointer",
-    fontSize: "14px"
-  },
-  footer: {
-    padding: "12px 16px",
-    borderTop: "1px solid #e5e7eb",
-    fontSize: "13px",
-    color: "#666"
-  },
-  inactiveRow: {
-    backgroundColor: "#fef2f2"
-  },
-  pendingLabel: {
-    color: "#92400e",
-    fontSize: "12px",
-    fontStyle: "italic"
-  }
-};
-
-const getRoleBadgeStyle = (role) => {
-  const colors = {
-    parent: { bg: "#dbeafe", color: "#1e40af" },
-    teacher: { bg: "#dcfce7", color: "#166534" },
-    therapist: { bg: "#fef3c7", color: "#92400e" },
-    admin: { bg: "#fce7f3", color: "#9d174d" }
-  };
-  const c = colors[role] || { bg: "#f3f4f6", color: "#374151" };
-  return { ...styles.roleBadge, backgroundColor: c.bg, color: c.color };
-};
-
-const getStatusBadgeStyle = (status) => {
-  const colors = {
-    active: { bg: "#dcfce7", color: "#166534" },
-    inactive: { bg: "#fee2e2", color: "#991b1b" },
-    pending_setup: { bg: "#fef3c7", color: "#92400e" }
-  };
-  const c = colors[status] || { bg: "#f3f4f6", color: "#374151" };
-  return { ...styles.statusBadge, backgroundColor: c.bg, color: c.color };
-};
-
-const getStatusLabel = (status) => {
-  switch (status) {
-    case "active":
-      return "Active";
-    case "inactive":
-      return "Inactive";
-    case "pending_setup":
-      return "Pending Setup";
-    default:
-      return status || "Active";
-  }
-};
-
-const formatDate = (dateStr) => {
-  if (!dateStr) return "-";
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric"
-  });
-};
+import React, { useState, useMemo } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '../../hooks/useAuth';
+import Sidebar from '../../components/sidebar/Sidebar';
+import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
+import GeneralFooter from '../../components/footer/generalfooter';
+import userService from '../../services/userService';
+import { useStaffWithPermissions } from '../../hooks/useCachedData';
+import { QUERY_KEYS } from '../../config/queryClient';
+import './css/UserAccessManagement.css';
 
 export default function UserAccessManagement() {
   const { currentUser } = useAuth();
-  const isSuperAdmin = currentUser?.role === "super_admin";
+  const queryClient = useQueryClient();
+  const isSuperAdmin = currentUser?.role === 'super_admin';
+  const sidebarConfig = getAdminConfig(isSuperAdmin);
 
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [roleFilter, setRoleFilter] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [actionLoading, setActionLoading] = useState(null);
+  // Local UI state only
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [roleFilter, setRoleFilter] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    fetchUsers();
-  }, [roleFilter]);
+  // ============ CACHED HOOK: Reuses data from ManageTeachers/Therapists/Admins ============
+  const {
+    data: staff = [],
+    isLoading: loading,
+    error
+  } = useStaffWithPermissions(roleFilter || null);
 
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const fetchedUsers = await userService.getAllUsersWithStatus(
-        roleFilter || null
-      );
-      setUsers(fetchedUsers);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    } finally {
-      setLoading(false);
-    }
+  // Helper to invalidate all user-related caches
+  const invalidateUserCaches = () => {
+    // Invalidate staff permissions cache
+    queryClient.invalidateQueries({ queryKey: ['staffPermissions'] });
+    // Invalidate role-specific caches so ManageTeachers/etc get fresh data
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.users('teacher') });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.users('therapist') });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.users('admin') });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.staff() });
   };
 
-  const handleDeactivate = async (uid) => {
-    if (!window.confirm("Are you sure you want to deactivate this account?")) {
+  // ============ REACT QUERY: Toggle single permission ============
+  const togglePermissionMutation = useMutation({
+    mutationFn: ({ userId, currentValue }) =>
+      userService.updatePermission(userId, 'canEnrollStudents', !currentValue, currentUser.uid),
+    onSuccess: invalidateUserCaches,
+    onError: (error) => {
+      console.error('Error updating permission:', error);
+      alert('Failed to update permission');
+    },
+  });
+
+  // ============ REACT QUERY: Bulk update permissions ============
+  const bulkUpdateMutation = useMutation({
+    mutationFn: ({ userIds, canEnroll }) =>
+      userService.bulkUpdateEnrollmentPermission(userIds, canEnroll, currentUser.uid),
+    onSuccess: () => {
+      setSelectedUsers([]);
+      invalidateUserCaches();
+    },
+    onError: (error) => {
+      console.error('Error bulk updating:', error);
+      alert('Failed to update permissions');
+    },
+  });
+
+  // Toggle single user permission
+  const handleTogglePermission = (userId, currentValue) => {
+    togglePermissionMutation.mutate({ userId, currentValue });
+  };
+
+  // Bulk update permissions
+  const handleBulkUpdate = (canEnroll) => {
+    if (selectedUsers.length === 0) {
+      alert('Please select users first');
       return;
     }
 
-    setActionLoading(uid);
-    try {
-      await userService.deactivateUser(uid);
-      await fetchUsers();
-    } catch (error) {
-      console.error("Error deactivating user:", error);
-      alert("Failed to deactivate user");
-    } finally {
-      setActionLoading(null);
+    const action = canEnroll ? 'grant' : 'revoke';
+    if (!window.confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} enrollment permission for ${selectedUsers.length} user(s)?`)) {
+      return;
+    }
+
+    bulkUpdateMutation.mutate({ userIds: selectedUsers, canEnroll });
+  };
+
+  // Selection handlers
+  const toggleSelectUser = (userId) => {
+    setSelectedUsers(prev =>
+      prev.includes(userId)
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  // Filter staff by search term - memoized for performance
+  const filteredStaff = useMemo(() => {
+    return staff.filter(user => {
+      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+      const email = (user.email || '').toLowerCase();
+      const search = searchTerm.toLowerCase();
+      return fullName.includes(search) || email.includes(search);
+    });
+  }, [staff, searchTerm]);
+
+  const toggleSelectAll = () => {
+    if (selectedUsers.length === filteredStaff.length) {
+      setSelectedUsers([]);
+    } else {
+      setSelectedUsers(filteredStaff.map(u => u.uid));
     }
   };
 
-  const handleReactivate = async (uid) => {
-    setActionLoading(uid);
-    try {
-      await userService.reactivateUser(uid);
-      await fetchUsers();
-    } catch (error) {
-      console.error("Error reactivating user:", error);
-      alert("Failed to reactivate user");
-    } finally {
-      setActionLoading(null);
+  // Get role display badge class
+  const getRoleBadgeClass = (role) => {
+    switch (role) {
+      case 'admin': return 'uam-role-badge uam-role-admin';
+      case 'teacher': return 'uam-role-badge uam-role-teacher';
+      case 'therapist': return 'uam-role-badge uam-role-therapist';
+      default: return 'uam-role-badge';
     }
   };
 
-  const filteredUsers = users.filter((user) => {
-    const fullName = `${user.firstName || ""} ${user.lastName || ""}`.toLowerCase();
-    const email = (user.email || "").toLowerCase();
-    const search = searchTerm.toLowerCase();
-    return fullName.includes(search) || email.includes(search);
-  });
+  // Get account status badge class
+  const getStatusBadgeClass = (status) => {
+    switch (status) {
+      case 'active': return 'uam-status-badge uam-status-active';
+      case 'pending_setup': return 'uam-status-badge uam-status-pending';
+      case 'inactive': return 'uam-status-badge uam-status-inactive';
+      default: return 'uam-status-badge uam-status-active';
+    }
+  };
 
-  const activeCount = filteredUsers.filter(u => u.accountStatus === "active" || !u.accountStatus).length;
-  const inactiveCount = filteredUsers.filter(u => u.accountStatus === "inactive").length;
-  const pendingCount = filteredUsers.filter(u => u.accountStatus === "pending_setup").length;
+  // Check if any mutation is in progress
+  const actionLoading = togglePermissionMutation.isPending
+    ? togglePermissionMutation.variables?.userId
+    : bulkUpdateMutation.isPending
+      ? 'bulk'
+      : null;
 
   return (
-    <div style={styles.layout}>
-      <Sidebar {...getAdminConfig(isSuperAdmin)} forceActive="/admin/user-access" />
+    <div className="uam-container">
+      <Sidebar {...sidebarConfig} />
 
-      <main style={styles.main}>
-        <div style={styles.header}>
-          <h1 style={styles.title}>User Access Management</h1>
-          <p style={styles.subtitle}>
-            Manage user account status and access permissions
-          </p>
-        </div>
+      <main className="uam-main">
+        <div className="uam-page">
+          {/* Page Header */}
+          <div className="uam-header">
+            <h1>User Access Management</h1>
+            <p>Control staff permissions and feature access across the system</p>
+          </div>
 
-        <div style={styles.filterRow}>
-          <select
-            style={styles.select}
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-          >
-            <option value="">All Roles</option>
-            <option value="admin">Admins</option>
-            <option value="teacher">Teachers</option>
-            <option value="therapist">Therapists</option>
-            <option value="parent">Parents</option>
-          </select>
-
-          <input
-            type="text"
-            placeholder="Search by name or email..."
-            style={styles.searchInput}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-
-          <button
-            style={styles.refreshBtn}
-            onClick={fetchUsers}
-            disabled={loading}
-          >
-            {loading ? "Loading..." : "Refresh"}
-          </button>
-        </div>
-
-        <div style={styles.card}>
-          {loading ? (
-            <div style={styles.loading}>Loading users...</div>
-          ) : filteredUsers.length === 0 ? (
-            <div style={styles.emptyState}>
-              <p style={{ fontSize: "48px", marginBottom: "8px" }}>👥</p>
-              <p>No users found</p>
+          {/* Permission Card */}
+          <div className="uam-card">
+            <div className="uam-card-header">
+              <div className="uam-card-title">
+                <span className="uam-card-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                </span>
+                <div>
+                  <h2>Student Enrollment Permission</h2>
+                  <p>Control which staff members can enroll new students into the system</p>
+                </div>
+              </div>
             </div>
-          ) : (
-            <>
-              <table style={styles.table}>
-                <thead>
-                  <tr>
-                    <th style={styles.th}>User</th>
-                    <th style={styles.th}>Role</th>
-                    <th style={styles.th}>Status</th>
-                    <th style={styles.th}>Created</th>
-                    <th style={styles.th}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.map((user) => {
-                    const isInactive = user.accountStatus === "inactive";
-                    const isPending = user.accountStatus === "pending_setup";
-                    const status = user.accountStatus || "active";
 
-                    return (
+            {/* Filters & Controls */}
+            <div className="uam-controls">
+              <div className="uam-filters">
+                {/* Search Input */}
+                <div className="uam-search-box">
+                  <span className="uam-search-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="11" cy="11" r="8"/>
+                      <path d="m21 21-4.3-4.3"/>
+                    </svg>
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="Search by name or email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  {searchTerm && (
+                    <button
+                      className="uam-clear-search"
+                      onClick={() => setSearchTerm('')}
+                    >
+                      x
+                    </button>
+                  )}
+                </div>
+
+                {/* Role Filter */}
+                <select
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                  className="uam-role-filter"
+                >
+                  <option value="">All Roles</option>
+                  <option value="admin">Admins</option>
+                  <option value="teacher">Teachers</option>
+                  <option value="therapist">Therapists</option>
+                </select>
+              </div>
+
+              {/* Bulk Actions */}
+              {selectedUsers.length > 0 && (
+                <div className="uam-bulk-actions">
+                  <span className="uam-selected-count">
+                    {selectedUsers.length} selected
+                  </span>
+                  <button
+                    className="uam-btn-grant"
+                    onClick={() => handleBulkUpdate(true)}
+                    disabled={actionLoading === 'bulk'}
+                  >
+                    {actionLoading === 'bulk' ? '...' : 'Grant All'}
+                  </button>
+                  <button
+                    className="uam-btn-revoke"
+                    onClick={() => handleBulkUpdate(false)}
+                    disabled={actionLoading === 'bulk'}
+                  >
+                    {actionLoading === 'bulk' ? '...' : 'Revoke All'}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Staff Table */}
+            {loading ? (
+              <div className="uam-loading">
+                <div className="uam-spinner"></div>
+                <p>Loading staff members...</p>
+              </div>
+            ) : error ? (
+              <div className="uam-empty">
+                <span className="uam-empty-icon">!</span>
+                <p>Error loading staff: {error.message}</p>
+              </div>
+            ) : filteredStaff.length === 0 ? (
+              <div className="uam-empty">
+                <span className="uam-empty-icon">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                </span>
+                <p>No staff members found</p>
+                {searchTerm && (
+                  <button onClick={() => setSearchTerm('')}>
+                    Clear search
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="uam-table-wrapper">
+                <table className="uam-table">
+                  <thead>
+                    <tr>
+                      <th className="uam-col-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={selectedUsers.length === filteredStaff.length && filteredStaff.length > 0}
+                          onChange={toggleSelectAll}
+                        />
+                      </th>
+                      <th className="uam-col-name">Staff Member</th>
+                      <th className="uam-col-role">Role</th>
+                      <th className="uam-col-status">Account Status</th>
+                      <th className="uam-col-permission">Can Enroll</th>
+                      <th className="uam-col-action">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredStaff.map(user => (
                       <tr
-                        key={user.id}
-                        style={isInactive ? styles.inactiveRow : {}}
+                        key={user.uid}
+                        className={selectedUsers.includes(user.uid) ? 'selected' : ''}
                       >
-                        <td style={styles.td}>
-                          <div>
-                            <strong>
-                              {user.firstName} {user.lastName}
-                            </strong>
-                          </div>
-                          <div style={{ fontSize: "12px", color: "#666" }}>
-                            {user.email}
+                        <td className="uam-col-checkbox">
+                          <input
+                            type="checkbox"
+                            checked={selectedUsers.includes(user.uid)}
+                            onChange={() => toggleSelectUser(user.uid)}
+                          />
+                        </td>
+                        <td className="uam-col-name">
+                          <div className="uam-user-info">
+                            <div className="uam-user-avatar">
+                              {user.firstName?.charAt(0) || '?'}{user.lastName?.charAt(0) || ''}
+                            </div>
+                            <div className="uam-user-details">
+                              <span className="uam-user-name">
+                                {user.firstName} {user.lastName}
+                              </span>
+                              <span className="uam-user-email">{user.email}</span>
+                            </div>
                           </div>
                         </td>
-                        <td style={styles.td}>
-                          <span style={getRoleBadgeStyle(user.role)}>
+                        <td className="uam-col-role">
+                          <span className={getRoleBadgeClass(user.role)}>
                             {user.role}
                           </span>
                         </td>
-                        <td style={styles.td}>
-                          <span style={getStatusBadgeStyle(status)}>
-                            {getStatusLabel(status)}
+                        <td className="uam-col-status">
+                          <span className={getStatusBadgeClass(user.accountStatus)}>
+                            {user.accountStatus === 'pending_setup'
+                              ? 'Pending'
+                              : user.accountStatus || 'Active'}
                           </span>
                         </td>
-                        <td style={styles.td}>{formatDate(user.createdAt)}</td>
-                        <td style={styles.td}>
-                          {isInactive ? (
-                            <button
-                              style={{
-                                ...styles.reactivateBtn,
-                                opacity: actionLoading === user.id ? 0.6 : 1
-                              }}
-                              onClick={() => handleReactivate(user.id)}
-                              disabled={actionLoading === user.id}
-                            >
-                              {actionLoading === user.id ? "..." : "Reactivate"}
-                            </button>
-                          ) : isPending ? (
-                            <span style={styles.pendingLabel}>
-                              Setup Required
-                            </span>
-                          ) : (
-                            <button
-                              style={{
-                                ...styles.deactivateBtn,
-                                opacity: actionLoading === user.id ? 0.6 : 1
-                              }}
-                              onClick={() => handleDeactivate(user.id)}
-                              disabled={actionLoading === user.id}
-                            >
-                              {actionLoading === user.id ? "..." : "Deactivate"}
-                            </button>
-                          )}
+                        <td className="uam-col-permission">
+                          <span className={`uam-permission-badge ${user.canEnrollStudents ? 'granted' : 'denied'}`}>
+                            {user.canEnrollStudents ? 'Yes' : 'No'}
+                          </span>
+                        </td>
+                        <td className="uam-col-action">
+                          <button
+                            className={`uam-action-btn ${user.canEnrollStudents ? 'revoke' : 'grant'}`}
+                            onClick={() => handleTogglePermission(user.uid, user.canEnrollStudents)}
+                            disabled={actionLoading === user.uid || user.accountStatus === 'inactive'}
+                            title={user.accountStatus === 'inactive' ? 'Cannot modify inactive accounts' : ''}
+                          >
+                            {actionLoading === user.uid
+                              ? 'Updating...'
+                              : user.canEnrollStudents ? 'Revoke' : 'Grant'
+                            }
+                          </button>
                         </td>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              <div style={styles.footer}>
-                Total: {filteredUsers.length} users • {activeCount} active • {inactiveCount} inactive • {pendingCount} pending
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </>
-          )}
+            )}
+
+            {/* Summary Footer */}
+            {!loading && filteredStaff.length > 0 && (
+              <div className="uam-table-footer">
+                <span>
+                  Showing {filteredStaff.length} of {staff.length} staff members
+                </span>
+                <span className="uam-divider">|</span>
+                <span className="uam-granted-count">
+                  {filteredStaff.filter(u => u.canEnrollStudents).length} with enrollment access
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Info Box */}
+          <div className="uam-info-box">
+            <div className="uam-info-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 16v-4"/>
+                <path d="M12 8h.01"/>
+              </svg>
+            </div>
+            <div className="uam-info-content">
+              <strong>About Enrollment Permission</strong>
+              <p>
+                Staff members with this permission can create new parent accounts and enroll students.
+                Super Admins always have full access regardless of permission settings.
+                Changes take effect immediately after granting or revoking access.
+              </p>
+            </div>
+          </div>
         </div>
+
+        <GeneralFooter />
       </main>
     </div>
   );

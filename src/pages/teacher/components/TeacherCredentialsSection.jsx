@@ -3,33 +3,14 @@ import React from 'react';
 /**
  * TeacherCredentialsSection Component
  * Teaching license, PRC ID, and certification fields
+ * Note: Specializations are managed by admin from the dashboard
  */
-const TeacherCredentialsSection = ({ 
-  formData, 
+const TeacherCredentialsSection = ({
+  formData,
   validationErrors,
   licenseStatus,
-  onInputChange,
-  onSpecializationToggle
+  onInputChange
 }) => {
-  
-  const TEACHER_SPECIALIZATIONS = [
-    'Early Childhood Education',
-    'Special Education',
-    'Elementary Education',
-    'Language Arts',
-    'Mathematics',
-    'Science',
-    'Social Studies',
-    'Physical Education',
-    'Art Education',
-    'Music Education',
-    'ESL/TESOL',
-    'Behavior Management',
-    'Autism Spectrum Disorders',
-    'Learning Disabilities',
-    'ADHD Support',
-    'Gifted Education'
-  ];
   
   return (
     <>
@@ -142,7 +123,7 @@ const TeacherCredentialsSection = ({
             min="0"
           />
         </div>
-        
+
         <div className="tp-input-group">
           <label className="tp-label">Employment Status</label>
           <select
@@ -156,24 +137,6 @@ const TeacherCredentialsSection = ({
             <option value="Contract">Contract</option>
             <option value="Substitute">Substitute</option>
           </select>
-        </div>
-      </div>
-
-      {/* Specializations */}
-      <div className="tp-input-group">
-        <label className="tp-label">Teaching Specializations</label>
-        <p className="tp-helper-text">Select all that apply</p>
-        <div className="tp-checkbox-grid">
-          {TEACHER_SPECIALIZATIONS.map(spec => (
-            <label key={spec} className="tp-checkbox-label">
-              <input
-                type="checkbox"
-                checked={formData.specializations.includes(spec)}
-                onChange={() => onSpecializationToggle(spec)}
-              />
-              <span>{spec}</span>
-            </label>
-          ))}
         </div>
       </div>
     </>

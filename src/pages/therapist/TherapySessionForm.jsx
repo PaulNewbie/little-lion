@@ -387,11 +387,13 @@ const TherapySessionForm = () => {
   };
 
   if (!child || !service) return <div style={{padding:'2rem'}}>No session details provided.</div>;
-  if (loading) return <Loading role="therapist" message="Loading session" />;
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar {...getTherapistConfig()} />
+      {loading ? (
+        <Loading role="therapist" message="Loading session" variant="content" />
+      ) : (
       <div style={{ flex: 1, backgroundColor: '#f8f9fa' }}>
         <div className="tsf-page">
 
@@ -547,6 +549,7 @@ const TherapySessionForm = () => {
           )}
         </div>
       </div>
+      )}
     </div>
   );
 };

@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useUser } from './useCachedData';
+import { QUERY_KEYS } from '../config/queryClient';
 import userService from '../services/userService';
 import cloudinaryService from '../services/cloudinaryService';
 import { validateProfile } from '../utils/validation';
@@ -8,13 +11,19 @@ import { parseFileName, validateFileSize, validateFileType } from '../utils/prof
  * useProfileForm Hook
  * Handles all profile form logic: loading, validation, saving, file uploads
  * Reusable across Teacher and Therapist profiles
+ * OPTIMIZED: Uses cached user data to prevent re-reads
  */
 export const useProfileForm = (currentUser, role, navigate) => {
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+
+  // ============ CACHED: Use cached user data ============
+  const { data: userData, isLoading: userLoading } = useUser(currentUser?.uid);
+
   const [saving, setSaving] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
-  
+  const [formInitialized, setFormInitialized] = useState(false);
+
   const [expandedSections, setExpandedSections] = useState({
     personal: true,
     credentials: true,
@@ -33,6 +42,9 @@ export const useProfileForm = (currentUser, role, navigate) => {
     email: '',
     address: { street: '', city: '', state: '', zip: '' },
     emergencyContact: { name: '', phone: '' },
+    // Therapist: multiple licenses
+    licenses: [],
+    // Teacher: single license fields
     licenseType: '',
     licenseNumber: '',
     licenseState: '',
@@ -67,47 +79,52 @@ export const useProfileForm = (currentUser, role, navigate) => {
     ceusCompleted: ''
   });
 
-  // Load profile data
+  const [newLicense, setNewLicense] = useState({
+    licenseType: '',
+    licenseNumber: '',
+    licenseState: '',
+    licenseIssueDate: '',
+    licenseExpirationDate: ''
+  });
+
+  // Populate form when cached user data is available
   useEffect(() => {
-    const loadProfile = async () => {
-      if (currentUser?.uid) {
-        try {
-          const userData = await userService.getUserById(currentUser.uid);
-          setFormData({
-            profilePhoto: userData.profilePhoto || '',
-            firstName: userData.firstName || '',
-            middleName: userData.middleName || '',
-            lastName: userData.lastName || '',
-            dateOfBirth: userData.dateOfBirth || '',
-            gender: userData.gender || '',
-            phone: userData.phone || '',
-            email: userData.email || '',
-            address: userData.address || { street: '', city: '', state: '', zip: '' },
-            emergencyContact: userData.emergencyContact || { name: '', phone: '' },
-            licenseType: userData.licenseType || '',
-            licenseNumber: userData.licenseNumber || '',
-            teachingLicense: userData.teachingLicense || '',
-            prcIdNumber: userData.prcIdNumber || '',
-            certificationLevel: userData.certificationLevel || '',
-            licenseState: userData.licenseState || '',
-            licenseIssueDate: userData.licenseIssueDate || '',
-            licenseExpirationDate: userData.licenseExpirationDate || '',
-            yearsExperience: userData.yearsExperience || 0,
-            specializations: userData.specializations || [],
-            employmentStatus: userData.employmentStatus || '',
-            educationHistory: userData.educationHistory || [],
-            certifications: userData.certifications || []
-          });
-        } catch (error) {
-          console.error("Error loading profile:", error);
-          alert("Failed to load profile data. Please refresh the page.");
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-    loadProfile();
-  }, [currentUser]);
+    if (userData && !formInitialized) {
+      console.log('♻️ Profile: Using cached user data');
+      setFormData({
+        profilePhoto: userData.profilePhoto || '',
+        firstName: userData.firstName || '',
+        middleName: userData.middleName || '',
+        lastName: userData.lastName || '',
+        dateOfBirth: userData.dateOfBirth || '',
+        gender: userData.gender || '',
+        phone: userData.phone || '',
+        email: userData.email || '',
+        address: userData.address || { street: '', city: '', state: '', zip: '' },
+        emergencyContact: userData.emergencyContact || { name: '', phone: '' },
+        // Therapist: multiple licenses
+        licenses: userData.licenses || [],
+        // Teacher: single license fields
+        licenseType: userData.licenseType || '',
+        licenseNumber: userData.licenseNumber || '',
+        teachingLicense: userData.teachingLicense || '',
+        prcIdNumber: userData.prcIdNumber || '',
+        certificationLevel: userData.certificationLevel || '',
+        licenseState: userData.licenseState || '',
+        licenseIssueDate: userData.licenseIssueDate || '',
+        licenseExpirationDate: userData.licenseExpirationDate || '',
+        yearsExperience: userData.yearsExperience || 0,
+        specializations: userData.specializations || [],
+        employmentStatus: userData.employmentStatus || '',
+        educationHistory: userData.educationHistory || [],
+        certifications: userData.certifications || []
+      });
+      setFormInitialized(true);
+    }
+  }, [userData, formInitialized]);
+
+  // Derive loading state from React Query
+  const loading = userLoading || (!formInitialized && !!currentUser?.uid);
 
   // Form handlers
   const handleInputChange = (field, value) => {
@@ -313,6 +330,49 @@ export const useProfileForm = (currentUser, role, navigate) => {
     }
   };
 
+  // License handlers (for therapists with multiple licenses)
+  const handleNewLicenseChange = (field, value) => {
+    setNewLicense(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddLicense = () => {
+    if (!newLicense.licenseType || !newLicense.licenseNumber) {
+      alert('Please fill in License Type and License Number.');
+      return;
+    }
+
+    const licenseEntry = {
+      id: Date.now().toString(),
+      licenseType: newLicense.licenseType,
+      licenseNumber: newLicense.licenseNumber,
+      licenseState: newLicense.licenseState,
+      licenseIssueDate: newLicense.licenseIssueDate,
+      licenseExpirationDate: newLicense.licenseExpirationDate
+    };
+
+    setFormData(prev => ({
+      ...prev,
+      licenses: [...prev.licenses, licenseEntry]
+    }));
+
+    setNewLicense({
+      licenseType: '',
+      licenseNumber: '',
+      licenseState: '',
+      licenseIssueDate: '',
+      licenseExpirationDate: ''
+    });
+  };
+
+  const handleRemoveLicense = (index) => {
+    if (window.confirm('Are you sure you want to remove this license?')) {
+      setFormData(prev => ({
+        ...prev,
+        licenses: prev.licenses.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
   // Save profile
   const handleSaveProfile = async (e) => {
     e.preventDefault();
@@ -345,6 +405,11 @@ export const useProfileForm = (currentUser, role, navigate) => {
         updatedAt: new Date().toISOString()
       });
 
+      // Invalidate user cache so fresh data is fetched next time
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user(currentUser.uid) });
+      // Also invalidate role-specific cache if this user is in a list
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.users(role) });
+
       alert('Profile updated successfully!');
       navigate(`/${role}/dashboard`);
     } catch (error) {
@@ -364,6 +429,7 @@ export const useProfileForm = (currentUser, role, navigate) => {
     formData,
     newEducation,
     newCertification,
+    newLicense,
     handleInputChange,
     handleNestedChange,
     handleSpecializationToggle,
@@ -377,6 +443,9 @@ export const useProfileForm = (currentUser, role, navigate) => {
     handleNewCertificationChange,
     handleAddCertification,
     handleRemoveCertification,
+    handleNewLicenseChange,
+    handleAddLicense,
+    handleRemoveLicense,
     handleSaveProfile
   };
 };

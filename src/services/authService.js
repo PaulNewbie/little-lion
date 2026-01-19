@@ -13,6 +13,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db, firebaseConfig } from '../config/firebase';
 import { generateSecurePassword } from '../utils/codeGenerator';
 import activationService from './activationService';
+import { getDefaultPermissions } from '../utils/permissions'; // ADD THIS IMPORT
 
 class AuthService {
   // 1. Sign in user
@@ -25,7 +26,7 @@ class AuthService {
 
       // Check if account is deactivated
       if (userData.accountStatus === 'inactive') {
-        await signOut(auth); // Sign out immediately
+        await signOut(auth);
         throw new Error('Your account has been deactivated. Please contact an administrator.');
       }
 
@@ -39,11 +40,10 @@ class AuthService {
     }
   }
 
-  // 2. Create Parent Account (UPDATED - Passes temp password to activation)
+  // 2. Create Parent Account (NO CHANGES - parents don't need enrollment permission)
   async createParentAccount(email, parentData) {
     let tempApp = null;
     try {
-      // Generate random temp password (stored temporarily for activation)
       const tempPassword = generateSecurePassword(24);
       
       tempApp = initializeApp(firebaseConfig, 'tempApp-' + Date.now());
@@ -51,7 +51,6 @@ class AuthService {
       const userCredential = await createUserWithEmailAndPassword(tempAuth, email, tempPassword);
       const user = userCredential.user;
 
-      // Generate activation data WITH temp password
       const activationData = activationService.generateActivationData(tempPassword);
 
       await setDoc(doc(db, 'users', user.uid), {
@@ -61,7 +60,7 @@ class AuthService {
         role: 'parent',
         childrenIds: [],
         active: true,
-        ...activationData, // accountStatus, activationCode, activationExpiry, activationCreatedAt, _tempKey
+        ...activationData,
         createdAt: new Date().toISOString()
       });
 
@@ -81,7 +80,7 @@ class AuthService {
     }
   }
 
-  // 3. Create Therapist Account (UPDATED - Passes temp password to activation)
+  // 3. Create Therapist Account (UPDATED - with default permissions)
   async createTherapistAccount(email, therapistData) {
     let tempApp = null;
     try {
@@ -102,6 +101,8 @@ class AuthService {
         specializations: therapistData.specializations || [],
         active: true,
         profileCompleted: false,
+        permissions: getDefaultPermissions('therapist'),  // ADD THIS
+        permissionsHistory: [],                            // ADD THIS
         ...activationData,
         createdAt: new Date().toISOString()
       });
@@ -122,7 +123,7 @@ class AuthService {
     }
   }
 
-  // 4. Create Teacher Account (UPDATED - Passes temp password to activation)
+  // 4. Create Teacher Account (UPDATED - with default permissions)
   async createTeacherAccount(email, teacherData) {
     let tempApp = null;
     try {
@@ -142,6 +143,8 @@ class AuthService {
         role: 'teacher',
         specializations: teacherData.specializations || [],
         active: true,
+        permissions: getDefaultPermissions('teacher'),  // ADD THIS
+        permissionsHistory: [],                          // ADD THIS
         ...activationData,
         createdAt: new Date().toISOString()
       });
@@ -162,7 +165,7 @@ class AuthService {
     }
   }
 
-  // 5. Create Admin Account (UPDATED - Passes temp password to activation)
+  // 5. Create Admin Account (UPDATED - with default permissions)
   async createAdminAccount(email, adminData) {
     let tempApp = null;
     try {
@@ -181,6 +184,8 @@ class AuthService {
         email: email,
         role: 'admin',
         active: true,
+        permissions: getDefaultPermissions('admin'),  // ADD THIS
+        permissionsHistory: [],                        // ADD THIS
         ...activationData,
         createdAt: new Date().toISOString()
       });

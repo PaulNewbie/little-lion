@@ -1,18 +1,18 @@
 // src/services/childService.js
 // COMPLETE VERSION with all methods including aliases for backward compatibility
 
-import { 
-  collection, 
-  doc, 
-  getDoc, 
-  getDocs, 
-  setDoc, 
-  updateDoc, 
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
   deleteDoc,
-  query, 
-  where, 
-  orderBy, 
-  limit, 
+  query,
+  where,
+  orderBy,
+  limit,
   startAfter,
   arrayUnion,
   arrayRemove,
@@ -21,6 +21,11 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { trackRead } from '../utils/readCounter';
+import {
+  generateEnrollmentId,
+  generateStaffHistoryId,
+  SERVICE_ENROLLMENT_STATUS
+} from '../utils/constants';
 
 const COLLECTION_NAME = 'children';
 const DEFAULT_PAGE_SIZE = 20;
@@ -309,6 +314,43 @@ class ChildService {
     }
   }
 
+  /**
+   * Update child's photo - specifically for parent use
+   * Only updates the photoUrl field to minimize permission requirements
+   * @param {string} childId - The child's document ID
+   * @param {string} parentId - The parent's user ID (for verification)
+   * @param {string} photoUrl - The new photo URL from Cloudinary
+   */
+  async updateChildPhoto(childId, parentId, photoUrl) {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, childId);
+
+      // Verify the child exists and belongs to this parent
+      const childDoc = await getDoc(docRef);
+      trackRead(COLLECTION_NAME, 1);
+
+      if (!childDoc.exists()) {
+        throw new Error('Child not found');
+      }
+
+      const childData = childDoc.data();
+      if (childData.parentId !== parentId) {
+        throw new Error('You do not have permission to update this child');
+      }
+
+      // Only update the photo URL field
+      await updateDoc(docRef, {
+        photoUrl: photoUrl,
+        updatedAt: serverTimestamp()
+      });
+
+      return { id: childId, photoUrl };
+    } catch (error) {
+      console.error('Error updating child photo:', error);
+      throw error;
+    }
+  }
+
   extractStaffIds(childData) {
     const staffIds = new Set();
 
@@ -437,6 +479,731 @@ class ChildService {
       console.error('Error in batch update:', error);
       throw error;
     }
+  }
+
+  // ==========================================================================
+  // SERVICE ENROLLMENTS - New Data Model
+  // ==========================================================================
+
+  /**
+   * Add a new service enrollment to a child
+   * @param {string} childId - The child's document ID
+   * @param {object} enrollmentData - Service enrollment details
+   * @param {string} enrollmentData.serviceId - FK to services collection
+   * @param {string} enrollmentData.serviceName - Service display name
+   * @param {string} enrollmentData.serviceType - 'Therapy' or 'Class'
+   * @param {object} enrollmentData.staff - Staff assignment {staffId, staffName, staffRole}
+   * @param {string} enrollmentData.frequency - Service frequency (optional)
+   * @param {string} enrollmentData.notes - Admin notes (optional)
+   * @param {string} assignedBy - User ID of admin making the assignment
+   */
+  async addServiceEnrollment(childId, enrollmentData, assignedBy) {
+    if (!childId || !enrollmentData.serviceId || !enrollmentData.staff?.staffId) {
+      throw new Error('Missing required fields: childId, serviceId, and staff.staffId');
+    }
+
+    try {
+      const child = await this.getChildById(childId);
+      if (!child) {
+        throw new Error(`Child not found: ${childId}`);
+      }
+
+      const serviceEnrollments = child.serviceEnrollments || [];
+
+      // Check if service is already enrolled (active or inactive)
+      const existingEnrollment = serviceEnrollments.find(
+        e => e.serviceId === enrollmentData.serviceId
+      );
+
+      if (existingEnrollment) {
+        if (existingEnrollment.status === SERVICE_ENROLLMENT_STATUS.ACTIVE) {
+          throw new Error('Service is already active for this student');
+        }
+        // If inactive, we'll reactivate it instead
+        return this.reactivateServiceEnrollment(
+          childId,
+          existingEnrollment.enrollmentId,
+          enrollmentData.staff,
+          assignedBy
+        );
+      }
+
+      const now = new Date().toISOString();
+      const newEnrollment = {
+        enrollmentId: generateEnrollmentId(),
+        serviceId: enrollmentData.serviceId,
+        serviceName: enrollmentData.serviceName,
+        serviceType: enrollmentData.serviceType,
+        status: SERVICE_ENROLLMENT_STATUS.ACTIVE,
+        enrolledAt: now,
+        statusChangedAt: now,
+        statusChangeReason: null,
+        currentStaff: {
+          staffId: enrollmentData.staff.staffId,
+          staffName: enrollmentData.staff.staffName,
+          staffRole: enrollmentData.staff.staffRole,
+          assignedAt: now,
+          assignedBy: assignedBy
+        },
+        staffHistory: [],
+        frequency: enrollmentData.frequency || null,
+        notes: enrollmentData.notes || null,
+        lastActivityDate: null
+      };
+
+      serviceEnrollments.push(newEnrollment);
+
+      // Recompute staff IDs
+      const { assignedStaffIds, allHistoricalStaffIds } =
+        this.computeStaffIdsFromEnrollments(serviceEnrollments);
+
+      const docRef = doc(db, COLLECTION_NAME, childId);
+      await updateDoc(docRef, {
+        serviceEnrollments,
+        assignedStaffIds,
+        allHistoricalStaffIds,
+        updatedAt: serverTimestamp()
+      });
+
+      return newEnrollment;
+    } catch (error) {
+      console.error('Error adding service enrollment:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Change the staff assigned to a service enrollment
+   * @param {string} childId - The child's document ID
+   * @param {string} enrollmentId - The enrollment ID to update
+   * @param {object} newStaff - New staff {staffId, staffName, staffRole}
+   * @param {string} removalReason - Reason for removing previous staff
+   * @param {string} changedBy - User ID making the change
+   */
+  async changeServiceStaff(childId, enrollmentId, newStaff, removalReason, changedBy) {
+    if (!childId || !enrollmentId || !newStaff?.staffId) {
+      throw new Error('Missing required fields: childId, enrollmentId, and newStaff.staffId');
+    }
+
+    try {
+      const child = await this.getChildById(childId);
+      if (!child) {
+        throw new Error(`Child not found: ${childId}`);
+      }
+
+      const serviceEnrollments = child.serviceEnrollments || [];
+      const enrollmentIndex = serviceEnrollments.findIndex(
+        e => e.enrollmentId === enrollmentId
+      );
+
+      if (enrollmentIndex === -1) {
+        throw new Error(`Enrollment not found: ${enrollmentId}`);
+      }
+
+      const enrollment = serviceEnrollments[enrollmentIndex];
+
+      if (enrollment.status !== SERVICE_ENROLLMENT_STATUS.ACTIVE) {
+        throw new Error('Cannot change staff on an inactive service');
+      }
+
+      const now = new Date().toISOString();
+
+      // Move current staff to history
+      if (enrollment.currentStaff) {
+        const historyEntry = {
+          historyId: generateStaffHistoryId(),
+          staffId: enrollment.currentStaff.staffId,
+          staffName: enrollment.currentStaff.staffName,
+          staffRole: enrollment.currentStaff.staffRole,
+          assignedAt: enrollment.currentStaff.assignedAt,
+          removedAt: now,
+          removalReason: removalReason || 'Staff Changed',
+          removedBy: changedBy,
+          durationDays: this.calculateDurationDays(
+            enrollment.currentStaff.assignedAt,
+            now
+          )
+        };
+        enrollment.staffHistory.unshift(historyEntry); // Most recent first
+      }
+
+      // Set new current staff
+      enrollment.currentStaff = {
+        staffId: newStaff.staffId,
+        staffName: newStaff.staffName,
+        staffRole: newStaff.staffRole,
+        assignedAt: now,
+        assignedBy: changedBy
+      };
+
+      serviceEnrollments[enrollmentIndex] = enrollment;
+
+      // Recompute staff IDs
+      const { assignedStaffIds, allHistoricalStaffIds } =
+        this.computeStaffIdsFromEnrollments(serviceEnrollments);
+
+      const docRef = doc(db, COLLECTION_NAME, childId);
+      await updateDoc(docRef, {
+        serviceEnrollments,
+        assignedStaffIds,
+        allHistoricalStaffIds,
+        updatedAt: serverTimestamp()
+      });
+
+      return enrollment;
+    } catch (error) {
+      console.error('Error changing service staff:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Deactivate a service enrollment (preserves history)
+   * @param {string} childId - The child's document ID
+   * @param {string} enrollmentId - The enrollment ID to deactivate
+   * @param {string} reason - Reason for deactivation
+   * @param {string} deactivatedBy - User ID making the change
+   */
+  async deactivateServiceEnrollment(childId, enrollmentId, reason, deactivatedBy) {
+    if (!childId || !enrollmentId) {
+      throw new Error('Missing required fields: childId and enrollmentId');
+    }
+
+    try {
+      const child = await this.getChildById(childId);
+      if (!child) {
+        throw new Error(`Child not found: ${childId}`);
+      }
+
+      const serviceEnrollments = child.serviceEnrollments || [];
+      const enrollmentIndex = serviceEnrollments.findIndex(
+        e => e.enrollmentId === enrollmentId
+      );
+
+      if (enrollmentIndex === -1) {
+        throw new Error(`Enrollment not found: ${enrollmentId}`);
+      }
+
+      const enrollment = serviceEnrollments[enrollmentIndex];
+
+      if (enrollment.status === SERVICE_ENROLLMENT_STATUS.INACTIVE) {
+        throw new Error('Service is already inactive');
+      }
+
+      const now = new Date().toISOString();
+
+      // Move current staff to history with 'Service Deactivated' reason
+      if (enrollment.currentStaff) {
+        const historyEntry = {
+          historyId: generateStaffHistoryId(),
+          staffId: enrollment.currentStaff.staffId,
+          staffName: enrollment.currentStaff.staffName,
+          staffRole: enrollment.currentStaff.staffRole,
+          assignedAt: enrollment.currentStaff.assignedAt,
+          removedAt: now,
+          removalReason: 'Service Deactivated',
+          removedBy: deactivatedBy,
+          durationDays: this.calculateDurationDays(
+            enrollment.currentStaff.assignedAt,
+            now
+          )
+        };
+        enrollment.staffHistory.unshift(historyEntry);
+      }
+
+      // Update enrollment status
+      enrollment.status = SERVICE_ENROLLMENT_STATUS.INACTIVE;
+      enrollment.statusChangedAt = now;
+      enrollment.statusChangeReason = reason || 'No reason provided';
+      enrollment.currentStaff = null;
+
+      serviceEnrollments[enrollmentIndex] = enrollment;
+
+      // Recompute staff IDs (active staff will exclude this service's staff)
+      const { assignedStaffIds, allHistoricalStaffIds } =
+        this.computeStaffIdsFromEnrollments(serviceEnrollments);
+
+      const docRef = doc(db, COLLECTION_NAME, childId);
+      await updateDoc(docRef, {
+        serviceEnrollments,
+        assignedStaffIds,
+        allHistoricalStaffIds,
+        updatedAt: serverTimestamp()
+      });
+
+      return enrollment;
+    } catch (error) {
+      console.error('Error deactivating service enrollment:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Reactivate an inactive service enrollment
+   * @param {string} childId - The child's document ID
+   * @param {string} enrollmentId - The enrollment ID to reactivate
+   * @param {object} newStaff - New staff assignment {staffId, staffName, staffRole}
+   * @param {string} reactivatedBy - User ID making the change
+   */
+  async reactivateServiceEnrollment(childId, enrollmentId, newStaff, reactivatedBy) {
+    if (!childId || !enrollmentId || !newStaff?.staffId) {
+      throw new Error('Missing required fields: childId, enrollmentId, and newStaff.staffId');
+    }
+
+    try {
+      const child = await this.getChildById(childId);
+      if (!child) {
+        throw new Error(`Child not found: ${childId}`);
+      }
+
+      const serviceEnrollments = child.serviceEnrollments || [];
+      const enrollmentIndex = serviceEnrollments.findIndex(
+        e => e.enrollmentId === enrollmentId
+      );
+
+      if (enrollmentIndex === -1) {
+        throw new Error(`Enrollment not found: ${enrollmentId}`);
+      }
+
+      const enrollment = serviceEnrollments[enrollmentIndex];
+
+      if (enrollment.status === SERVICE_ENROLLMENT_STATUS.ACTIVE) {
+        throw new Error('Service is already active');
+      }
+
+      const now = new Date().toISOString();
+
+      // Reactivate with new staff
+      enrollment.status = SERVICE_ENROLLMENT_STATUS.ACTIVE;
+      enrollment.statusChangedAt = now;
+      enrollment.statusChangeReason = null;
+      enrollment.currentStaff = {
+        staffId: newStaff.staffId,
+        staffName: newStaff.staffName,
+        staffRole: newStaff.staffRole,
+        assignedAt: now,
+        assignedBy: reactivatedBy
+      };
+
+      serviceEnrollments[enrollmentIndex] = enrollment;
+
+      // Recompute staff IDs
+      const { assignedStaffIds, allHistoricalStaffIds } =
+        this.computeStaffIdsFromEnrollments(serviceEnrollments);
+
+      const docRef = doc(db, COLLECTION_NAME, childId);
+      await updateDoc(docRef, {
+        serviceEnrollments,
+        assignedStaffIds,
+        allHistoricalStaffIds,
+        updatedAt: serverTimestamp()
+      });
+
+      return enrollment;
+    } catch (error) {
+      console.error('Error reactivating service enrollment:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all service enrollments for a child
+   * @param {string} childId - The child's document ID
+   * @param {object} options - Filter options
+   * @param {string} options.status - Filter by status ('active', 'inactive', or null for all)
+   */
+  async getServiceEnrollments(childId, options = {}) {
+    try {
+      const child = await this.getChildById(childId);
+      if (!child) {
+        throw new Error(`Child not found: ${childId}`);
+      }
+
+      let enrollments = child.serviceEnrollments || [];
+
+      if (options.status) {
+        enrollments = enrollments.filter(e => e.status === options.status);
+      }
+
+      return enrollments;
+    } catch (error) {
+      console.error('Error getting service enrollments:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get complete staff history for a child across all services
+   * @param {string} childId - The child's document ID
+   */
+  async getStaffHistory(childId) {
+    try {
+      const child = await this.getChildById(childId);
+      if (!child) {
+        throw new Error(`Child not found: ${childId}`);
+      }
+
+      const serviceEnrollments = child.serviceEnrollments || [];
+      const allHistory = [];
+
+      for (const enrollment of serviceEnrollments) {
+        // Include current staff for active services
+        if (enrollment.currentStaff && enrollment.status === SERVICE_ENROLLMENT_STATUS.ACTIVE) {
+          allHistory.push({
+            ...enrollment.currentStaff,
+            serviceName: enrollment.serviceName,
+            serviceType: enrollment.serviceType,
+            enrollmentId: enrollment.enrollmentId,
+            isCurrent: true,
+            removedAt: null,
+            removalReason: null
+          });
+        }
+
+        // Include historical staff
+        for (const history of enrollment.staffHistory || []) {
+          allHistory.push({
+            ...history,
+            serviceName: enrollment.serviceName,
+            serviceType: enrollment.serviceType,
+            enrollmentId: enrollment.enrollmentId,
+            isCurrent: false
+          });
+        }
+      }
+
+      // Sort by assignedAt descending (most recent first)
+      allHistory.sort((a, b) =>
+        new Date(b.assignedAt) - new Date(a.assignedAt)
+      );
+
+      return allHistory;
+    } catch (error) {
+      console.error('Error getting staff history:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update enrollment metadata (frequency, notes)
+   * @param {string} childId - The child's document ID
+   * @param {string} enrollmentId - The enrollment ID to update
+   * @param {object} updates - Fields to update {frequency, notes}
+   */
+  async updateEnrollmentMetadata(childId, enrollmentId, updates) {
+    if (!childId || !enrollmentId) {
+      throw new Error('Missing required fields: childId and enrollmentId');
+    }
+
+    try {
+      const child = await this.getChildById(childId);
+      if (!child) {
+        throw new Error(`Child not found: ${childId}`);
+      }
+
+      const serviceEnrollments = child.serviceEnrollments || [];
+      const enrollmentIndex = serviceEnrollments.findIndex(
+        e => e.enrollmentId === enrollmentId
+      );
+
+      if (enrollmentIndex === -1) {
+        throw new Error(`Enrollment not found: ${enrollmentId}`);
+      }
+
+      // Only allow updating specific metadata fields
+      const allowedFields = ['frequency', 'notes', 'lastActivityDate'];
+      for (const key of Object.keys(updates)) {
+        if (allowedFields.includes(key)) {
+          serviceEnrollments[enrollmentIndex][key] = updates[key];
+        }
+      }
+
+      const docRef = doc(db, COLLECTION_NAME, childId);
+      await updateDoc(docRef, {
+        serviceEnrollments,
+        updatedAt: serverTimestamp()
+      });
+
+      return serviceEnrollments[enrollmentIndex];
+    } catch (error) {
+      console.error('Error updating enrollment metadata:', error);
+      throw error;
+    }
+  }
+
+  // ==========================================================================
+  // SERVICE ENROLLMENT HELPERS
+  // ==========================================================================
+
+  /**
+   * Compute assigned staff IDs from service enrollments
+   * Returns both active staff IDs and all historical staff IDs
+   */
+  computeStaffIdsFromEnrollments(serviceEnrollments) {
+    const activeStaffIds = new Set();
+    const allStaffIds = new Set();
+
+    for (const enrollment of serviceEnrollments || []) {
+      // Current staff (only from active enrollments)
+      if (
+        enrollment.currentStaff?.staffId &&
+        enrollment.status === SERVICE_ENROLLMENT_STATUS.ACTIVE
+      ) {
+        activeStaffIds.add(enrollment.currentStaff.staffId);
+      }
+
+      // All current staff (for historical tracking)
+      if (enrollment.currentStaff?.staffId) {
+        allStaffIds.add(enrollment.currentStaff.staffId);
+      }
+
+      // Historical staff
+      for (const history of enrollment.staffHistory || []) {
+        if (history.staffId) {
+          allStaffIds.add(history.staffId);
+        }
+      }
+    }
+
+    return {
+      assignedStaffIds: Array.from(activeStaffIds),
+      allHistoricalStaffIds: Array.from(allStaffIds)
+    };
+  }
+
+  /**
+   * Calculate duration in days between two dates
+   */
+  calculateDurationDays(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffTime = Math.abs(end - start);
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  /**
+   * Migrate a child from old service arrays to new serviceEnrollments format
+   * @param {string} childId - The child's document ID
+   * @param {string} migratedBy - User ID performing the migration
+   */
+  async migrateToServiceEnrollments(childId, migratedBy) {
+    try {
+      const child = await this.getChildById(childId);
+      if (!child) {
+        throw new Error(`Child not found: ${childId}`);
+      }
+
+      // Skip if already migrated
+      if (child.serviceEnrollments && child.serviceEnrollments.length > 0) {
+        console.log(`Child ${childId} already has serviceEnrollments, skipping migration`);
+        return { skipped: true, enrollments: child.serviceEnrollments };
+      }
+
+      const serviceEnrollments = [];
+      const now = new Date().toISOString();
+      const enrolledAt = child.createdAt?.toDate?.()?.toISOString() || now;
+
+      // Migrate oneOnOneServices (Therapy)
+      for (const service of child.oneOnOneServices || []) {
+        serviceEnrollments.push({
+          enrollmentId: generateEnrollmentId(),
+          serviceId: service.serviceId || `legacy_${service.serviceName?.replace(/\s+/g, '_').toLowerCase()}`,
+          serviceName: service.serviceName,
+          serviceType: 'Therapy',
+          status: SERVICE_ENROLLMENT_STATUS.ACTIVE,
+          enrolledAt: enrolledAt,
+          statusChangedAt: now,
+          statusChangeReason: null,
+          currentStaff: {
+            staffId: service.staffId,
+            staffName: service.staffName,
+            staffRole: service.staffRole || 'therapist',
+            assignedAt: enrolledAt,
+            assignedBy: migratedBy
+          },
+          staffHistory: [],
+          frequency: null,
+          notes: 'Migrated from legacy oneOnOneServices',
+          lastActivityDate: null
+        });
+      }
+
+      // Migrate groupClassServices (Class)
+      for (const service of child.groupClassServices || []) {
+        serviceEnrollments.push({
+          enrollmentId: generateEnrollmentId(),
+          serviceId: service.serviceId || `legacy_${service.serviceName?.replace(/\s+/g, '_').toLowerCase()}`,
+          serviceName: service.serviceName,
+          serviceType: 'Class',
+          status: SERVICE_ENROLLMENT_STATUS.ACTIVE,
+          enrolledAt: enrolledAt,
+          statusChangedAt: now,
+          statusChangeReason: null,
+          currentStaff: {
+            staffId: service.staffId,
+            staffName: service.staffName,
+            staffRole: service.staffRole || 'teacher',
+            assignedAt: enrolledAt,
+            assignedBy: migratedBy
+          },
+          staffHistory: [],
+          frequency: null,
+          notes: 'Migrated from legacy groupClassServices',
+          lastActivityDate: null
+        });
+      }
+
+      // Migrate enrolledServices (generic/legacy)
+      for (const service of child.enrolledServices || []) {
+        const serviceType = service.type === 'Therapy' ? 'Therapy' : 'Class';
+        serviceEnrollments.push({
+          enrollmentId: generateEnrollmentId(),
+          serviceId: service.serviceId || `legacy_${service.serviceName?.replace(/\s+/g, '_').toLowerCase()}`,
+          serviceName: service.serviceName,
+          serviceType: serviceType,
+          status: SERVICE_ENROLLMENT_STATUS.ACTIVE,
+          enrolledAt: enrolledAt,
+          statusChangedAt: now,
+          statusChangeReason: null,
+          currentStaff: {
+            staffId: service.staffId,
+            staffName: service.staffName,
+            staffRole: service.staffRole || (serviceType === 'Therapy' ? 'therapist' : 'teacher'),
+            assignedAt: enrolledAt,
+            assignedBy: migratedBy
+          },
+          staffHistory: [],
+          frequency: null,
+          notes: 'Migrated from legacy enrolledServices',
+          lastActivityDate: null
+        });
+      }
+
+      // Compute staff IDs from new enrollments
+      const { assignedStaffIds, allHistoricalStaffIds } =
+        this.computeStaffIdsFromEnrollments(serviceEnrollments);
+
+      const docRef = doc(db, COLLECTION_NAME, childId);
+      await updateDoc(docRef, {
+        serviceEnrollments,
+        assignedStaffIds,
+        allHistoricalStaffIds,
+        // Preserve legacy arrays for rollback (prefix with underscore)
+        _legacy_oneOnOneServices: child.oneOnOneServices || [],
+        _legacy_groupClassServices: child.groupClassServices || [],
+        _legacy_enrolledServices: child.enrolledServices || [],
+        updatedAt: serverTimestamp()
+      });
+
+      console.log(`Migrated child ${childId}: ${serviceEnrollments.length} service enrollments`);
+      return { skipped: false, enrollments: serviceEnrollments };
+    } catch (error) {
+      console.error('Error migrating to service enrollments:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Batch migrate all children to serviceEnrollments format
+   * @param {string} migratedBy - User ID performing the migration
+   * @param {object} options - Migration options
+   * @param {number} options.batchSize - Number of children per batch (default: 50)
+   */
+  async batchMigrateToServiceEnrollments(migratedBy, options = {}) {
+    const { batchSize = 50 } = options;
+
+    try {
+      // Get all children that don't have serviceEnrollments yet
+      const snapshot = await getDocs(collection(db, COLLECTION_NAME));
+      trackRead(COLLECTION_NAME, snapshot.docs.length);
+
+      const childrenToMigrate = snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(child =>
+          !child.serviceEnrollments || child.serviceEnrollments.length === 0
+        );
+
+      console.log(`Found ${childrenToMigrate.length} children to migrate`);
+
+      const results = {
+        total: childrenToMigrate.length,
+        migrated: 0,
+        skipped: 0,
+        failed: 0,
+        errors: []
+      };
+
+      // Process in batches
+      for (let i = 0; i < childrenToMigrate.length; i += batchSize) {
+        const batch = childrenToMigrate.slice(i, i + batchSize);
+
+        await Promise.all(
+          batch.map(async (child) => {
+            try {
+              const result = await this.migrateToServiceEnrollments(child.id, migratedBy);
+              if (result.skipped) {
+                results.skipped++;
+              } else {
+                results.migrated++;
+              }
+            } catch (error) {
+              results.failed++;
+              results.errors.push({ childId: child.id, error: error.message });
+            }
+          })
+        );
+
+        console.log(`Processed batch ${Math.floor(i / batchSize) + 1}: ${i + batch.length}/${childrenToMigrate.length}`);
+      }
+
+      console.log('Migration complete:', results);
+      return results;
+    } catch (error) {
+      console.error('Error in batch migration:', error);
+      throw error;
+    }
+  }
+
+  // ==========================================================================
+  // BACKWARD COMPATIBILITY - Query methods that work with new model
+  // ==========================================================================
+
+  /**
+   * Extract staff IDs - Updated to work with both old and new data models
+   */
+  extractStaffIdsV2(childData) {
+    const staffIds = new Set();
+
+    // New model: serviceEnrollments
+    if (childData.serviceEnrollments) {
+      for (const enrollment of childData.serviceEnrollments) {
+        if (
+          enrollment.currentStaff?.staffId &&
+          enrollment.status === SERVICE_ENROLLMENT_STATUS.ACTIVE
+        ) {
+          staffIds.add(enrollment.currentStaff.staffId);
+        }
+      }
+    }
+
+    // Legacy model: separate arrays (for backward compatibility)
+    const legacyArrays = [
+      childData.oneOnOneServices,
+      childData.groupClassServices,
+      childData.enrolledServices
+    ];
+
+    for (const services of legacyArrays) {
+      if (Array.isArray(services)) {
+        for (const service of services) {
+          if (service.staffId) {
+            staffIds.add(service.staffId);
+          }
+        }
+      }
+    }
+
+    return Array.from(staffIds);
   }
 }
 

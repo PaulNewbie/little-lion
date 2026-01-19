@@ -81,9 +81,9 @@
 .search-box .search-icon {
   position: absolute;   /* position relative to .search-box */
   left: 10px;           /* distance from left edge */
-  color: #999;
+  color: white;
   font-size: 14px;
-  background-color: #FFCB10;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   padding: 2px 2px;
   border-radius: 8px;
   display: flex;

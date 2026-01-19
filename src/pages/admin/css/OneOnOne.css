@@ -78,8 +78,8 @@ margin-bottom: 15px;
 
 .ooo-header .back-arrow {
   position:absolute;
-  margin-bottom: 45px;
   left: 40px;
+  bottom: 40px;
   font-size: 150px;
   cursor: pointer;
   color: #333333;
@@ -236,6 +236,10 @@ margin-bottom: 15px;
   border: solid 1px #333333;
 }
 
+.modal-box h2{
+  margin-bottom: 20px;
+}
+
 @keyframes modalPop {
   from { transform: scale(0.95); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
@@ -246,6 +250,7 @@ margin-bottom: 15px;
 .modal-form select {
   width: 100%;
   margin-bottom: 14px;
+  margin-top: 5px;
   padding: 10px;
   border-radius: 6px;
   border: 1px solid #ccc;
@@ -289,7 +294,7 @@ margin-bottom: 15px;
   position: fixed;
   right: 40px;
   bottom: 70px;
-  box-shadow: 0 4px 15px #999;
+  box-shadow: 0 4px 15px #4ecdc466;
   color: #fff;
   cursor: pointer;
   display: flex;

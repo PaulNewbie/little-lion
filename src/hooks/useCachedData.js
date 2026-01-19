@@ -112,6 +112,68 @@ export function useAllStaff() {
 }
 
 /**
+ * Get staff with permissions - REUSES CACHED DATA from useTeachers/useTherapists/useAdmins
+ * Used by User Access Management page
+ * @param {string|null} roleFilter - Optional role to filter by ('admin', 'teacher', 'therapist')
+ */
+export function useStaffWithPermissions(roleFilter = null) {
+  const queryClient = useQueryClient();
+
+  return useQuery({
+    queryKey: ['staffPermissions', roleFilter || 'all'],
+    queryFn: async () => {
+      // Try to reuse cached data first
+      const cachedTeachers = queryClient.getQueryData(QUERY_KEYS.users('teacher'));
+      const cachedTherapists = queryClient.getQueryData(QUERY_KEYS.users('therapist'));
+      const cachedAdmins = queryClient.getQueryData(QUERY_KEYS.users('admin'));
+
+      let staffToUse = [];
+
+      // Determine which roles to include based on filter
+      if (roleFilter === 'teacher') {
+        staffToUse = cachedTeachers || await userService.getUsersByRole('teacher');
+        if (!cachedTeachers) {
+          queryClient.setQueryData(QUERY_KEYS.users('teacher'), staffToUse);
+        }
+      } else if (roleFilter === 'therapist') {
+        staffToUse = cachedTherapists || await userService.getUsersByRole('therapist');
+        if (!cachedTherapists) {
+          queryClient.setQueryData(QUERY_KEYS.users('therapist'), staffToUse);
+        }
+      } else if (roleFilter === 'admin') {
+        staffToUse = cachedAdmins || await userService.getUsersByRole('admin');
+        if (!cachedAdmins) {
+          queryClient.setQueryData(QUERY_KEYS.users('admin'), staffToUse);
+        }
+      } else {
+        // No filter - combine all roles
+        const teachers = cachedTeachers || await userService.getUsersByRole('teacher');
+        const therapists = cachedTherapists || await userService.getUsersByRole('therapist');
+        const admins = cachedAdmins || await userService.getUsersByRole('admin');
+
+        // Seed cache if we had to fetch
+        if (!cachedTeachers) queryClient.setQueryData(QUERY_KEYS.users('teacher'), teachers);
+        if (!cachedTherapists) queryClient.setQueryData(QUERY_KEYS.users('therapist'), therapists);
+        if (!cachedAdmins) queryClient.setQueryData(QUERY_KEYS.users('admin'), admins);
+
+        staffToUse = [...teachers, ...therapists, ...admins];
+      }
+
+      // Map permissions
+      const result = staffToUse.map(user => ({
+        ...user,
+        uid: user.uid || user.id,
+        canEnrollStudents: user.permissions?.canEnrollStudents ?? false,
+      }));
+
+      console.log(`♻️ Staff Permissions: ${cachedTeachers || cachedTherapists || cachedAdmins ? 'Reused cached data!' : 'Fetched fresh'}`);
+      return result;
+    },
+    ...QUERY_OPTIONS.semiStatic,
+  });
+}
+
+/**
  * Get single user by ID - CACHED
  */
 export function useUser(userId) {
@@ -430,12 +492,20 @@ export function useParentDashboardData() {
   };
 }
 
+// Re-export service enrollment hooks for convenience
+export {
+  useServiceEnrollments,
+  useServiceEnrollmentMigration,
+  useStaffForEnrollment
+} from './useServiceEnrollments';
+
 export default {
   useParents,
   useTeachers,
   useTherapists,
   useAdmins,
   useAllStaff,
+  useStaffWithPermissions,
   useUser,
   useChildrenByParent,
   useChildrenByStaff,

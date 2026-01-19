@@ -56,6 +56,7 @@ firebase-debug.log
 
 # Build output
 dist/
+dev-dist/
 build/
 out/
 
@@ -83,4 +84,22 @@ yarn-error.log*
 # Windows weird files
 nul
 $RECYCLE.BIN/
+
+dev-dist/sw.js
+
+
+"dev-dist"
+dev-dist/
+dist/
+out/
+build/
+.next/
+.next/
+.cache/
+.tmp/
+.temp/
+.idea/
+.vscode/
+*.suo
+*.ntvs*
 

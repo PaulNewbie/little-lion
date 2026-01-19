@@ -74,6 +74,10 @@ export const QUERY_KEYS = {
   user: (userId) => ['user', userId],
   student: (studentId) => ['student', studentId],
   assessment: (assessmentId) => ['assessment', assessmentId],
+
+  // Service enrollments
+  serviceEnrollments: (childId) => ['serviceEnrollments', childId],
+  staffHistory: (childId) => ['staffHistory', childId],
   
   // Metadata/summaries (Strategy 7)
   metadata: (type) => ['metadata', type],
@@ -173,7 +177,19 @@ export const invalidateRelatedCaches = async (entityType, entityId) => {
       if (entityId) {
         await queryClient.invalidateQueries({ queryKey: ['student', entityId] });
         await queryClient.invalidateQueries({ queryKey: ['activities', entityId] });
+        await queryClient.invalidateQueries({ queryKey: ['serviceEnrollments', entityId] });
+        await queryClient.invalidateQueries({ queryKey: ['staffHistory', entityId] });
       }
+      break;
+
+    case 'serviceEnrollment':
+      // Invalidate service enrollment caches
+      if (entityId) {
+        await queryClient.invalidateQueries({ queryKey: ['serviceEnrollments', entityId] });
+        await queryClient.invalidateQueries({ queryKey: ['staffHistory', entityId] });
+        await queryClient.invalidateQueries({ queryKey: ['student', entityId] });
+      }
+      await queryClient.invalidateQueries({ queryKey: ['students'] });
       break;
       
     case 'staff':
