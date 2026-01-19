@@ -31,8 +31,8 @@ const INITIAL_STUDENT_STATE = {
   assessmentDates: new Date().toISOString().split("T")[0],
   examiner: "",
   ageAtAssessment: "",
-  oneOnOneServices: [],
-  groupClassServices: [],
+  // New unified model for services (replaces oneOnOneServices + groupClassServices)
+  serviceEnrollments: [],
   reasonForReferral: "",
   purposeOfAssessment: [],
   backgroundHistory: {
@@ -117,17 +117,11 @@ export default function EnrollStudentFormModal({
           data.assessmentTools?.every((tool) => tool.recommendation)
         );
       case 9:
-        const hasTherapy =
-          data.oneOnOneServices?.length > 0 &&
-          data.oneOnOneServices.every(
-            (service) => service.serviceId && service.staffId
-          );
-        const hasClasses =
-          data.groupClassServices?.length > 0 &&
-          data.groupClassServices.every(
-            (class_) => class_.serviceId && class_.staffId
-          );
-        return hasTherapy || hasClasses;
+        // Check if at least one valid service enrollment exists
+        const validEnrollments = data.serviceEnrollments?.filter(
+          (enrollment) => enrollment.serviceId && enrollment.staffId
+        );
+        return validEnrollments?.length > 0;
       default:
         return true;
     }
@@ -146,7 +140,7 @@ export default function EnrollStudentFormModal({
   useEffect(() => {
     if (show) {
       // Build the initial data object (merge defaults with editingStudent when present)
-      const initialData = editingStudent
+      let initialData = editingStudent
         ? {
             ...INITIAL_STUDENT_STATE,
             ...editingStudent,
@@ -160,6 +154,55 @@ export default function EnrollStudentFormModal({
             purposeOfAssessment: editingStudent.purposeOfAssessment || [],
           }
         : INITIAL_STUDENT_STATE;
+
+      // Handle legacy data: convert oneOnOneServices/groupClassServices to serviceEnrollments
+      if (editingStudent && !editingStudent.serviceEnrollments?.length) {
+        const legacyEnrollments = [];
+
+        // Convert oneOnOneServices (Therapy)
+        (editingStudent.oneOnOneServices || []).forEach((service) => {
+          if (service.serviceId) {
+            legacyEnrollments.push({
+              enrollmentId: service.enrollmentId || `legacy_${service.serviceId}`,
+              serviceId: service.serviceId,
+              serviceName: service.serviceName,
+              serviceType: "Therapy",
+              status: "active",
+              staffId: service.staffId,
+              staffName: service.staffName,
+              staffRole: service.staffRole || "therapist",
+              enrolledAt: editingStudent.createdAt || new Date().toISOString(),
+              statusChangedAt: new Date().toISOString(),
+              frequency: null,
+              notes: null,
+            });
+          }
+        });
+
+        // Convert groupClassServices (Class)
+        (editingStudent.groupClassServices || []).forEach((service) => {
+          if (service.serviceId) {
+            legacyEnrollments.push({
+              enrollmentId: service.enrollmentId || `legacy_${service.serviceId}`,
+              serviceId: service.serviceId,
+              serviceName: service.serviceName,
+              serviceType: "Class",
+              status: "active",
+              staffId: service.staffId,
+              staffName: service.staffName,
+              staffRole: service.staffRole || "teacher",
+              enrolledAt: editingStudent.createdAt || new Date().toISOString(),
+              statusChangedAt: new Date().toISOString(),
+              frequency: null,
+              notes: null,
+            });
+          }
+        });
+
+        if (legacyEnrollments.length > 0) {
+          initialData.serviceEnrollments = legacyEnrollments;
+        }
+      }
 
       setStudentInput(initialData);
 
@@ -251,8 +294,8 @@ export default function EnrollStudentFormModal({
         assessmentDates: studentInput.assessmentDates,
         examiner: studentInput.examiner,
         ageAtAssessment: studentInput.ageAtAssessment,
-        oneOnOneServices: studentInput.oneOnOneServices || [],
-        groupClassServices: studentInput.groupClassServices || [],
+        // New unified service model (serviceEnrollments)
+        serviceEnrollments: studentInput.serviceEnrollments || [],
         status: isFinalized ? "ENROLLED" : "ASSESSING",
         assessmentId, // Link to the assessment document
         childId, // Ensure childId is consistent

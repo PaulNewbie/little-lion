@@ -281,15 +281,63 @@ class ChildService {
       const childId = childData.childId || childData.id || doc(collection(db, COLLECTION_NAME)).id;
       const docRef = doc(db, COLLECTION_NAME, childId);
 
-      const assignedStaffIds = this.extractStaffIds(childData);
+      // Process serviceEnrollments - convert flat format to full structure if needed
+      let processedEnrollments = [];
+      if (childData.serviceEnrollments && childData.serviceEnrollments.length > 0) {
+        const now = new Date().toISOString();
+        processedEnrollments = childData.serviceEnrollments
+          .filter(e => e.serviceId && e.staffId) // Only save complete enrollments
+          .map(enrollment => {
+            // If enrollment already has currentStaff structure, keep it
+            if (enrollment.currentStaff) {
+              return enrollment;
+            }
+            // Convert flat format (from Step 9) to full structure
+            return {
+              enrollmentId: enrollment.enrollmentId || generateEnrollmentId(),
+              serviceId: enrollment.serviceId,
+              serviceName: enrollment.serviceName,
+              serviceType: enrollment.serviceType,
+              status: enrollment.status || SERVICE_ENROLLMENT_STATUS.ACTIVE,
+              currentStaff: {
+                staffId: enrollment.staffId,
+                staffName: enrollment.staffName,
+                staffRole: enrollment.staffRole,
+                assignedAt: enrollment.enrolledAt || now,
+                assignedBy: parentId // Using parentId as fallback; ideally pass adminId
+              },
+              staffHistory: enrollment.staffHistory || [],
+              enrolledAt: enrollment.enrolledAt || now,
+              statusChangedAt: enrollment.statusChangedAt || now,
+              statusChangeReason: enrollment.statusChangeReason || null,
+              frequency: enrollment.frequency || null,
+              notes: enrollment.notes || null,
+              lastActivityDate: enrollment.lastActivityDate || null
+            };
+          });
+      }
 
+      // Compute staff IDs from the new serviceEnrollments format
+      const { assignedStaffIds, allHistoricalStaffIds } =
+        this.computeStaffIdsFromEnrollments(processedEnrollments);
+
+      // Build data to save - using new model only
       const dataToSave = {
         ...childData,
         id: childId,
         parentId,
+        serviceEnrollments: processedEnrollments,
         assignedStaffIds,
+        allHistoricalStaffIds,
         updatedAt: serverTimestamp(),
       };
+
+      // Remove legacy arrays if present (don't save them anymore)
+      delete dataToSave.oneOnOneServices;
+      delete dataToSave.groupClassServices;
+      delete dataToSave.enrolledServices;
+      // Remove temporary fields
+      delete dataToSave._tempId;
 
       Object.keys(dataToSave).forEach(key => {
         if (dataToSave[key] === undefined) {
@@ -299,7 +347,7 @@ class ChildService {
 
       const existingDoc = await getDoc(docRef);
       trackRead(COLLECTION_NAME, 1);
-      
+
       if (existingDoc.exists()) {
         await updateDoc(docRef, dataToSave);
       } else {
