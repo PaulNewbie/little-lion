@@ -1,3 +1,4 @@
+// src/pages/admin/studentProfile/StudentProfile.jsx
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
@@ -84,8 +85,9 @@ const StudentProfile = ({
 
   // Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [addServiceType, setAddServiceType] = useState(null);
   const [availableServices, setAvailableServices] = useState([]);
+  const [loadingServices, setLoadingServices] = useState(false);
+  const [currentServiceType, setCurrentServiceType] = useState(null);
   const [addForm, setAddForm] = useState({ serviceId: "", staffId: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -200,55 +202,122 @@ const StudentProfile = ({
     }
   };
 
-  const handleOpenAddModal = async (type) => {
+  // === SERVICE ENROLLMENT HANDLERS ===
+
+  const handleOpenAddModal = () => {
     if (isParentView) return;
-    setAddServiceType(type);
-    setAddForm({ serviceId: "", staffId: "" });
     setIsAddModalOpen(true);
+    setAvailableServices([]);
+    setAddForm({ serviceId: "", staffId: "" });
+    setCurrentServiceType(null);
+  };
+
+  const handleLoadServices = async (type) => {
+    setLoadingServices(true);
+    setCurrentServiceType(type);
 
     try {
+      // 1. Fetch fresh student data to get current enrollments
+      const freshStudent = await childService.getChildById(selectedStudent.id);
+      
+      // 2. Fetch all services of this type
       const services = await offeringsService.getServicesByType(type);
-      const interventions = assessmentData?.backgroundHistory?.interventions || [];
-      const savedServiceIds = [...new Set(interventions.map((i) => i.serviceId).filter(Boolean))];
-      const currentEnrolled = [...(selectedStudent?.oneOnOneServices || []), ...(selectedStudent?.groupClassServices || [])];
-      const enrolledServiceIds = new Set(currentEnrolled.map((es) => es.serviceId));
-      const filtered = services.filter((s) => savedServiceIds.includes(s.id) && !enrolledServiceIds.has(s.id));
 
-      if (filtered.length === 0) {
-        setAvailableServices([]);
-        alert("No services match the student's recorded interventions. Please review Step IV - Background History.");
-      } else {
-        setAvailableServices(filtered);
-      }
+      // 3. Get intervention service IDs from assessment (Background History)
+      const interventions = assessmentData?.backgroundHistory?.interventions || [];
+      const savedServiceIds = [
+        ...new Set(
+          interventions
+            .filter((i) => i.serviceType === type && i.serviceId)
+            .map((i) => i.serviceId)
+        ),
+      ];
+
+      // 4. Get ALL currently enrolled service IDs for this student (from fresh data)
+      const enrolledServiceIds = new Set();
+
+      // Legacy: oneOnOneServices
+      (freshStudent?.oneOnOneServices || []).forEach((s) => {
+        if (s.serviceId) enrolledServiceIds.add(s.serviceId);
+      });
+
+      // Legacy: groupClassServices
+      (freshStudent?.groupClassServices || []).forEach((s) => {
+        if (s.serviceId) enrolledServiceIds.add(s.serviceId);
+      });
+
+      // Legacy: enrolledServices
+      (freshStudent?.enrolledServices || []).forEach((s) => {
+        if (s.serviceId) enrolledServiceIds.add(s.serviceId);
+      });
+
+      // New: serviceEnrollments (only exclude ACTIVE enrollments)
+      (freshStudent?.serviceEnrollments || []).forEach((e) => {
+        if (e.serviceId && e.status === "active") {
+          enrolledServiceIds.add(e.serviceId);
+        }
+      });
+
+      // 5. Filter: must be in interventions AND not already enrolled
+      const filtered = services.filter(
+        (s) => savedServiceIds.includes(s.id) && !enrolledServiceIds.has(s.id)
+      );
+
+      setAvailableServices(filtered);
     } catch (error) {
+      console.error("Error loading services:", error);
       alert("Error loading services: " + error.message);
+    } finally {
+      setLoadingServices(false);
     }
   };
 
-  const handleAddSubmit = async () => {
-    if (!addForm.serviceId || !addForm.staffId) return alert("Select service and staff.");
+  const handleAddSubmit = async (serviceType) => {
+    if (!addForm.serviceId || !addForm.staffId) {
+      alert("Please select both a service and staff member.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const serviceObj = availableServices.find((s) => s.id === addForm.serviceId);
-      const isTherapy = addServiceType === "Therapy";
+      const isTherapy = serviceType === "Therapy";
       const staffList = isTherapy ? therapists : teachers;
       const staffObj = staffList?.find((s) => (s.uid || s.id) === addForm.staffId);
+
       if (!staffObj) throw new Error("Staff member not found.");
 
-      await childService.assignService(selectedStudent.id, {
-        serviceId: serviceObj.id,
-        serviceName: serviceObj.name,
-        staffId: addForm.staffId,
-        staffName: `${staffObj.firstName} ${staffObj.lastName}`,
-        type: addServiceType,
-        staffRole: isTherapy ? "therapist" : "teacher",
-      });
-      await userService.addSpecialization(addForm.staffId, serviceObj.name);
+      // Use addServiceEnrollment (new data model)
+      await childService.addServiceEnrollment(
+        selectedStudent.id,
+        {
+          serviceId: serviceObj.id,
+          serviceName: serviceObj.name,
+          serviceType: serviceType,
+          staff: {
+            staffId: addForm.staffId,
+            staffName: `${staffObj.firstName} ${staffObj.lastName}`,
+            staffRole: isTherapy ? "therapist" : "teacher",
+          },
+        },
+        currentUser.uid
+      );
+
+      // Update staff specializations (add if not already present)
+      const currentSpecs = staffObj.specializations || [];
+      if (!currentSpecs.includes(serviceObj.name)) {
+        await userService.updateUser(addForm.staffId, {
+          specializations: [...currentSpecs, serviceObj.name]
+        });
+      }
+
       await refreshData();
+
       setIsAddModalOpen(false);
-      alert("Service added and Staff updated!");
+      alert("Service enrolled successfully!");
     } catch (err) {
-      alert("Failed: " + err.message);
+      console.error("Enrollment failed:", err);
+      alert("Failed to enroll service: " + err.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -261,7 +330,11 @@ const StudentProfile = ({
     const staffList = serviceType === "Therapy" ? therapists : teachers;
     if (!staffList) return [];
     return staffList.filter((staff) =>
-      staff.specializations?.some((spec) => spec.trim().toLowerCase() === serviceName.trim().toLowerCase())
+      !staff.specializations ||
+      staff.specializations.length === 0 ||
+      staff.specializations.some(
+        (spec) => spec.trim().toLowerCase() === serviceName.trim().toLowerCase()
+      )
     );
   };
 
@@ -336,7 +409,7 @@ const StudentProfile = ({
                 onServiceClick={handleServiceClick}
                 selectedService={selectedService}
                 isReadOnly={isParentView || isStaffView}
-                onAddService={!isParentView && !isStaffView ? () => handleOpenAddModal("Therapy") : undefined}
+                onAddService={!isParentView && !isStaffView ? handleOpenAddModal : undefined}
                 viewerRole={isParentView ? 'parent' : currentUser?.role}
                 viewerId={currentUser?.uid}
               />
@@ -368,13 +441,14 @@ const StudentProfile = ({
       {/* Add Service Modal */}
       <AddServiceModal
         isOpen={!isParentView && isAddModalOpen}
-        serviceType={addServiceType}
+        onLoadServices={handleLoadServices}
         availableServices={availableServices}
+        loadingServices={loadingServices}
         formData={addForm}
         onFormChange={setAddForm}
         qualifiedStaff={getQualifiedStaff(
           availableServices.find((s) => s.id === addForm.serviceId)?.name,
-          addServiceType
+          currentServiceType
         )}
         isLoadingStaff={loadingTeachers || loadingTherapists}
         isSubmitting={isSubmitting}
