@@ -71,12 +71,16 @@ class ConcernService {
       );
 
       // 2️⃣ Update concern metadata with lastUpdated timestamp
-      await updateDoc(doc(db, 'concerns', concernId), {
-        status: role === 'admin' || role === 'super_admin'
-          ? 'ongoing'
-          : 'pending',
-        lastUpdated: serverTimestamp() // ✅ This updates the activity timestamp
-      });
+      // If admin replies, set to 'ongoing'. If parent replies, keep current status
+      const updateData = {
+        lastUpdated: serverTimestamp()
+      };
+      
+      if (role === 'admin' || role === 'super_admin') {
+        updateData.status = 'ongoing';
+      }
+      
+      await updateDoc(doc(db, 'concerns', concernId), updateData);
 
     } catch (error) {
       throw new Error('Failed to send message: ' + error.message);
