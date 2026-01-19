@@ -39,7 +39,6 @@
 }
 
 .pc-main-wrapper {
-<<<<<<< HEAD
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -52,19 +51,6 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-=======
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  overflow-y: auto;
-}
-
-.pc-content-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
->>>>>>> origin/main-paul
   background-color: var(--pc-gray-100);
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   overflow: hidden;
