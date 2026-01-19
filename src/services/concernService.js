@@ -51,7 +51,7 @@ class ConcernService {
   }
 
   /* ----------------------------------------------------
-     2. ADD MESSAGE (Parent or Staff)
+     2. ADD MESSAGE (Parent or Admin)
      ---------------------------------------------------- */
   async addMessageToConcern(concernId, text, senderInfo, role) {
     try {
@@ -67,12 +67,12 @@ class ConcernService {
         }
       );
 
-      // 2️⃣ Update concern metadata
+      // 2️⃣ Update concern metadata with lastUpdated timestamp
       await updateDoc(doc(db, 'concerns', concernId), {
-        status: role === 'staff'
-          ? 'waiting_for_parent'
-          : 'waiting_for_staff',
-        lastUpdated: serverTimestamp()
+        status: role === 'admin' || role === 'super_admin'
+          ? 'ongoing'
+          : 'pending',
+        lastUpdated: serverTimestamp() // ✅ This updates the activity timestamp
       });
 
     } catch (error) {
@@ -80,6 +80,9 @@ class ConcernService {
     }
   }
 
+  /* ----------------------------------------------------
+     3. LISTEN TO CONCERN MESSAGES (Real-time)
+     ---------------------------------------------------- */
   listenToConcernMessages(concernId, callback) {
     const q = query(
       collection(db, 'concerns', concernId, 'messages'),
@@ -92,29 +95,118 @@ class ConcernService {
         ...doc.data()
       }));
       callback(messages);
+    }, (error) => {
+      console.error('Error listening to messages:', error);
+      callback([]);
     });
   }
 
+  /* ----------------------------------------------------
+     4. UPDATE CONCERN STATUS
+     ---------------------------------------------------- */
+  async updateConcernStatus(concernId, status) {
+    try {
+      await updateDoc(doc(db, 'concerns', concernId), {
+        status,
+        lastUpdated: serverTimestamp()
+      });
+    } catch (error) {
+      throw new Error('Failed to update status: ' + error.message);
+    }
+  }
 
   /* ----------------------------------------------------
-     3. CLOSE CONCERN (Staff/Admin only)
+     5. CLOSE CONCERN (Admin only)
      ---------------------------------------------------- */
   async closeConcern(concernId, closedByName) {
     try {
       await updateDoc(doc(db, 'concerns', concernId), {
         status: 'solved',
         closedBy: closedByName,
-        closedAt: serverTimestamp()
+        closedAt: serverTimestamp(),
+        lastUpdated: serverTimestamp()
       });
     } catch (error) {
       throw new Error('Failed to close concern: ' + error.message);
     }
   }
 
+  /* ----------------------------------------------------
+     6. LISTEN TO ALL CONCERNS (Admin - Real-time)
+     ✅ UPDATED: Now orders by lastUpdated for most recent activity
+     ---------------------------------------------------- */
+  listenToAllConcerns(callback) {
+    const q = query(
+      collection(db, 'concerns'),
+      orderBy('lastUpdated', 'desc') // ✅ Changed from createdAt to lastUpdated
+    );
+
+    return onSnapshot(q, (snapshot) => {
+      const concerns = snapshot.docs.map(docSnap => ({
+        id: docSnap.id,
+        ...docSnap.data()
+      }));
+      callback(concerns);
+    }, (error) => {
+      console.error('Error listening to all concerns:', error);
+      callback([]);
+    });
+  }
 
   /* ----------------------------------------------------
-   4. GET CONCERNS BY PARENT (List View + Messages)
-   ---------------------------------------------------- */
+     7. LISTEN TO CONCERNS BY PARENT (Real-time)
+     ⚠️ NO orderBy in query to avoid composite index requirement
+     Sorting happens client-side in the hook
+     ---------------------------------------------------- */
+  listenToConcernsByParent(parentId, callback) {
+    const q = query(
+      collection(db, 'concerns'),
+      where('createdByUserId', '==', parentId)
+      // NO orderBy! To avoid needing composite index
+    );
+
+    return onSnapshot(q, (snapshot) => {
+      const concerns = snapshot.docs.map(docSnap => ({
+        id: docSnap.id,
+        ...docSnap.data()
+      }));
+      callback(concerns);
+    }, (error) => {
+      console.error('Error listening to parent concerns:', error);
+      callback([]);
+    });
+  }
+
+  /* ----------------------------------------------------
+     8. GET ALL CONCERNS (One-time fetch)
+     ✅ UPDATED: Now orders by lastUpdated
+     ---------------------------------------------------- */
+  async getAllConcerns() {
+    try {
+      const q = query(
+        collection(db, 'concerns'),
+        orderBy('lastUpdated', 'desc') // ✅ Changed from createdAt to lastUpdated
+      );
+
+      const snapshot = await getDocs(q);
+
+      const concerns = snapshot.docs.map(docSnap => ({
+        id: docSnap.id,
+        ...docSnap.data()
+      }));
+
+      return concerns;
+
+    } catch (error) {
+      console.error('getAllConcerns error:', error);
+      throw new Error('Failed to fetch all concerns');
+    }
+  }
+
+  /* ----------------------------------------------------
+     9. GET CONCERNS BY PARENT (One-time fetch)
+     ⚠️ NO orderBy to avoid composite index requirement
+     ---------------------------------------------------- */
   async getConcernsByParent(parentId) {
     const q = query(
       collection(db, 'concerns'),
@@ -123,107 +215,13 @@ class ConcernService {
 
     const snapshot = await getDocs(q);
 
-    // For each concern, fetch messages subcollection
-    const concerns = await Promise.all(snapshot.docs.map(async (docSnap) => {
-      const concern = { id: docSnap.id, ...docSnap.data() };
-
-      const messagesSnapshot = await getDocs(
-        collection(db, 'concerns', docSnap.id, 'messages')
-      );
-
-      concern.messages = messagesSnapshot.docs
-        .map(m => ({ id: m.id, ...m.data() }))
-        .sort((a, b) => a.createdAt?.seconds - b.createdAt?.seconds); // sort by timestamp
-
-      return concern;
+    const concerns = snapshot.docs.map(docSnap => ({
+      id: docSnap.id,
+      ...docSnap.data()
     }));
     
     return concerns;
   }
-
-  /* ----------------------------------------------------
-   5. GET ALL CONCERNS (ADMIN)
-   ---------------------------------------------------- */
-    async getAllConcerns() {
-      try {
-        const q = query(
-          collection(db, 'concerns'),
-          orderBy('createdAt', 'desc')
-        );
-
-        const snapshot = await getDocs(q);
-
-        const concerns = await Promise.all(
-          snapshot.docs.map(async (docSnap) => {
-            const concern = {
-              id: docSnap.id,
-              ...docSnap.data()
-            };
-
-            const messagesSnapshot = await getDocs(
-              query(
-                collection(db, 'concerns', docSnap.id, 'messages'),
-                orderBy('createdAt', 'asc')
-              )
-            );
-
-            concern.messages = messagesSnapshot.docs.map(m => ({
-              id: m.id,
-              ...m.data()
-            }));
-
-            return concern;
-          })
-        );
-
-        return concerns;
-
-      } catch (error) {
-        console.error('getAllConcerns error:', error);
-        throw new Error('Failed to fetch all concerns');
-      }
-    }
-
-
-    async updateConcernStatus(concernId, status) {
-      try {
-        await updateDoc(doc(db, 'concerns', concernId), {
-          status,
-          lastUpdated: serverTimestamp()
-        });
-      } catch (error) {
-        throw new Error('Failed to update status');
-      }
-    }
-
-
-
-
-  // async getConcernsByStaff(staffId) {
-  //   const q = query(
-  //     collection(db, 'concerns'),
-  //     where('targetStaffId', '==', staffId)
-  //   );
-
-  //   const snapshot = await getDocs(q);
-
-  //   const concerns = await Promise.all(snapshot.docs.map(async (docSnap) => {
-  //     const concern = { id: docSnap.id, ...docSnap.data() };
-
-  //     const messagesSnapshot = await getDocs(
-  //       collection(db, 'concerns', docSnap.id, 'messages')
-  //     );
-
-  //     concern.messages = messagesSnapshot.docs
-  //       .map(m => ({ id: m.id, ...m.data() }))
-  //       .sort((a, b) => a.createdAt?.seconds - b.createdAt?.seconds);
-
-  //     return concern;
-  //   }));
-
-  //   return concerns;
-  // }
-
 }
 
 const concernService = new ConcernService();

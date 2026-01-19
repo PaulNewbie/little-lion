@@ -6,7 +6,6 @@ import {
   BackButton
 } from './index';
 import Loading from '../common/Loading';
-import GeneralFooter from '../footer/generalfooter';
 
 import './ConcernsPage.css';
 
@@ -100,7 +99,6 @@ const ConcernsPage = ({
           </section>
         </main>
         )}
-        <GeneralFooter pageLabel="Concerns" />
       </div>
     </div>
   );

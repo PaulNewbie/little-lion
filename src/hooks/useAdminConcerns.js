@@ -3,14 +3,11 @@ import concernService from '../services/concernService';
 
 /**
  * Custom hook for managing ADMIN concerns
- * - Fetches ALL concerns
- * - Listens to messages
- * - Sends admin replies
- * - Admin DOES NOT create concerns
+ * MINIMAL CHANGE VERSION - Just converted to snapshots
  */
 const useAdminConcerns = () => {
   // =======================
-  // STATE
+  // STATE (UNCHANGED)
   // =======================
   const [concerns, setConcerns] = useState([]);
   const [selectedConcern, setSelectedConcern] = useState(null);
@@ -21,29 +18,24 @@ const useAdminConcerns = () => {
   const [error, setError] = useState(null);
 
   // =======================
-  // FETCH ALL CONCERNS
+  // LISTEN TO ALL CONCERNS (CHANGED FROM fetchConcerns TO SNAPSHOT)
   // =======================
-  const fetchConcerns = useCallback(async () => {
+  useEffect(() => {
     setLoading(true);
     setError(null);
 
-    try {
-      const data = await concernService.getAllConcerns();
-      setConcerns(data);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to load concerns.');
-    } finally {
+    // Changed from getDocs to onSnapshot
+    const unsubscribe = concernService.listenToAllConcerns((concernsData) => {
+      setConcerns(concernsData);
       setLoading(false);
-    }
+    });
+
+    // Cleanup on unmount
+    return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    fetchConcerns();
-  }, [fetchConcerns]);
-
   // =======================
-  // REALTIME MESSAGES
+  // LISTEN TO MESSAGES (UNCHANGED - ALREADY HAD SNAPSHOT)
   // =======================
   useEffect(() => {
     if (!selectedConcern) return;
@@ -57,7 +49,7 @@ const useAdminConcerns = () => {
   }, [selectedConcern]);
 
   // =======================
-  // SEND ADMIN REPLY
+  // SEND ADMIN REPLY (UNCHANGED)
   // =======================
   const sendReply = useCallback(async (concernId, replyText, senderInfo) => {
     if (!replyText.trim()) {
@@ -79,7 +71,28 @@ const useAdminConcerns = () => {
   }, []);
 
   // =======================
-  // UI HELPERS
+  // UPDATE STATUS (CHANGED - REMOVED fetchConcerns CALL)
+  // =======================
+  const updateStatus = useCallback(async (concernId, status) => {
+      // 1️⃣ Optimistically update local state
+      setConcerns(prev =>
+        prev.map(c =>
+          c.id === concernId ? { ...c, status } : c
+        )
+      );  
+
+    try {
+      // 2️⃣ Persist to Firestore
+      await concernService.updateConcernStatus(concernId, status);
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      // (optional) rollback if needed
+    }
+  }, []);
+
+
+  // =======================
+  // UI HELPERS (UNCHANGED)
   // =======================
   const selectConcern = useCallback((concern) => {
     setSelectedConcern(concern);
@@ -91,22 +104,12 @@ const useAdminConcerns = () => {
   }, []);
 
   const refresh = useCallback(() => {
-    fetchConcerns();
-  }, [fetchConcerns]);
-
-
-
-  // ====
-  const updateStatus = useCallback(async (concernId, status) => {
-    await concernService.updateConcernStatus(concernId, status);
-    fetchConcerns(); // refresh list
-  }, [fetchConcerns]);
-
-
-
+    // With snapshots, this does nothing
+    // But kept for API compatibility
+  }, []);
 
   // =======================
-  // RETURN API (SAME SHAPE)
+  // RETURN API (UNCHANGED)
   // =======================
   return {
     concerns,

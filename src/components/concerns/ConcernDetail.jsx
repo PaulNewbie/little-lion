@@ -14,16 +14,41 @@ const ConcernDetail = ({
   onSendReply,
   isSending,
   onBack,
-  onNewConcern
+  onNewConcern,
+  updateStatus,  
+  userRole 
 }) => {
   if (!concern) {
     return <DetailEmptyState onNewConcern={onNewConcern} />;
   }
 
+  console.log('ConcernDetail userRole:', userRole);
+
+
+  const getStatusClass = (status) => {
+    switch (status) {
+      case 'pending':
+        return 'status-orange';
+      case 'ongoing':
+        return 'status-blue';
+      case 'solved':
+        return 'status-green';
+      case 'waiting_for_parent':
+        return 'status-yellow';
+      default:
+        return '';
+    }
+  };
+
 
   return (
     <div className="pc-view-container">
-      <ConcernHeader concern={concern} />
+      <ConcernHeader 
+        concern={concern} 
+        statusClass={getStatusClass(concern.status)}
+        updateStatus={updateStatus} 
+        userRole={userRole} 
+      />
       
       <ChatWindow 
         messages={messages} 
@@ -56,16 +81,33 @@ const ConcernDetail = ({
 /**
  * Header section showing concern metadata
  */
-const ConcernHeader = ({ concern }) => {
+const ConcernHeader = ({ concern, statusClass, updateStatus, userRole }) => {
+  console.log('userRole:', userRole);
+
   const getStatusBadgeClass = (status) => status.replace(/_/g, '_');
  
   return (
     <div className="pc-message-header">
       <div className="pc-header-top">
         <h2>{concern.subject}</h2>
-        <span className={`pc-status-badge ${getStatusBadgeClass(concern.status)}`}>
+        {/* <span className={`pc-status-badge ${getStatusBadgeClass(concern.status)}`}>
           {concern.status.replace(/_/g, ' ').toUpperCase()}
-        </span>   
+        </span>    */}
+         {(userRole === 'admin' || userRole === 'super_admin') ? (
+          <select
+            className={`pc-card-status ${statusClass}`}
+            value={concern.status}
+            onChange={(e) => updateStatus(concern.id, e.target.value)}
+          >
+            <option value="pending">Pending</option>
+            <option value="ongoing">Ongoing</option>
+            <option value="solved">Solved</option>
+          </select>
+        ) : (  
+          <span className={`pc-card-status ${statusClass}`}>
+            {concern.status.replace(/_/g, ' ')}
+          </span>
+        )}
       </div>
       <div className="pc-header-meta">
         <span><strong>Child:</strong> {concern.childName}</span>
@@ -244,3 +286,7 @@ BackButton.propTypes = {
 };
 
 export default ConcernDetail;
+
+
+
+// to continue here: ConcernDetail.jsx:82 userRole: undefined
