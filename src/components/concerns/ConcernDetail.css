@@ -360,6 +360,11 @@
   border-radius: 0 0 8px 8px;
 }
 
+.pc-card-status{
+  width: 85px;
+  text-align: center;
+}
+
 /* Tablet adjustments for detail pieces */
 @media (min-width: 640px) {
   .pc-form {
@@ -411,6 +416,8 @@
     animation: fadeUp 0.25s ease;
   }
 }
+
+
 
 /* Laptop view adjustments for detail */
 @media (min-width: 1024px) {
