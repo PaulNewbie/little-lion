@@ -15,6 +15,7 @@
   height: 100%; /* Ensure the container has a limit */
   overflow-y: auto; /* This makes this specific element the scrollable area */
   position: relative;
+  height: 100vh; /* Full viewport height */
 }
 
 .pc-list-column.hidden {
