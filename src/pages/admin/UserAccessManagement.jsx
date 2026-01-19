@@ -1,64 +1,77 @@
 // src/pages/admin/UserAccessManagement.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../hooks/useAuth';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import GeneralFooter from '../../components/footer/generalfooter';
 import userService from '../../services/userService';
+import { useStaffWithPermissions } from '../../hooks/useCachedData';
+import { QUERY_KEYS } from '../../config/queryClient';
 import './css/UserAccessManagement.css';
 
 export default function UserAccessManagement() {
   const { currentUser } = useAuth();
+  const queryClient = useQueryClient();
   const isSuperAdmin = currentUser?.role === 'super_admin';
   const sidebarConfig = getAdminConfig(isSuperAdmin);
 
-  // State
-  const [staff, setStaff] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(null);
+  // Local UI state only
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [roleFilter, setRoleFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Fetch staff on mount and when filter changes
-  useEffect(() => {
-    fetchStaff();
-  }, [roleFilter]);
+  // ============ CACHED HOOK: Reuses data from ManageTeachers/Therapists/Admins ============
+  const {
+    data: staff = [],
+    isLoading: loading,
+    error
+  } = useStaffWithPermissions(roleFilter || null);
 
-  const fetchStaff = async () => {
-    setLoading(true);
-    try {
-      const data = await userService.getStaffWithPermissions(roleFilter || null);
-      setStaff(data);
-    } catch (error) {
-      console.error('Error fetching staff:', error);
-    } finally {
-      setLoading(false);
-    }
+  // Helper to invalidate all user-related caches
+  const invalidateUserCaches = () => {
+    // Invalidate staff permissions cache
+    queryClient.invalidateQueries({ queryKey: ['staffPermissions'] });
+    // Invalidate role-specific caches so ManageTeachers/etc get fresh data
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.users('teacher') });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.users('therapist') });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.users('admin') });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.staff() });
   };
 
-  // Toggle single user permission
-  const handleTogglePermission = async (userId, currentValue) => {
-    setActionLoading(userId);
-    try {
-      await userService.updatePermission(
-        userId,
-        'canEnrollStudents',
-        !currentValue,
-        currentUser.uid
-      );
-      await fetchStaff();
-    } catch (error) {
+  // ============ REACT QUERY: Toggle single permission ============
+  const togglePermissionMutation = useMutation({
+    mutationFn: ({ userId, currentValue }) =>
+      userService.updatePermission(userId, 'canEnrollStudents', !currentValue, currentUser.uid),
+    onSuccess: invalidateUserCaches,
+    onError: (error) => {
       console.error('Error updating permission:', error);
       alert('Failed to update permission');
-    } finally {
-      setActionLoading(null);
-    }
+    },
+  });
+
+  // ============ REACT QUERY: Bulk update permissions ============
+  const bulkUpdateMutation = useMutation({
+    mutationFn: ({ userIds, canEnroll }) =>
+      userService.bulkUpdateEnrollmentPermission(userIds, canEnroll, currentUser.uid),
+    onSuccess: () => {
+      setSelectedUsers([]);
+      invalidateUserCaches();
+    },
+    onError: (error) => {
+      console.error('Error bulk updating:', error);
+      alert('Failed to update permissions');
+    },
+  });
+
+  // Toggle single user permission
+  const handleTogglePermission = (userId, currentValue) => {
+    togglePermissionMutation.mutate({ userId, currentValue });
   };
 
   // Bulk update permissions
-  const handleBulkUpdate = async (canEnroll) => {
+  const handleBulkUpdate = (canEnroll) => {
     if (selectedUsers.length === 0) {
       alert('Please select users first');
       return;
@@ -69,21 +82,7 @@ export default function UserAccessManagement() {
       return;
     }
 
-    setActionLoading('bulk');
-    try {
-      await userService.bulkUpdateEnrollmentPermission(
-        selectedUsers,
-        canEnroll,
-        currentUser.uid
-      );
-      setSelectedUsers([]);
-      await fetchStaff();
-    } catch (error) {
-      console.error('Error bulk updating:', error);
-      alert('Failed to update permissions');
-    } finally {
-      setActionLoading(null);
-    }
+    bulkUpdateMutation.mutate({ userIds: selectedUsers, canEnroll });
   };
 
   // Selection handlers
@@ -95,6 +94,16 @@ export default function UserAccessManagement() {
     );
   };
 
+  // Filter staff by search term - memoized for performance
+  const filteredStaff = useMemo(() => {
+    return staff.filter(user => {
+      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+      const email = (user.email || '').toLowerCase();
+      const search = searchTerm.toLowerCase();
+      return fullName.includes(search) || email.includes(search);
+    });
+  }, [staff, searchTerm]);
+
   const toggleSelectAll = () => {
     if (selectedUsers.length === filteredStaff.length) {
       setSelectedUsers([]);
@@ -102,14 +111,6 @@ export default function UserAccessManagement() {
       setSelectedUsers(filteredStaff.map(u => u.uid));
     }
   };
-
-  // Filter staff by search term
-  const filteredStaff = staff.filter(user => {
-    const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
-    const email = (user.email || '').toLowerCase();
-    const search = searchTerm.toLowerCase();
-    return fullName.includes(search) || email.includes(search);
-  });
 
   // Get role display badge class
   const getRoleBadgeClass = (role) => {
@@ -131,6 +132,13 @@ export default function UserAccessManagement() {
     }
   };
 
+  // Check if any mutation is in progress
+  const actionLoading = togglePermissionMutation.isPending
+    ? togglePermissionMutation.variables?.userId
+    : bulkUpdateMutation.isPending
+      ? 'bulk'
+      : null;
+
   return (
     <div className="uam-container">
       <Sidebar {...sidebarConfig} />
@@ -139,7 +147,7 @@ export default function UserAccessManagement() {
         <div className="uam-page">
           {/* Page Header */}
           <div className="uam-header">
-            <h1>🔐 User Access Management</h1>
+            <h1>User Access Management</h1>
             <p>Control staff permissions and feature access across the system</p>
           </div>
 
@@ -147,7 +155,14 @@ export default function UserAccessManagement() {
           <div className="uam-card">
             <div className="uam-card-header">
               <div className="uam-card-title">
-                <span className="uam-card-icon">📝</span>
+                <span className="uam-card-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                </span>
                 <div>
                   <h2>Student Enrollment Permission</h2>
                   <p>Control which staff members can enroll new students into the system</p>
@@ -160,7 +175,12 @@ export default function UserAccessManagement() {
               <div className="uam-filters">
                 {/* Search Input */}
                 <div className="uam-search-box">
-                  <span className="uam-search-icon">🔍</span>
+                  <span className="uam-search-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="11" cy="11" r="8"/>
+                      <path d="m21 21-4.3-4.3"/>
+                    </svg>
+                  </span>
                   <input
                     type="text"
                     placeholder="Search by name or email..."
@@ -168,11 +188,11 @@ export default function UserAccessManagement() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                   {searchTerm && (
-                    <button 
+                    <button
                       className="uam-clear-search"
                       onClick={() => setSearchTerm('')}
                     >
-                      ✕
+                      x
                     </button>
                   )}
                 </div>
@@ -201,14 +221,14 @@ export default function UserAccessManagement() {
                     onClick={() => handleBulkUpdate(true)}
                     disabled={actionLoading === 'bulk'}
                   >
-                    {actionLoading === 'bulk' ? '...' : '✓ Grant All'}
+                    {actionLoading === 'bulk' ? '...' : 'Grant All'}
                   </button>
                   <button
                     className="uam-btn-revoke"
                     onClick={() => handleBulkUpdate(false)}
                     disabled={actionLoading === 'bulk'}
                   >
-                    {actionLoading === 'bulk' ? '...' : '✕ Revoke All'}
+                    {actionLoading === 'bulk' ? '...' : 'Revoke All'}
                   </button>
                 </div>
               )}
@@ -220,9 +240,21 @@ export default function UserAccessManagement() {
                 <div className="uam-spinner"></div>
                 <p>Loading staff members...</p>
               </div>
+            ) : error ? (
+              <div className="uam-empty">
+                <span className="uam-empty-icon">!</span>
+                <p>Error loading staff: {error.message}</p>
+              </div>
             ) : filteredStaff.length === 0 ? (
               <div className="uam-empty">
-                <span className="uam-empty-icon">👥</span>
+                <span className="uam-empty-icon">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                </span>
                 <p>No staff members found</p>
                 {searchTerm && (
                   <button onClick={() => setSearchTerm('')}>
@@ -251,7 +283,7 @@ export default function UserAccessManagement() {
                   </thead>
                   <tbody>
                     {filteredStaff.map(user => (
-                      <tr 
+                      <tr
                         key={user.uid}
                         className={selectedUsers.includes(user.uid) ? 'selected' : ''}
                       >
@@ -282,14 +314,14 @@ export default function UserAccessManagement() {
                         </td>
                         <td className="uam-col-status">
                           <span className={getStatusBadgeClass(user.accountStatus)}>
-                            {user.accountStatus === 'pending_setup' 
-                              ? 'Pending' 
+                            {user.accountStatus === 'pending_setup'
+                              ? 'Pending'
                               : user.accountStatus || 'Active'}
                           </span>
                         </td>
                         <td className="uam-col-permission">
                           <span className={`uam-permission-badge ${user.canEnrollStudents ? 'granted' : 'denied'}`}>
-                            {user.canEnrollStudents ? '✓ Yes' : '✕ No'}
+                            {user.canEnrollStudents ? 'Yes' : 'No'}
                           </span>
                         </td>
                         <td className="uam-col-action">
@@ -328,11 +360,17 @@ export default function UserAccessManagement() {
 
           {/* Info Box */}
           <div className="uam-info-box">
-            <div className="uam-info-icon">💡</div>
+            <div className="uam-info-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 16v-4"/>
+                <path d="M12 8h.01"/>
+              </svg>
+            </div>
             <div className="uam-info-content">
               <strong>About Enrollment Permission</strong>
               <p>
-                Staff members with this permission can create new parent accounts and enroll students. 
+                Staff members with this permission can create new parent accounts and enroll students.
                 Super Admins always have full access regardless of permission settings.
                 Changes take effect immediately after granting or revoking access.
               </p>

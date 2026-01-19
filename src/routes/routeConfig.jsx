@@ -22,6 +22,7 @@ import ManageAdmins from "../pages/admin/ManageAdmins";
 import StudentProfile from "../pages/admin/studentProfile/StudentProfile";
 import PendingAccounts from "../pages/admin/PendingAccounts";
 import UserAccessManagement from "../pages/admin/UserAccessManagement";
+import CleanupOldStudents from "../pages/admin/utils/CleanupOldStudents";
 
 // Teacher Components
 import TeacherDashboard from "../pages/teacher/TeacherDashboard";
@@ -75,6 +76,7 @@ export const ROUTES = {
     MANAGE_ADMINS: "/admin/manage-admins",
     PENDING_ACCOUNTS: "/admin/pending-accounts",
     USER_ACCESS: "/admin/user-access",
+    CLEANUP_STUDENTS: "/admin/cleanup-students",
   },
 
   TEACHER: {
@@ -264,7 +266,8 @@ export const AppRoutes = () => {
       <Route path={ROUTES.ADMIN.PENDING_ACCOUNTS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><PendingAccounts /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.USER_ACCESS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><UserAccessManagement /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.ENROLLMENT} element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.TEACHER, ROLES.THERAPIST]}requiredPermission="canEnrollStudents" ><EnrollStudent /></ProtectedRoute>} />
-      
+      <Route path={ROUTES.ADMIN.CLEANUP_STUDENTS} element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><CleanupOldStudents /></ProtectedRoute>} />
+
       {/* TEACHER ROUTES */}
       <Route path={ROUTES.TEACHER.DASHBOARD} element={<ProtectedRoute allowedRoles={[ROLES.TEACHER]}><TeacherDashboard /></ProtectedRoute>} />
       <Route path={ROUTES.TEACHER.PROFILE} element={<ProtectedRoute allowedRoles={[ROLES.TEACHER]}><TeacherProfile /></ProtectedRoute>} />

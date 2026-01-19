@@ -56,6 +56,7 @@ firebase-debug.log
 
 # Build output
 dist/
+dev-dist/
 build/
 out/
 

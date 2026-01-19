@@ -1,16 +1,12 @@
 import React, { useState } from "react";
-// REMOVED: import userService from "../../services/userService"; 
-// REASON: We don't want to fetch again; we use the data passed from the parent.
 
 const TherapistCard = ({ therapist, serviceName }) => {
-  // REMOVED: const [therapist, setTherapist] = useState(null);
-  // REMOVED: const [loading, setLoading] = useState(true);
-  // REMOVED: useEffect fetching logic...
-  
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // If no therapist object is passed yet, don't render
   if (!therapist) return null;
+
+  // Get primary license for header display
+  const primaryLicense = therapist.licenses?.[0];
 
   return (
     <div style={styles.wrapper}>
@@ -42,17 +38,21 @@ const TherapistCard = ({ therapist, serviceName }) => {
               {therapist.firstName} {therapist.lastName}
             </h4>
 
-            {therapist.licenseNumber && (
+            {/* License Types */}
+            {therapist.licenses?.length > 0 && (
               <div style={styles.credentialRow}>
                 <span style={styles.verifiedIcon}>✓</span>
                 <span style={styles.credentialText}>
-                  Lic. {therapist.licenseNumber}
+                  {therapist.licenses.map(l => l.licenseType).join(' / ')}
                 </span>
               </div>
             )}
 
             <div style={styles.metaRow}>
-              🗓️ {therapist.yearsOfExperience || 0} Years Experience
+              <span>🗓️ {therapist.yearsExperience || 0} Years Experience</span>
+              {therapist.employmentStatus && (
+                <span style={{ marginLeft: '12px' }}>• {therapist.employmentStatus}</span>
+              )}
             </div>
           </div>
         </div>
@@ -61,97 +61,110 @@ const TherapistCard = ({ therapist, serviceName }) => {
 
         {/* Body */}
         <div style={styles.body}>
-          {/* Education */}
-          {therapist.education && therapist.education.length > 0 && (
+          {/* Licenses Section */}
+          {therapist.licenses?.length > 0 && (
             <div style={styles.section}>
-              <div style={styles.sectionHeader}>🎓 Education</div>
-              {Array.isArray(therapist.education) ? (
-                therapist.education.map((edu, idx) => (
-                  <div key={idx} style={styles.eduItem}>
-                    <strong>{edu.degree}</strong>
-                    <span style={styles.subText}>
-                      {" "}
-                      • {edu.school} ({edu.year})
-                    </span>
+              <div style={styles.sectionHeader}>📋 Professional Licenses</div>
+              <div style={styles.licensesGrid}>
+                {therapist.licenses.map((license, idx) => (
+                  <div key={idx} style={styles.licenseCard}>
+                    <div style={styles.licenseType}>{license.licenseType}</div>
+                    <div style={styles.licenseNumber}>#{license.licenseNumber}</div>
+                    {license.licenseState && (
+                      <div style={styles.licenseMeta}>{license.licenseState}</div>
+                    )}
+                    {license.licenseExpirationDate && (
+                      <div style={styles.licenseMeta}>
+                        Exp: {license.licenseExpirationDate}
+                      </div>
+                    )}
                   </div>
-                ))
-              ) : (
-                <div style={styles.eduItem}>{therapist.education}</div>
-              )}
-            </div>
-          )}
-
-          {/* Languages */}
-          {therapist.languagesSpoken?.length > 0 && (
-            <div style={styles.row}>
-              <span style={styles.icon}>🗣️</span>
-              <div style={styles.text}>
-                {therapist.languagesSpoken.join(", ")}
+                ))}
               </div>
             </div>
           )}
 
-          {/* Bio */}
-          <div style={styles.bioContainer}>
-            <p style={styles.bio}>
-              {isExpanded
-                ? therapist.bio
-                : `${therapist.bio?.substring(0, 80)}...`}
-            </p>
+          {/* Specializations */}
+          {therapist.specializations?.length > 0 && (
+            <div style={styles.section}>
+              <div style={styles.sectionHeader}>🎯 Specializations</div>
+              <div style={styles.tagsContainer}>
+                {therapist.specializations.map((spec, idx) => (
+                  <span key={idx} style={styles.specTag}>{spec}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Education */}
+          {therapist.educationHistory?.length > 0 && (
+            <div style={styles.section}>
+              <div style={styles.sectionHeader}>🎓 Education</div>
+              {therapist.educationHistory.map((edu, idx) => (
+                <div key={idx} style={styles.eduItem}>
+                  <strong>{edu.degree}</strong>
+                  <span style={styles.subText}>
+                    {" "}• {edu.institution}
+                    {edu.graduationYear && ` (${edu.graduationYear})`}
+                  </span>
+                  {edu.certificateURL && (
+                    <a href={edu.certificateURL} target="_blank" rel="noreferrer" style={styles.viewLink}>
+                      View Certificate
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Expand Button */}
+          {therapist.certifications?.length > 0 && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
               style={styles.expandBtn}
             >
-              {isExpanded ? "Show Less" : "View Full Profile"}
+              {isExpanded ? "Hide Certifications" : `View ${therapist.certifications.length} Certification(s)`}
             </button>
-          </div>
+          )}
 
-          {/* Certifications */}
-          {isExpanded &&
-            therapist.certifications &&
-            therapist.certifications.length > 0 && (
-              <div style={styles.certSection}>
-                <div style={styles.certHeader}>
-                  Verified Certifications
-                </div>
-                <div style={styles.certGrid}>
-                  {therapist.certifications.map((cert, idx) => {
-                    const certName =
-                      typeof cert === "object" ? cert.name : cert;
-                    const fileUrl =
-                      typeof cert === "object" ? cert.fileUrl : null;
-                    const issuer =
-                      typeof cert === "object" ? cert.issuer : null;
-
-                    return (
-                      <div key={idx} style={styles.certTag}>
-                        <div>
-                          🏆 {certName}
-                          {issuer && (
-                            <span
-                              style={{ fontSize: "0.7em", color: "#666" }}
-                            >
-                              {" "}
-                              ({issuer})
-                            </span>
-                          )}
-                        </div>
-                        {fileUrl && (
-                          <a
-                            href={fileUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            style={styles.proofLink}
-                          >
-                            View Proof 📎
-                          </a>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+          {/* Certifications - Expandable */}
+          {isExpanded && therapist.certifications?.length > 0 && (
+            <div style={styles.certSection}>
+              <div style={styles.certHeader}>Verified Certifications</div>
+              <div style={styles.certGrid}>
+                {therapist.certifications.map((cert, idx) => (
+                  <div key={idx} style={styles.certTag}>
+                    <div style={styles.certInfo}>
+                      <span style={styles.certName}>🏆 {cert.name}</span>
+                      {cert.issuingOrg && (
+                        <span style={styles.certIssuer}>{cert.issuingOrg}</span>
+                      )}
+                      {cert.expirationDate && (
+                        <span style={styles.certMeta}>Exp: {cert.expirationDate}</span>
+                      )}
+                    </div>
+                    {cert.certificateURL && (
+                      <a
+                        href={cert.certificateURL}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={styles.proofLink}
+                      >
+                        View 📎
+                      </a>
+                    )}
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
+          )}
+
+          {/* Contact Info */}
+          <div style={styles.contactSection}>
+            <div style={styles.sectionHeader}>📧 Contact</div>
+            <div style={styles.contactItem}>{therapist.email}</div>
+            {therapist.phone && <div style={styles.contactItem}>{therapist.phone}</div>}
+          </div>
         </div>
       </div>
     </div>
@@ -161,59 +174,54 @@ const TherapistCard = ({ therapist, serviceName }) => {
 /* ================= STYLES ================= */
 
 const styles = {
-wrapper: {
-  display: "flex",
-  gap: "2.5rem",
-  marginBottom: "1rem",
-  alignItems: "flex-start", 
-},
+  wrapper: {
+    display: "flex",
+    gap: "2.5rem",
+    marginBottom: "1rem",
+    alignItems: "flex-start",
+  },
 
-  /* LEFT IMAGE CARD */
   imageCard: {
-  width: "300px",           
-  height: "385px",          
-  flexShrink: 0,            
-  backgroundColor: "white",
-  borderRadius: "16px",
-  border: "1px solid #e2e8f0",
-  padding: "1rem",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-},
+    width: "300px",
+    height: "385px",
+    flexShrink: 0,
+    backgroundColor: "white",
+    borderRadius: "16px",
+    border: "1px solid #e2e8f0",
+    padding: "1rem",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
+  largePhoto: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    borderRadius: "12px",
+  },
 
- largePhoto: {
-  width: "100%",
-  height: "100%",
-  objectFit: "cover",
-  borderRadius: "12px",
-},
+  largePhotoPlaceholder: {
+    width: "100%",
+    height: "100%",
+    borderRadius: "12px",
+    backgroundColor: "#cbd5e1",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "3rem",
+    fontWeight: "bold",
+    color: "white",
+  },
 
-largePhotoPlaceholder: {
-  width: "100%",
-  height: "100%",
-  borderRadius: "12px",
-  backgroundColor: "#cbd5e1",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontSize: "3rem",
-  fontWeight: "bold",
-  color: "white",
-},
-
-
-  /* RIGHT CARD */
   card: {
-  flex: 1,
-  backgroundColor: "white",
-  borderRadius: "16px",
-  border: "1px solid #e2e8f0",
-  overflow: "hidden",
-  boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
-},
-
+    flex: 1,
+    backgroundColor: "white",
+    borderRadius: "16px",
+    border: "1px solid #e2e8f0",
+    overflow: "hidden",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
+  },
 
   serviceBadge: {
     backgroundColor: "#f0f9ff",
@@ -230,7 +238,7 @@ largePhotoPlaceholder: {
 
   name: {
     margin: "0 0 0.25rem 0",
-    fontSize: "1.1rem",
+    fontSize: "1.25rem",
     fontWeight: 700,
     color: "#0f172a",
   },
@@ -239,7 +247,7 @@ largePhotoPlaceholder: {
     display: "flex",
     alignItems: "center",
     gap: "0.25rem",
-    marginBottom: "0.25rem",
+    marginBottom: "0.5rem",
   },
 
   verifiedIcon: {
@@ -248,13 +256,13 @@ largePhotoPlaceholder: {
   },
 
   credentialText: {
-    fontSize: "0.8rem",
+    fontSize: "0.85rem",
     color: "#059669",
     fontWeight: 600,
   },
 
   metaRow: {
-    fontSize: "0.8rem",
+    fontSize: "0.85rem",
     color: "#64748b",
   },
 
@@ -268,20 +276,73 @@ largePhotoPlaceholder: {
   },
 
   section: {
-    marginBottom: "0.75rem",
+    marginBottom: "1rem",
   },
 
   sectionHeader: {
     fontSize: "0.8rem",
     fontWeight: 700,
     color: "#64748b",
-    marginBottom: "0.25rem",
+    marginBottom: "0.5rem",
     textTransform: "uppercase",
+  },
+
+  licensesGrid: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "12px",
+  },
+
+  licenseCard: {
+    backgroundColor: "#f0fdf4",
+    border: "1px solid #86efac",
+    borderRadius: "8px",
+    padding: "10px 14px",
+    minWidth: "140px",
+  },
+
+  licenseType: {
+    fontSize: "0.9rem",
+    fontWeight: 700,
+    color: "#166534",
+  },
+
+  licenseNumber: {
+    fontSize: "0.8rem",
+    color: "#15803d",
+    fontFamily: "monospace",
+  },
+
+  licenseMeta: {
+    fontSize: "0.75rem",
+    color: "#4ade80",
+    marginTop: "2px",
+  },
+
+  tagsContainer: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "8px",
+  },
+
+  specTag: {
+    backgroundColor: "#eff6ff",
+    color: "#1d4ed8",
+    padding: "4px 12px",
+    borderRadius: "16px",
+    fontSize: "0.8rem",
+    fontWeight: 500,
+    border: "1px solid #bfdbfe",
   },
 
   eduItem: {
     fontSize: "0.9rem",
     color: "#334155",
+    marginBottom: "8px",
+    display: "flex",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: "8px",
   },
 
   subText: {
@@ -289,43 +350,24 @@ largePhotoPlaceholder: {
     color: "#94a3b8",
   },
 
-  row: {
-    display: "flex",
-    gap: "0.75rem",
-    marginBottom: "0.75rem",
-  },
-
-  icon: {
-    fontSize: "1rem",
-  },
-
-  text: {
-    fontSize: "0.9rem",
-    color: "#334155",
-  },
-
-  bioContainer: {
-    backgroundColor: "#f8fafc",
-    padding: "0.75rem",
-    borderRadius: "0.5rem",
-  },
-
-  bio: {
-    margin: 0,
-    fontSize: "0.875rem",
-    color: "#475569",
-    lineHeight: "1.5",
+  viewLink: {
+    fontSize: "0.75rem",
+    color: "#2563eb",
+    textDecoration: "none",
+    fontWeight: 600,
   },
 
   expandBtn: {
     background: "none",
-    border: "none",
+    border: "1px solid #e2e8f0",
     color: "#2563eb",
     fontSize: "0.8rem",
     fontWeight: 600,
     cursor: "pointer",
+    padding: "8px 16px",
+    borderRadius: "6px",
     marginTop: "0.5rem",
-    padding: 0,
+    width: "100%",
   },
 
   certSection: {
@@ -352,12 +394,32 @@ largePhotoPlaceholder: {
     fontSize: "0.8rem",
     backgroundColor: "#fffbeb",
     color: "#b45309",
-    padding: "0.5rem",
-    borderRadius: "0.25rem",
+    padding: "0.75rem",
+    borderRadius: "8px",
     border: "1px solid #fcd34d",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+
+  certInfo: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "2px",
+  },
+
+  certName: {
+    fontWeight: 600,
+  },
+
+  certIssuer: {
+    fontSize: "0.75rem",
+    color: "#92400e",
+  },
+
+  certMeta: {
+    fontSize: "0.7rem",
+    color: "#d97706",
   },
 
   proofLink: {
@@ -366,9 +428,21 @@ largePhotoPlaceholder: {
     textDecoration: "none",
     fontWeight: 600,
     border: "1px solid #bfdbfe",
-    padding: "2px 6px",
+    padding: "4px 10px",
     borderRadius: "4px",
     backgroundColor: "white",
+  },
+
+  contactSection: {
+    marginTop: "1rem",
+    paddingTop: "1rem",
+    borderTop: "1px solid #f1f5f9",
+  },
+
+  contactItem: {
+    fontSize: "0.85rem",
+    color: "#475569",
+    marginBottom: "4px",
   },
 };
 

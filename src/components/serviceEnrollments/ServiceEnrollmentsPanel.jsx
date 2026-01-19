@@ -18,6 +18,8 @@ import './ServiceEnrollments.css';
  * @param {string} selectedService - Currently selected service name
  * @param {boolean} isReadOnly - If true, hides all action buttons (for parent view)
  * @param {function} onAddService - Callback for "Add Service" button
+ * @param {string} viewerRole - Role of the current viewer (admin, super_admin, teacher, therapist, parent)
+ * @param {string} viewerId - UID of the current viewer (for staff filtering)
  */
 const ServiceEnrollmentsPanel = ({
   childId,
@@ -25,6 +27,8 @@ const ServiceEnrollmentsPanel = ({
   selectedService,
   isReadOnly = false,
   onAddService,
+  viewerRole = null,
+  viewerId = null,
 }) => {
   // Hook for service enrollment data and actions
   const {
@@ -132,12 +136,34 @@ const ServiceEnrollmentsPanel = ({
     );
   }
 
-  const hasActiveServices = activeEnrollments.length > 0;
-  const hasInactiveServices = inactiveEnrollments.length > 0;
+  // ============ PRIVACY FILTER: Staff can only see their own services ============
+  const filterEnrollmentsByRole = (enrollments) => {
+    // Admins and parents see everything
+    if (!viewerRole || viewerRole === 'admin' || viewerRole === 'super_admin' || viewerRole === 'parent') {
+      return enrollments;
+    }
+
+    // Staff (teacher/therapist) only see services where they are the assigned staff
+    if ((viewerRole === 'teacher' || viewerRole === 'therapist') && viewerId) {
+      return enrollments.filter(enrollment => {
+        // Check if current viewer is the assigned staff for this service
+        const isAssignedStaff = enrollment.currentStaff?.staffId === viewerId;
+        return isAssignedStaff;
+      });
+    }
+
+    return enrollments;
+  };
+
+  const filteredActiveEnrollments = filterEnrollmentsByRole(activeEnrollments);
+  const filteredInactiveEnrollments = filterEnrollmentsByRole(inactiveEnrollments);
+
+  const hasActiveServices = filteredActiveEnrollments.length > 0;
+  const hasInactiveServices = filteredInactiveEnrollments.length > 0;
 
   // Group active enrollments by service type
-  const therapyServices = activeEnrollments.filter(e => e.serviceType === 'Therapy');
-  const groupServices = activeEnrollments.filter(e => e.serviceType === 'Class');
+  const therapyServices = filteredActiveEnrollments.filter(e => e.serviceType === 'Therapy');
+  const groupServices = filteredActiveEnrollments.filter(e => e.serviceType === 'Class');
 
   return (
     <div className="se-panel">
@@ -146,7 +172,7 @@ const ServiceEnrollmentsPanel = ({
         <div className="se-panel__header">
           <h2 className="se-panel__title">
             Active Services
-            <span className="se-panel__count">{activeEnrollments.length}</span>
+            <span className="se-panel__count">{filteredActiveEnrollments.length}</span>
           </h2>
           {!isReadOnly && onAddService && (
             <button
@@ -231,7 +257,7 @@ const ServiceEnrollmentsPanel = ({
             <span>
               Inactive Services
               <span className="se-panel__count se-panel__count--muted">
-                {inactiveEnrollments.length}
+                {filteredInactiveEnrollments.length}
               </span>
             </span>
             <span className="se-panel__toggle-arrow">
@@ -241,7 +267,7 @@ const ServiceEnrollmentsPanel = ({
 
           {showInactive && (
             <div className="se-panel__grid se-panel__grid--inactive">
-              {inactiveEnrollments.map((enrollment) => (
+              {filteredInactiveEnrollments.map((enrollment) => (
                 <ServiceCard
                   key={enrollment.enrollmentId}
                   enrollment={enrollment}
@@ -255,12 +281,13 @@ const ServiceEnrollmentsPanel = ({
         </div>
       )}
 
-      {/* Staff Summary (Quick View) */}
-      {hasActiveServices && (
+      {/* Staff Summary (Quick View) - Only show for admins who see all services */}
+      {/* Note: Parents see the dedicated CurrentTeamSection with full credentials instead */}
+      {hasActiveServices && (!viewerRole || viewerRole === 'admin' || viewerRole === 'super_admin') && (
         <div className="se-panel__summary">
           <h3 className="se-panel__summary-title">Current Team</h3>
           <div className="se-panel__avatars">
-            {activeEnrollments
+            {filteredActiveEnrollments
               .filter(e => e.currentStaff)
               .map((enrollment) => (
                 <div

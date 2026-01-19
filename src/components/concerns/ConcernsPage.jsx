@@ -6,6 +6,7 @@ import {
   BackButton
 } from './index';
 import Loading from '../common/Loading';
+import GeneralFooter from '../footer/generalfooter';
 
 import './ConcernsPage.css';
 
@@ -60,44 +61,47 @@ const ConcernsPage = ({
   return (
     <div className="pc-page-wrapper">
       <Sidebar />
-      {loading ? (
-        <Loading message="Loading concerns" variant="content" role="admin" />
-      ) : (
-      <main className="pc-content-container">
+      <div className="pc-main-wrapper">
+        {loading ? (
+          <Loading message="Loading concerns" variant="content" role="admin" />
+        ) : (
+        <main className="pc-content-container">
 
-        <RaiseConcernModal
-          isOpen={showNewModal}
-          onClose={() => setShowNewModal(false)}
-          onSubmit={(data) => createConcern(data, currentUser)}
-          children={children}
-          isSubmitting={sending}
-        />
-
-        <ConcernsList
-          concerns={concerns}
-          selectedConcernId={selectedConcern?.id}
-          onSelectConcern={handleSelectConcern}
-          onNewConcern={() => setShowNewModal(true)}
-          isHidden={mobileView === 'detail'}
-          userRole={currentUser?.role}
-          updateStatus={updateStatus}
-        />
-
-        <section className={`pc-detail-column ${selectedConcern ? 'visible' : ''}`}>
-          <BackButton onClick={handleBackToList} />
-
-          <ConcernDetail
-            concern={selectedConcern}
-            messages={messages}
-            currentUserId={currentUser?.uid}
-            replyText={replyText}
-            onReplyChange={setReplyText}
-            onSendReply={handleSendReply}
-            isSending={sending}
+          <RaiseConcernModal
+            isOpen={showNewModal}
+            onClose={() => setShowNewModal(false)}
+            onSubmit={(data) => createConcern(data, currentUser)}
+            children={children}
+            isSubmitting={sending}
           />
-        </section>
-      </main>
-      )}
+
+          <ConcernsList
+            concerns={concerns}
+            selectedConcernId={selectedConcern?.id}
+            onSelectConcern={handleSelectConcern}
+            onNewConcern={() => setShowNewModal(true)}
+            isHidden={mobileView === 'detail'}
+            userRole={currentUser?.role}
+            updateStatus={updateStatus}
+          />
+
+          <section className={`pc-detail-column ${selectedConcern ? 'visible' : ''}`}>
+            <BackButton onClick={handleBackToList} />
+
+            <ConcernDetail
+              concern={selectedConcern}
+              messages={messages}
+              currentUserId={currentUser?.uid}
+              replyText={replyText}
+              onReplyChange={setReplyText}
+              onSendReply={handleSendReply}
+              isSending={sending}
+            />
+          </section>
+        </main>
+        )}
+        <GeneralFooter pageLabel="Concerns" />
+      </div>
     </div>
   );
 };

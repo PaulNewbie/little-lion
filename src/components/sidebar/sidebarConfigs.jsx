@@ -6,6 +6,7 @@ import enroll_Icon from "../../images/enroll-icon.svg";
 import admin_Icon from "../../images/admin-icon.svg";
 import teacher_Icon from "../../images/teacher-icon.svg";
 import therapist_Icon from "../../images/therapist-icon/therapist1.svg";
+import parent_Icon from "../../images/parent-icon.svg";
 
 // SVG Icons as React elements
 const HomeIcon = (
@@ -88,24 +89,31 @@ export const getAdminConfig = (isSuperAdmin = false) => ({
  * Get parent sidebar configuration
  * @returns {Object} Sidebar configuration
  */
-// Chart/Report Icon for Summary
-const ChartIcon = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="24" height="24">
-    <path d="M18 20V10M12 20V4M6 20v-6"/>
+// Calendar/Report Icon for Monthly Summary
+const CalendarIcon = (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+    <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/>
+  </svg>
+);
+
+// Alert/Concern Icon
+const ConcernIcon = (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
   </svg>
 );
 
 export const getParentConfig = () => ({
   role: "parent",
   roleLabel: "PARENT",
-  avatar: "👤",
+  avatar: "👨‍👩‍👧",
   menuSections: [
     {
       title: "MAIN",
       items: [
-        { path: "/parent/dashboard", icon: HomeIcon, label: "MY CHILDREN" },
-        { path: "/parent/summary", icon: ChartIcon, label: "MONTHLY SUMMARY" },
-        { path: "/parent/concerns", icon: MessageIcon, label: "CONCERNS" },
+        { path: "/parent/dashboard", icon: parent_Icon, label: "MY CHILDREN" },
+        { path: "/parent/summary", icon: CalendarIcon, label: "MONTHLY SUMMARY" },
+        { path: "/parent/concerns", icon: MailIcon, label: "CONCERNS" },
       ]
     }
   ]

@@ -314,6 +314,43 @@ class ChildService {
     }
   }
 
+  /**
+   * Update child's photo - specifically for parent use
+   * Only updates the photoUrl field to minimize permission requirements
+   * @param {string} childId - The child's document ID
+   * @param {string} parentId - The parent's user ID (for verification)
+   * @param {string} photoUrl - The new photo URL from Cloudinary
+   */
+  async updateChildPhoto(childId, parentId, photoUrl) {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, childId);
+
+      // Verify the child exists and belongs to this parent
+      const childDoc = await getDoc(docRef);
+      trackRead(COLLECTION_NAME, 1);
+
+      if (!childDoc.exists()) {
+        throw new Error('Child not found');
+      }
+
+      const childData = childDoc.data();
+      if (childData.parentId !== parentId) {
+        throw new Error('You do not have permission to update this child');
+      }
+
+      // Only update the photo URL field
+      await updateDoc(docRef, {
+        photoUrl: photoUrl,
+        updatedAt: serverTimestamp()
+      });
+
+      return { id: childId, photoUrl };
+    } catch (error) {
+      console.error('Error updating child photo:', error);
+      throw error;
+    }
+  }
+
   extractStaffIds(childData) {
     const staffIds = new Set();
 

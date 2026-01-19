@@ -37,6 +37,7 @@ const TherapistProfile = () => {
     formData,
     newEducation,
     newCertification,
+    newLicense,
     handleInputChange,
     handleNestedChange,
     handleSpecializationToggle,
@@ -49,19 +50,26 @@ const TherapistProfile = () => {
     handleNewCertificationChange,
     handleAddCertification,
     handleRemoveCertification,
+    handleNewLicenseChange,
+    handleAddLicense,
+    handleRemoveLicense,
     handleSaveProfile
   } = useProfileForm(currentUser, 'therapist', navigate);
 
   const fullName = `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim();
-  const licenseStatus = formData.licenseExpirationDate ? getExpirationStatus(formData.licenseExpirationDate) : null;
+
+  // Get primary license status (first license in array)
+  const primaryLicense = formData.licenses?.[0];
+  const licenseStatus = primaryLicense?.licenseExpirationDate
+    ? getExpirationStatus(primaryLicense.licenseExpirationDate)
+    : null;
 
   // Calculate profile completion status
   const getProfileCompletion = () => {
     const requirements = [
       { label: 'Profile photo', completed: !!formData.profilePhoto },
       { label: 'Personal information', completed: !!(formData.firstName && formData.lastName && formData.email && formData.phone) },
-      { label: 'License information', completed: !!(formData.licenseNumber && formData.licenseType && formData.licenseExpirationDate) },
-      { label: 'Specializations', completed: formData.specializations?.length > 0 },
+      { label: 'License information', completed: formData.licenses?.length > 0 },
       { label: 'Education history', completed: formData.educationHistory?.length > 0 },
       { label: 'Certifications', completed: formData.certifications?.length > 0 }
     ];
@@ -78,7 +86,7 @@ const TherapistProfile = () => {
   // Modal step configuration
   const modalSteps = [
     { id: 'personal', title: 'Personal Information', description: 'Basic details and contact info' },
-    { id: 'credentials', title: 'Professional Credentials', description: 'License and specializations' },
+    { id: 'credentials', title: 'Professional Credentials', description: 'License and clinical credentials' },
     { id: 'education', title: 'Education History', description: 'Academic background' },
     { id: 'certifications', title: 'Certifications', description: 'Professional credentials' }
   ];
@@ -99,7 +107,9 @@ const TherapistProfile = () => {
     }
   };
 
-  const nextModalStep = () => {
+  const nextModalStep = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (modalStep < modalSteps.length - 1) {
       setModalStep(modalStep + 1);
     }
@@ -115,6 +125,13 @@ const TherapistProfile = () => {
     e.preventDefault();
     await handleSaveProfile(e);
     closeProfileModal();
+  };
+
+  // Prevent Enter key from submitting the form (except on the final step)
+  const handleFormKeyDown = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
   };
 
   // Render modal step content
@@ -134,9 +151,11 @@ const TherapistProfile = () => {
           <TherapistCredentials
             formData={formData}
             validationErrors={validationErrors}
-            licenseStatus={licenseStatus}
+            newLicense={newLicense}
             onInputChange={handleInputChange}
-            onSpecializationToggle={handleSpecializationToggle}
+            onNewLicenseChange={handleNewLicenseChange}
+            onAddLicense={handleAddLicense}
+            onRemoveLicense={handleRemoveLicense}
           />
         );
       case 2:
@@ -254,7 +273,11 @@ const TherapistProfile = () => {
               {/* Info Section */}
               <div className="tp-info-section">
                 <h1 className="tp-profile-name">{fullName || 'Your Name'}</h1>
-                <p className="tp-profile-role">{formData.licenseType || 'Therapist'}</p>
+                <p className="tp-profile-role">
+                  {formData.licenses?.length > 0
+                    ? formData.licenses.map(l => l.licenseType).join(' / ')
+                    : 'Therapist'}
+                </p>
 
                 <div className="tp-profile-meta">
                   {/* Years of Experience */}
@@ -262,7 +285,7 @@ const TherapistProfile = () => {
                     {formData.yearsExperience || 0} Years Experience
                   </span>
 
-                  {/* License Status */}
+                  {/* License Status - show primary license status */}
                   {licenseStatus && (
                     <span className={`tp-badge ${
                       licenseStatus === 'Active' ? 'tp-badge--success' :
@@ -274,9 +297,9 @@ const TherapistProfile = () => {
                     </span>
                   )}
 
-                  {/* Specializations Count */}
+                  {/* License Count */}
                   <span className="tp-badge tp-badge--info">
-                    {formData.specializations?.length || 0} Specializations
+                    {formData.licenses?.length || 0} License(s)
                   </span>
                 </div>
               </div>
@@ -330,6 +353,197 @@ const TherapistProfile = () => {
             </div>
           )}
 
+          {/* Profile Display Section - Shows when profile is complete */}
+          {profileCompletion.isComplete && (
+            <div className="tp-profile-display">
+              {/* Edit Profile Button */}
+              <div className="tp-profile-display__header">
+                <h2 className="tp-profile-display__title">Profile Information</h2>
+                <button
+                  type="button"
+                  className="tp-btn tp-btn--secondary"
+                  onClick={openProfileModal}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                  Edit Profile
+                </button>
+              </div>
+
+              {/* Personal Information */}
+              <div className="tp-profile-section">
+                <h3 className="tp-profile-section__title">Personal Information</h3>
+                <div className="tp-profile-grid">
+                  <div className="tp-profile-field">
+                    <span className="tp-profile-field__label">Date of Birth</span>
+                    <span className="tp-profile-field__value">{formData.dateOfBirth || '-'}</span>
+                  </div>
+                  <div className="tp-profile-field">
+                    <span className="tp-profile-field__label">Gender</span>
+                    <span className="tp-profile-field__value">{formData.gender || '-'}</span>
+                  </div>
+                  <div className="tp-profile-field">
+                    <span className="tp-profile-field__label">Phone</span>
+                    <span className="tp-profile-field__value">{formData.phone || '-'}</span>
+                  </div>
+                  <div className="tp-profile-field">
+                    <span className="tp-profile-field__label">Email</span>
+                    <span className="tp-profile-field__value">{formData.email || '-'}</span>
+                  </div>
+                  <div className="tp-profile-field tp-profile-field--full">
+                    <span className="tp-profile-field__label">Address</span>
+                    <span className="tp-profile-field__value">
+                      {formData.address?.street && `${formData.address.street}, `}
+                      {formData.address?.city && `${formData.address.city}, `}
+                      {formData.address?.state && `${formData.address.state} `}
+                      {formData.address?.zip || ''}
+                      {!formData.address?.street && !formData.address?.city && '-'}
+                    </span>
+                  </div>
+                  <div className="tp-profile-field">
+                    <span className="tp-profile-field__label">Emergency Contact</span>
+                    <span className="tp-profile-field__value">
+                      {formData.emergencyContact?.name || '-'}
+                      {formData.emergencyContact?.phone && ` (${formData.emergencyContact.phone})`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Professional Credentials - Licenses */}
+              <div className="tp-profile-section">
+                <h3 className="tp-profile-section__title">Professional Licenses</h3>
+                {formData.licenses?.length > 0 ? (
+                  <div className="tp-profile-cards">
+                    {formData.licenses.map((license, idx) => {
+                      const status = license.licenseExpirationDate
+                        ? getExpirationStatus(license.licenseExpirationDate)
+                        : null;
+                      return (
+                        <div key={license.id || idx} className="tp-profile-card">
+                          <div className="tp-profile-card__header">
+                            <strong>{license.licenseType}</strong>
+                            {status && (
+                              <span className={`tp-status-badge tp-status-badge--${
+                                status === 'Active' ? 'success' :
+                                status === 'Expiring Soon' ? 'warning' : 'danger'
+                              }`}>
+                                {status}
+                              </span>
+                            )}
+                          </div>
+                          <div className="tp-profile-card__body">
+                            <p><strong>License #:</strong> {license.licenseNumber}</p>
+                            {license.licenseState && <p><strong>State/Region:</strong> {license.licenseState}</p>}
+                            {license.licenseIssueDate && <p className="tp-profile-card__meta">Issued: {license.licenseIssueDate}</p>}
+                            {license.licenseExpirationDate && <p className="tp-profile-card__meta">Expires: {license.licenseExpirationDate}</p>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="tp-profile-empty">No licenses added</p>
+                )}
+
+                {/* Years of Experience & Employment Status */}
+                <div className="tp-profile-grid" style={{ marginTop: '16px' }}>
+                  <div className="tp-profile-field">
+                    <span className="tp-profile-field__label">Years of Experience</span>
+                    <span className="tp-profile-field__value">{formData.yearsExperience || 0}</span>
+                  </div>
+                  <div className="tp-profile-field">
+                    <span className="tp-profile-field__label">Employment Status</span>
+                    <span className="tp-profile-field__value">{formData.employmentStatus || '-'}</span>
+                  </div>
+                  <div className="tp-profile-field tp-profile-field--full">
+                    <span className="tp-profile-field__label">Specializations</span>
+                    <div className="tp-profile-tags">
+                      {formData.specializations?.length > 0 ? (
+                        formData.specializations.map((spec, idx) => (
+                          <span key={idx} className="tp-profile-tag">{spec}</span>
+                        ))
+                      ) : (
+                        <span className="tp-profile-field__value">Managed by admin</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Education History */}
+              <div className="tp-profile-section">
+                <h3 className="tp-profile-section__title">Education History</h3>
+                {formData.educationHistory?.length > 0 ? (
+                  <div className="tp-profile-cards">
+                    {formData.educationHistory.map((edu, idx) => (
+                      <div key={idx} className="tp-profile-card tp-profile-card--with-image">
+                        {edu.certificateURL && (
+                          <a
+                            href={edu.certificateURL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="tp-profile-card__image"
+                          >
+                            <img src={edu.certificateURL} alt={`${edu.degreeType} - ${edu.institution}`} />
+                          </a>
+                        )}
+                        <div className="tp-profile-card__content">
+                          <div className="tp-profile-card__header">
+                            <strong>{edu.degreeType}</strong> in {edu.fieldOfStudy}
+                          </div>
+                          <div className="tp-profile-card__body">
+                            <p>{edu.institution}</p>
+                            <p className="tp-profile-card__meta">Graduated: {edu.graduationYear}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="tp-profile-empty">No education history added</p>
+                )}
+              </div>
+
+              {/* Certifications */}
+              <div className="tp-profile-section">
+                <h3 className="tp-profile-section__title">Certifications</h3>
+                {formData.certifications?.length > 0 ? (
+                  <div className="tp-profile-cards">
+                    {formData.certifications.map((cert, idx) => (
+                      <div key={idx} className="tp-profile-card tp-profile-card--with-image">
+                        {cert.certificateURL && (
+                          <a
+                            href={cert.certificateURL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="tp-profile-card__image"
+                          >
+                            <img src={cert.certificateURL} alt={cert.name} />
+                          </a>
+                        )}
+                        <div className="tp-profile-card__content">
+                          <div className="tp-profile-card__header">
+                            <strong>{cert.name}</strong>
+                          </div>
+                          <div className="tp-profile-card__body">
+                            <p>{cert.issuingOrg}</p>
+                            <p className="tp-profile-card__meta">Issued: {cert.issueDate}</p>
+                            {cert.expirationDate && <p className="tp-profile-card__meta">Expires: {cert.expirationDate}</p>}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="tp-profile-empty">No certifications added</p>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Profile Completion Modal */}
           {showProfileModal && (
             <div className="tp-modal-overlay" onClick={closeProfileModal}>
@@ -377,7 +591,7 @@ const TherapistProfile = () => {
                 </div>
 
                 {/* Modal Body */}
-                <form onSubmit={handleModalSave}>
+                <form onSubmit={handleModalSave} onKeyDown={handleFormKeyDown}>
                   <div className="tp-modal-body">
                     <div className="tp-modal-step-header">
                       <h3>{modalSteps[modalStep].title}</h3>
@@ -416,7 +630,7 @@ const TherapistProfile = () => {
                         <button
                           type="button"
                           className="tp-btn tp-btn--primary"
-                          onClick={nextModalStep}
+                          onClick={(e) => nextModalStep(e)}
                         >
                           Next
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

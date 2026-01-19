@@ -6,12 +6,20 @@ import { useAuth } from '../../hooks/useAuth';
 import { useChildrenByParent } from '../../hooks/useCachedData';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getParentConfig } from '../../components/sidebar/sidebarConfigs';
+import GeneralFooter from '../../components/footer/generalfooter';
 import summaryService from '../../services/summaryService';
 
 const styles = {
   layout: {
     display: 'flex',
     minHeight: '100vh'
+  },
+  mainWrapper: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    minHeight: '100vh',
+    overflow: 'auto'
   },
   main: {
     flex: 1,
@@ -728,7 +736,8 @@ export default function MonthlySummary() {
     <div style={styles.layout}>
       <Sidebar {...getParentConfig()} forceActive="/parent/summary" />
 
-      <main style={styles.main}>
+      <div style={styles.mainWrapper}>
+        <main style={styles.main}>
         <div style={styles.header}>
           <h1 style={styles.title}>Monthly Summary Report</h1>
           <p style={styles.subtitle}>
@@ -961,7 +970,9 @@ export default function MonthlySummary() {
             </div>
           </div>
         )}
-      </main>
+        </main>
+        <GeneralFooter pageLabel="Monthly Summary" />
+      </div>
     </div>
   );
 }
