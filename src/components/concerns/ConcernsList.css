@@ -221,7 +221,7 @@
   flex-wrap: wrap;
 }
 
-.pc-card-child {
+.pc-card-createdBy {
   font-weight: 500;
   color: var(--pc-gray-600);
 }
