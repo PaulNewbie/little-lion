@@ -111,22 +111,9 @@ const ConcernCard = ({ concern, isActive, statusClass, onSelect, onStatusChange,
     >
       <div className="pc-card-header">
         <span className="pc-card-subject">{concern.subject}</span>
-       {(userRole === 'admin' || userRole === 'super_admin') ? (
-          <select
-            className={`pc-card-status ${statusClass}`}
-            value={concern.status}
-            onChange={(e) => onStatusChange(concern.id, e.target.value)}
-          >
-            <option value="pending">Pending</option>
-            <option value="ongoing">Ongoing</option>
-            <option value="solved">Solved</option>
-          </select>
-        ) : (
           <span className={`pc-card-status ${statusClass}`}>
             {concern.status.replace(/_/g, ' ')}
           </span>
-        )}
-
       </div>
 
       <div className="pc-card-meta">
