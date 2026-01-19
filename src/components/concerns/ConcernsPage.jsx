@@ -105,6 +105,7 @@ const ConcernsPage = ({
             isSending={sending}
             userRole={currentUser?.role} 
             updateStatus={updateStatus}
+            onNewConcern={() => setShowNewModal(true)}
           />
         </section>
       </main>
