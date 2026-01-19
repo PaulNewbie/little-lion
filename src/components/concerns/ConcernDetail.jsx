@@ -93,13 +93,17 @@ const ConcernHeader = ({ concern, statusClass, updateStatus, userRole }) => {
         {/* <span className={`pc-status-badge ${getStatusBadgeClass(concern.status)}`}>
           {concern.status.replace(/_/g, ' ').toUpperCase()}
         </span>    */}
-         {(userRole === 'admin' || userRole === 'super_admin') ? (
+         { (concern.status === 'pending') ? (
+          <span className={`pc-card-status ${statusClass}`}>
+            {concern.status.replace(/_/g, ' ')}
+          </span>
+         )
+         : (userRole === 'admin' || userRole === 'super_admin') ? (
           <select
             className={`pc-card-status ${statusClass}`}
             value={concern.status}
             onChange={(e) => updateStatus(concern.id, e.target.value)}
           >
-            <option value="pending">Pending</option>
             <option value="ongoing">Ongoing</option>
             <option value="solved">Solved</option>
           </select>

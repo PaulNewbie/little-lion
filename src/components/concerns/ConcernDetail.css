@@ -361,8 +361,14 @@
 }
 
 .pc-card-status{
-  width: 85px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 6px;
+  border-radius: 4px;
+  text-transform: capitalize;
+  color: white;
   text-align: center;
+  width: 90px;
 }
 
 /* Tablet adjustments for detail pieces */
