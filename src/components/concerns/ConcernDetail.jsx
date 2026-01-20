@@ -55,12 +55,17 @@ const ConcernDetail = ({
         currentUserId={currentUserId} 
       />
 
-      <ReplySection
-        replyText={replyText}
-        onReplyChange={onReplyChange}
-        onSendReply={onSendReply}
-        isSending={isSending}
-      />
+      {(concern.status === 'solved') ? (
+          <LimitNotice status={concern.status}/>
+        ) : (
+        <ReplySection
+          replyText={replyText}
+          onReplyChange={onReplyChange}
+          onSendReply={onSendReply}
+          isSending={isSending}
+        /> 
+      )}
+      
     </div>
   );
 };
@@ -194,9 +199,9 @@ const ReplySection = ({
  */
 const LimitNotice = ({ status }) => (
   <div className="pc-limit-notice">
-    {status === 'closed' 
-      ? "🔒 This concern has been closed." 
-      : "⚠️ Response limit reached."}
+    {status === 'solved' 
+      ? "🔒 This concern has been solved." 
+      : "⚠️ NONE "}
   </div>
 );
 
