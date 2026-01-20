@@ -50,6 +50,7 @@ const RaiseConcernModal = ({
     if (!formData.childId || !formData.message.trim()) return;
     
     await onSubmit(formData);
+    handleClose();
     resetForm();
   };
 
@@ -139,7 +140,6 @@ const RaiseConcernModal = ({
             </button>
             <button
               type="button"
-              onClick={handleClose}
               className="pc-cancel-btn"
             >
               Cancel
