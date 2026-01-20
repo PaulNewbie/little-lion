@@ -45,6 +45,9 @@ const ConcernsList = ({
               className="pc-filter-dropdown"
               value={statusFilter}
               onChange={(e) => onFilterStatusChange(e.target.value)}
+              onClick={() => {concerns = !concerns;
+                console.log("lin 49 : " + concerns);
+              }}
             >
               <option value="all">All</option>
               <option value="pending">Pending</option>

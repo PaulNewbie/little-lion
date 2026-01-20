@@ -141,6 +141,7 @@ const RaiseConcernModal = ({
             <button
               type="button"
               className="pc-cancel-btn"
+              onClick={handleClose}
             >
               Cancel
             </button>
