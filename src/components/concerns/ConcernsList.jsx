@@ -12,7 +12,9 @@ const ConcernsList = ({
   onNewConcern,
   isHidden, 
   userRole,
-  updateStatus
+  updateStatus,
+  statusFilter,
+  onFilterStatusChange
 }) => {
   const getStatusClass = (status) => {
     switch (status) {
@@ -37,14 +39,28 @@ const ConcernsList = ({
           <h2 className="pc-header-title">Concerns</h2>
           <span className="pc-sub-text">{concerns.length} Items</span>
         </div>
-        <button 
-          onClick={onNewConcern} 
-          className="pc-compose-btn" 
-          title="New Concern"
-          aria-label="Compose new concern"
-        >
-          +
-        </button>
+
+        <div className="pc-header-actions">
+            <select
+              className="pc-filter-dropdown"
+              value={statusFilter}
+              onChange={(e) => onFilterStatusChange(e.target.value)}
+            >
+              <option value="all">All</option>
+              <option value="pending">Pending</option>
+              <option value="ongoing">Ongoing</option>
+              <option value="solved">Solved</option>
+            </select>
+           <button 
+              onClick={onNewConcern} 
+              className="pc-compose-btn" 
+              title="New Concern"
+              aria-label="Compose new concern"
+            >
+              +
+            </button>
+        </div>
+       
       </header>
 
       <div className="pc-scroll-area">

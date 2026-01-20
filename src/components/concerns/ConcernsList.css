@@ -12,7 +12,7 @@
   flex-direction: column;
   background-color: var(--pc-gray-100);
   width: 100%;
-  height: 100%; /* Ensure the container has a limit */
+  /* height: 100%; Ensure the container has a limit */
   overflow-y: auto; /* This makes this specific element the scrollable area */
   position: relative;
   height: 100vh; /* Full viewport height */
@@ -34,6 +34,21 @@
   background: #fff;
   z-index: 10;
   flex-shrink: 0; /* Prevents the header from squishing */
+}
+
+.pc-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pc-filter-dropdown {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.85rem;
+  background: #fff;
+  cursor: pointer;
 }
 
 .pc-header-title {

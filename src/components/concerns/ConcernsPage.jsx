@@ -31,6 +31,12 @@ const ConcernsPage = ({
   const [mobileView, setMobileView] = useState('list');
   const [showNewModal, setShowNewModal] = useState(false);
   const [replyText, setReplyText] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  const filteredConcerns =
+    statusFilter === 'all'
+      ? concerns
+      : concerns.filter(c => c.status === statusFilter);
 
   const handleSelectConcern = (concern) => {
     selectConcern(concern);
@@ -82,13 +88,15 @@ const ConcernsPage = ({
         />
 
         <ConcernsList
-          concerns={concerns}
+          concerns={filteredConcerns}
           selectedConcernId={selectedConcern?.id}
           onSelectConcern={handleSelectConcern}
           onNewConcern={() => setShowNewModal(true)}
           isHidden={mobileView === 'detail'}
           userRole={currentUser?.role}
           updateStatus={updateStatus}
+          statusFilter={statusFilter}
+          onFilterStatusChange={setStatusFilter}
         />
 
         <section className={`pc-detail-column ${selectedConcern ? 'visible' : ''}`}>
