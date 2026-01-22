@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function Step6AssessmentTools({ data, onChange }) {
+export default function Step6AssessmentTools({ data, onChange, errors = {} }) {
   const handleAddAssessmentTool = () => {
     const newTools = [...data.assessmentTools, { tool: "", details: "" }];
     onChange("assessmentTools", null, newTools);
@@ -20,6 +20,12 @@ export default function Step6AssessmentTools({ data, onChange }) {
   return (
     <div className="form-section">
       <h3>VI. ASSESSMENT TOOLS AND MEASURES</h3>
+
+      {errors.assessmentTools && (
+        <div className="field-error-message" style={{ marginBottom: '16px' }}>
+          {errors.assessmentTools}
+        </div>
+      )}
 
       {data.assessmentTools.length > 0 && (
         <div className="assessment-tools-header">

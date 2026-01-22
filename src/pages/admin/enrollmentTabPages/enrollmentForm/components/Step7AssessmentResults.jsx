@@ -1,9 +1,15 @@
 import React from "react";
 
-export default function Step7AssessmentResults({ data, onChange }) {
+export default function Step7AssessmentResults({ data, onChange, errors = {} }) {
   return (
     <div className="form-section">
       <h3>VII. ASSESSMENT RESULTS</h3>
+
+      {errors.assessmentResults && (
+        <div className="field-error-message" style={{ marginBottom: '16px' }}>
+          {errors.assessmentResults}
+        </div>
+      )}
 
       {data.assessmentTools.map((item, index) => (
         <div className="assessment-result-block" key={index}>

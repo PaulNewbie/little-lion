@@ -1,13 +1,13 @@
 import React from "react";
 
-export default function Step8SummaryRecommendations({ data, onChange }) {
+export default function Step8SummaryRecommendations({ data, onChange, errors = {} }) {
   return (
     <div className="form-section">
       <h3>VIII. SUMMARY AND RECOMMENDATIONS</h3>
 
       {/* SUMMARY */}
-      <div className="assessment-result-block">
-        <h4 className="assessment-result-title">Summary</h4>
+      <div className={`assessment-result-block ${errors.assessmentSummary ? 'has-error' : ''}`}>
+        <h4 className="assessment-result-title">Summary *</h4>
         <textarea
           className="assessment-result-text"
           rows="6"
@@ -16,9 +16,18 @@ export default function Step8SummaryRecommendations({ data, onChange }) {
           onChange={(e) => onChange("assessmentSummary", null, e.target.value)}
           required
         />
+        {errors.assessmentSummary && (
+          <div className="field-error-message">{errors.assessmentSummary}</div>
+        )}
       </div>
 
       {/* RECOMMENDATIONS */}
+      {errors.recommendations && (
+        <div className="field-error-message" style={{ marginBottom: '16px' }}>
+          {errors.recommendations}
+        </div>
+      )}
+
       {data.assessmentTools.map((item, index) => (
         <div className="assessment-result-block" key={index}>
           <h4 className="assessment-result-title">

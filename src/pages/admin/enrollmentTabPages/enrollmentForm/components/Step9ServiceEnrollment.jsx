@@ -7,7 +7,7 @@ import {
   SERVICE_ENROLLMENT_STATUS,
 } from "../../../../../utils/constants";
 
-export default function Step9Enrollment({ data, onChange, currentUserId }) {
+export default function Step9Enrollment({ data, onChange, currentUserId, errors = {} }) {
   // Single state for all service enrollments (new unified model)
   const [serviceEnrollments, setServiceEnrollments] = useState(
     data.serviceEnrollments || []
@@ -326,6 +326,12 @@ export default function Step9Enrollment({ data, onChange, currentUserId }) {
         Assign services and their respective teachers or therapists to this
         student.
       </p>
+
+      {errors.serviceEnrollments && (
+        <div className="field-error-message" style={{ marginBottom: '20px' }}>
+          {errors.serviceEnrollments}
+        </div>
+      )}
 
       {/* Debug Info: Remove this before deploying to production if you want */}
       {process.env.NODE_ENV === "development" && (

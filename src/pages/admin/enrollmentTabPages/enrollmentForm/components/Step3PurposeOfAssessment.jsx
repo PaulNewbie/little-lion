@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function Step3PurposeOfAssessment({ data, onChange }) {
+export default function Step3PurposeOfAssessment({ data, onChange, errors = {} }) {
   const handleAddPurpose = () => {
     onChange("purposeOfAssessment", [...data.purposeOfAssessment, ""]);
   };
@@ -22,6 +22,12 @@ export default function Step3PurposeOfAssessment({ data, onChange }) {
       <div className="section-header-flex">
         <h3>III. PURPOSE OF ASSESSMENT</h3>
       </div>
+
+      {errors.purposeOfAssessment && (
+        <div className="field-error-message" style={{ marginBottom: '16px' }}>
+          {errors.purposeOfAssessment}
+        </div>
+      )}
 
       <div className="dynamic-list-container">
         {(data.purposeOfAssessment.length > 0

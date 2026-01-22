@@ -64,70 +64,150 @@ export default function EnrollStudentFormModal({
   const [studentInput, setStudentInput] = useState(INITIAL_STUDENT_STATE);
   const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
 
-  // Validate any step against provided data (defaults to current state)
-  const validateStep = (step = formStep, data = studentInput) => {
+  // NEW: Error state management
+  const [validationErrors, setValidationErrors] = useState({});
+  const [showErrors, setShowErrors] = useState(false);
+
+  // NEW: Get detailed validation errors for current step
+  const getValidationErrors = (step = formStep, data = studentInput) => {
+    const errors = {};
+
     switch (step) {
       case 1:
-        return !!(
-          data.firstName &&
-          data.lastName &&
-          data.gender &&
-          data.dateOfBirth &&
-          data.assessmentDates &&
-          data.examiner
-        );
+        if (!data.firstName?.trim()) errors.firstName = "First name is required";
+        if (!data.lastName?.trim()) errors.lastName = "Last name is required";
+        if (!data.gender) errors.gender = "Gender is required";
+        if (!data.dateOfBirth) errors.dateOfBirth = "Date of birth is required";
+        if (!data.assessmentDates) errors.assessmentDates = "Assessment date is required";
+        if (!data.examiner?.trim()) errors.examiner = "Examiner name is required";
+        break;
+
       case 2:
-        return !!data.reasonForReferral;
+        if (!data.reasonForReferral?.trim()) {
+          errors.reasonForReferral = "Reason for referral is required";
+        }
+        break;
+
       case 3:
-        return !!(
-          data.purposeOfAssessment?.length > 0 &&
-          data.purposeOfAssessment.every((purpose) => purpose)
-        );
+        if (!data.purposeOfAssessment?.length || data.purposeOfAssessment.length === 0) {
+          errors.purposeOfAssessment = "At least one assessment purpose is required";
+        } else {
+          const emptyPurposes = data.purposeOfAssessment
+            .map((purpose, index) => ({ purpose, index }))
+            .filter(({ purpose }) => !purpose?.trim());
+
+          if (emptyPurposes.length > 0) {
+            errors.purposeOfAssessment = `Assessment purpose ${emptyPurposes.map(p => p.index + 1).join(", ")} cannot be empty`;
+          }
+        }
+        break;
+
       case 4:
-        return !!(
-          data.backgroundHistory?.familyBackground &&
-          data.backgroundHistory?.familyRelationships &&
-          data.backgroundHistory?.dailyLifeActivities &&
-          data.backgroundHistory?.medicalHistory &&
-          data.backgroundHistory?.developmentalBackground?.length > 0 &&
-          data.backgroundHistory?.developmentalBackground.every(
-            (devBack) => devBack.devBgTitle && devBack.devBgInfo
-          ) &&
-          data.backgroundHistory?.schoolHistory &&
-          data.backgroundHistory?.clinicalDiagnosis &&
-          data.backgroundHistory?.interventions?.length > 0 &&
-          data.backgroundHistory?.interventions.every(
-            (intervention) => intervention.name && intervention.frequency
-          ) &&
-          data.backgroundHistory?.strengthsAndInterests &&
-          data.backgroundHistory?.socialSkills
-        );
+        if (!data.backgroundHistory?.familyBackground?.trim()) {
+          errors.familyBackground = "Family background is required";
+        }
+        if (!data.backgroundHistory?.familyRelationships?.trim()) {
+          errors.familyRelationships = "Family relationships information is required";
+        }
+        if (!data.backgroundHistory?.dailyLifeActivities?.trim()) {
+          errors.dailyLifeActivities = "Daily life activities information is required";
+        }
+        if (!data.backgroundHistory?.medicalHistory?.trim()) {
+          errors.medicalHistory = "Medical history is required";
+        }
+        if (!data.backgroundHistory?.developmentalBackground?.length) {
+          errors.developmentalBackground = "At least one developmental background entry is required";
+        } else {
+          const invalidDevBg = data.backgroundHistory.developmentalBackground.some(
+            (devBg) => !devBg.devBgTitle?.trim() || !devBg.devBgInfo?.trim()
+          );
+          if (invalidDevBg) {
+            errors.developmentalBackground = "All developmental background entries must have both title and details";
+          }
+        }
+        if (!data.backgroundHistory?.schoolHistory?.trim()) {
+          errors.schoolHistory = "School history is required";
+        }
+        if (!data.backgroundHistory?.clinicalDiagnosis?.trim()) {
+          errors.clinicalDiagnosis = "Clinical diagnosis is required";
+        }
+        if (!data.backgroundHistory?.interventions?.length) {
+          errors.interventions = "At least one therapy/intervention is required";
+        } else {
+          const invalidIntervention = data.backgroundHistory.interventions.some(
+            (intervention) => !intervention.name?.trim() || !intervention.frequency?.trim()
+          );
+          if (invalidIntervention) {
+            errors.interventions = "All interventions must have both service and frequency selected";
+          }
+        }
+        if (!data.backgroundHistory?.strengthsAndInterests?.trim()) {
+          errors.strengthsAndInterests = "Strengths and interests information is required";
+        }
+        if (!data.backgroundHistory?.socialSkills?.trim()) {
+          errors.socialSkills = "Social skills information is required";
+        }
+        break;
+
       case 5:
-        return !!data.behaviorDuringAssessment;
+        if (!data.behaviorDuringAssessment?.trim()) {
+          errors.behaviorDuringAssessment = "Behavior during assessment is required";
+        }
+        break;
+
       case 6:
-        return (
-          data.assessmentTools?.length > 0 &&
-          data.assessmentTools.every((tool) => tool.tool && tool.details)
-        );
+        if (!data.assessmentTools?.length) {
+          errors.assessmentTools = "At least one assessment tool is required";
+        } else {
+          const invalidTools = data.assessmentTools.some(
+            (tool) => !tool.tool?.trim() || !tool.details?.trim()
+          );
+          if (invalidTools) {
+            errors.assessmentTools = "All assessment tools must have both tool name and details";
+          }
+        }
+        break;
+
       case 7:
-        return data.assessmentTools?.every((tool) => tool.result);
+        const missingResults = data.assessmentTools?.some((tool) => !tool.result?.trim());
+        if (missingResults) {
+          errors.assessmentResults = "All assessment tools must have results entered";
+        }
+        break;
+
       case 8:
-        return (
-          !!data.assessmentSummary &&
-          data.assessmentTools?.every((tool) => tool.recommendation)
+        if (!data.assessmentSummary?.trim()) {
+          errors.assessmentSummary = "Assessment summary is required";
+        }
+        const missingRecommendations = data.assessmentTools?.some(
+          (tool) => !tool.recommendation?.trim()
         );
+        if (missingRecommendations) {
+          errors.recommendations = "All assessment tools must have recommendations";
+        }
+        break;
+
       case 9:
-        // Check if at least one valid service enrollment exists
         const validEnrollments = data.serviceEnrollments?.filter(
           (enrollment) => enrollment.serviceId && enrollment.staffId
         );
-        return validEnrollments?.length > 0;
+        if (!validEnrollments?.length) {
+          errors.serviceEnrollments = "At least one service enrollment with both service and staff assigned is required";
+        }
+        break;
+
       default:
-        return true;
+        break;
     }
+
+    return errors;
   };
 
-  // const validateCurrentStep = () => validateStep(formStep, studentInput);
+  // Validate any step against provided data (defaults to current state)
+  const validateStep = (step = formStep, data = studentInput) => {
+    const errors = getValidationErrors(step, data);
+    return Object.keys(errors).length === 0;
+  };
 
   const findFirstIncompleteStep = (data = studentInput) => {
     for (let i = 1; i <= 9; i++) {
@@ -210,6 +290,9 @@ export default function EnrollStudentFormModal({
       setFormStep(findFirstIncompleteStep(initialData));
 
       setShowCloseConfirmation(false);
+      // Reset error state when opening modal
+      setValidationErrors({});
+      setShowErrors(false);
     }
   }, [show, editingStudent]);
 
@@ -233,6 +316,15 @@ export default function EnrollStudentFormModal({
       }
       return updated;
     });
+
+    // Clear error for this field when user starts typing
+    if (validationErrors[field]) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
   };
 
   const handleNestedChange = (category, field, value) => {
@@ -241,6 +333,15 @@ export default function EnrollStudentFormModal({
       [category]:
         field === null ? value : { ...prev[category], [field]: value },
     }));
+
+    // Clear error for this field when user starts typing
+    if (validationErrors[field]) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
   };
 
   // Keep an API-compatible helper for existing checks
@@ -330,10 +431,23 @@ export default function EnrollStudentFormModal({
   };
 
   const handleNextOrSave = async () => {
-    if (!validateCurrentStep()) {
-      alert("Please fill in all required fields before proceeding.");
+    const errors = getValidationErrors(formStep, studentInput);
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      setShowErrors(true);
+      // Scroll to top to show error summary
+      const scrollContainer = document.querySelector('.enroll-form-scroll');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+      }
       return;
     }
+
+    // Clear errors if validation passed
+    setValidationErrors({});
+    setShowErrors(false);
+
     if (formStep === 9) {
       await handleSave(true);
     } else {
@@ -395,58 +509,82 @@ export default function EnrollStudentFormModal({
         </div>
 
         <div className="enroll-form-scroll">
+          {/* NEW: Error Summary Banner */}
+          {showErrors && Object.keys(validationErrors).length > 0 && (
+            <div className="validation-error-banner">
+              <div className="error-banner-header">
+                <span className="error-icon">⚠️</span>
+                <strong>Please fix the following errors:</strong>
+              </div>
+              <ul className="error-list">
+                {Object.values(validationErrors).map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {formStep === 1 && (
             <Step1IdentifyingData
               data={studentInput}
               onChange={handleInputChange}
+              errors={validationErrors}
             />
           )}
           {formStep === 2 && (
             <Step2ReasonForReferral
               data={studentInput}
               onChange={handleInputChange}
+              errors={validationErrors}
             />
           )}
           {formStep === 3 && (
             <Step3PurposeOfAssessment
               data={studentInput}
               onChange={handleInputChange}
+              errors={validationErrors}
             />
           )}
           {formStep === 4 && (
             <Step4BackgroundHistory
               data={studentInput}
               onChange={handleNestedChange}
+              errors={validationErrors}
             />
           )}
           {formStep === 5 && (
             <Step5BehaviorDuringAssessment
               data={studentInput}
               onChange={handleInputChange}
+              errors={validationErrors}
             />
           )}
           {formStep === 6 && (
             <Step6AssessmentTools
               data={studentInput}
               onChange={handleNestedChange}
+              errors={validationErrors}
             />
           )}
           {formStep === 7 && (
             <Step7AssessmentResults
               data={studentInput}
               onChange={handleNestedChange}
+              errors={validationErrors}
             />
           )}
           {formStep === 8 && (
             <Step8SummaryRecommendations
               data={studentInput}
               onChange={handleNestedChange}
+              errors={validationErrors}
             />
           )}
           {formStep === 9 && (
             <Step9ServiceEnrollment
               data={studentInput}
               onChange={handleInputChange}
+              errors={validationErrors}
             />
           )}
         </div>
@@ -474,7 +612,11 @@ export default function EnrollStudentFormModal({
             {formStep > 1 && (
               <button
                 className="cancel-btn"
-                onClick={() => setFormStep(formStep - 1)}
+                onClick={() => {
+                  setFormStep(formStep - 1);
+                  setShowErrors(false);
+                  setValidationErrors({});
+                }}
                 disabled={isSaving}
                 type="button"
               >

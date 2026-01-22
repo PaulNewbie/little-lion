@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 // import readServices from "../../enrollmentDatabase/readServices"; old import duplicated
 import offeringsService from "../../../../../services/offeringsService";
 
-export default function Step4BackgroundHistory({ data, onChange }) {
+export default function Step4BackgroundHistory({ data, onChange, errors = {} }) {
   const [serviceOptions, setServiceOptions] = useState([]);
 
   useEffect(() => {
@@ -171,8 +171,8 @@ export default function Step4BackgroundHistory({ data, onChange }) {
       <h3 className="section-title">IV. BACKGROUND HISTORY</h3>
 
       {/* Family Background */}
-      <div className="input-group">
-        <label>Family Background</label>
+      <div className={`input-group ${errors.familyBackground ? 'has-error' : ''}`}>
+        <label>Family Background *</label>
         <textarea
           rows="4"
           value={data.backgroundHistory.familyBackground}
@@ -182,11 +182,14 @@ export default function Step4BackgroundHistory({ data, onChange }) {
           placeholder="Parents, residence, and occupations..."
           required
         />
+        {errors.familyBackground && (
+          <div className="field-error-message">{errors.familyBackground}</div>
+        )}
       </div>
 
       {/* Family Relationships */}
-      <div className="input-group">
-        <label>Family Relationships</label>
+      <div className={`input-group ${errors.familyRelationships ? 'has-error' : ''}`}>
+        <label>Family Relationships *</label>
         <textarea
           rows="3"
           value={data.backgroundHistory.familyRelationships}
@@ -196,11 +199,14 @@ export default function Step4BackgroundHistory({ data, onChange }) {
           placeholder="Interactions, communication style, and siblings..."
           required
         />
+        {errors.familyRelationships && (
+          <div className="field-error-message">{errors.familyRelationships}</div>
+        )}
       </div>
 
       {/* Daily Life & Activities */}
-      <div className="input-group">
-        <label>Daily Life & Activities</label>
+      <div className={`input-group ${errors.dailyLifeActivities ? 'has-error' : ''}`}>
+        <label>Daily Life & Activities *</label>
         <textarea
           rows="3"
           value={data.backgroundHistory.dailyLifeActivities}
@@ -210,11 +216,14 @@ export default function Step4BackgroundHistory({ data, onChange }) {
           placeholder="Independence levels and preferred activities..."
           required
         />
+        {errors.dailyLifeActivities && (
+          <div className="field-error-message">{errors.dailyLifeActivities}</div>
+        )}
       </div>
 
       {/* Medical History */}
-      <div className="input-group">
-        <label>Medical History</label>
+      <div className={`input-group ${errors.medicalHistory ? 'has-error' : ''}`}>
+        <label>Medical History *</label>
         <textarea
           rows="2"
           value={data.backgroundHistory.medicalHistory}
@@ -224,11 +233,14 @@ export default function Step4BackgroundHistory({ data, onChange }) {
           placeholder="Dermatitis, allergies, asthma, etc..."
           required
         />
+        {errors.medicalHistory && (
+          <div className="field-error-message">{errors.medicalHistory}</div>
+        )}
       </div>
 
       {/* Developmental Background */}
-      <div className="form-section-group input-group">
-        <label>Developmental Background</label>
+      <div className={`form-section-group input-group ${errors.developmentalBackground ? 'has-error' : ''}`}>
+        <label>Developmental Background *</label>
         {data.backgroundHistory.developmentalBackground.map((item, index) => (
           <div className="dev-bg-entry" key={index}>
             <div className="dev-bg-header">
@@ -277,11 +289,14 @@ export default function Step4BackgroundHistory({ data, onChange }) {
         <button className="add-point-btn" onClick={handleAddDevBg}>
           + Upload Developmental Pediatric Assessment / Diagnosis
         </button>
+        {errors.developmentalBackground && (
+          <div className="field-error-message">{errors.developmentalBackground}</div>
+        )}
       </div>
 
       {/* School History */}
-      <div className="input-group">
-        <label>School History</label>
+      <div className={`input-group ${errors.schoolHistory ? 'has-error' : ''}`}>
+        <label>School History *</label>
         <textarea
           rows="2"
           value={data.backgroundHistory.schoolHistory}
@@ -291,11 +306,14 @@ export default function Step4BackgroundHistory({ data, onChange }) {
           placeholder="Current and previous school placements..."
           required
         />
+        {errors.schoolHistory && (
+          <div className="field-error-message">{errors.schoolHistory}</div>
+        )}
       </div>
 
       {/* Clinical Diagnosis */}
-      <div className="input-group highlight-box">
-        <label>Clinical Diagnosis</label>
+      <div className={`input-group highlight-box ${errors.clinicalDiagnosis ? 'has-error' : ''}`}>
+        <label>Clinical Diagnosis *</label>
         <textarea
           rows="3"
           value={data.backgroundHistory.clinicalDiagnosis}
@@ -305,18 +323,24 @@ export default function Step4BackgroundHistory({ data, onChange }) {
           placeholder="Diagnosis and support requirements..."
           required
         />
+        {errors.clinicalDiagnosis && (
+          <div className="field-error-message">{errors.clinicalDiagnosis}</div>
+        )}
       </div>
 
       {/* Interventions */}
-      <div className="form-section-group input-group">
-        <label>Therapies / Interventions</label>
+      <div className={`form-section-group input-group ${errors.interventions ? 'has-error' : ''}`}>
+        <label>Therapies / Interventions *</label>
         {renderInterventionsByType("Therapy", "1 on 1 Services")}
         {renderInterventionsByType("Class", "Group Classes")}
+        {errors.interventions && (
+          <div className="field-error-message">{errors.interventions}</div>
+        )}
       </div>
 
       {/* Strengths & Interests */}
-      <div className="input-group">
-        <label>Strengths & Interests</label>
+      <div className={`input-group ${errors.strengthsAndInterests ? 'has-error' : ''}`}>
+        <label>Strengths & Interests *</label>
         <textarea
           rows="3"
           value={data.backgroundHistory.strengthsAndInterests}
@@ -330,11 +354,14 @@ export default function Step4BackgroundHistory({ data, onChange }) {
           placeholder="Academic skills and hobbies..."
           required
         />
+        {errors.strengthsAndInterests && (
+          <div className="field-error-message">{errors.strengthsAndInterests}</div>
+        )}
       </div>
 
       {/* Social Skills */}
-      <div className="input-group">
-        <label>Social Skills</label>
+      <div className={`input-group ${errors.socialSkills ? 'has-error' : ''}`}>
+        <label>Social Skills *</label>
         <textarea
           rows="2"
           value={data.backgroundHistory.socialSkills}
@@ -344,6 +371,9 @@ export default function Step4BackgroundHistory({ data, onChange }) {
           placeholder="Peer interaction and behavior regulation..."
           required
         />
+        {errors.socialSkills && (
+          <div className="field-error-message">{errors.socialSkills}</div>
+        )}
       </div>
     </div>
   );
