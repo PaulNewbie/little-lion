@@ -7,6 +7,7 @@ import { getAdminConfig, getTeacherConfig, getTherapistConfig } from '../../../c
 import EnrollStudentFormModal from "./enrollmentForm/EnrollStudentFormModal";
 import ActivationModal from "../../../components/admin/ActivationModal";
 import GeneralFooter from "../../../components/footer/generalfooter";
+import Toast from "./enrollmentForm/components/Toast";
 import "./EnrollStudent.css";
 import authService from "../../../services/authService";
 
@@ -54,6 +55,11 @@ export default function EnrollStudent() {
   const [showActivationModal, setShowActivationModal] = useState(false);
   const [newUserData, setNewUserData] = useState(null);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+
+  // Toast notification state
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+  const showToast = (message, type = "success") => setToast({ show: true, message, type });
+  const hideToast = () => setToast({ show: false, message: "", type: "success" });
 
   // Form State for Parent - REMOVED password field!
   const [parentInput, setParentInput] = useState({
@@ -112,7 +118,7 @@ export default function EnrollStudent() {
 
     } catch (error) {
       console.error("Creation Error:", error);
-      alert(`Failed to create parent: ${error.message}`);
+      showToast(`Failed to create parent: ${error.message}`, "error");
     } finally {
       setIsCreatingAccount(false);
     }
@@ -152,7 +158,7 @@ export default function EnrollStudent() {
         setShowEnrollForm(true);
       } catch (error) {
         console.error("Failed to load assessment data:", error);
-        alert("Failed to load student assessment data. Please try again.");
+        showToast("Failed to load student assessment data. Please try again.", "error");
       }
     } else if (student.status === "ENROLLED") {
       // Go to student profile page
@@ -419,7 +425,7 @@ export default function EnrollStudent() {
                   fontSize: '13px',
                   color: '#0369a1'
                 }}>
-                  <strong>ℹ️ How activation works:</strong>
+                  <strong>How activation works:</strong>
                   <p style={{ margin: '4px 0 0 0' }}>
                     After creating the account, a QR code will appear. 
                     The parent can scan it to set up their password.
@@ -468,6 +474,15 @@ export default function EnrollStudent() {
           userData={newUserData}
           onEmailSent={() => console.log("Activation email sent")}
         />
+
+        {/* Toast Notification */}
+        <Toast
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+
         {/* FOOTER */}
         <GeneralFooter pageLabel="Enrollment" />
       </div>

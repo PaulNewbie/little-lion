@@ -195,6 +195,14 @@ export default function Step9Enrollment({ data, onChange, currentUserId, errors 
     .map((e, idx) => ({ ...e, originalIndex: idx }))
     .filter((e) => e.serviceType === "Class");
 
+  // Count available services by type
+  const availableTherapyServices = services.filter((s) => s.type === "Therapy");
+  const availableClassServices = services.filter((s) => s.type === "Class");
+
+  // Check if can add more services
+  const canAddTherapy = therapyEnrollments.length < availableTherapyServices.length;
+  const canAddClass = classEnrollments.length < availableClassServices.length;
+
   const renderRows = (enrollmentList, serviceType) => {
     const label = serviceType === "Therapy" ? "Therapy" : "Class";
     const staffLabel = serviceType === "Therapy" ? "Therapist" : "Teacher";
@@ -286,7 +294,7 @@ export default function Step9Enrollment({ data, onChange, currentUserId, errors 
                       display: "block",
                     }}
                   >
-                    ⚠️ No qualified staff available for {enrollment.serviceName}
+                    No qualified staff available for {enrollment.serviceName}
                   </small>
                 )}
               </div>
@@ -321,38 +329,40 @@ export default function Step9Enrollment({ data, onChange, currentUserId, errors 
     <div className="form-section">
       <h3>IX. ENROLLMENT</h3>
       <p
-        style={{ color: "#64748b", marginBottom: "20px", fontSize: "0.95rem" }}
+        style={{ color: "#64748b", marginBottom: "15px", fontSize: "0.95rem" }}
       >
         Assign services and their respective teachers or therapists to this
         student.
       </p>
 
+      {/* Info about where options come from */}
+      <div
+        style={{
+          background: "#f0f9ff",
+          padding: "12px 16px",
+          marginBottom: "20px",
+          borderRadius: "8px",
+          fontSize: "0.875rem",
+          color: "#0369a1",
+          borderLeft: "4px solid #0ea5e9",
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+        }}
+      >
+        <span>
+          The service options below are based on the <strong>interventions</strong> you selected in Step 7 (Diagnosis & Interventions).
+          {services.length === 0 && (
+            <span style={{ color: "#dc2626", marginLeft: "5px" }}>
+              No interventions found. Please go back to Step 7 and add interventions first.
+            </span>
+          )}
+        </span>
+      </div>
+
       {errors.serviceEnrollments && (
         <div className="field-error-message" style={{ marginBottom: '20px' }}>
           {errors.serviceEnrollments}
-        </div>
-      )}
-
-      {/* Debug Info: Remove this before deploying to production if you want */}
-      {process.env.NODE_ENV === "development" && (
-        <div
-          style={{
-            background: "#f0f9ff",
-            padding: "10px",
-            marginBottom: "20px",
-            borderRadius: "6px",
-            fontSize: "12px",
-          }}
-        >
-          <strong>Debug Info:</strong>
-          <br />
-          Teachers loaded: {teachers.length} | Therapists loaded:{" "}
-          {therapists.length}
-          <br />
-          Services available (Step 4 match):{" "}
-          {services.map((s) => `${s.name} (${s.id})`).join(", ")}
-          <br />
-          Current enrollments: {serviceEnrollments.length}
         </div>
       )}
 
@@ -367,8 +377,15 @@ export default function Step9Enrollment({ data, onChange, currentUserId, errors 
           type="button"
           className="add-point-btn"
           onClick={() => handleAddService("Therapy")}
+          disabled={!canAddTherapy}
+          style={!canAddTherapy ? { opacity: 0.5, cursor: "not-allowed" } : {}}
         >
           + Add 1 on 1 Service
+          {availableTherapyServices.length > 0 && (
+            <span style={{ marginLeft: "8px", fontSize: "0.8rem", opacity: 0.7 }}>
+              ({therapyEnrollments.length}/{availableTherapyServices.length})
+            </span>
+          )}
         </button>
       </div>
 
@@ -391,8 +408,15 @@ export default function Step9Enrollment({ data, onChange, currentUserId, errors 
           type="button"
           className="add-point-btn"
           onClick={() => handleAddService("Class")}
+          disabled={!canAddClass}
+          style={!canAddClass ? { opacity: 0.5, cursor: "not-allowed" } : {}}
         >
           + Add Group Class
+          {availableClassServices.length > 0 && (
+            <span style={{ marginLeft: "8px", fontSize: "0.8rem", opacity: 0.7 }}>
+              ({classEnrollments.length}/{availableClassServices.length})
+            </span>
+          )}
         </button>
       </div>
 
@@ -407,9 +431,6 @@ export default function Step9Enrollment({ data, onChange, currentUserId, errors 
             border: "2px dashed #e2e8f0",
           }}
         >
-          <div style={{ fontSize: "3rem", marginBottom: "10px", opacity: 0.5 }}>
-            📋
-          </div>
           <div>No services assigned yet.</div>
         </div>
       )}

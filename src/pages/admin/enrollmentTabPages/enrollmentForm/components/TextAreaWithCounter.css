@@ -1,0 +1,86 @@
+/* =============================================================================
+   TEXTAREA WITH CHARACTER COUNTER
+   ============================================================================= */
+
+.textarea-with-counter {
+  position: relative;
+  width: 100%;
+}
+
+.textarea-with-counter textarea {
+  width: 100%;
+  padding: 14px 16px;
+  padding-bottom: 30px; /* Space for counter */
+  font-family: inherit;
+  font-size: 15px;
+  color: #1e293b;
+  background: #fcfdfe;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  min-height: 120px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.textarea-with-counter textarea:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
+}
+
+.textarea-with-counter textarea.has-error {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.textarea-with-counter textarea.has-error:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+/* Character counter */
+.char-counter {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 11px;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2px 8px;
+  border-radius: 4px;
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.char-count {
+  font-weight: 600;
+  color: #64748b;
+}
+
+.char-separator {
+  margin: 0 2px;
+}
+
+.char-max {
+  color: #94a3b8;
+}
+
+.char-label {
+  color: #94a3b8;
+}
+
+/* Warning state (75%+) */
+.char-counter.counter-warning .char-count {
+  color: #f59e0b;
+}
+
+/* Danger state (90%+) */
+.char-counter.counter-danger .char-count {
+  color: #ef4444;
+}
+
+.char-counter.counter-danger {
+  background: #fef2f2;
+}

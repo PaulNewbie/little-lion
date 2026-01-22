@@ -42,8 +42,14 @@
 .modal-header-flex {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 15px;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .modal-header-flex h2 {
@@ -54,23 +60,82 @@
   letter-spacing: -0.02em;
 }
 
+/* Auto-save indicator */
+.auto-save-indicator {
+  font-size: 12px;
+  font-weight: 500;
+  min-height: 18px;
+}
+
+.auto-save-indicator .saved {
+  color: #10b981;
+}
+
+.auto-save-indicator .saving {
+  color: #f59e0b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.saving-dot {
+  width: 8px;
+  height: 8px;
+  background: #f59e0b;
+  border-radius: 50%;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+}
+
 /* Step progress bar */
 .step-indicator {
   display: flex;
-  gap: 8px;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .step-dot {
   flex: 1;
+  min-width: 20px;
   height: 6px;
   background: #e2e8f0;
   border-radius: 10px;
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .step-dot.active {
   background: #4a90e2;
   box-shadow: 0 0 8px rgba(74, 144, 226, 0.4);
+}
+
+/* Substep styling (Background History steps 4-8) */
+.step-dot.substep {
+  background: #fef3c7;
+}
+
+.step-dot.substep.active {
+  background: #f59e0b;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+/* Progress percentage text */
+.step-progress-text {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  text-align: right;
 }
 
 /* =============================================================================
@@ -105,6 +170,27 @@
   height: 22px;
   background: #4a90e2;
   border-radius: 4px;
+}
+
+/* Section description - helpful intro text */
+.section-description {
+  margin: -15px 0 25px 0;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #64748b;
+  background: #f8fafc;
+  border-left: 3px solid #4a90e2;
+  border-radius: 0 8px 8px 0;
+  line-height: 1.5;
+}
+
+/* Field hint - example text below labels */
+.field-hint {
+  margin: -4px 0 8px 0;
+  font-size: 13px;
+  color: #94a3b8;
+  font-style: italic;
+  line-height: 1.4;
 }
 
 /* =============================================================================

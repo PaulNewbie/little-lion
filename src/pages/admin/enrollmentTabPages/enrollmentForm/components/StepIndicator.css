@@ -1,0 +1,185 @@
+/* =============================================================================
+   STEP INDICATOR - Grouped Stepper Design
+   ============================================================================= */
+
+.step-indicator-container {
+  padding: 0;
+}
+
+/* Step groups container */
+.step-groups {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Individual group */
+.step-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 8px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  transition: all 0.3s ease;
+  min-width: 0;
+}
+
+.step-group.current {
+  background: #eff6ff;
+  border-color: #4a90e2;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+}
+
+.step-group.completed {
+  background: #f0fdf4;
+  border-color: #10b981;
+}
+
+.step-group.partial {
+  background: #fefce8;
+  border-color: #eab308;
+}
+
+/* Group header */
+.step-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.step-group-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.step-group.current .step-group-label {
+  color: #1e40af;
+}
+
+.step-group.completed .step-group-label {
+  color: #047857;
+}
+
+.step-group-progress {
+  font-size: 10px;
+  font-weight: 700;
+  color: #4a90e2;
+  background: #dbeafe;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+/* Mini dots for steps within group */
+.step-group-dots {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.step-mini-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  transition: all 0.2s ease;
+}
+
+.step-mini-dot.completed {
+  background: #10b981;
+}
+
+.step-mini-dot.current {
+  background: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.3);
+  transform: scale(1.2);
+}
+
+.step-mini-dot.clickable {
+  cursor: pointer;
+}
+
+.step-mini-dot.clickable:hover {
+  transform: scale(1.3);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.4);
+}
+
+/* Estimated time */
+.step-group-time {
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.step-group.current .step-group-time {
+  color: #4a90e2;
+}
+
+/* Connector line between groups */
+.step-connector {
+  width: 20px;
+  height: 2px;
+  background: #e2e8f0;
+  margin-top: 25px;
+  flex-shrink: 0;
+}
+
+.step-connector.completed {
+  background: #10b981;
+}
+
+/* =============================================================================
+   RESPONSIVE
+   ============================================================================= */
+@media (max-width: 768px) {
+  .step-groups {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .step-group {
+    flex: 1 1 calc(50% - 10px);
+    min-width: calc(50% - 10px);
+  }
+
+  .step-connector {
+    display: none;
+  }
+
+  .step-group-label {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .step-group {
+    flex: 1 1 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 8px 12px;
+  }
+
+  .step-group-header {
+    margin-bottom: 0;
+  }
+
+  .step-group-dots {
+    margin-bottom: 0;
+    margin-left: auto;
+    margin-right: 10px;
+  }
+
+  .step-group-time {
+    margin-left: auto;
+  }
+}
