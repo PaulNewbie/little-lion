@@ -16,7 +16,6 @@
   top: 0;
   left: 0;
   transform: translateX(-100%);
-  /* transition: transform 0.3s ease; */
   z-index: 1000;
   overflow-y: auto;
 }
@@ -135,7 +134,7 @@
 }
 
 .sidebar__menu-item.active {
-  background:  #fbbf24;
+  background: #fbbf24;
   font-weight: bold;
   color: #ffffff;
 }
@@ -195,6 +194,135 @@
   border-radius: 50%;
   flex-shrink: 0;
   margin-left: auto;
+}
+
+/* ===========================================
+   DROPDOWN MENU STYLES - Blue Header Design
+   =========================================== */
+
+/* Dropdown container */
+.sidebar__dropdown {
+  margin-bottom: 8px;
+}
+
+/* Dropdown header - Blue background style */
+.sidebar__dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 15px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  position: relative;
+  
+  /* Blue background styling */
+  background-color: #0052A1;
+  color: #ffffff;
+}
+
+.sidebar__dropdown-header:hover {
+  background-color: #003d7a;
+}
+
+/* Override icon colors for dropdown header */
+.sidebar__dropdown-header .sidebar__menu-icon {
+  filter: brightness(0) invert(1);
+}
+
+.sidebar__dropdown-header .sidebar__menu-icon--svg {
+  color: #ffffff;
+}
+
+.sidebar__dropdown-header .sidebar__menu-icon--svg svg {
+  fill: #ffffff;
+  color: #ffffff;
+}
+
+/* Override label color for dropdown header */
+.sidebar__dropdown-header .sidebar__menu-label {
+  color: #ffffff;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Chevron icon - white for blue header */
+.sidebar__chevron {
+  margin-left: auto;
+  transition: transform 0.3s ease;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.sidebar__chevron--open {
+  transform: rotate(180deg);
+}
+
+/* Dropdown content container */
+.sidebar__dropdown-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out, padding 0.3s ease-out;
+  opacity: 0;
+  padding-left: 0;
+  padding-top: 0;
+}
+
+.sidebar__dropdown-content.expanded {
+  max-height: 500px;
+  opacity: 1;
+  padding-top: 8px;
+  transition: max-height 0.4s ease-in, opacity 0.3s ease-in, padding 0.3s ease-in;
+}
+
+/* Sub-items (items inside dropdown) */
+.sidebar__menu-item--sub {
+  padding: 10px 15px 10px 20px;
+  font-size: 15px;
+  margin-bottom: 3px;
+  border-radius: 8px;
+  background-color: transparent;
+}
+
+.sidebar__menu-item--sub:hover {
+  background-color: #e0e0e0;
+}
+
+.sidebar__menu-item--sub.active {
+  background: #fbbf24;
+  font-weight: bold;
+}
+
+.sidebar__menu-item--sub .sidebar__menu-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.sidebar__menu-item--sub .sidebar__menu-icon--svg {
+  width: 22px;
+  height: 22px;
+  color: #0052A1;
+}
+
+.sidebar__menu-item--sub .sidebar__menu-icon--svg svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Active sub-item icon styling */
+.sidebar__menu-item--sub.active .sidebar__menu-icon {
+  filter: brightness(0) invert(1);
+}
+
+.sidebar__menu-item--sub.active .sidebar__menu-icon--svg {
+  color: #ffffff;
+}
+
+.sidebar__menu-item--sub.active .sidebar__menu-label {
+  color: #ffffff;
 }
 
 /* ===========================================
@@ -264,6 +392,15 @@
 
   .sidebar__menu-item {
     padding: 12px 15px;
+  }
+
+  /* Dropdown adjustments for mobile */
+  .sidebar__dropdown-header {
+    padding: 12px 15px;
+  }
+
+  .sidebar__menu-item--sub {
+    padding: 10px 15px 10px 18px;
   }
 }
 

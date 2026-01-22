@@ -1,4 +1,6 @@
+// src/components/sidebar/sidebarConfigs.jsx
 // Sidebar menu configurations for each role
+
 import SP_Icon from "../../images/sp-icon.svg";
 import ooo_Icon from "../../images/1on1-icon.svg";
 import group_Icon from "../../images/group-class-icon.svg";
@@ -52,6 +54,34 @@ const ShieldIcon = (
   </svg>
 );
 
+// User Management Icon (Group of people)
+const UsersIcon = (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+  </svg>
+);
+
+// Access Control Icon (Settings/Lock)
+const AccessControlIcon = (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+  </svg>
+);
+
+// Concern/Alert Icon
+const ConcernIcon = (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+  </svg>
+);
+
+// Calendar/Report Icon for Monthly Summary
+const CalendarIcon = (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+    <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/>
+  </svg>
+);
+
 /**
  * Get admin sidebar configuration
  * @param {boolean} isSuperAdmin - Whether current user is super admin
@@ -69,17 +99,34 @@ export const getAdminConfig = (isSuperAdmin = false) => ({
         { path: "/admin/one-on-one", icon: ooo_Icon, label: "1 on 1 SERVICES" },
         { path: "/admin/play-group", icon: group_Icon, label: "GROUP CLASSES" },
         { path: "/admin/enrollment", icon: enroll_Icon, label: "ENROLL STUDENT", hidden: !isSuperAdmin },
-        { path: "/admin/concerns", icon: MailIcon, label: "CONCERNS" },
       ]
     },
     {
-      title: "USER MANAGEMENT",
+      title: "MANAGEMENT",
       items: [
-        { path: "/admin/manage-admins", icon: admin_Icon, label: "ADMIN", hidden: !isSuperAdmin },
-        { path: "/admin/manage-teachers", icon: teacher_Icon, label: "TEACHER" },
-        { path: "/admin/manage-therapists", icon: therapist_Icon, label: "THERAPIST" },
-        { path: "/admin/pending-accounts", icon: ClockIcon, label: "PENDING ACCOUNTS" },
-        { path: "/admin/user-access", icon: ShieldIcon, label: "USER ACCESS" },
+        // User Management Dropdown
+        {
+          icon: UsersIcon,
+          label: "USER MANAGEMENT",
+          isDropdown: true,
+          hidden: !isSuperAdmin,
+          subItems: [
+            { path: "/admin/manage-admins", icon: admin_Icon, label: "ADMIN" },
+            { path: "/admin/manage-teachers", icon: teacher_Icon, label: "TEACHER" },
+            { path: "/admin/manage-therapists", icon: therapist_Icon, label: "THERAPIST" },
+          ]
+        },
+        // Access Control Dropdown
+        {
+          icon: AccessControlIcon,
+          label: "ACCESS CONTROL",
+          isDropdown: true,
+          subItems: [
+            { path: "/admin/concerns", icon: MailIcon, label: "CONCERNS" },
+            { path: "/admin/pending-accounts", icon: ClockIcon, label: "PENDING ACCOUNTS" },
+            { path: "/admin/user-access", icon: ShieldIcon, label: "USER ACCESS" },
+          ]
+        },
       ]
     }
   ]
@@ -89,20 +136,6 @@ export const getAdminConfig = (isSuperAdmin = false) => ({
  * Get parent sidebar configuration
  * @returns {Object} Sidebar configuration
  */
-// Calendar/Report Icon for Monthly Summary
-const CalendarIcon = (
-  <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
-    <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/>
-  </svg>
-);
-
-// Alert/Concern Icon
-const ConcernIcon = (
-  <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-  </svg>
-);
-
 export const getParentConfig = () => ({
   role: "parent",
   roleLabel: "PARENT",
@@ -143,8 +176,9 @@ export const getTherapistConfig = (profileCompleted = true) => ({
           path: "/therapist/enrollment",
           icon: enroll_Icon,
           label: "ENROLL STUDENT",
-          requiresPermission: "canEnrollStudents"  // Add this flag
-        }
+          requiresPermission: "canEnrollStudents"
+        },
+        { path: "/staff/inquiries", icon: MailIcon, label: "INQUIRIES" },
       ]
     }
   ]
@@ -174,8 +208,9 @@ export const getTeacherConfig = (profileCompleted = true) => ({
           path: "/teacher/enrollment",
           icon: enroll_Icon,
           label: "ENROLL STUDENT",
-          requiresPermission: "canEnrollStudents"  // Add this flag
-        }
+          requiresPermission: "canEnrollStudents"
+        },
+        { path: "/staff/inquiries", icon: MailIcon, label: "INQUIRIES" }
       ]
     }
   ]
