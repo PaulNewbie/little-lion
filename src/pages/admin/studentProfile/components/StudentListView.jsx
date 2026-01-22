@@ -13,7 +13,9 @@ const StudentListView = ({
   onFilterChange,
   onSelectStudent,
   hasMore,
-  onLoadMore
+  onLoadMore,
+  isLoadingMore,
+  isSearching
 }) => {
   return (
     <>
@@ -31,10 +33,14 @@ const StudentListView = ({
           <div className="filter-actions">
             <div className="search-wrapper">
               <span className="search-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <circle cx="11" cy="11" r="8"/>
-                  <path d="M21 21l-4.35-4.35"/>
-                </svg>
+                {isSearching ? (
+                  <span className="search-spinner"></span>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="M21 21l-4.35-4.35"/>
+                  </svg>
+                )}
               </span>
               <input
                 type="text"
@@ -76,9 +82,13 @@ const StudentListView = ({
             <button
               className="sp-load-more-btn"
               onClick={onLoadMore}
+              disabled={isLoadingMore}
             >
-              Load More Students
+              {isLoadingMore ? "Loading..." : "Load More Students"}
             </button>
+            <div className="sp-pagination-info">
+              Showing {students.length} students
+            </div>
           </div>
         )}
       </div>

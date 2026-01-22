@@ -31,17 +31,48 @@ const getChildFromCache = (queryClient, childId) => {
   // 1. Check individual student cache
   const cachedChild = queryClient.getQueryData(QUERY_KEYS.student(childId));
   if (cachedChild) {
-    console.log('♻️ ServiceEnrollments: Found child in individual cache (0 reads)');
     return cachedChild;
   }
 
-  // 2. Check master students list
+  // 2. Check master students list (handles both array and paginated object)
   const allStudents = queryClient.getQueryData(QUERY_KEYS.students());
-  if (allStudents && Array.isArray(allStudents)) {
-    const foundChild = allStudents.find(s => s.id === childId);
+  if (allStudents) {
+    // Handle paginated structure { students: [...], lastDoc, hasMore }
+    const studentsArray = allStudents.students || (Array.isArray(allStudents) ? allStudents : []);
+    const foundChild = studentsArray.find(s => s.id === childId);
     if (foundChild) {
-      console.log('♻️ ServiceEnrollments: Found child in master list cache (0 reads)');
       return foundChild;
+    }
+  }
+
+  // 3. Check search results cache
+  const searchQueries = queryClient.getQueriesData({ queryKey: ['students', 'search'] });
+  for (const [, data] of searchQueries) {
+    if (Array.isArray(data)) {
+      const found = data.find(s => s.id === childId);
+      if (found) {
+        return found;
+      }
+    }
+  }
+
+  // 4. Check parent-specific cache
+  const parentQueries = queryClient.getQueriesData({ queryKey: ['students', 'byParent'] });
+  for (const [, data] of parentQueries) {
+    const arr = data?.students || (Array.isArray(data) ? data : []);
+    const found = arr.find(s => s.id === childId);
+    if (found) {
+      return found;
+    }
+  }
+
+  // 5. Check staff-specific cache
+  const staffQueries = queryClient.getQueriesData({ queryKey: ['students', 'byStaff'] });
+  for (const [, data] of staffQueries) {
+    const arr = data?.students || (Array.isArray(data) ? data : []);
+    const found = arr.find(s => s.id === childId);
+    if (found) {
+      return found;
     }
   }
 

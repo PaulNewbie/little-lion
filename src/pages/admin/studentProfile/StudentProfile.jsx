@@ -65,7 +65,9 @@ const StudentProfile = ({
     assessmentData,
     isAssessmentLoading,
     hasMore,
-    handleLoadMore
+    handleLoadMore,
+    isLoadingMore,
+    isSearching
   } = useStudentProfileData(location.state, {
     isParentView,
     parentId: isParentView ? currentUser?.uid : null,
@@ -377,6 +379,8 @@ const StudentProfile = ({
             onSelectStudent={handleSelectStudent}
             hasMore={hasMore}
             onLoadMore={handleLoadMore}
+            isLoadingMore={isLoadingMore}
+            isSearching={isSearching}
           />
         )}
 

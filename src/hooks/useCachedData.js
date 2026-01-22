@@ -306,26 +306,62 @@ export function useChildrenByService(serviceName) {
 
 /**
  * Get single child by ID - CACHED
+ * Checks multiple cache locations before fetching
  */
 export function useChild(childId) {
   const queryClient = useQueryClient();
-  
-  return useQuery({
-    queryKey: QUERY_KEYS.student(childId), // Matches the seed key!
-    queryFn: async () => {
-      // 1. Check if we already have it in memory (from a list fetch)
-      const existing = queryClient.getQueryData(QUERY_KEYS.student(childId));
-      if (existing) {
-        console.log("♻️ Found student in cache! (0 Reads)");
-        return existing;
+
+  // Helper to find student in any cache
+  const findInCache = () => {
+    if (!childId) return null;
+
+    // 1. Check individual student cache
+    const individual = queryClient.getQueryData(QUERY_KEYS.student(childId));
+    if (individual) return individual;
+
+    // 2. Check main students list (admin view)
+    const studentsList = queryClient.getQueryData(QUERY_KEYS.students());
+    if (studentsList?.students) {
+      const found = studentsList.students.find(s => s.id === childId);
+      if (found) return found;
+    }
+    if (Array.isArray(studentsList)) {
+      const found = studentsList.find(s => s.id === childId);
+      if (found) return found;
+    }
+
+    // 3. Check search results cache (various search terms)
+    const queries = queryClient.getQueriesData({ queryKey: ['students', 'search'] });
+    for (const [, data] of queries) {
+      if (Array.isArray(data)) {
+        const found = data.find(s => s.id === childId);
+        if (found) return found;
       }
-      
-      // 2. Only fetch from DB if truly missing
-      console.log("⚠️ Student not in cache, fetching...");
+    }
+
+    return null;
+  };
+
+  return useQuery({
+    queryKey: QUERY_KEYS.student(childId),
+    queryFn: async () => {
+      // Double-check cache in queryFn (in case it was populated after initial check)
+      const cached = findInCache();
+      if (cached) {
+        return cached;
+      }
+
+      // Only fetch from DB if truly missing from all caches
       return childService.getChildById(childId);
     },
     enabled: !!childId,
-    ...QUERY_OPTIONS.semiStatic,
+    // Use initialData if available in cache - prevents unnecessary fetch
+    initialData: () => findInCache(),
+    // Only consider stale if we don't have data
+    staleTime: 1000 * 60 * 30, // 30 minutes
+    gcTime: 1000 * 60 * 60 * 12, // 12 hours
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 }
 

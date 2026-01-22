@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import childService from "../../../../services/childService";
 import activityService from "../../../../services/activityService";
@@ -7,27 +7,80 @@ import assessmentService from "../../../../services/assessmentService";
 import { QUERY_KEYS, QUERY_OPTIONS } from "../../../../config/queryClient";
 
 // =============================================================================
-// HELPER: CACHE SEEDING - Same pattern as useCachedData.js
+// CONFIG
+// =============================================================================
+const PAGE_SIZE = 10; // 10 students per page
+const SEARCH_DEBOUNCE_MS = 300; // Debounce delay for server search
+const MIN_SEARCH_LENGTH = 2; // Minimum characters before server search
+
+// =============================================================================
+// HELPER: CACHE SEEDING - Seeds individual student cache for free profile lookups
 // =============================================================================
 const seedStudentCache = (queryClient, students) => {
   if (!students || !Array.isArray(students)) return;
 
   students.forEach(student => {
     if (student && student.id) {
-      queryClient.setQueryData(QUERY_KEYS.student(student.id), student);
+      // Only seed if not already in cache (avoid overwriting fresher data)
+      const existing = queryClient.getQueryData(QUERY_KEYS.student(student.id));
+      if (!existing) {
+        queryClient.setQueryData(QUERY_KEYS.student(student.id), student);
+      }
     }
   });
-  console.log(`🌱 StudentProfile: Seeded ${students.length} students into individual cache`);
+};
+
+// =============================================================================
+// HELPER: Check if student is already loaded (in any cache)
+// =============================================================================
+const isStudentCached = (queryClient, studentId) => {
+  // Check individual cache
+  if (queryClient.getQueryData(QUERY_KEYS.student(studentId))) {
+    return true;
+  }
+  // Check main students list
+  const studentsList = queryClient.getQueryData(QUERY_KEYS.students());
+  if (studentsList?.students?.some(s => s.id === studentId)) {
+    return true;
+  }
+  return false;
+};
+
+// =============================================================================
+// HELPER: Get student from any cache
+// =============================================================================
+const getStudentFromCache = (queryClient, studentId) => {
+  // Check individual cache first
+  const individual = queryClient.getQueryData(QUERY_KEYS.student(studentId));
+  if (individual) return individual;
+
+  // Check main students list
+  const studentsList = queryClient.getQueryData(QUERY_KEYS.students());
+  if (studentsList?.students) {
+    const found = studentsList.students.find(s => s.id === studentId);
+    if (found) return found;
+  }
+
+  return null;
+};
+
+// =============================================================================
+// HELPER: DEBOUNCE HOOK
+// =============================================================================
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+
+  return debouncedValue;
 };
 
 /**
  * @param {Object} locationState - React Router location state
  * @param {Object} options - Additional options
- * @param {boolean} options.isParentView - If true, only fetches parent's children (not all students)
- * @param {string} options.parentId - Parent's user ID (required when isParentView is true)
- * @param {boolean} options.isStaffView - If true, only fetches staff's assigned students
- * @param {string} options.staffId - Staff's user ID (required when isStaffView is true)
- * @param {boolean} options.singleStudentMode - If true, only uses the passed student (no list fetch)
  */
 export const useStudentProfileData = (locationState, options = {}) => {
   const queryClient = useQueryClient();
@@ -48,10 +101,20 @@ export const useStudentProfileData = (locationState, options = {}) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
 
+  // Pagination state (for admin view only)
+  const [lastDoc, setLastDoc] = useState(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  // Debounced search term for server-side search
+  const debouncedSearchTerm = useDebounce(searchTerm, SEARCH_DEBOUNCE_MS);
+
+  // Determine if this is admin view (paginated)
+  const isAdminView = !isParentView && !isStaffView && !singleStudentMode;
+
   // ================= DETERMINE QUERY KEY =================
   const getQueryKey = () => {
     if (singleStudentMode && passedStudent) {
-      // Use a dedicated key for single student view (different from individual cache)
       return ['studentProfile', 'single', passedStudent.id];
     }
     if (isParentView && parentId) {
@@ -63,96 +126,140 @@ export const useStudentProfileData = (locationState, options = {}) => {
     return QUERY_KEYS.students();
   };
 
-  // ================= STUDENTS =================
-  // OPTIMIZED: Use consistent query keys and seed cache after fetching
+  // ================= STUDENTS (Paginated/Role-based) =================
   const { data: studentsData, isLoading } = useQuery({
     queryKey: getQueryKey(),
     queryFn: async () => {
-      // ─────────────────────────────────────────────────────────────────
-      // SINGLE STUDENT MODE: Just use the passed student (0 reads)
-      // ─────────────────────────────────────────────────────────────────
+      // SINGLE STUDENT MODE
       if (singleStudentMode && passedStudent) {
-        console.log("♻️ Single Student Mode: Using passed student (0 Reads)");
-        // Seed individual cache for other hooks to use
         queryClient.setQueryData(QUERY_KEYS.student(passedStudent.id), passedStudent);
-        return [passedStudent];
+        return { students: [passedStudent], lastDoc: null, hasMore: false };
       }
 
-      // ─────────────────────────────────────────────────────────────────
-      // STAFF VIEW: Only fetch staff's assigned students
-      // ─────────────────────────────────────────────────────────────────
+      // STAFF VIEW
       if (isStaffView && staffId) {
-        // Check if we already have staff's students cached
         const cachedStaffStudents = queryClient.getQueryData(QUERY_KEYS.studentsByStaff(staffId));
-        if (cachedStaffStudents && Array.isArray(cachedStaffStudents) && cachedStaffStudents.length > 0) {
-          console.log("♻️ Staff View: Using cached students! (0 Reads)");
-          return cachedStaffStudents;
-        }
-
-        // Check master list for filtering
-        const allStudents = queryClient.getQueryData(QUERY_KEYS.students());
-        if (allStudents && Array.isArray(allStudents) && allStudents.length > 0) {
-          const staffStudents = allStudents.filter(s =>
-            s.assignedStaffIds && s.assignedStaffIds.includes(staffId)
-          );
-          if (staffStudents.length > 0) {
-            console.log("♻️ Staff View: Found students in master cache! (0 Reads)");
-            seedStudentCache(queryClient, staffStudents);
-            return staffStudents;
+        if (cachedStaffStudents) {
+          const arr = cachedStaffStudents.students || cachedStaffStudents;
+          if (Array.isArray(arr) && arr.length > 0) {
+            return { students: arr, lastDoc: null, hasMore: false };
           }
         }
-
-        console.log("📋 Staff View: Fetching staff's students from DB");
         const staffStudents = await childService.getChildrenByStaffId(staffId);
         seedStudentCache(queryClient, staffStudents);
-        return staffStudents;
+        return { students: staffStudents, lastDoc: null, hasMore: false };
       }
 
-      // ─────────────────────────────────────────────────────────────────
-      // PARENT VIEW: Only fetch parent's children
-      // ─────────────────────────────────────────────────────────────────
+      // PARENT VIEW
       if (isParentView && parentId) {
-        // Check if we already have data in the master list
-        const allStudents = queryClient.getQueryData(QUERY_KEYS.students());
-        if (allStudents && Array.isArray(allStudents) && allStudents.length > 0) {
-          const parentChildren = allStudents.filter(s => s.parentId === parentId);
-          if (parentChildren.length > 0) {
-            console.log("♻️ Parent View: Found children in master cache! (0 Reads)");
-            return parentChildren;
-          }
-        }
-        console.log("📋 Parent View: Fetching parent's children from DB");
         const children = await childService.getChildrenByParentId(parentId);
         seedStudentCache(queryClient, children);
-        return children;
+        return { students: children, lastDoc: null, hasMore: false };
       }
 
-      // ─────────────────────────────────────────────────────────────────
-      // ADMIN VIEW: Fetch all students (default)
-      // ─────────────────────────────────────────────────────────────────
+      // ADMIN VIEW: Paginated fetch
       const existingData = queryClient.getQueryData(QUERY_KEYS.students());
-      if (existingData && Array.isArray(existingData) && existingData.length > 0) {
-        console.log("♻️ Admin View: Using cached students! (0 Reads)");
+      if (existingData?.students && existingData.students.length > 0) {
         return existingData;
       }
 
-      console.log("📋 Admin View: Fetching all students from DB");
-      const allStudents = await childService.getAllChildren();
-      // Seed individual cache for free lookups when clicking a student
-      seedStudentCache(queryClient, allStudents);
-      return allStudents;
+      const result = await childService.getChildrenPaginated({ limit: PAGE_SIZE });
+      seedStudentCache(queryClient, result.students);
+      return result;
     },
-    initialData: passedStudent ? [passedStudent] : undefined,
-    ...QUERY_OPTIONS.semiStatic, // Use consistent cache options
+    initialData: passedStudent
+      ? { students: [passedStudent], lastDoc: null, hasMore: false }
+      : undefined,
+    ...QUERY_OPTIONS.semiStatic,
   });
 
-  // Ensure students is always an array (handle edge cases from cache)
-  const students = useMemo(() => {
+  // Extract students array from query result
+  const loadedStudents = useMemo(() => {
     if (!studentsData) return [];
+    if (studentsData.students) return studentsData.students;
     if (Array.isArray(studentsData)) return studentsData;
-    // If cached data is a single object, wrap in array
-    return [studentsData];
+    return [];
   }, [studentsData]);
+
+  // Update pagination state when data changes
+  useEffect(() => {
+    if (studentsData && isAdminView) {
+      setLastDoc(studentsData.lastDoc || null);
+      setHasMore(studentsData.hasMore || false);
+    }
+  }, [studentsData, isAdminView]);
+
+  // ================= SERVER-SIDE SEARCH (Admin only) =================
+  const shouldServerSearch = isAdminView && debouncedSearchTerm.length >= MIN_SEARCH_LENGTH;
+
+  const { data: searchResults = [], isFetching: isSearching } = useQuery({
+    queryKey: ['students', 'search', debouncedSearchTerm],
+    queryFn: async () => {
+      // First, check if we can find matching students in the already-loaded list
+      const searchLower = debouncedSearchTerm.toLowerCase();
+      const localMatches = loadedStudents.filter(s => {
+        const fullName = `${s.firstName} ${s.lastName}`.toLowerCase();
+        return fullName.includes(searchLower);
+      });
+
+      // If we have enough local matches, skip server search
+      if (localMatches.length >= 5) {
+        return []; // Let local filtering handle it
+      }
+
+      // Fetch from server for students not in local list
+      const serverResults = await childService.searchChildren(debouncedSearchTerm, 10);
+
+      // Filter out students we already have loaded (avoid duplicates)
+      const loadedIds = new Set(loadedStudents.map(s => s.id));
+      const newResults = serverResults.filter(s => !loadedIds.has(s.id));
+
+      // Seed only the new results into cache
+      seedStudentCache(queryClient, newResults);
+
+      return newResults;
+    },
+    enabled: shouldServerSearch,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 10, // 10 minutes (renamed from cacheTime in v5)
+  });
+
+  // ================= LOAD MORE (Pagination) =================
+  const handleLoadMore = useCallback(async () => {
+    if (!isAdminView || !hasMore || isLoadingMore || !lastDoc) return;
+
+    setIsLoadingMore(true);
+    try {
+      const moreData = await childService.getChildrenPaginated({
+        limit: PAGE_SIZE,
+        startAfter: lastDoc
+      });
+
+      // Get current loaded student IDs to avoid duplicates
+      const currentData = queryClient.getQueryData(QUERY_KEYS.students());
+      const existingIds = new Set((currentData?.students || []).map(s => s.id));
+
+      // Filter out any students that might already be loaded (from search)
+      const newStudents = moreData.students.filter(s => !existingIds.has(s.id));
+
+      // Seed only truly new students
+      seedStudentCache(queryClient, newStudents);
+
+      // Append all students (pagination order matters for cursor)
+      queryClient.setQueryData(QUERY_KEYS.students(), (old) => ({
+        students: [...(old?.students || []), ...moreData.students],
+        lastDoc: moreData.lastDoc,
+        hasMore: moreData.hasMore,
+      }));
+
+      setLastDoc(moreData.lastDoc);
+      setHasMore(moreData.hasMore);
+    } catch (error) {
+      console.error("Load more error:", error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [isAdminView, hasMore, isLoadingMore, lastDoc, queryClient]);
 
   // ================= AUTO SELECT FROM NAV =================
   useEffect(() => {
@@ -164,16 +271,17 @@ export const useStudentProfileData = (locationState, options = {}) => {
   // ================= SELECTED STUDENT =================
   const selectedStudent = useMemo(() => {
     if (!selectedStudentId) return null;
-    return students.find((s) => s.id === selectedStudentId) || passedStudent;
-  }, [students, selectedStudentId, passedStudent]);
+    // Check loaded students first, then search results
+    return loadedStudents.find((s) => s.id === selectedStudentId)
+      || searchResults.find((s) => s.id === selectedStudentId)
+      || passedStudent;
+  }, [loadedStudents, searchResults, selectedStudentId, passedStudent]);
 
   // ================= ACTIVITIES =================
   const { data: studentActivities = [] } = useQuery({
     queryKey: ["activities", selectedStudentId],
     queryFn: async () => {
-      const acts = await activityService.getActivitiesByChild(
-        selectedStudentId
-      );
+      const acts = await activityService.getActivitiesByChild(selectedStudentId);
       return acts.sort((a, b) => new Date(b.date) - new Date(a.date));
     },
     enabled: !!selectedStudentId,
@@ -187,7 +295,7 @@ export const useStudentProfileData = (locationState, options = {}) => {
     enabled: !!selectedStudent?.parentId,
   });
 
-  // ================= ASSESSMENT (from assessments collection) =================
+  // ================= ASSESSMENT =================
   const {
     data: assessmentData = null,
     isLoading: isAssessmentLoading,
@@ -196,48 +304,63 @@ export const useStudentProfileData = (locationState, options = {}) => {
     queryKey: ["assessment", selectedStudent?.assessmentId],
     queryFn: async () => {
       if (!selectedStudent?.assessmentId) return null;
-      return await assessmentService.getAssessment(
-        selectedStudent.assessmentId
-      );
+      return await assessmentService.getAssessment(selectedStudent.assessmentId);
     },
     enabled: !!selectedStudent?.assessmentId,
   });
 
-  // ================= FILTER =================
+  // ================= COMBINED & FILTERED STUDENTS =================
   const filteredStudents = useMemo(() => {
-    return students.filter((s) => {
-      const name = `${s.firstName} ${s.lastName}`.toLowerCase();
-      if (!name.includes(searchTerm.toLowerCase())) return false;
+    // Start with loaded students
+    let combined = [...loadedStudents];
 
+    // If searching, merge in server search results (deduplicated)
+    if (shouldServerSearch && searchResults.length > 0) {
+      const loadedIds = new Set(loadedStudents.map(s => s.id));
+      const newFromSearch = searchResults.filter(s => !loadedIds.has(s.id));
+      combined = [...combined, ...newFromSearch];
+    }
+
+    // Apply filters
+    return combined.filter((s) => {
+      // Name filter (local + server results)
+      const name = `${s.firstName} ${s.lastName}`.toLowerCase();
+      if (searchTerm && !name.includes(searchTerm.toLowerCase())) return false;
+
+      // Service type filter
       const hasTherapy =
         s.enrolledServices?.some((x) => x.type === "Therapy") ||
-        s.therapyServices?.length > 0;
+        s.serviceEnrollments?.some((x) => x.serviceType === "Therapy" && x.status === "active") ||
+        s.oneOnOneServices?.length > 0;
 
       const hasGroup =
         s.enrolledServices?.some((x) => x.type === "Class") ||
-        s.groupClasses?.length > 0;
+        s.serviceEnrollments?.some((x) => x.serviceType === "Class" && x.status === "active") ||
+        s.groupClassServices?.length > 0;
 
       if (filterType === "therapy") return hasTherapy;
       if (filterType === "group") return hasGroup;
       if (filterType === "none") return !hasTherapy && !hasGroup;
       return true;
     });
-  }, [students, searchTerm, filterType]);
+  }, [loadedStudents, searchResults, shouldServerSearch, searchTerm, filterType]);
 
   // ================= HELPERS =================
-  const refreshData = () => {
-    // Invalidate the correct cache based on view type
+  const refreshData = useCallback(() => {
     if (isParentView && parentId) {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.studentsByParent(parentId) });
+    } else if (isStaffView && staffId) {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.studentsByStaff(staffId) });
     } else {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.students() });
     }
     if (selectedStudent?.assessmentId) {
-      queryClient.invalidateQueries({
-        queryKey: ["assessment", selectedStudent.assessmentId],
-      });
+      queryClient.invalidateQueries({ queryKey: ["assessment", selectedStudent.assessmentId] });
     }
-  };
+  }, [queryClient, isParentView, parentId, isStaffView, staffId, selectedStudent]);
+
+  // Expose all loaded students (for display count)
+  const students = loadedStudents;
 
   return {
     loading: isLoading,
@@ -255,5 +378,11 @@ export const useStudentProfileData = (locationState, options = {}) => {
     isAssessmentLoading,
     assessmentError,
     refreshData,
+    // Pagination (admin view only)
+    hasMore: isAdminView && !searchTerm ? hasMore : false, // Hide "Load More" when searching
+    handleLoadMore: isAdminView ? handleLoadMore : undefined,
+    isLoadingMore,
+    // Search state
+    isSearching: shouldServerSearch && isSearching,
   };
 };

@@ -85,6 +85,75 @@ class ChildService {
   }
 
   // ==========================================================================
+  // SEARCH
+  // ==========================================================================
+
+  /**
+   * Search children by name (firstName or lastName prefix match)
+   * Used for searching students not yet loaded in pagination
+   * @param {string} searchTerm - The search term (minimum 2 characters)
+   * @param {number} maxResults - Maximum results to return (default 10)
+   */
+  async searchChildren(searchTerm, maxResults = 10) {
+    if (!searchTerm || searchTerm.length < 2) {
+      return [];
+    }
+
+    try {
+      // Capitalize first letter for proper matching (names are typically capitalized)
+      const normalizedTerm = searchTerm.charAt(0).toUpperCase() + searchTerm.slice(1).toLowerCase();
+      const endTerm = normalizedTerm + '\uf8ff';
+
+      // Search by firstName prefix
+      const firstNameQuery = query(
+        collection(db, COLLECTION_NAME),
+        where('firstName', '>=', normalizedTerm),
+        where('firstName', '<', endTerm),
+        limit(maxResults)
+      );
+
+      // Search by lastName prefix
+      const lastNameQuery = query(
+        collection(db, COLLECTION_NAME),
+        where('lastName', '>=', normalizedTerm),
+        where('lastName', '<', endTerm),
+        limit(maxResults)
+      );
+
+      // Execute both queries in parallel
+      const [firstNameSnapshot, lastNameSnapshot] = await Promise.all([
+        getDocs(firstNameQuery),
+        getDocs(lastNameQuery)
+      ]);
+
+      // Track reads
+      const totalReads = firstNameSnapshot.docs.length + lastNameSnapshot.docs.length;
+      trackRead(COLLECTION_NAME, totalReads);
+
+      // Combine and deduplicate results
+      const resultsMap = new Map();
+
+      firstNameSnapshot.docs.forEach(doc => {
+        resultsMap.set(doc.id, { id: doc.id, ...doc.data() });
+      });
+
+      lastNameSnapshot.docs.forEach(doc => {
+        if (!resultsMap.has(doc.id)) {
+          resultsMap.set(doc.id, { id: doc.id, ...doc.data() });
+        }
+      });
+
+      // Convert to array and limit results
+      const results = Array.from(resultsMap.values()).slice(0, maxResults);
+
+      return results;
+    } catch (error) {
+      console.error('Error searching children:', error);
+      return [];
+    }
+  }
+
+  // ==========================================================================
   // ROLE-BASED QUERIES
   // ==========================================================================
 

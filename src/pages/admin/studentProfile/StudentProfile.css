@@ -1165,16 +1165,53 @@
 
 .sp-load-more-wrapper {
   text-align: center;
-  margin-top: 20px;
+  margin-top: 24px;
+  padding: 16px 0;
 }
 
 .sp-load-more-btn {
-  padding: 10px 20px;
+  padding: 12px 32px;
   background: transparent;
-  border: 1px solid #0052A1;
+  border: 2px solid #0052A1;
   color: #0052A1;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  transition: all 0.2s ease;
+}
+
+.sp-load-more-btn:hover:not(:disabled) {
+  background: #0052A1;
+  color: white;
+}
+
+.sp-load-more-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sp-pagination-info {
+  margin-top: 8px;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+/* Search spinner */
+.search-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e2e8f0;
+  border-top-color: #0052A1;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ---------- Profile Photo Placeholder ---------- */
