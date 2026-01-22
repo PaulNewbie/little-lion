@@ -2,14 +2,15 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import userService from "../../../../../services/userService";
 import offeringsService from "../../../../../services/offeringsService";
+import {
+  generateEnrollmentId,
+  SERVICE_ENROLLMENT_STATUS,
+} from "../../../../../utils/constants";
 
-export default function Step9Enrollment({ data, onChange }) {
-  // Local state for the form selections
-  const [oneOnOneServices, setOneOnOneServices] = useState(
-    data.oneOnOneServices || []
-  );
-  const [groupClassServices, setGroupClassServices] = useState(
-    data.groupClassServices || []
+export default function Step9Enrollment({ data, onChange, currentUserId }) {
+  // Single state for all service enrollments (new unified model)
+  const [serviceEnrollments, setServiceEnrollments] = useState(
+    data.serviceEnrollments || []
   );
 
   // 1. CACHED: Fetch All Services (Only fetches once globally)
@@ -27,63 +28,55 @@ export default function Step9Enrollment({ data, onChange }) {
   });
 
   // --- Derived Data (Filters instantly without useEffect) ---
-  // REMOVED: useEffect runs on every single mount, causing unnecessary database reads and loading spinners every time the modal opens.
-  // ADDED: useQuery caches this data instantly, so if you open this modal again, it loads from memory without hitting the database.
-
   // Filter services to only show the ones selected in Step 4
+  const interventions = data.backgroundHistory?.interventions || [];
   const services = allDbServices.filter((service) => {
-    const savedInterventions = data.backgroundHistory?.interventions || [];
-    const savedServiceIds = savedInterventions.map((i) => i.serviceId);
+    const savedServiceIds = interventions.map((i) => i.serviceId);
     return savedServiceIds.includes(service.id);
   });
 
   const teachers = allStaff.filter((u) => u.role === "teacher");
   const therapists = allStaff.filter((u) => u.role === "therapist");
 
-  // --- Handlers ---
+  // Helper to get frequency from Step 4 interventions
+  const getFrequencyForService = (serviceId) => {
+    const intervention = interventions.find((i) => i.serviceId === serviceId);
+    return intervention?.frequency || null;
+  };
 
-  const handleAddService = (category) => {
-    const newService = {
+  // --- Handlers (New Unified Model) ---
+
+  const handleAddService = (serviceType) => {
+    // Create a placeholder enrollment (not fully populated until service is selected)
+    const newEnrollment = {
+      _tempId: Date.now(), // Temporary ID for React key until service is selected
       serviceId: "",
       serviceName: "",
-      serviceType: "",
+      serviceType: serviceType, // "Therapy" or "Class"
       staffId: "",
       staffName: "",
+      staffRole: "",
     };
-    if (category === "oneOnOne") {
-      const updated = [...oneOnOneServices, newService];
-      setOneOnOneServices(updated);
-      onChange("oneOnOneServices", updated);
-    } else {
-      const updated = [...groupClassServices, newService];
-      setGroupClassServices(updated);
-      onChange("groupClassServices", updated);
-    }
+    const updated = [...serviceEnrollments, newEnrollment];
+    setServiceEnrollments(updated);
+    onChange("serviceEnrollments", updated);
   };
 
-  const handleRemoveService = (category, index) => {
-    const list =
-      category === "oneOnOne" ? oneOnOneServices : groupClassServices;
-    const updated = list.filter((_, i) => i !== index);
-
-    if (category === "oneOnOne") {
-      setOneOnOneServices(updated);
-      onChange("oneOnOneServices", updated);
-    } else {
-      setGroupClassServices(updated);
-      onChange("groupClassServices", updated);
-    }
+  const handleRemoveService = (index) => {
+    const updated = serviceEnrollments.filter((_, i) => i !== index);
+    setServiceEnrollments(updated);
+    onChange("serviceEnrollments", updated);
   };
 
-  // ✅ ROBUST: Case-Insensitive Logic
-  const handleServiceChange = (category, index, serviceId) => {
+  // Handle service selection - creates full enrollment structure
+  const handleServiceChange = (index, serviceId) => {
     const service = services.find((s) => s.id === serviceId);
     if (!service) return;
 
     const isTherapy = service.type === "Therapy";
     const staffList = isTherapy ? therapists : teachers;
 
-    // Robust Match: Lowercase comparison to fix "Speech Therapy" vs "speech therapy"
+    // Auto-select qualified staff if available
     const qualified = staffList.find((staff) =>
       staff.specializations?.some(
         (spec) =>
@@ -91,70 +84,68 @@ export default function Step9Enrollment({ data, onChange }) {
       )
     );
 
-    const list =
-      category === "oneOnOne" ? oneOnOneServices : groupClassServices;
-    const updated = list.map((s, i) =>
+    const now = new Date().toISOString();
+    const updated = serviceEnrollments.map((enrollment, i) =>
       i === index
         ? {
+            // Full enrollment structure
+            enrollmentId: generateEnrollmentId(),
             serviceId: service.id,
             serviceName: service.name,
             serviceType: service.type,
-            // Auto-select staff if only one matches, or if we found a robust match
+            status: SERVICE_ENROLLMENT_STATUS.ACTIVE,
+            // Staff info (will be completed when staff is selected)
             staffId: qualified?.uid || "",
             staffName: qualified
               ? `${qualified.firstName} ${qualified.lastName}`
               : "",
+            staffRole: qualified?.role || (isTherapy ? "therapist" : "teacher"),
+            // Enrollment metadata
+            enrolledAt: now,
+            statusChangedAt: now,
+            statusChangeReason: null,
+            frequency: getFrequencyForService(service.id),
+            notes: null,
+            lastActivityDate: null,
           }
-        : s
+        : enrollment
     );
 
-    if (category === "oneOnOne") {
-      setOneOnOneServices(updated);
-      onChange("oneOnOneServices", updated);
-    } else {
-      setGroupClassServices(updated);
-      onChange("groupClassServices", updated);
-    }
+    setServiceEnrollments(updated);
+    onChange("serviceEnrollments", updated);
   };
 
-  const handleStaffChange = (category, index, staffId) => {
-    const list =
-      category === "oneOnOne" ? oneOnOneServices : groupClassServices;
-    const service = list[index];
-    const isTherapy = service.serviceType === "Therapy";
+  const handleStaffChange = (index, staffId) => {
+    const enrollment = serviceEnrollments[index];
+    const isTherapy = enrollment.serviceType === "Therapy";
     const staffList = isTherapy ? therapists : teachers;
     const staff = staffList.find((s) => s.uid === staffId);
 
-    const updated = list.map((s, i) =>
+    const updated = serviceEnrollments.map((e, i) =>
       i === index
         ? {
-            ...s,
+            ...e,
             staffId: staff?.uid || "",
             staffName: staff ? `${staff.firstName} ${staff.lastName}` : "",
+            staffRole: staff?.role || "",
           }
-        : s
+        : e
     );
 
-    if (category === "oneOnOne") {
-      setOneOnOneServices(updated);
-      onChange("oneOnOneServices", updated);
-    } else {
-      setGroupClassServices(updated);
-      onChange("groupClassServices", updated);
-    }
+    setServiceEnrollments(updated);
+    onChange("serviceEnrollments", updated);
   };
 
-  // ✅ ROBUST: Case-Insensitive Logic for Dropdown
+  // Get qualified staff for a service
   const getQualifiedStaff = (serviceName, serviceType) => {
     if (!serviceName || !serviceType) return [];
     const staffList = serviceType === "Therapy" ? therapists : teachers;
 
-    const qualified = staffList.filter((staff) =>
+    return staffList.filter((staff) =>
       staff.specializations?.some(
         (spec) => spec.trim().toLowerCase() === serviceName.trim().toLowerCase()
       )
     );
-    return qualified;
   };
 
   // --- Styles ---
@@ -188,61 +179,70 @@ export default function Step9Enrollment({ data, onChange }) {
   };
   const selectSuccessStyles = { ...selectStyles, borderColor: "#10b981" };
 
-  const getUsedServiceIdsByCategory = (category) => {
-    const list =
-      category === "oneOnOne" ? oneOnOneServices : groupClassServices;
-
-    return list.filter((s) => s.serviceId).map((s) => s.serviceId);
+  // Get used service IDs by type (to prevent duplicates)
+  const getUsedServiceIdsByType = (serviceType) => {
+    return serviceEnrollments
+      .filter((e) => e.serviceType === serviceType && e.serviceId)
+      .map((e) => e.serviceId);
   };
 
-  const renderRows = (list, category) => {
-    const allowedType = category === "oneOnOne" ? "Therapy" : "Class";
+  // Filter enrollments by service type for rendering
+  const therapyEnrollments = serviceEnrollments
+    .map((e, idx) => ({ ...e, originalIndex: idx }))
+    .filter((e) => e.serviceType === "Therapy");
+
+  const classEnrollments = serviceEnrollments
+    .map((e, idx) => ({ ...e, originalIndex: idx }))
+    .filter((e) => e.serviceType === "Class");
+
+  const renderRows = (enrollmentList, serviceType) => {
+    const label = serviceType === "Therapy" ? "Therapy" : "Class";
+    const staffLabel = serviceType === "Therapy" ? "Therapist" : "Teacher";
 
     return (
       <>
-        {list.length > 0 && (
+        {enrollmentList.length > 0 && (
           <div className="assessment-tools-header">
             <label>Service</label>
             <label>Assigned Staff</label>
           </div>
         )}
-        {list.map((service, index) => {
+        {enrollmentList.map((enrollment) => {
           const qualifiedStaff = getQualifiedStaff(
-            service.serviceName,
-            service.serviceType
+            enrollment.serviceName,
+            enrollment.serviceType
           );
-          const hasError = service.serviceId && qualifiedStaff.length === 0;
+          const hasError = enrollment.serviceId && qualifiedStaff.length === 0;
 
           return (
             <div
               className="assessment-tool-row"
-              key={`${category}-${index}`}
+              key={enrollment.enrollmentId || enrollment._tempId || enrollment.originalIndex}
               style={{ alignItems: "center" }}
             >
               <div className="assessment-tool-field">
                 <select
-                  value={service.serviceId}
+                  value={enrollment.serviceId}
                   onChange={(e) =>
-                    handleServiceChange(category, index, e.target.value)
+                    handleServiceChange(enrollment.originalIndex, e.target.value)
                   }
                   style={
-                    service.serviceId && !hasError
+                    enrollment.serviceId && !hasError
                       ? selectSuccessStyles
                       : selectStyles
                   }
                 >
-                  <option value="">-- Select {allowedType} --</option>
+                  <option value="">-- Select {label} --</option>
                   {services
                     .filter((s) => {
-                      if (s.type !== allowedType) return false;
+                      if (s.type !== serviceType) return false;
 
-                      const usedServiceIds =
-                        getUsedServiceIdsByCategory(category);
+                      const usedServiceIds = getUsedServiceIdsByType(serviceType);
 
-                      //allow currently selected service
-                      if (s.id === service.serviceId) return true;
+                      // Allow currently selected service
+                      if (s.id === enrollment.serviceId) return true;
 
-                      //eliminate already chosen services
+                      // Eliminate already chosen services
                       return !usedServiceIds.includes(s.id);
                     })
                     .map((s) => (
@@ -255,25 +255,22 @@ export default function Step9Enrollment({ data, onChange }) {
 
               <div className="assessment-tool-field">
                 <select
-                  value={service.staffId}
+                  value={enrollment.staffId}
                   onChange={(e) =>
-                    handleStaffChange(category, index, e.target.value)
+                    handleStaffChange(enrollment.originalIndex, e.target.value)
                   }
-                  disabled={!service.serviceId}
+                  disabled={!enrollment.serviceId}
                   style={
-                    !service.serviceId
+                    !enrollment.serviceId
                       ? selectDisabledStyles
                       : hasError
                       ? selectErrorStyles
-                      : service.staffId
+                      : enrollment.staffId
                       ? selectSuccessStyles
                       : selectStyles
                   }
                 >
-                  <option value="">
-                    -- Select{" "}
-                    {allowedType === "Therapy" ? "Therapist" : "Teacher"} --
-                  </option>
+                  <option value="">-- Select {staffLabel} --</option>
                   {qualifiedStaff.map((staff) => (
                     <option key={staff.uid} value={staff.uid}>
                       {staff.firstName} {staff.lastName}
@@ -289,7 +286,7 @@ export default function Step9Enrollment({ data, onChange }) {
                       display: "block",
                     }}
                   >
-                    ⚠️ No qualified staff available for {service.serviceName}
+                    ⚠️ No qualified staff available for {enrollment.serviceName}
                   </small>
                 )}
               </div>
@@ -297,7 +294,7 @@ export default function Step9Enrollment({ data, onChange }) {
               <button
                 type="button"
                 className="remove-entry-btn"
-                onClick={() => handleRemoveService(category, index)}
+                onClick={() => handleRemoveService(enrollment.originalIndex)}
                 style={{ marginTop: "0px" }}
               >
                 ✕
@@ -348,6 +345,8 @@ export default function Step9Enrollment({ data, onChange }) {
           <br />
           Services available (Step 4 match):{" "}
           {services.map((s) => `${s.name} (${s.id})`).join(", ")}
+          <br />
+          Current enrollments: {serviceEnrollments.length}
         </div>
       )}
 
@@ -357,11 +356,11 @@ export default function Step9Enrollment({ data, onChange }) {
         >
           1 ON 1 SERVICE
         </h4>
-        {renderRows(oneOnOneServices, "oneOnOne")}
+        {renderRows(therapyEnrollments, "Therapy")}
         <button
           type="button"
           className="add-point-btn"
-          onClick={() => handleAddService("oneOnOne")}
+          onClick={() => handleAddService("Therapy")}
         >
           + Add 1 on 1 Service
         </button>
@@ -381,17 +380,17 @@ export default function Step9Enrollment({ data, onChange }) {
         >
           GROUP CLASS
         </h4>
-        {renderRows(groupClassServices, "groupClass")}
+        {renderRows(classEnrollments, "Class")}
         <button
           type="button"
           className="add-point-btn"
-          onClick={() => handleAddService("groupClass")}
+          onClick={() => handleAddService("Class")}
         >
           + Add Group Class
         </button>
       </div>
 
-      {oneOnOneServices.length === 0 && groupClassServices.length === 0 && (
+      {therapyEnrollments.length === 0 && classEnrollments.length === 0 && (
         <div
           style={{
             padding: "40px 30px",

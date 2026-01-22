@@ -55,13 +55,22 @@ const TherapistDashboard = () => {
   }, [students, searchTerm]);
 
   const getMyServices = (student) => {
-    const allServices = student.enrolledServices || [
+    // NEW MODEL: Read from serviceEnrollments (primary)
+    if (student.serviceEnrollments && student.serviceEnrollments.length > 0) {
+      return student.serviceEnrollments.filter(enrollment =>
+        enrollment.status === 'active' &&
+        enrollment.currentStaff?.staffId === currentUser.uid
+      );
+    }
+
+    // LEGACY FALLBACK: Read from old arrays (for unmigrated data)
+    const legacyServices = [
       ...(student.oneOnOneServices || []),
       ...(student.groupClassServices || [])
     ];
 
-    return allServices.filter(s =>
-      (s.staffId === currentUser.uid) || (s.therapistId === currentUser.uid)
+    return legacyServices.filter(s =>
+      s.staffId === currentUser.uid || s.therapistId === currentUser.uid
     );
   };
 

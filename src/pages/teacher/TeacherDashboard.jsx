@@ -55,13 +55,22 @@ const TeacherDashboard = () => {
       const groupedClasses = {};
 
       students.forEach(student => {
-        const allServices = [
-          ...(student.groupClassServices || []),
-          ...(student.oneOnOneServices || []),
-          ...(student.enrolledServices || [])
-        ];
+        let myServices = [];
 
-        const myServices = allServices.filter(svc => svc.staffId === currentUser.uid);
+        // NEW MODEL: Read from serviceEnrollments (primary)
+        if (student.serviceEnrollments && student.serviceEnrollments.length > 0) {
+          myServices = student.serviceEnrollments.filter(enrollment =>
+            enrollment.status === 'active' &&
+            enrollment.currentStaff?.staffId === currentUser.uid
+          );
+        } else {
+          // LEGACY FALLBACK: Read from old arrays (for unmigrated data)
+          const legacyServices = [
+            ...(student.groupClassServices || []),
+            ...(student.oneOnOneServices || [])
+          ];
+          myServices = legacyServices.filter(svc => svc.staffId === currentUser.uid);
+        }
 
         myServices.forEach(svc => {
           const className = svc.serviceName || 'Unassigned Group';
