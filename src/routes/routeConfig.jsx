@@ -40,9 +40,6 @@ import ChildActivities from "../pages/parent/ChildActivities";
 import ParentConcerns from "../pages/parent/parentConcernsPages/ParentConcerns";
 import MonthlySummary from "../pages/parent/MonthlySummary";
 
-// Staff Shared Components
-import StaffInquiries from "../pages/shared/StaffInquiries";
-
 // Common Components
 import Loading from "../components/common/Loading";
 
@@ -101,9 +98,6 @@ export const ROUTES = {
     SUMMARY: "/parent/summary",
   },
 
-  STAFF: {
-    INQUIRIES: "/staff/inquiries",
-  },
 };
 
 /**
@@ -286,9 +280,6 @@ export const AppRoutes = () => {
       <Route path={ROUTES.PARENT.CHILD} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><ChildActivities /></ProtectedRoute>} />
       <Route path={ROUTES.PARENT.CONCERNS} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><ParentConcerns /></ProtectedRoute>} />
       <Route path={ROUTES.PARENT.SUMMARY} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><MonthlySummary /></ProtectedRoute>} />
-
-      {/* SHARED STAFF ROUTES */}
-      <Route path={ROUTES.STAFF.INQUIRIES} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.STAFF}><StaffInquiries /></ProtectedRoute>} />
 
       {/* ERROR ROUTES */}
       <Route path={ROUTES.UNAUTHORIZED} element={<UnauthorizedPage />} />

@@ -144,8 +144,7 @@ export const getTherapistConfig = (profileCompleted = true) => ({
           icon: enroll_Icon,
           label: "ENROLL STUDENT",
           requiresPermission: "canEnrollStudents"  // Add this flag
-        },
-        { path: "/staff/inquiries", icon: MailIcon, label: "INQUIRIES" },
+        }
       ]
     }
   ]
@@ -176,9 +175,7 @@ export const getTeacherConfig = (profileCompleted = true) => ({
           icon: enroll_Icon,
           label: "ENROLL STUDENT",
           requiresPermission: "canEnrollStudents"  // Add this flag
-        },
-
-        { path: "/staff/inquiries", icon: MailIcon, label: "INQUIRIES" }
+        }
       ]
     }
   ]

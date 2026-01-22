@@ -6,7 +6,6 @@ import activityService from '../../services/activityService';
 import cloudinaryService from '../../services/cloudinaryService';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getTeacherConfig } from '../../components/sidebar/sidebarConfigs';
-import { Mail, Phone } from 'lucide-react';
 import logo from '../../images/logo.png';
 import './css/PlayGroupActivity.css';
 
@@ -78,7 +77,7 @@ const PlayGroupActivity = () => {
     setPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
-  // --- 3. TAGGING LOGIC ---
+  // --- 3. TAGGING LOGIC (IMPROVED) ---
   const toggleStudent = (studentId) => {
     setTaggedStudentIds(prev => {
       if (prev.includes(studentId)) return prev.filter(id => id !== studentId);
@@ -86,6 +85,17 @@ const PlayGroupActivity = () => {
     });
   };
 
+  // Mark ALL students as present (common workflow - most students are present)
+  const markAllPresent = () => {
+    setTaggedStudentIds(students.map(s => s.id));
+  };
+
+  // Clear all selections
+  const clearAllSelections = () => {
+    setTaggedStudentIds([]);
+  };
+
+  // Legacy toggle function (kept for compatibility)
   const selectAll = () => {
     if (taggedStudentIds.length === students.length) {
       setTaggedStudentIds([]);
@@ -94,12 +104,54 @@ const PlayGroupActivity = () => {
     }
   };
 
-  // --- 4. UPLOAD & SAVE ---
+  // Helper to get display name with last initial
+  const getDisplayName = (student) => {
+    const firstName = student.firstName || '';
+    const lastInitial = student.lastName ? ` ${student.lastName.charAt(0)}.` : '';
+    return `${firstName}${lastInitial}`;
+  };
+
+  // Helper to get full name for confirmation
+  const getFullName = (student) => {
+    return `${student.firstName || ''} ${student.lastName || ''}`.trim();
+  };
+
+  // --- 4. UPLOAD & SAVE (WITH CONFIRMATION) ---
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (selectedImages.length === 0) return alert("Please select at least one photo.");
-    if (taggedStudentIds.length === 0) return alert("Please tag at least one student.");
+    // Validation
+    if (selectedImages.length === 0) {
+      alert("Please select at least one photo.");
+      return;
+    }
+    if (taggedStudentIds.length === 0) {
+      alert("Please mark at least one student as present.");
+      return;
+    }
+
+    // Get names of selected students for confirmation
+    const selectedStudentNames = taggedStudentIds
+      .map(id => {
+        const student = students.find(s => s.id === id);
+        return student ? getDisplayName(student) : '';
+      })
+      .filter(Boolean);
+
+    // Confirmation dialog
+    const confirmMessage = 
+      `Post Group Activity?\n\n` +
+      `Activity: "${title || 'Untitled'}"\n` +
+      `Class: ${className || 'Not specified'}\n` +
+      `Date: ${date}\n` +
+      `Photos: ${selectedImages.length}\n\n` +
+      `✓ Students Present (${taggedStudentIds.length}):\n` +
+      `${selectedStudentNames.join(', ')}\n\n` +
+      `Do you want to continue?`;
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
 
     setUploading(true);
 
@@ -125,12 +177,12 @@ const PlayGroupActivity = () => {
 
       await activityService.createGroupActivity(activityData);
 
-      alert('Activity Uploaded Successfully!');
+      alert('✅ Activity Uploaded Successfully!');
       navigate(-1);
 
     } catch (error) {
       console.error("Upload failed:", error);
-      alert("Failed to upload activity.");
+      alert("Failed to upload activity. Please try again.");
       setUploading(false);
     }
   };
@@ -152,10 +204,7 @@ const PlayGroupActivity = () => {
 
             {/* Back Button */}
             <button onClick={() => navigate(-1)} className="play-group__back-btn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M19 12H5M12 19l-7-7 7-7"/>
-              </svg>
-              Back to Dashboard
+              ← Back to Dashboard
             </button>
 
             <form onSubmit={handleSubmit}>
@@ -172,8 +221,13 @@ const PlayGroupActivity = () => {
                     className={`play-group__input ${preSelectedClassName ? 'play-group__input--prefilled' : ''}`}
                     placeholder="e.g. Art Class"
                     value={className}
-                    onChange={e => setClassName(e.target.value)}
+                    onChange={e => !preSelectedClassName && setClassName(e.target.value)}
+                    readOnly={!!preSelectedClassName}
+                    disabled={!!preSelectedClassName}
                   />
+                  {preSelectedClassName && (
+                    <span className="play-group__field-note">Class name is set from your selected class</span>
+                  )}
                 </div>
 
                 <div className="play-group__form-group">
@@ -244,30 +298,58 @@ const PlayGroupActivity = () => {
                 </div>
               </div>
 
-              {/* Section 3: Student Selection */}
+              {/* Section 3: Student Selection (IMPROVED) */}
               <div className="play-group__section">
                 <h3 className="play-group__section-title">
                   <span className="play-group__section-number">3</span>
                   Who was present?
                 </h3>
 
+                {/* Improved Header with Quick Actions */}
                 <div className="play-group__selection-header">
-                  <span className="play-group__selection-count">
-                    {taggedStudentIds.length} student{taggedStudentIds.length !== 1 ? 's' : ''} selected
-                  </span>
-                  <button
-                    type="button"
-                    onClick={selectAll}
-                    className="play-group__select-all-btn"
-                  >
-                    {taggedStudentIds.length === students.length ? 'Deselect All' : 'Select All'}
-                  </button>
+                  <div className="play-group__selection-info">
+                    <span className="play-group__selection-count">
+                      <strong>{taggedStudentIds.length}</strong> of <strong>{students.length}</strong> students marked present
+                    </span>
+                    {taggedStudentIds.length === 0 && students.length > 0 && (
+                      <span className="play-group__selection-hint">
+                        💡 Tip: Click "Mark All Present" then unmark absentees
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Quick Action Buttons */}
+                  <div className="play-group__quick-actions">
+                    <button
+                      type="button"
+                      onClick={markAllPresent}
+                      className="play-group__action-btn play-group__action-btn--primary"
+                      disabled={taggedStudentIds.length === students.length}
+                    >
+                      ✓ Mark All Present
+                    </button>
+                    <button
+                      type="button"
+                      onClick={clearAllSelections}
+                      className="play-group__action-btn play-group__action-btn--secondary"
+                      disabled={taggedStudentIds.length === 0}
+                    >
+                      ✕ Clear All
+                    </button>
+                  </div>
                 </div>
 
+                {/* Student Grid (IMPROVED) */}
                 {loadingStudents ? (
-                  <p className="play-group__loading-text">Loading your class list...</p>
+                  <div className="play-group__loading-state">
+                    <div className="play-group__spinner"></div>
+                    <p>Loading your class list...</p>
+                  </div>
                 ) : students.length === 0 ? (
-                  <p className="play-group__error-text">No students found assigned to this class.</p>
+                  <div className="play-group__empty-state">
+                    <span className="play-group__empty-icon">👥</span>
+                    <p>No students found assigned to this class.</p>
+                  </div>
                 ) : (
                   <div className="play-group__students-grid">
                     {students.map(student => {
@@ -275,74 +357,91 @@ const PlayGroupActivity = () => {
                       return (
                         <div
                           key={student.id}
-                          className={`play-group__student-card ${isSelected ? 'play-group__student-card--selected' : ''}`}
+                          className={`play-group__student-card ${isSelected ? 'play-group__student-card--selected' : 'play-group__student-card--unselected'}`}
                           onClick={() => toggleStudent(student.id)}
+                          role="button"
+                          tabIndex={0}
+                          aria-pressed={isSelected}
+                          aria-label={`${getFullName(student)} - ${isSelected ? 'Present' : 'Not marked'}`}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              toggleStudent(student.id);
+                            }
+                          }}
                         >
-                          <div className="play-group__student-avatar">
+                          {/* Checkbox Indicator */}
+                          <div className={`play-group__checkbox ${isSelected ? 'play-group__checkbox--checked' : ''}`}>
+                            {isSelected && <span>✓</span>}
+                          </div>
+
+                          {/* Avatar */}
+                          <div className={`play-group__student-avatar ${isSelected ? 'play-group__student-avatar--selected' : ''}`}>
                             {student.photoUrl ? (
                               <img src={student.photoUrl} alt={student.firstName} />
-                            ) : '👤'}
+                            ) : (
+                              <span className="play-group__avatar-placeholder">
+                                {student.firstName?.charAt(0)?.toUpperCase() || '?'}
+                              </span>
+                            )}
                           </div>
-                          <p className="play-group__student-name">{student.firstName}</p>
-                          {isSelected && (
-                            <div className="play-group__student-check">
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                <polyline points="20 6 9 17 4 12"/>
-                              </svg>
-                              Here
-                            </div>
-                          )}
+
+                          {/* Name with Last Initial */}
+                          <p className="play-group__student-name">{getDisplayName(student)}</p>
+
+                          {/* Status Badge */}
+                          <div className={`play-group__status-badge ${isSelected ? 'play-group__status-badge--present' : 'play-group__status-badge--unmarked'}`}>
+                            {isSelected ? '✓ PRESENT' : 'Tap to mark'}
+                          </div>
                         </div>
                       );
                     })}
                   </div>
                 )}
+
+                {/* Selection Summary (shows when students are selected) */}
+                {taggedStudentIds.length > 0 && (
+                  <div className="play-group__selection-summary">
+                    <div className="play-group__summary-icon">✓</div>
+                    <div className="play-group__summary-text">
+                      <strong>{taggedStudentIds.length} student{taggedStudentIds.length !== 1 ? 's' : ''}</strong> will be tagged in this activity
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Submit Button */}
+              {/* Submit Button (IMPROVED) */}
               <button
                 type="submit"
-                disabled={uploading}
-                className="play-group__submit-btn"
+                disabled={uploading || taggedStudentIds.length === 0 || selectedImages.length === 0}
+                className={`play-group__submit-btn ${(taggedStudentIds.length === 0 || selectedImages.length === 0) ? 'play-group__submit-btn--disabled' : ''}`}
               >
                 {uploading ? (
-                  'Uploading...'
+                  <>
+                    <span className="play-group__btn-spinner"></span>
+                    Uploading Activity...
+                  </>
                 ) : (
                   <>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                      <polyline points="17 8 12 3 7 8"/>
-                      <line x1="12" y1="3" x2="12" y2="15"/>
-                    </svg>
-                    Upload Group Activity
+                    📤 Post Activity ({taggedStudentIds.length} student{taggedStudentIds.length !== 1 ? 's' : ''})
                   </>
                 )}
               </button>
+
+              {/* Validation Hints */}
+              {(taggedStudentIds.length === 0 || selectedImages.length === 0) && (
+                <div className="play-group__validation-hints">
+                  {selectedImages.length === 0 && (
+                    <span className="play-group__hint-item">Add at least one photo</span>
+                  )}
+                  {taggedStudentIds.length === 0 && (
+                    <span className="play-group__hint-item">Mark at least one student as present</span>
+                  )}
+                </div>
+              )}
             </form>
           </div>
         </div>
-
-        {/* Footer */}
-        <footer className="play-group__footer">
-          <div className="play-group__footer-content">
-            <div className="play-group__footer-item">
-              <div className="play-group__footer-logo">
-                <img src={logo} alt="Little Lions" className="play-group__footer-logo-img" />
-              </div>
-              <span>Little Lions Learning and Development Center</span>
-            </div>
-            <span className="play-group__footer-divider">•</span>
-            <div className="play-group__footer-item">
-              <Mail size={18} className="play-group__footer-icon" />
-              <span>littlelionsldc@gmail.com</span>
-            </div>
-            <span className="play-group__footer-divider">•</span>
-            <div className="play-group__footer-item">
-              <Phone size={18} className="play-group__footer-icon" />
-              <span>(+63) 9677900930</span>
-            </div>
-          </div>
-        </footer>
       </div>
     </div>
   );

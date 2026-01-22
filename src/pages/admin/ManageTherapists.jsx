@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import useManageTherapists from '../../hooks/useManageTherapists';
 import { useAuth } from '../../hooks/useAuth';
 import Sidebar from '../../components/sidebar/Sidebar';
@@ -6,16 +7,15 @@ import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import TherapistCard from '../shared/TherapistCard';
 import ActivationModal from '../../components/admin/ActivationModal';
 import Loading from '../../components/common/Loading';
-// 1. IMPORT THE CACHED HOOK (Saves money!)
 import { useChildrenByStaff } from '../../hooks/useCachedData';
-
-// 2. CSS IMPORTS (Crucial for the "Circle" and "Scroll")
-import "./css/OneOnOne.css";      // Provides 'ooo-photo-area' (The Color Circle!)
-import "./css/ManageTeacher.css"; // Provides the main layout & search styles
+import "./css/OneOnOne.css";      
+import "./css/ManageTeacher.css"; 
 import "./css/managetherapist.css"; 
 
 const ManageTherapists = () => {
   const { currentUser } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate(); // Added navigate hook
   const isSuperAdmin = currentUser?.role === 'super_admin';
 
   const {
@@ -31,18 +31,27 @@ const ManageTherapists = () => {
 
   const [showForm, setShowForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTherapistId, setSelectedTherapistId] = useState(null);
+  
+  // Initialize state with passed ID if it exists
+  const [selectedTherapistId, setSelectedTherapistId] = useState(location.state?.selectedStaffId || null);
 
   // Activation Modal State
   const [showActivationModal, setShowActivationModal] = useState(false);
   const [newUserData, setNewUserData] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
 
-  // 3. USE CACHED DATA (No duplicate reads)
+  // 3. USE CACHED DATA
   const { 
     data: assignedStudents = [], 
     isLoading: loadingStudents 
   } = useChildrenByStaff(selectedTherapistId);
+
+  // Effect to handle navigation updates
+  useEffect(() => {
+    if (location.state?.selectedStaffId) {
+      setSelectedTherapistId(location.state.selectedStaffId);
+    }
+  }, [location.state]);
 
   const filteredTherapists = therapists.filter(t =>
     `${t.firstName} ${t.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -75,6 +84,15 @@ const ManageTherapists = () => {
     }
   };
 
+  // Handler for Back Button
+  const handleBack = () => {
+    if (location.state?.returnTo) {
+      navigate(location.state.returnTo, { state: location.state.returnState });
+    } else {
+      setSelectedTherapistId(null);
+    }
+  };
+
   const selectedTherapist = selectedTherapistId 
     ? therapists.find(t => t.uid === selectedTherapistId) 
     : null;
@@ -84,28 +102,7 @@ const ManageTherapists = () => {
   const handleSpecChange = (index, value) => {
     const updatedSpecs = [...newTherapist.specializations];
     updatedSpecs[index] = value;
-    
-    // Assuming you have access to set state, or you can create a custom update
-    // If setNewTherapist is not available, you might need to update your hook
-    // For now, this mimics a state update:
     newTherapist.specializations = updatedSpecs; 
-    // forceUpdate or standard setState would go here. 
-    // Ideally: setNewTherapist({ ...newTherapist, specializations: updatedSpecs });
-  };
-
-  // Add a new empty dropdown row
-  const addSpecRow = () => {
-    const updatedSpecs = [...newTherapist.specializations, ""];
-    // Ideally: setNewTherapist({ ...newTherapist, specializations: updatedSpecs });
-    // For direct mutation (if hook manages object ref):
-    newTherapist.specializations = updatedSpecs;
-  };
-
-  // Remove a row
-  const removeSpecRow = (index) => {
-    const updatedSpecs = newTherapist.specializations.filter((_, i) => i !== index);
-    // Ideally: setNewTherapist({ ...newTherapist, specializations: updatedSpecs });
-    newTherapist.specializations = updatedSpecs;
   };
 
   return (
@@ -123,7 +120,7 @@ const ManageTherapists = () => {
               {selectedTherapistId && (
                 <span
                   className="mt-back-btn"
-                  onClick={() => setSelectedTherapistId(null)}
+                  onClick={handleBack}
                 >
                   ‹
                 </span>
@@ -187,7 +184,6 @@ const ManageTherapists = () => {
                    </div>
                 ) : (
                   // FIX: Using 'ooo-grid' + 'ooo-card' + 'ooo-photo-area'
-                  // This combination gives you the exact UI and the CIRCLE PICTURE
                   <div className="ooo-grid">
                     {assignedStudents.map(student => (
                       <div key={student.id} className="ooo-card" style={{ cursor: 'default' }}>
@@ -362,11 +358,8 @@ const ManageTherapists = () => {
                             onChange={(e) => {
                               const updatedSpecs = [...newTherapist.specializations];
                               updatedSpecs[index] = e.target.value;
-                              // NOTE: You need to update your state here. 
-                              // Example: setNewTherapist({ ...newTherapist, specializations: updatedSpecs })
-                              // If using the hook directly, ensure it triggers a re-render.
-                              Object.assign(newTherapist, { specializations: updatedSpecs }); // Temporary mutation if setter missing
-                              setNewUserData({ ...newUserData }); // Force re-render hack if needed, or preferably use proper setState
+                              Object.assign(newTherapist, { specializations: updatedSpecs }); 
+                              setNewUserData({ ...newUserData }); 
                             }}
                           >
                             <option value="" disabled>
@@ -374,8 +367,6 @@ const ManageTherapists = () => {
                             </option>
                             {services
                               .filter((service) => {
-                                // Logic: Show option if it is the CURRENT value for this row
-                                // OR if it is NOT used in any other row.
                                 const isCurrentlySelected = service.name === currentSpec;
                                 const isAlreadyUsed = newTherapist.specializations.includes(service.name);
                                 return isCurrentlySelected || !isAlreadyUsed;
@@ -393,10 +384,8 @@ const ManageTherapists = () => {
                           type="button"
                           onClick={() => {
                             const updatedSpecs = newTherapist.specializations.filter((_, i) => i !== index);
-                            // NOTE: Update state here
-                            // setNewTherapist({ ...newTherapist, specializations: updatedSpecs })
                             Object.assign(newTherapist, { specializations: updatedSpecs }); 
-                            setNewUserData({ ...newUserData }); // Force update trigger
+                            setNewUserData({ ...newUserData }); 
                           }}
                           style={{
                             border: "none",
@@ -418,16 +407,14 @@ const ManageTherapists = () => {
                       </div>
                     ))}
 
-                    {/* Add Button - Only shows if there are available services left to pick */}
+                    {/* Add Button */}
                     {services && newTherapist.specializations.length < services.length && (
                       <button
                         type="button"
                         onClick={() => {
                            const updatedSpecs = [...newTherapist.specializations, ""];
-                           // NOTE: Update state here
-                           // setNewTherapist({ ...newTherapist, specializations: updatedSpecs })
                            Object.assign(newTherapist, { specializations: updatedSpecs });
-                           setNewUserData({ ...newUserData }); // Force update trigger
+                           setNewUserData({ ...newUserData }); 
                         }}
                         style={{
                           alignSelf: "flex-start",
@@ -449,7 +436,6 @@ const ManageTherapists = () => {
                       </button>
                     )}
                     
-                    {/* Fallback if no specs are added yet */}
                     {newTherapist.specializations.length === 0 && (
                        <p style={{ fontSize: '12px', color: '#999', fontStyle: 'italic', margin: '0 0 10px 0'}}>
                          No specializations added yet.

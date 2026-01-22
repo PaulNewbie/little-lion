@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import useManageTeachers from '../../hooks/useManageTeachers';
 import { useAuth } from '../../hooks/useAuth';
 import Sidebar from '../../components/sidebar/Sidebar';
@@ -6,13 +7,14 @@ import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import TeacherCard from '../shared/TeacherCard';
 import ActivationModal from '../../components/admin/ActivationModal';
 import Loading from '../../components/common/Loading';
-// 1. IMPORT THE CACHED HOOK
 import { useChildrenByStaff } from '../../hooks/useCachedData';
 import "./css/OneOnOne.css";
 import "./css/ManageTeacher.css";
 
 const ManageTeachers = () => {
   const { currentUser } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate(); // Added navigate hook
   const isSuperAdmin = currentUser?.role === 'super_admin';
 
   const {
@@ -28,19 +30,26 @@ const ManageTeachers = () => {
   const [showForm, setShowForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
-  // State for Profile View (Determines if we show List or Detail)
-  const [selectedTeacherId, setSelectedTeacherId] = useState(null);
+  // Initialize state with passed ID if it exists, otherwise null
+  const [selectedTeacherId, setSelectedTeacherId] = useState(location.state?.selectedStaffId || null);
 
   // Activation Modal State
   const [showActivationModal, setShowActivationModal] = useState(false);
   const [newUserData, setNewUserData] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
 
-  // 2. USE THE CACHED HOOK (Saves reads, handles loading auto-magically)
+  // 2. USE THE CACHED HOOK
   const { 
     data: assignedStudents = [], 
     isLoading: loadingStudents 
   } = useChildrenByStaff(selectedTeacherId);
+
+  // Effect to update selection if navigating while component is already mounted
+  useEffect(() => {
+    if (location.state?.selectedStaffId) {
+      setSelectedTeacherId(location.state.selectedStaffId);
+    }
+  }, [location.state]);
 
   // Filter teachers based on search query
   const filteredTeachers = teachers.filter(teacher =>
@@ -79,6 +88,17 @@ const ManageTeachers = () => {
     }
   };
 
+  // Handler for Back Button
+  const handleBack = () => {
+    if (location.state?.returnTo) {
+      // Navigate back to the previous page (StudentProfile) with its required state
+      navigate(location.state.returnTo, { state: location.state.returnState });
+    } else {
+      // Default behavior: go back to list view
+      setSelectedTeacherId(null);
+    }
+  };
+
   return (
     <div className="ooo-container">
       <Sidebar {...getAdminConfig(isSuperAdmin)} />
@@ -97,7 +117,7 @@ const ManageTeachers = () => {
               {selectedTeacherId && (
                 <span
                   className="mt-back-btn"
-                  onClick={() => setSelectedTeacherId(null)}
+                  onClick={handleBack}
                 >
                   ‹
                 </span>
@@ -142,7 +162,6 @@ const ManageTeachers = () => {
           
           {selectedTeacherId && selectedTeacher ? (
             /* ---------------- VIEW: SINGLE TEACHER PROFILE ---------------- */
-            /* 3. SCROLL FIX: Removed height:100% and added paddingBottom */
             <div style={{ paddingBottom: '120px', width: '100%' }}>
               <TeacherCard teacher={selectedTeacher} />
 

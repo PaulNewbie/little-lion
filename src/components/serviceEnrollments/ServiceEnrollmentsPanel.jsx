@@ -2,12 +2,14 @@
 // Container panel for displaying and managing all service enrollments
 
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import ServiceCard from './ServiceCard';
 import ChangeStaffModal from './ChangeStaffModal';
 import DeactivateServiceModal from './DeactivateServiceModal';
 import ReactivateServiceModal from './ReactivateServiceModal';
 import { useServiceEnrollments } from '../../hooks/useServiceEnrollments';
 import Loading from '../common/Loading';
+import { ROUTES } from '../../routes/routeConfig';
 import './ServiceEnrollments.css';
 
 /**
@@ -30,6 +32,9 @@ const ServiceEnrollmentsPanel = ({
   viewerRole = null,
   viewerId = null,
 }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   // Hook for service enrollment data and actions
   const {
     activeEnrollments,
@@ -122,6 +127,24 @@ const ServiceEnrollmentsPanel = ({
       setReactivateModal({ isOpen: false, enrollmentId: null, serviceName: null, serviceType: null });
     }
     return result;
+  };
+
+  // Handler for clicking staff avatar in the summary section
+  const handleStaffClick = (staff) => {
+    if (!staff) return;
+
+    // Construct the state to pass
+    const navigationState = { 
+      selectedStaffId: staff.staffId,
+      returnTo: location.pathname, // e.g. /admin/StudentProfile
+      returnState: { studentId: childId } // Pass childId so StudentProfile loads correct student
+    };
+
+    if (staff.staffRole === 'teacher') {
+      navigate(ROUTES.ADMIN.MANAGE_TEACHERS, { state: navigationState });
+    } else if (staff.staffRole === 'therapist') {
+      navigate(ROUTES.ADMIN.MANAGE_THERAPISTS, { state: navigationState });
+    }
   };
 
   if (isLoading) {
@@ -293,7 +316,9 @@ const ServiceEnrollmentsPanel = ({
                 <div
                   key={enrollment.enrollmentId}
                   className="se-panel__avatar-item"
-                  title={`${enrollment.currentStaff.staffName} - ${enrollment.serviceName}`}
+                  title={`${enrollment.currentStaff.staffName} - ${enrollment.serviceName} (Click to view profile)`}
+                  onClick={() => handleStaffClick(enrollment.currentStaff)}
+                  style={{ cursor: 'pointer' }}
                 >
                   <div className="se-panel__avatar">
                     {enrollment.currentStaff.staffRole === 'therapist' ? '👨‍⚕️' : '👩‍🏫'}
