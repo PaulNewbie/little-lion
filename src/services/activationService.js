@@ -100,7 +100,7 @@ class ActivationService {
       
     } catch (error) {
       console.error('Error validating activation code:', error);
-      return { valid: false, error: 'Failed to validate code' };
+      return { valid: false, error: `Failed: ${error.code || error.message || 'unknown'}` };
     }
   }
 
