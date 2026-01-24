@@ -5,14 +5,16 @@ import { getAuth, updatePassword } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../context/ToastContext';
 
 const ChangePassword = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const { currentUser } = useAuth();
+  const toast = useToast();
   // const navigate = useNavigate();
   const auth = getAuth();
 
@@ -37,8 +39,8 @@ const ChangePassword = () => {
         mustChangePassword: false
       });
 
-      alert("Password updated successfully!");
-      
+      toast.success("Password updated successfully!");
+
       // 3. Redirect to home (AppRoutes will handle the rest)
       window.location.href = '/'; 
 

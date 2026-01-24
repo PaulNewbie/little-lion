@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../context/ToastContext';
 import childService from '../../services/childService';
 import { saveSessionActivity } from '../../services/activityService';
 import Loading from '../../components/common/Loading';
@@ -22,6 +23,7 @@ const COMMON_NEEDS = ["Distracted", "Hit/Pushed", "Cried", "Refused to Share", "
 const TeacherDashboard = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
 
   // Data State
   const [myClasses, setMyClasses] = useState([]);
@@ -140,7 +142,7 @@ const TeacherDashboard = () => {
 
   const handleObsSubmit = async (e) => {
     e.preventDefault();
-    if (!topic) { alert("Please select or type a topic."); return; }
+    if (!topic) { toast.warning("Please select or type a topic."); return; }
     setSubmittingObs(true);
 
     const finalStrengths = [...selectedStrengths, strengthNote].filter(Boolean).join('. ');
@@ -165,10 +167,10 @@ const TeacherDashboard = () => {
       };
 
       await saveSessionActivity(sessionData);
-      alert(`Observation saved for ${obsStudent.firstName}!`);
+      toast.success(`Observation saved for ${obsStudent.firstName}!`);
       setShowObsModal(false);
     } catch (err) {
-      alert("Failed to save observation.");
+      toast.error("Failed to save observation.");
     } finally {
       setSubmittingObs(false);
     }

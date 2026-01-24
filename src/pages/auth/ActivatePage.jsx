@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import activationService from '../../services/activationService';
+import { useToast } from '../../context/ToastContext';
 
 // Minimal inline styles
 const styles = {
@@ -182,7 +183,8 @@ const styles = {
 export default function ActivatePage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  
+  const toast = useToast();
+
   // Get code from URL if present
   const urlCode = searchParams.get('code') || '';
   
@@ -311,7 +313,7 @@ export default function ActivatePage() {
     try {
       const result = await activationService.regenerateActivationCode(userData.uid, userData.email);
       if (result.success) {
-        alert(`New activation code: ${result.newCode}\n\nPlease use this code to activate your account.`);
+        toast.info(`New code generated: ${result.newCode}`, 8000);
         setCode(result.newCode);
         setStep('enter_code');
         setError('');

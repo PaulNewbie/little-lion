@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../context/ToastContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import childService from '../../services/childService';
 import activityService from '../../services/activityService';
@@ -11,6 +12,7 @@ import './css/PlayGroupActivity.css';
 
 const PlayGroupActivity = () => {
   const { currentUser } = useAuth();
+  const toast = useToast();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -54,7 +56,7 @@ const PlayGroupActivity = () => {
         setStudents(data);
       } catch (error) {
         console.error("Error fetching students:", error);
-        alert("Failed to load student list");
+        toast.error("Failed to load student list");
       } finally {
         setLoadingStudents(false);
       }
@@ -122,11 +124,11 @@ const PlayGroupActivity = () => {
 
     // Validation
     if (selectedImages.length === 0) {
-      alert("Please select at least one photo.");
+      toast.warning("Please select at least one photo.");
       return;
     }
     if (taggedStudentIds.length === 0) {
-      alert("Please mark at least one student as present.");
+      toast.warning("Please mark at least one student as present.");
       return;
     }
 
@@ -177,12 +179,12 @@ const PlayGroupActivity = () => {
 
       await activityService.createGroupActivity(activityData);
 
-      alert('✅ Activity Uploaded Successfully!');
+      toast.success('Activity uploaded successfully!');
       navigate(-1);
 
     } catch (error) {
       console.error("Upload failed:", error);
-      alert("Failed to upload activity. Please try again.");
+      toast.error("Failed to upload activity. Please try again.");
       setUploading(false);
     }
   };

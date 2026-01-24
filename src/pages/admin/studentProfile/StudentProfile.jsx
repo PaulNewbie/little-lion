@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
+import { useToast } from "../../../context/ToastContext";
 import Sidebar from '../../../components/sidebar/Sidebar';
 import { getAdminConfig, getParentConfig, getTeacherConfig, getTherapistConfig } from '../../../components/sidebar/sidebarConfigs';
 import GeneralFooter from "../../../components/footer/generalfooter";
@@ -35,6 +36,7 @@ const StudentProfile = ({
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const toast = useToast();
   const calendarRef = useRef(null);
 
   // Navigation state
@@ -109,7 +111,7 @@ const StudentProfile = ({
           const children = await childService.getChildrenByParentId(currentUser.uid);
           const child = children.find(c => c.id === childIdFromRoute);
           if (!child) {
-            alert("Child not found or access denied");
+            toast.error("Child not found or access denied");
             navigate("/parent/dashboard");
             return;
           }
@@ -182,11 +184,11 @@ const StudentProfile = ({
     const file = e.target.files[0];
     if (!file) return;
     if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
-      alert('Please upload a JPG or PNG image.');
+      toast.error('Please upload a JPG or PNG image.');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB.');
+      toast.error('File size must be less than 5MB.');
       return;
     }
     setUploadingPhoto(true);
@@ -195,10 +197,10 @@ const StudentProfile = ({
       await childService.updateChildPhoto(selectedStudent.id, currentUser.uid, photoUrl);
       setSelectedStudent(prev => ({ ...prev, photoUrl }));
       await refreshData();
-      alert('Photo uploaded successfully!');
+      toast.success('Photo uploaded successfully!');
     } catch (error) {
       console.error('Photo upload failed:', error);
-      alert('Failed to upload photo. Please try again.');
+      toast.error('Failed to upload photo. Please try again.');
     } finally {
       setUploadingPhoto(false);
     }
@@ -268,7 +270,7 @@ const StudentProfile = ({
       setAvailableServices(filtered);
     } catch (error) {
       console.error("Error loading services:", error);
-      alert("Error loading services: " + error.message);
+      toast.error("Error loading services: " + error.message);
     } finally {
       setLoadingServices(false);
     }
@@ -276,7 +278,7 @@ const StudentProfile = ({
 
   const handleAddSubmit = async (serviceType) => {
     if (!addForm.serviceId || !addForm.staffId) {
-      alert("Please select both a service and staff member.");
+      toast.warning("Please select both a service and staff member.");
       return;
     }
 
@@ -316,10 +318,10 @@ const StudentProfile = ({
       await refreshData();
 
       setIsAddModalOpen(false);
-      alert("Service enrolled successfully!");
+      toast.success("Service enrolled successfully!");
     } catch (err) {
       console.error("Enrollment failed:", err);
-      alert("Failed to enroll service: " + err.message);
+      toast.error("Failed to enroll service: " + err.message);
     } finally {
       setIsSubmitting(false);
     }
