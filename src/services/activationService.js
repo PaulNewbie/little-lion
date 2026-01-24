@@ -40,10 +40,13 @@ class ActivationService {
   generateActivationData(tempPassword) {
     const now = Date.now();
     const expiryMs = ACTIVATION_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
-    
+    const code = generateActivationCode();
+
+    console.log('📝 Generated activation code:', code);
+
     return {
       accountStatus: 'pending_setup',
-      activationCode: generateActivationCode(),
+      activationCode: code,
       activationExpiry: now + expiryMs,
       activationCreatedAt: now,
       // Store temp password (base64 encoded) - will be deleted after activation
@@ -59,26 +62,40 @@ class ActivationService {
   async validateActivationCode(code) {
     try {
       const normalizedCode = normalizeCode(code);
-      
+      const formattedCode = this.formatStoredCode(normalizedCode);
+
+      console.log('🔍 Validating activation code:', {
+        originalCode: code,
+        normalizedCode,
+        formattedCode,
+        codeUpperCase: code.toUpperCase()
+      });
+
       // Query for user with this activation code
       const usersRef = collection(db, 'users');
-      const q = query(usersRef, where('activationCode', '==', this.formatStoredCode(normalizedCode)));
+      const q = query(usersRef, where('activationCode', '==', formattedCode));
       const snapshot = await getDocs(q);
+
+      console.log('🔍 Query 1 results:', snapshot.size, 'documents found');
 
       if (snapshot.empty) {
         // Try with the original format too
         const q2 = query(usersRef, where('activationCode', '==', code.toUpperCase()));
         const snapshot2 = await getDocs(q2);
-        
+
+        console.log('🔍 Query 2 results:', snapshot2.size, 'documents found');
+
         if (snapshot2.empty) {
+          console.log('❌ No user found with activation code');
           return { valid: false, error: 'Invalid activation code' };
         }
-        
+
         const userDoc = snapshot2.docs[0];
         return this.checkUserActivationStatus(userDoc);
       }
 
       const userDoc = snapshot.docs[0];
+      console.log('✅ User found:', userDoc.id);
       return this.checkUserActivationStatus(userDoc);
       
     } catch (error) {
