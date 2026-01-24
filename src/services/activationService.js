@@ -119,17 +119,28 @@ class ActivationService {
    */
   checkUserActivationStatus(userDoc) {
     const userData = userDoc.data();
-    
+
+    console.log('🔍 Checking user status:', {
+      accountStatus: userData.accountStatus,
+      activationExpiry: userData.activationExpiry,
+      expiryDate: new Date(userData.activationExpiry).toISOString(),
+      now: Date.now(),
+      isExpired: Date.now() > userData.activationExpiry
+    });
+
     // Check if already activated
     if (userData.accountStatus === 'active') {
+      console.log('❌ Account already active');
       return { valid: false, error: 'already_active', user: { uid: userDoc.id, ...userData } };
     }
-    
+
     // Check if expired
     if (Date.now() > userData.activationExpiry) {
+      console.log('❌ Activation code expired');
       return { valid: false, error: 'expired', user: { uid: userDoc.id, ...userData } };
     }
-    
+
+    console.log('✅ Activation code valid');
     return { valid: true, user: { uid: userDoc.id, ...userData } };
   }
 
