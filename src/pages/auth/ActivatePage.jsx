@@ -222,22 +222,31 @@ export default function ActivatePage() {
   const validateCode = async (codeToValidate) => {
     setStep('validating');
     setError('');
-    
-    const result = await activationService.validateActivationCode(codeToValidate);
-    
-    if (result.valid) {
-      setUserData(result.user);
-      
-      // Fetch children if parent
-      if (result.user.role === 'parent') {
-        const childrenData = await activationService.getChildrenForParent(result.user.uid);
-        setChildren(childrenData);
+
+    try {
+      console.log('📱 Starting validation for:', codeToValidate);
+      const result = await activationService.validateActivationCode(codeToValidate);
+      console.log('📱 Validation result:', result);
+
+      if (result.valid) {
+        setUserData(result.user);
+
+        // Fetch children if parent
+        if (result.user.role === 'parent') {
+          const childrenData = await activationService.getChildrenForParent(result.user.uid);
+          setChildren(childrenData);
+        }
+
+        setStep('welcome');
+      } else {
+        setErrorType(result.error);
+        setUserData(result.user || null);
+        setStep('error');
       }
-      
-      setStep('welcome');
-    } else {
-      setErrorType(result.error);
-      setUserData(result.user || null);
+    } catch (err) {
+      console.error('📱 Validation error:', err);
+      // Show the actual error for debugging on mobile
+      setErrorType(`debug_error: ${err.message}`);
       setStep('error');
     }
   };
@@ -609,8 +618,14 @@ export default function ActivatePage() {
               <>
                 <h1 style={{ ...styles.title, color: '#dc2626' }}>❌ Invalid Code</h1>
                 <p style={styles.subtitle}>This activation code is not valid</p>
-                
-                <button 
+
+                {/* Debug info - remove after fixing */}
+                <div style={{ backgroundColor: '#fef2f2', padding: '12px', borderRadius: '6px', marginBottom: '16px', fontSize: '12px', wordBreak: 'break-all' }}>
+                  <strong>Debug:</strong> {errorType || 'no error type'}<br/>
+                  <strong>Code:</strong> {code || urlCode || 'no code'}
+                </div>
+
+                <button
                   onClick={() => {
                     setStep('enter_code');
                     setError('');
@@ -620,7 +635,7 @@ export default function ActivatePage() {
                 >
                   Try Again
                 </button>
-                
+
                 <div style={styles.divider} />
                 <p style={{ textAlign: 'center', fontSize: '14px', color: '#666' }}>
                   Contact the school admin if you need help
