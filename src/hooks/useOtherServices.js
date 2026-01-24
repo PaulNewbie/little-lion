@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import servicesService from '../services/servicesService';
 import userService from '../services/userService'; // Changed from teacher/therapist services
 import childService from '../services/childService';
+import { useToast } from '../context/ToastContext';
 
 const useOtherServices = () => {
+  const toast = useToast();
   const [services, setServices] = useState([]);
   const [teachers, setTeachers] = useState([]); // This variable name is kept for compatibility, but now includes Therapists too
   const [loading, setLoading] = useState(true);
@@ -119,7 +121,7 @@ const useOtherServices = () => {
       const updatedList = await childService.getChildrenByService(selectedService.name);
       setEnrolledStudents(updatedList);
       setEnrollmentData({ studentId: '', teacherId: '' }); // Reset form
-      alert('Student enrolled successfully');
+      toast.success('Student enrolled successfully');
     } catch (err) {
       setError(err.message);
     }

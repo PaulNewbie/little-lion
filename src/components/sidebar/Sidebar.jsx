@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { useToast } from "../../context/ToastContext";
 import { hasPermission } from "../../utils/permissions";
 import "./Sidebar.css";
 
@@ -44,6 +45,7 @@ const Sidebar = ({
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const toast = useToast();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
@@ -123,7 +125,7 @@ const Sidebar = ({
    */
   const handleMenuClick = (item) => {
     if (isItemRestricted(item)) {
-      alert("You don't have permission to access this feature. Please contact your administrator.");
+      toast.warning("You don't have permission to access this feature. Please contact your administrator.");
       return;
     }
     

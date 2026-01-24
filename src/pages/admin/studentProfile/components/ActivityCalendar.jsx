@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useContext } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import "../StudentProfile.css"; 
+import "../StudentProfile.css";
 import { AuthContext } from "../../../../context/AuthContext";
+import { useToast } from "../../../../context/ToastContext";
 import activityService from "./activityService"; 
 
 // ==========================================
@@ -187,6 +188,7 @@ const CommentNode = ({ comment, allComments, currentUser, onReplySubmit, onDelet
 // ==========================================
 const CommentSection = ({ contextId, collectionName }) => {
   const { currentUser } = useContext(AuthContext);
+  const toast = useToast();
   const [comments, setComments] = useState([]);
   const [mainCommentText, setMainCommentText] = useState("");
   const [showComments, setShowComments] = useState(false);
@@ -243,16 +245,16 @@ const handleSendComment = async (text, parentId = null) => {
       setMainCommentText(""); 
       loadComments(); 
     } catch (error) {
-      alert(`Failed to send message: ${error.message}`);
+      toast.error(`Failed to send message: ${error.message}`);
     }
   };
-  
+
   const handleDeleteComment = async (commentId) => {
     try {
       await activityService.deleteComment(contextId, collectionName, commentId);
       loadComments();
     } catch (error) {
-      alert("Failed to delete comment: " + error.message);
+      toast.error("Failed to delete comment: " + error.message);
     }
   };
 

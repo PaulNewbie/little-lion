@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../context/ToastContext';
 import userService from '../../services/userService';
 
 export default function EnrollmentPermissionManager() {
   const { currentUser } = useAuth();
+  const toast = useToast();
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
@@ -38,7 +40,7 @@ export default function EnrollmentPermissionManager() {
       await fetchStaff();
     } catch (error) {
       console.error('Error updating permission:', error);
-      alert('Failed to update permission');
+      toast.error('Failed to update permission');
     } finally {
       setActionLoading(null);
     }
@@ -46,7 +48,7 @@ export default function EnrollmentPermissionManager() {
 
   const handleBulkUpdate = async (canEnroll) => {
     if (selectedUsers.length === 0) {
-      alert('Please select users first');
+      toast.warning('Please select users first');
       return;
     }
     
@@ -66,7 +68,7 @@ export default function EnrollmentPermissionManager() {
       await fetchStaff();
     } catch (error) {
       console.error('Error bulk updating:', error);
-      alert('Failed to update permissions');
+      toast.error('Failed to update permissions');
     } finally {
       setActionLoading(null);
     }
