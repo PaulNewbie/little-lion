@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useManageTeachers from '../../hooks/useManageTeachers';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../context/ToastContext';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import TeacherCard from '../shared/TeacherCard';
@@ -13,6 +14,7 @@ import "./css/ManageTeacher.css";
 
 const ManageTeachers = () => {
   const { currentUser } = useAuth();
+  const toast = useToast();
   const location = useLocation();
   const navigate = useNavigate(); // Added navigate hook
   const isSuperAdmin = currentUser?.role === 'super_admin';
@@ -84,7 +86,7 @@ const ManageTeachers = () => {
       setNewUserData(result.user);
       setShowActivationModal(true);
     } else {
-      alert('Failed to create teacher: ' + result.error);
+      toast.error('Failed to create teacher: ' + result.error);
     }
   };
 
@@ -220,7 +222,7 @@ const ManageTeachers = () => {
                       className={`mt-card ${teacher.profileCompleted ? 'is-clickable' : 'is-locked'}`}
                       onClick={() => {
                         if (teacher.profileCompleted) setSelectedTeacherId(teacher.uid);
-                        else alert("This teacher has not completed their profile yet.");
+                        else toast.info("This teacher has not completed their profile yet.");
                       }}
                     >
                       <div>
