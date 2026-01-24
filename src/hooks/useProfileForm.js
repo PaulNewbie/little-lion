@@ -177,6 +177,16 @@ export const useProfileForm = (currentUser, role, navigate) => {
       const folder = role === 'teacher' ? 'little-lions/teachers' : 'little-lions/therapists';
       const url = await cloudinaryService.uploadImage(file, folder);
       handleInputChange('profilePhoto', url);
+
+      // Auto-save profile photo to database immediately
+      await userService.updateUser(currentUser.uid, {
+        profilePhoto: url,
+        updatedAt: new Date().toISOString()
+      });
+
+      // Invalidate cache so the new photo shows everywhere
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user(currentUser.uid) });
+
     } catch (error) {
       console.error('Upload failed:', error);
       alert('Failed to upload photo. Please try again.');
