@@ -285,12 +285,13 @@ export default function ActivatePage() {
     setLoading(true);
     
     try {
-      // OPTION B: Set password directly (no email step!)
+      // Set password directly and clean up activation code document
       const result = await activationService.completeActivation(
         userData.uid,
         userData.email,
         password,
-        'self'
+        'self',
+        userData.activationCode  // Pass activation code for cleanup
       );
       
       if (result.success) {
