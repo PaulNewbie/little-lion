@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUser } from './useCachedData';
+import { useToast } from '../context/ToastContext';
 import { QUERY_KEYS } from '../config/queryClient';
 import userService from '../services/userService';
 import cloudinaryService from '../services/cloudinaryService';
@@ -15,6 +16,7 @@ import { parseFileName, validateFileSize, validateFileType } from '../utils/prof
  */
 export const useProfileForm = (currentUser, role, navigate) => {
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   // ============ CACHED: Use cached user data ============
   const { data: userData, isLoading: userLoading } = useUser(currentUser?.uid);
@@ -163,12 +165,12 @@ export const useProfileForm = (currentUser, role, navigate) => {
     if (!file) return;
 
     if (!validateFileType(file, ['image/jpeg', 'image/jpg', 'image/png'])) {
-      alert('Please upload a valid image file (JPG, PNG).');
+      toast.error('Please upload a valid image file (JPG, PNG).');
       return;
     }
 
     if (!validateFileSize(file, 5)) {
-      alert('File size must be less than 5MB.');
+      toast.error('File size must be less than 5MB.');
       return;
     }
 
@@ -189,7 +191,7 @@ export const useProfileForm = (currentUser, role, navigate) => {
 
     } catch (error) {
       console.error('Upload failed:', error);
-      alert('Failed to upload photo. Please try again.');
+      toast.error('Failed to upload photo. Please try again.');
     } finally {
       setUploadingFile(null);
     }
@@ -200,7 +202,7 @@ export const useProfileForm = (currentUser, role, navigate) => {
     if (!file) return;
 
     if (!validateFileSize(file, 10)) {
-      alert('File size must be less than 10MB.');
+      toast.error('File size must be less than 10MB.');
       return;
     }
 
@@ -220,7 +222,7 @@ export const useProfileForm = (currentUser, role, navigate) => {
       }));
     } catch (error) {
       console.error('Upload failed:', error);
-      alert('Failed to upload certificate. Please try again.');
+      toast.error('Failed to upload certificate. Please try again.');
     } finally {
       setUploadingFile(null);
     }
@@ -231,7 +233,7 @@ export const useProfileForm = (currentUser, role, navigate) => {
     if (!file) return;
 
     if (!validateFileSize(file, 10)) {
-      alert('File size must be less than 10MB.');
+      toast.error('File size must be less than 10MB.');
       return;
     }
 
@@ -242,7 +244,7 @@ export const useProfileForm = (currentUser, role, navigate) => {
       setNewCertification(prev => ({ ...prev, certificateURL: url }));
     } catch (error) {
       console.error('Upload failed:', error);
-      alert('Failed to upload certificate. Please try again.');
+      toast.error('Failed to upload certificate. Please try again.');
     } finally {
       setUploadingFile(null);
     }
@@ -255,7 +257,7 @@ export const useProfileForm = (currentUser, role, navigate) => {
 
   const handleAddEducation = () => {
     if (!newEducation.institution || !newEducation.degreeType || !newEducation.fieldOfStudy || !newEducation.graduationYear) {
-      alert('Please fill in all required education fields (Institution, Degree Type, Field of Study, Graduation Year).');
+      toast.warning('Please fill in all required education fields (Institution, Degree Type, Field of Study, Graduation Year).');
       return;
     }
 
@@ -300,7 +302,7 @@ export const useProfileForm = (currentUser, role, navigate) => {
 
   const handleAddCertification = () => {
     if (!newCertification.name || !newCertification.issuingOrg || !newCertification.issueDate) {
-      alert('Please fill in all required certification fields (Name, Issuing Organization, Issue Date).');
+      toast.warning('Please fill in all required certification fields (Name, Issuing Organization, Issue Date).');
       return;
     }
 
@@ -347,7 +349,7 @@ export const useProfileForm = (currentUser, role, navigate) => {
 
   const handleAddLicense = () => {
     if (!newLicense.licenseType || !newLicense.licenseNumber) {
-      alert('Please fill in License Type and License Number.');
+      toast.warning('Please fill in License Type and License Number.');
       return;
     }
 
@@ -391,7 +393,7 @@ export const useProfileForm = (currentUser, role, navigate) => {
     
     if (!isValid) {
       setValidationErrors(errors);
-      alert(`Please fix the following errors:\n${Object.values(errors).join('\n')}`);
+      toast.error(`Please fix the following errors: ${Object.values(errors).join(', ')}`);
       
       const errorFields = Object.keys(errors);
       if (errorFields.some(f => ['firstName', 'lastName', 'phone'].includes(f))) {
@@ -420,11 +422,11 @@ export const useProfileForm = (currentUser, role, navigate) => {
       // Also invalidate role-specific cache if this user is in a list
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.users(role) });
 
-      alert('Profile updated successfully!');
+      toast.success('Profile updated successfully!');
       navigate(`/${role}/dashboard`);
     } catch (error) {
       console.error('Failed to save profile:', error);
-      alert('Failed to save profile. Please try again.');
+      toast.error('Failed to save profile. Please try again.');
     } finally {
       setSaving(false);
     }
