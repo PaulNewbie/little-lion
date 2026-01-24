@@ -44,8 +44,6 @@ class ActivationService {
     const expiryMs = ACTIVATION_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
     const code = generateActivationCode();
 
-    console.log('📝 Generated activation code:', code);
-
     return {
       accountStatus: 'pending_setup',
       activationCode: code,
@@ -80,7 +78,6 @@ class ActivationService {
         _tempKey: activationData._tempKey
       });
 
-      console.log('✅ Created activation_codes document for:', activationData.activationCode);
       return { success: true };
     } catch (error) {
       console.error('Error creating activation code document:', error);
@@ -98,18 +95,11 @@ class ActivationService {
       const normalizedCode = normalizeCode(code);
       const formattedCode = this.formatStoredCode(normalizedCode);
 
-      console.log('🔍 Validating activation code:', {
-        originalCode: code,
-        normalizedCode,
-        formattedCode
-      });
-
       // First, try to get the document directly by ID (the code is the document ID)
       const codeDocRef = doc(db, 'activation_codes', formattedCode);
       const codeDoc = await getDoc(codeDocRef);
 
       if (codeDoc.exists()) {
-        console.log('✅ Found activation code document');
         return this.checkActivationCodeStatus(codeDoc);
       }
 
@@ -118,15 +108,12 @@ class ActivationService {
       const q = query(codesRef, where('code', '==', formattedCode));
       const snapshot = await getDocs(q);
 
-      console.log('🔍 Query results:', snapshot.size, 'documents found');
-
       if (snapshot.empty) {
         // Try with uppercase
         const q2 = query(codesRef, where('code', '==', code.toUpperCase()));
         const snapshot2 = await getDocs(q2);
 
         if (snapshot2.empty) {
-          console.log('❌ No activation code found');
           return { valid: false, error: 'Invalid activation code' };
         }
 
@@ -157,16 +144,8 @@ class ActivationService {
   checkActivationCodeStatus(codeDoc) {
     const codeData = codeDoc.data();
 
-    console.log('🔍 Checking activation status:', {
-      expiry: codeData.expiry,
-      expiryDate: new Date(codeData.expiry).toISOString(),
-      now: Date.now(),
-      isExpired: Date.now() > codeData.expiry
-    });
-
     // Check if expired
     if (Date.now() > codeData.expiry) {
-      console.log('❌ Activation code expired');
       return {
         valid: false,
         error: 'expired',
@@ -180,7 +159,6 @@ class ActivationService {
       };
     }
 
-    console.log('✅ Activation code valid');
     return {
       valid: true,
       user: {
@@ -341,9 +319,8 @@ class ActivationService {
       try {
         const codeDocRef = doc(db, 'activation_codes', activationCode);
         await deleteDoc(codeDocRef);
-        console.log('✅ Deleted activation_codes document:', activationCode);
       } catch (error) {
-        console.warn('Failed to delete activation_codes document:', error);
+        // Ignore cleanup errors
       }
     }
   }

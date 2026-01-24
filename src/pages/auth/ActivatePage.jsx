@@ -224,9 +224,7 @@ export default function ActivatePage() {
     setError('');
 
     try {
-      console.log('📱 Starting validation for:', codeToValidate);
       const result = await activationService.validateActivationCode(codeToValidate);
-      console.log('📱 Validation result:', result);
 
       if (result.valid) {
         setUserData(result.user);
@@ -244,9 +242,8 @@ export default function ActivatePage() {
         setStep('error');
       }
     } catch (err) {
-      console.error('📱 Validation error:', err);
-      // Show the actual error for debugging on mobile
-      setErrorType(`debug_error: ${err.message}`);
+      console.error('Validation error:', err);
+      setErrorType('validation_failed');
       setStep('error');
     }
   };
@@ -619,12 +616,6 @@ export default function ActivatePage() {
               <>
                 <h1 style={{ ...styles.title, color: '#dc2626' }}>❌ Invalid Code</h1>
                 <p style={styles.subtitle}>This activation code is not valid</p>
-
-                {/* Debug info - remove after fixing */}
-                <div style={{ backgroundColor: '#fef2f2', padding: '12px', borderRadius: '6px', marginBottom: '16px', fontSize: '12px', wordBreak: 'break-all' }}>
-                  <strong>Debug:</strong> {errorType || 'no error type'}<br/>
-                  <strong>Code:</strong> {code || urlCode || 'no code'}
-                </div>
 
                 <button
                   onClick={() => {
