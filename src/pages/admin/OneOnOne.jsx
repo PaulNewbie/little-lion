@@ -57,11 +57,15 @@ const OneOnOne = () => {
   const [editing, setEditing] = useState(false);
 
   // FETCH STUDENTS
-  const { data: students = [], isLoading: loadingStudents } = useQuery({
-    queryKey: ["students"],
-    queryFn: () => childService.getAllChildren(),
-    staleTime: 1000 * 60 * 5,
+  const { data: studentsData = [], isLoading: loadingStudents } = useQuery({
+      queryKey: ["students"],
+      queryFn: () => childService.getAllChildren(),
+      staleTime: 1000 * 60 * 5,
   });
+
+  const students = Array.isArray(studentsData) 
+      ? studentsData 
+      : (studentsData?.students || []);
 
   // FETCH SERVICES
   const { data: allServices = [], isLoading: loadingServices } = useQuery({
