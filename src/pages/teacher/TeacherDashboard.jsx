@@ -14,6 +14,9 @@ import { useTeacherDashboardData } from '../../hooks/useCachedData';
 import logo from '../../images/logo.png';
 import './css/TeacherDashboard.css';
 
+// --- PAGINATION CONFIG ---
+const PAGE_SIZE = 10;
+
 // --- TEACHER SMART DATA ---
 const CLASS_TOPICS = ["Circle Time", "Art Class", "Music", "Math", "Reading", "Free Play", "Snack/Lunch", "Social Skills", "Nap Time"];
 const MOODS = ["Happy", "Focused", "Active", "Tired", "Upset", "Social", "Quiet"];
@@ -32,6 +35,7 @@ const TeacherDashboard = () => {
   // UI State
   const [selectedClass, setSelectedClass] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
 
   // Observation Modal State
   const [showObsModal, setShowObsModal] = useState(false);
@@ -112,12 +116,20 @@ const TeacherDashboard = () => {
   }, [currentUser, navigate]);
 
   // Filter students based on search
-  const filteredStudents = useMemo(() => {
+  const allFilteredStudents = useMemo(() => {
     if (!selectedClass) return [];
     return selectedClass.students.filter(student =>
       `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [selectedClass, searchTerm]);
+
+  // Paginated students to display
+  const filteredStudents = useMemo(() => {
+    return allFilteredStudents.slice(0, displayCount);
+  }, [allFilteredStudents, displayCount]);
+
+  // Check if there are more students to load
+  const hasMoreStudents = allFilteredStudents.length > displayCount;
 
   // Filter classes based on search (when no class selected)
   const filteredClasses = useMemo(() => {
@@ -125,6 +137,11 @@ const TeacherDashboard = () => {
       cls.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [myClasses, searchTerm]);
+
+  // Handle Load More
+  const handleLoadMore = () => {
+    setDisplayCount(prev => prev + PAGE_SIZE);
+  };
 
   // Handlers
   const handlePostGroupActivity = () => {
@@ -262,7 +279,7 @@ const TeacherDashboard = () => {
                       <div
                         key={idx}
                         className="teacher-dashboard__class-card"
-                        onClick={() => { setSelectedClass(cls); setSearchTerm(''); }}
+                        onClick={() => { setSelectedClass(cls); setSearchTerm(''); setDisplayCount(PAGE_SIZE); }}
                       >
                         <div className="teacher-dashboard__class-icon">
                           <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -291,7 +308,7 @@ const TeacherDashboard = () => {
             {selectedClass && (
               <>
                 <button
-                  onClick={() => { setSelectedClass(null); setSearchTerm(''); }}
+                  onClick={() => { setSelectedClass(null); setSearchTerm(''); setDisplayCount(PAGE_SIZE); }}
                   className="teacher-dashboard__back-btn"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -319,50 +336,64 @@ const TeacherDashboard = () => {
                     <h3 className="teacher-dashboard__empty-state-title">No students found</h3>
                   </div>
                 ) : (
-                  <div className="teacher-dashboard__students-grid">
-                    {filteredStudents.map(student => (
-                      <div 
-                        key={student.id} 
-                        className="teacher-dashboard__student-card"
-                        // ADDED: Click handler for the whole card
-                        onClick={() => navigate('/admin/StudentProfile', { state: { studentId: student.id, student, isStaffView: true } })}
-                        // ADDED: Pointer cursor
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <div className="teacher-dashboard__student-card-header">
-                          <div className="teacher-dashboard__student-info">
-                            <div className="teacher-dashboard__student-avatar">
-                              {student.photoUrl ? <img src={student.photoUrl} alt="" /> : '👤'}
-                            </div>
-                            <div>
-                              <h3 className="teacher-dashboard__student-name">
-                                {student.firstName} {student.lastName}
-                              </h3>
-                              <p className="teacher-dashboard__student-dob">
-                                DOB: {student.dateOfBirth}
-                              </p>
+                  <>
+                    <div className="teacher-dashboard__students-grid">
+                      {filteredStudents.map(student => (
+                        <div
+                          key={student.id}
+                          className="teacher-dashboard__student-card"
+                          onClick={() => navigate('/admin/StudentProfile', { state: { studentId: student.id, student, isStaffView: true } })}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <div className="teacher-dashboard__student-card-header">
+                            <div className="teacher-dashboard__student-info">
+                              <div className="teacher-dashboard__student-avatar">
+                                {student.photoUrl ? <img src={student.photoUrl} alt="" /> : '👤'}
+                              </div>
+                              <div>
+                                <h3 className="teacher-dashboard__student-name">
+                                  {student.firstName} {student.lastName}
+                                </h3>
+                                <p className="teacher-dashboard__student-dob">
+                                  DOB: {student.dateOfBirth}
+                                </p>
+                              </div>
                             </div>
                           </div>
+                          <div className="teacher-dashboard__student-card-footer">
+                            <button
+                              onClick={(e) => {
+                                  e.stopPropagation();
+                                  openObservationModal(student)
+                              }}
+                              className="teacher-dashboard__observation-button"
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                              </svg>
+                              Write Observation
+                            </button>
+                          </div>
                         </div>
-                        <div className="teacher-dashboard__student-card-footer">
-                          <button
-                            onClick={(e) => {
-                                // ADDED: Stop Propagation to prevent card click
-                                e.stopPropagation(); 
-                                openObservationModal(student)
-                            }}
-                            className="teacher-dashboard__observation-button"
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                            </svg>
-                            Write Observation
-                          </button>
+                      ))}
+                    </div>
+
+                    {/* Pagination Load More */}
+                    {hasMoreStudents && (
+                      <div className="teacher-dashboard__load-more-wrapper">
+                        <button
+                          className="teacher-dashboard__load-more-btn"
+                          onClick={handleLoadMore}
+                        >
+                          Load More Students
+                        </button>
+                        <div className="teacher-dashboard__pagination-info">
+                          Showing {filteredStudents.length} of {allFilteredStudents.length} students
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  </>
                 )}
               </>
             )}

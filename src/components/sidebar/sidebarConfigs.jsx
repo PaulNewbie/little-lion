@@ -178,7 +178,6 @@ export const getTherapistConfig = (profileCompleted = true) => ({
           label: "ENROLL STUDENT",
           requiresPermission: "canEnrollStudents"
         },
-        { path: "/staff/inquiries", icon: MailIcon, label: "INQUIRIES" },
       ]
     }
   ]
@@ -210,7 +209,6 @@ export const getTeacherConfig = (profileCompleted = true) => ({
           label: "ENROLL STUDENT",
           requiresPermission: "canEnrollStudents"
         },
-        { path: "/staff/inquiries", icon: MailIcon, label: "INQUIRIES" }
       ]
     }
   ]

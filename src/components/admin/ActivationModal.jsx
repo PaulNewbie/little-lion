@@ -252,7 +252,7 @@ export default function ActivationModal({
         </div>
 
         <div style={styles.success}>
-          ✅ Account created for <strong>{userData.firstName} {userData.lastName}</strong>
+          Account created for <strong>{userData.firstName} {userData.lastName}</strong>
         </div>
 
         {!showAdminAssist ? (
@@ -281,20 +281,20 @@ export default function ActivationModal({
             {/* Action Buttons */}
             <div style={styles.buttonRow}>
               <button style={styles.button} onClick={handleCopyCode}>
-                📋 Copy Code
+                Copy Code
               </button>
               <button style={styles.button} onClick={handleCopyUrl}>
-                🔗 Copy Link
+                Copy Link
               </button>
             </div>
 
             <div style={styles.buttonRow}>
-              <button 
-                style={styles.buttonPrimary} 
+              <button
+                style={styles.buttonPrimary}
                 onClick={handleSendEmail}
                 disabled={loading || emailSent}
               >
-                {emailSent ? '✓ Email Sent' : loading ? 'Sending...' : '📧 Send Email'}
+                {emailSent ? 'Email Sent' : loading ? 'Sending...' : 'Send Email'}
               </button>
             </div>
 
@@ -308,37 +308,37 @@ export default function ActivationModal({
           <>
             {/* Admin Assist Mode */}
             <div style={styles.adminCodeSection}>
-              <p style={styles.adminCodeTitle}>🔐 Admin-Assisted Activation</p>
-              
+              <p style={styles.adminCodeTitle}>Admin-Assisted Activation</p>
+
               <p style={styles.instructions}>
                 1. On the parent's phone, go to:
               </p>
               <p style={{ ...styles.urlValue, marginBottom: '12px' }}>{adminActivateUrl}</p>
-              
+
               <p style={styles.instructions}>
                 2. Enter this code:
               </p>
               <div style={styles.adminCodeValue}>{adminCode}</div>
               <p style={styles.adminCodeExpiry}>{formatExpiry(adminCodeExpiry)}</p>
-              
+
               <p style={styles.instructions}>
                 3. Help them set their password on their device
               </p>
             </div>
 
             <div style={styles.buttonRow}>
-              <button 
-                style={styles.button} 
+              <button
+                style={styles.button}
                 onClick={() => navigator.clipboard.writeText(adminCode)}
               >
-                📋 Copy Code
+                Copy Code
               </button>
-              <button 
-                style={styles.button} 
+              <button
+                style={styles.button}
                 onClick={handleGenerateAdminCode}
                 disabled={loading}
               >
-                🔄 New Code
+                New Code
               </button>
             </div>
 

@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { useToast } from "../../context/ToastContext";
-import authService from "../../services/authService"; // Import authService for password reset
+import { ROUTES } from "../../routes/routeConfig";
 import ErrorMessage from "../../components/common/ErrorMessage";
 import "./LoginPage.css";
 
@@ -14,7 +13,6 @@ const LoginPage = () => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
-  const toast = useToast();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -66,16 +64,8 @@ const LoginPage = () => {
   };
 
   // --- 3. FORGOT PASSWORD HANDLER ---
-  const handleForgotPassword = async () => {
-    const emailInput = prompt("Please enter your email address to reset your password:");
-    if (emailInput) {
-      try {
-        await authService.resetPassword(emailInput);
-        toast.success("Password reset email sent! Please check your inbox.");
-      } catch (err) {
-        toast.error("Error: " + err.message);
-      }
-    }
+  const handleForgotPassword = () => {
+    navigate(ROUTES.FORGOT_PASSWORD);
   };
 
   return (

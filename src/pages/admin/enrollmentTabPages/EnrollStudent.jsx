@@ -61,13 +61,12 @@ export default function EnrollStudent() {
   const showToast = (message, type = "success") => setToast({ show: true, message, type });
   const hideToast = () => setToast({ show: false, message: "", type: "success" });
 
-  // Form State for Parent - REMOVED password field!
+  // Form State for Parent - REMOVED password and phone fields!
   const [parentInput, setParentInput] = useState({
     firstName: "",
     middleName: "",
     lastName: "",
     email: "",
-    phone: "",
   });
 
   // Students from Firebase
@@ -103,7 +102,6 @@ export default function EnrollStudent() {
         middleName: "",
         lastName: "",
         email: "",
-        phone: "",
       });
 
       // 5. NEW: Show activation modal with QR code
@@ -327,31 +325,95 @@ export default function EnrollStudent() {
           </button>
         )}
 
-        {/* NEW PARENT ACCOUNT MODAL - UPDATED: No password field! */}
+        {/* NEW PARENT ACCOUNT MODAL - UPDATED: No password or phone field! */}
         {showParentForm && (
           <div className="modalOverlay">
-            <div className="modal">
+            <div className="modal" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
               <h2 className="services-header create-parent-header">
                 Guardian Account
               </h2>
               <form className="parent-form" onSubmit={handleParentSubmit}>
-                <div className="form-row">
-                  <div className="input-group">
-                    <label>First Name</label>
-                    <input
-                      type="text"
-                      required
-                      value={parentInput.firstName}
-                      onChange={(e) =>
-                        setParentInput({
-                          ...parentInput,
-                          firstName: e.target.value,
-                        })
-                      }
-                    />
+
+                {/* GUARDIAN DETAILS SECTION */}
+                <div style={{
+                  padding: '20px',
+                  backgroundColor: '#fef7ed',
+                  borderRadius: '12px',
+                  border: '2px solid #f97316',
+                  marginBottom: '20px'
+                }}>
+                  <h3 style={{
+                    fontSize: '14px',
+                    fontWeight: '700',
+                    textTransform: 'uppercase',
+                    color: '#c2410c',
+                    letterSpacing: '0.5px',
+                    marginBottom: '16px'
+                  }}>
+                    Guardian Details <span style={{ color: '#ef4444' }}>*</span>
+                  </h3>
+
+                  <p style={{
+                    fontSize: '13px',
+                    color: '#64748b',
+                    marginBottom: '16px'
+                  }}>
+                    Enter the guardian's name and email address for account creation.
+                  </p>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>First Name</label>
+                      <input
+                        type="text"
+                        required
+                        value={parentInput.firstName}
+                        onChange={(e) =>
+                          setParentInput({
+                            ...parentInput,
+                            firstName: e.target.value,
+                          })
+                        }
+                        disabled={isCreatingAccount}
+                        style={{
+                          width: '100%',
+                          padding: '12px 14px',
+                          border: parentInput.firstName ? '2px solid #22c55e' : '1px solid #ddd',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          backgroundColor: parentInput.firstName ? '#f0fdf4' : 'white',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>Last Name</label>
+                      <input
+                        type="text"
+                        required
+                        value={parentInput.lastName}
+                        onChange={(e) =>
+                          setParentInput({
+                            ...parentInput,
+                            lastName: e.target.value,
+                          })
+                        }
+                        disabled={isCreatingAccount}
+                        style={{
+                          width: '100%',
+                          padding: '12px 14px',
+                          border: parentInput.lastName ? '2px solid #22c55e' : '1px solid #ddd',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          backgroundColor: parentInput.lastName ? '#f0fdf4' : 'white',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div className="input-group">
-                    <label>Middle Name</label>
+
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>Middle Name (Optional)</label>
                     <input
                       type="text"
                       value={parentInput.middleName}
@@ -361,80 +423,87 @@ export default function EnrollStudent() {
                           middleName: e.target.value,
                         })
                       }
+                      disabled={isCreatingAccount}
+                      style={{
+                        width: '100%',
+                        padding: '12px 14px',
+                        border: '1px solid #ddd',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        boxSizing: 'border-box'
+                      }}
                     />
                   </div>
-                  <div className="input-group">
-                    <label>Last Name</label>
+
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>Email Address</label>
                     <input
-                      type="text"
+                      type="email"
                       required
-                      value={parentInput.lastName}
+                      value={parentInput.email}
                       onChange={(e) =>
-                        setParentInput({
-                          ...parentInput,
-                          lastName: e.target.value,
-                        })
+                        setParentInput({ ...parentInput, email: e.target.value })
                       }
+                      disabled={isCreatingAccount}
+                      placeholder="guardian@email.com"
+                      style={{
+                        width: '100%',
+                        padding: '12px 14px',
+                        border: parentInput.email ? '2px solid #22c55e' : '1px solid #ddd',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        backgroundColor: parentInput.email ? '#f0fdf4' : 'white',
+                        boxSizing: 'border-box'
+                      }}
                     />
                   </div>
-                </div>
 
-                {/* Photo upload section - keeping existing functionality */}
-                {parentPhotoPreview && (
-                  <div className="input-group">
-                    <label>Photo Preview</label>
-                    <img 
-                      src={parentPhotoPreview} 
-                      alt="Preview" 
-                      style={{ maxWidth: '100px', borderRadius: '8px' }}
-                    />
-                  </div>
-                )}
+                  {/* Photo upload section - keeping existing functionality */}
+                  {parentPhotoPreview && (
+                    <div style={{ marginTop: '16px' }}>
+                      <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>Photo Preview</label>
+                      <img
+                        src={parentPhotoPreview}
+                        alt="Preview"
+                        style={{ maxWidth: '100px', borderRadius: '8px' }}
+                      />
+                    </div>
+                  )}
 
-                <div className="input-group">
-                  <label>Email Address</label>
-                  <input
-                    type="email"
-                    required
-                    value={parentInput.email}
-                    onChange={(e) =>
-                      setParentInput({ ...parentInput, email: e.target.value })
-                    }
-                  />
-                </div>
-
-                <div className="input-group">
-                  <label>Phone Number</label>
-                  <input
-                    type="tel"
-                    value={parentInput.phone}
-                    onChange={(e) =>
-                      setParentInput({ ...parentInput, phone: e.target.value })
-                    }
-                    placeholder="09XX-XXX-XXXX"
-                  />
+                  {(parentInput.firstName && parentInput.lastName && parentInput.email) && (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 14px',
+                      backgroundColor: '#dcfce7',
+                      borderRadius: '8px',
+                      marginTop: '12px'
+                    }}>
+                      <span style={{ fontSize: '13px', color: '#166534', fontWeight: '600' }}>
+                        Guardian details complete
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* INFO BOX: Explain the new activation flow */}
                 <div style={{
                   backgroundColor: '#f0f9ff',
                   border: '1px solid #bae6fd',
-                  borderRadius: '6px',
-                  padding: '12px',
-                  marginTop: '8px',
+                  borderRadius: '8px',
+                  padding: '14px',
                   fontSize: '13px',
                   color: '#0369a1'
                 }}>
                   <strong>How activation works:</strong>
-                  <p style={{ margin: '4px 0 0 0' }}>
-                    After creating the account, a QR code will appear. 
+                  <p style={{ margin: '6px 0 0 0' }}>
+                    After creating the account, a QR code will appear.
                     The parent can scan it to set up their password.
                   </p>
                 </div>
-
-                {/* REMOVED: Password field - no longer needed! */}
               </form>
-              <div className="modalActions">
+              <div className="modalActions" style={{ marginTop: '20px' }}>
                 <button
                   type="button"
                   className="enroll-cancel-btn"

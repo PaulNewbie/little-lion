@@ -30,6 +30,7 @@ const useManageTeachers = () => {
   const [newTeacher, setNewTeacher] = useState({
     firstName: '',
     lastName: '',
+    middleName: '',
     email: '',
     phone: '',
     specializations: []
@@ -49,6 +50,11 @@ const useManageTeachers = () => {
     });
   };
 
+  // Direct setter for specializations array (for dynamic add/remove UI)
+  const setSpecializations = (specs) => {
+    setNewTeacher(prev => ({ ...prev, specializations: specs }));
+  };
+
   const createTeacher = async (e) => {
     if (e) e.preventDefault();
     setError(null);
@@ -62,6 +68,7 @@ const useManageTeachers = () => {
       setNewTeacher({
         firstName: '',
         lastName: '',
+        middleName: '',
         email: '',
         phone: '',
         specializations: []
@@ -97,6 +104,7 @@ const useManageTeachers = () => {
     newTeacher,
     handleInputChange,
     toggleSpecialization,
+    setSpecializations,
     createTeacher,
     updateTeacher,
   };

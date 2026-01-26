@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../../config/firebase';
 import activationService from '../../services/activationService';
+import bgImage from '../../images/Little-lion-bg.png';
 
 const styles = {
   container: {
@@ -12,17 +13,32 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
     padding: '20px',
-    fontFamily: 'system-ui, -apple-system, sans-serif'
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    position: 'relative',
+    backgroundColor: '#fef9e7'
+  },
+  backgroundLayer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundImage: `url(${bgImage})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    opacity: 0.15,
+    zIndex: 0
   },
   card: {
     backgroundColor: 'white',
     padding: '32px',
-    borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    borderRadius: '12px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
     maxWidth: '400px',
-    width: '100%'
+    width: '100%',
+    position: 'relative',
+    zIndex: 1
   },
   title: {
     fontSize: '24px',
@@ -229,7 +245,7 @@ export default function AdminActivatePage() {
             <p style={styles.subtitle}>Enter the code given by the staff member</p>
             
             <div style={styles.infoBox}>
-              <p style={{ margin: 0 }}>⚠️ This code expires in 10 minutes</p>
+              <p style={{ margin: 0 }}><strong>Note:</strong> This code expires in 10 minutes</p>
             </div>
             
             {error && <div style={styles.error}>{error}</div>}
@@ -267,15 +283,12 @@ export default function AdminActivatePage() {
             
             <div style={{ ...styles.infoBox, backgroundColor: '#f0f9ff', borderColor: '#bae6fd' }}>
               <div style={styles.checkItem}>
-                <span>👤</span>
                 <span><strong>Name:</strong> {userData?.firstName} {userData?.lastName}</span>
               </div>
               <div style={styles.checkItem}>
-                <span>📧</span>
                 <span><strong>Email:</strong> {userData?.email}</span>
               </div>
               <div style={styles.checkItem}>
-                <span>🏷️</span>
                 <span><strong>Role:</strong> {userData?.role}</span>
               </div>
             </div>
@@ -313,7 +326,7 @@ export default function AdminActivatePage() {
                     onClick={() => setShowPassword(!showPassword)}
                     style={styles.passwordToggle}
                   >
-                    {showPassword ? '🙈' : '👁️'}
+                    {showPassword ? 'Hide' : 'Show'}
                   </button>
                 </div>
               </div>
@@ -346,23 +359,35 @@ export default function AdminActivatePage() {
       case 'success':
         return (
           <>
-            <h1 style={{ ...styles.title, fontSize: '48px' }}>🎉</h1>
+            <div style={{
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              backgroundColor: '#dcfce7',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px',
+              border: '3px solid #22c55e'
+            }}>
+              <span style={{ color: '#22c55e', fontSize: '28px', fontWeight: 'bold' }}>✓</span>
+            </div>
             <h1 style={styles.title}>All Done!</h1>
-            
+
             <div style={styles.success}>
               <p style={{ margin: 0 }}>
                 Account for <strong>{userData?.firstName}</strong> is now active!
               </p>
             </div>
-            
+
             <div style={{ ...styles.infoBox, backgroundColor: '#f0f9ff', borderColor: '#bae6fd' }}>
               <p style={{ margin: '0 0 8px 0', fontWeight: '500' }}>Next steps:</p>
               <p style={{ margin: '0 0 4px 0' }}>1. Check email: <strong>{userData?.email}</strong></p>
               <p style={{ margin: '0 0 4px 0' }}>2. Click the password setup link</p>
               <p style={{ margin: 0 }}>3. Set your final password and login</p>
             </div>
-            
-            <button 
+
+            <button
               onClick={() => navigate('/login')}
               style={styles.button}
             >
@@ -378,6 +403,7 @@ export default function AdminActivatePage() {
 
   return (
     <div style={styles.container}>
+      <div style={styles.backgroundLayer} />
       <div style={styles.card}>
         {renderContent()}
       </div>

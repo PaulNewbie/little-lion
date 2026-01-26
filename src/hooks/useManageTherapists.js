@@ -49,6 +49,11 @@ const useManageTherapists = () => {
     });
   };
 
+  // Direct setter for specializations array (for dynamic add/remove UI)
+  const setSpecializations = (specs) => {
+    setNewTherapist(prev => ({ ...prev, specializations: specs }));
+  };
+
   const createTherapist = async (e) => {
     if (e) e.preventDefault();
     setError(null);
@@ -98,6 +103,7 @@ const useManageTherapists = () => {
     newTherapist,
     handleInputChange,
     toggleSpecialization,
+    setSpecializations,
     createTherapist,
     updateTherapist,
   };

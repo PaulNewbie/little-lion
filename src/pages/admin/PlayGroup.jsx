@@ -361,42 +361,119 @@ const PlayGroup = () => {
         {/* ... (ADD AND EDIT MODALS REMAIN UNCHANGED) ... */}
         {showAddModal && (
           <div className="pg-modal-overlay" onClick={() => !uploading && setShowAddModal(false)}>
-             {/* ... Same Add Modal Code ... */}
-             <div className="pg-modal-form-card" onClick={e => e.stopPropagation()}>
+             <div className="pg-modal-form-card" onClick={e => e.stopPropagation()} style={{ maxHeight: '90vh', overflowY: 'auto' }}>
               <h2>Create New Class</h2>
               <form onSubmit={handleCreateService}>
-                <div className="pg-form-group">
-                  <label>Class Name</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. Morning Playgroup" 
-                    value={newServiceData.name}
-                    onChange={(e) => setNewServiceData({...newServiceData, name: e.target.value})}
-                    required
-                    autoFocus
-                    disabled={uploading}
-                  />
+
+                {/* CLASS DETAILS SECTION */}
+                <div style={{
+                  padding: '20px',
+                  backgroundColor: '#f0f9ff',
+                  borderRadius: '12px',
+                  border: '2px solid #0ea5e9',
+                  marginBottom: '20px'
+                }}>
+                  <h3 style={{
+                    fontSize: '14px',
+                    fontWeight: '700',
+                    textTransform: 'uppercase',
+                    color: '#0369a1',
+                    letterSpacing: '0.5px',
+                    marginBottom: '16px'
+                  }}>
+                    Class Details <span style={{ color: '#ef4444' }}>*</span>
+                  </h3>
+
+                  <p style={{
+                    fontSize: '13px',
+                    color: '#64748b',
+                    marginBottom: '16px'
+                  }}>
+                    Enter the name and description for this play group class.
+                  </p>
+
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>Class Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Morning Playgroup"
+                      value={newServiceData.name}
+                      onChange={(e) => setNewServiceData({...newServiceData, name: e.target.value})}
+                      required
+                      autoFocus
+                      disabled={uploading}
+                      style={{
+                        width: '100%',
+                        padding: '12px 14px',
+                        border: newServiceData.name ? '2px solid #22c55e' : '1px solid #ddd',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        backgroundColor: newServiceData.name ? '#f0fdf4' : 'white',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>Description</label>
+                    <textarea
+                      placeholder="Short description of the class..."
+                      value={newServiceData.description}
+                      onChange={(e) => setNewServiceData({...newServiceData, description: e.target.value})}
+                      disabled={uploading}
+                      style={{
+                        width: '100%',
+                        padding: '12px 14px',
+                        border: '1px solid #ddd',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        minHeight: '80px',
+                        resize: 'vertical',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+
+                  {newServiceData.name && (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 14px',
+                      backgroundColor: '#dcfce7',
+                      borderRadius: '8px',
+                      marginTop: '12px'
+                    }}>
+                      <span style={{ fontSize: '13px', color: '#166534', fontWeight: '600' }}>
+                        Class name entered
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <div className="pg-form-group">
-                  <label>Description</label>
-                  <textarea 
-                    placeholder="Short description of the class..." 
-                    value={newServiceData.description}
-                    onChange={(e) => setNewServiceData({...newServiceData, description: e.target.value})}
-                    disabled={uploading}
-                  />
-                </div>
-                
-                <div className="pg-form-group">
-                  <label>Service Image (Optional)</label>
-                  <input 
-                    type="file" 
+
+                {/* IMAGE SECTION */}
+                <div style={{
+                  padding: '16px',
+                  backgroundColor: '#f8fafc',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                  marginBottom: '20px'
+                }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>
+                    Class Image (Optional)
+                  </label>
+                  <input
+                    type="file"
                     accept="image/*"
                     onChange={(e) => setServiceImage(e.target.files[0])}
                     disabled={uploading}
-                    className="pg-file-input"
+                    style={{ fontSize: '14px' }}
                   />
-                  {serviceImage && <span className="pg-file-name">Selected: {serviceImage.name}</span>}
+                  {serviceImage && (
+                    <span style={{ display: 'block', marginTop: '8px', fontSize: '13px', color: '#059669' }}>
+                      Selected: {serviceImage.name}
+                    </span>
+                  )}
                 </div>
 
                 <div className="pg-form-actions">
@@ -412,8 +489,7 @@ const PlayGroup = () => {
 
         {showEditModal && (
           <div className="pg-modal-overlay" onClick={() => !editing && setShowEditModal(false)}>
-            {/* ... Same Edit Modal Code ... */}
-             <div className="pg-modal-form-card" onClick={e => e.stopPropagation()}>
+             <div className="pg-modal-form-card" onClick={e => e.stopPropagation()} style={{ maxHeight: '90vh', overflowY: 'auto' }}>
               <h2>Edit Class</h2>
               <form onSubmit={async (e) => {
                 e.preventDefault();
@@ -438,34 +514,114 @@ const PlayGroup = () => {
                   setEditing(false);
                 }
               }}>
-                <div className="pg-form-group">
-                  <label>Class Name</label>
-                  <input 
-                    type="text" 
-                    value={editServiceData.name}
-                    onChange={(e) => setEditServiceData({...editServiceData, name: e.target.value})}
-                    required
-                    autoFocus
-                    disabled={editing}
-                  />
+
+                {/* CLASS DETAILS SECTION */}
+                <div style={{
+                  padding: '20px',
+                  backgroundColor: '#f0f9ff',
+                  borderRadius: '12px',
+                  border: '2px solid #0ea5e9',
+                  marginBottom: '20px'
+                }}>
+                  <h3 style={{
+                    fontSize: '14px',
+                    fontWeight: '700',
+                    textTransform: 'uppercase',
+                    color: '#0369a1',
+                    letterSpacing: '0.5px',
+                    marginBottom: '16px'
+                  }}>
+                    Class Details <span style={{ color: '#ef4444' }}>*</span>
+                  </h3>
+
+                  <p style={{
+                    fontSize: '13px',
+                    color: '#64748b',
+                    marginBottom: '16px'
+                  }}>
+                    Update the name and description for this play group class.
+                  </p>
+
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>Class Name</label>
+                    <input
+                      type="text"
+                      value={editServiceData.name}
+                      onChange={(e) => setEditServiceData({...editServiceData, name: e.target.value})}
+                      required
+                      autoFocus
+                      disabled={editing}
+                      style={{
+                        width: '100%',
+                        padding: '12px 14px',
+                        border: editServiceData.name ? '2px solid #22c55e' : '1px solid #ddd',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        backgroundColor: editServiceData.name ? '#f0fdf4' : 'white',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>Description</label>
+                    <textarea
+                      value={editServiceData.description}
+                      onChange={(e) => setEditServiceData({...editServiceData, description: e.target.value})}
+                      disabled={editing}
+                      style={{
+                        width: '100%',
+                        padding: '12px 14px',
+                        border: '1px solid #ddd',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        minHeight: '80px',
+                        resize: 'vertical',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+
+                  {editServiceData.name && (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 14px',
+                      backgroundColor: '#dcfce7',
+                      borderRadius: '8px',
+                      marginTop: '12px'
+                    }}>
+                      <span style={{ fontSize: '13px', color: '#166534', fontWeight: '600' }}>
+                        Class name entered
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <div className="pg-form-group">
-                  <label>Description</label>
-                  <textarea 
-                    value={editServiceData.description}
-                    onChange={(e) => setEditServiceData({...editServiceData, description: e.target.value})}
-                    disabled={editing}
-                  />
-                </div>
-                <div className="pg-form-group">
-                  <label>Service Image (Optional)</label>
-                  <input 
-                    type="file" 
+
+                {/* IMAGE SECTION */}
+                <div style={{
+                  padding: '16px',
+                  backgroundColor: '#f8fafc',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                  marginBottom: '20px'
+                }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>
+                    Class Image (Optional)
+                  </label>
+                  <input
+                    type="file"
                     accept="image/*"
                     onChange={(e) => setEditServiceImage(e.target.files[0])}
                     disabled={editing}
-                    className="pg-file-input"
+                    style={{ fontSize: '14px' }}
                   />
+                  {editServiceImage && (
+                    <span style={{ display: 'block', marginTop: '8px', fontSize: '13px', color: '#059669' }}>
+                      New image selected: {editServiceImage.name}
+                    </span>
+                  )}
                 </div>
 
                 <div className="pg-form-actions">

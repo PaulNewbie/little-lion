@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import activationService from '../../services/activationService';
 import { useToast } from '../../context/ToastContext';
+import bgImage from '../../images/Little-lion-bg.png';
 
 // Minimal inline styles
 const styles = {
@@ -12,17 +13,32 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
     padding: '20px',
-    fontFamily: 'system-ui, -apple-system, sans-serif'
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    position: 'relative',
+    backgroundColor: '#fef9e7'
+  },
+  backgroundLayer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundImage: `url(${bgImage})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    opacity: 0.15,
+    zIndex: 0
   },
   card: {
     backgroundColor: 'white',
     padding: '32px',
-    borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    borderRadius: '12px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
     maxWidth: '400px',
-    width: '100%'
+    width: '100%',
+    position: 'relative',
+    zIndex: 1
   },
   title: {
     fontSize: '24px',
@@ -371,9 +387,19 @@ export default function ActivatePage() {
       case 'validating':
         return (
           <>
-            <h1 style={{ ...styles.title, fontSize: '32px' }}>⏳</h1>
             <h1 style={styles.title}>Verifying...</h1>
             <p style={styles.subtitle}>Please wait while we verify your code</p>
+            <div style={{ display: 'flex', justifyContent: 'center', margin: '20px 0' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                border: '4px solid #e5e7eb',
+                borderTopColor: '#f97316',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+              }} />
+            </div>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </>
         );
 
@@ -423,30 +449,26 @@ export default function ActivatePage() {
             
             <div style={styles.infoBox}>
               <div style={styles.checkItem}>
-                <span>👤</span>
                 <span><strong>Name:</strong> {userData?.firstName} {userData?.lastName}</span>
               </div>
               <div style={styles.checkItem}>
-                <span>📧</span>
                 <span><strong>Email:</strong> {userData?.email}</span>
               </div>
               {children.length > 0 && (
                 <div style={styles.checkItem}>
-                  <span>👶</span>
                   <span><strong>Child:</strong> {children.map(c => `${c.firstName} ${c.lastName}`).join(', ')}</span>
                 </div>
               )}
               <div style={styles.checkItem}>
-                <span>🏷️</span>
                 <span><strong>Role:</strong> {userData?.role}</span>
               </div>
             </div>
             
-            <button 
-              onClick={() => setStep('password')} 
+            <button
+              onClick={() => setStep('password')}
               style={styles.button}
             >
-              Yes, this is me ✓
+              Yes, this is me
             </button>
             
             <button 
@@ -501,7 +523,7 @@ export default function ActivatePage() {
                     onClick={() => setShowPassword(!showPassword)}
                     style={styles.passwordToggle}
                   >
-                    {showPassword ? '🙈' : '👁️'}
+                    {showPassword ? 'Hide' : 'Show'}
                   </button>
                 </div>
               </div>
@@ -522,7 +544,7 @@ export default function ActivatePage() {
               
               <div style={styles.infoBox}>
                 <p style={{ margin: 0, fontSize: '13px' }}>
-                  💡 Tip: Use something memorable like "ILoveJuan2024!"
+                  <strong>Tip:</strong> Use something memorable like "ILoveJuan2024!"
                 </p>
               </div>
               
@@ -547,20 +569,32 @@ export default function ActivatePage() {
       case 'success':
         return (
           <>
-            <h1 style={{ ...styles.title, fontSize: '48px' }}>🎉</h1>
+            <div style={{
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              backgroundColor: '#dcfce7',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px',
+              border: '3px solid #22c55e'
+            }}>
+              <span style={{ color: '#22c55e', fontSize: '28px', fontWeight: 'bold' }}>✓</span>
+            </div>
             <h1 style={styles.title}>You're All Set!</h1>
             <p style={styles.subtitle}>Your account is now active</p>
-            
+
             <div style={styles.success}>
               <p style={{ margin: 0 }}>
                 Your password has been set successfully!
               </p>
             </div>
-            
+
             <div style={styles.infoBox}>
               <p style={{ margin: '0 0 8px 0', fontWeight: '500' }}>You can now log in with:</p>
-              <p style={{ margin: '0 0 4px 0' }}>📧 <strong>Email:</strong> {userData?.email}</p>
-              <p style={{ margin: 0 }}>🔑 <strong>Password:</strong> The one you just created</p>
+              <p style={{ margin: '0 0 4px 0' }}><strong>Email:</strong> {userData?.email}</p>
+              <p style={{ margin: 0 }}><strong>Password:</strong> The one you just created</p>
             </div>
             
             <button 
@@ -585,9 +619,22 @@ export default function ActivatePage() {
           <>
             {errorType === 'already_active' ? (
               <>
-                <h1 style={{ ...styles.title, color: '#059669' }}>✅ Already Active</h1>
+                <div style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  backgroundColor: '#dcfce7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px',
+                  border: '3px solid #22c55e'
+                }}>
+                  <span style={{ color: '#22c55e', fontSize: '28px', fontWeight: 'bold' }}>✓</span>
+                </div>
+                <h1 style={{ ...styles.title, color: '#059669' }}>Already Active</h1>
                 <p style={styles.subtitle}>This account has already been set up</p>
-                <button 
+                <button
                   onClick={() => navigate('/login')}
                   style={styles.button}
                 >
@@ -596,11 +643,24 @@ export default function ActivatePage() {
               </>
             ) : errorType === 'expired' ? (
               <>
-                <h1 style={{ ...styles.title, color: '#f59e0b' }}>⏰ Code Expired</h1>
+                <div style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  backgroundColor: '#fef3c7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px',
+                  border: '3px solid #f59e0b'
+                }}>
+                  <span style={{ color: '#f59e0b', fontSize: '24px', fontWeight: 'bold' }}>!</span>
+                </div>
+                <h1 style={{ ...styles.title, color: '#f59e0b' }}>Code Expired</h1>
                 <p style={styles.subtitle}>Your activation code has expired</p>
-                
+
                 {userData && (
-                  <button 
+                  <button
                     onClick={handleResendCode}
                     disabled={loading}
                     style={loading ? styles.buttonDisabled : styles.button}
@@ -608,7 +668,7 @@ export default function ActivatePage() {
                     {loading ? 'Sending...' : 'Get New Code'}
                   </button>
                 )}
-                
+
                 <div style={styles.divider} />
                 <p style={{ textAlign: 'center', fontSize: '14px', color: '#666' }}>
                   Or contact the school admin for help
@@ -616,7 +676,20 @@ export default function ActivatePage() {
               </>
             ) : (
               <>
-                <h1 style={{ ...styles.title, color: '#dc2626' }}>❌ Invalid Code</h1>
+                <div style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  backgroundColor: '#fee2e2',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px',
+                  border: '3px solid #dc2626'
+                }}>
+                  <span style={{ color: '#dc2626', fontSize: '28px', fontWeight: 'bold' }}>×</span>
+                </div>
+                <h1 style={{ ...styles.title, color: '#dc2626' }}>Invalid Code</h1>
                 <p style={styles.subtitle}>This activation code is not valid</p>
 
                 <button
@@ -646,6 +719,7 @@ export default function ActivatePage() {
 
   return (
     <div style={styles.container}>
+      <div style={styles.backgroundLayer} />
       <div style={styles.card}>
         {renderContent()}
       </div>

@@ -910,3 +910,35 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ===========================================
+   PAGINATION LOAD MORE
+   =========================================== */
+.therapist-dashboard__load-more-wrapper {
+  text-align: center;
+  margin-top: 24px;
+  padding: 16px 0;
+}
+
+.therapist-dashboard__load-more-btn {
+  padding: 12px 32px;
+  background: transparent;
+  border: 2px solid #0052A1;
+  color: #0052A1;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  transition: all 0.2s ease;
+}
+
+.therapist-dashboard__load-more-btn:hover {
+  background: #0052A1;
+  color: white;
+}
+
+.therapist-dashboard__pagination-info {
+  margin-top: 8px;
+  font-size: 0.875rem;
+  color: #64748b;
+}
