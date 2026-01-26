@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useManageTeachers from '../../hooks/useManageTeachers';
 import { useAuth } from '../../hooks/useAuth';
@@ -46,10 +46,17 @@ const ManageTeachers = () => {
   const [showSpecModal, setShowSpecModal] = useState(false);
   const [staffForSpecUpdate, setStaffForSpecUpdate] = useState(null);
 
+  // Student filter by specialization
+  const [studentSpecFilter, setStudentSpecFilter] = useState(null);
+  // Student search
+  const [studentSearch, setStudentSearch] = useState('');
+  // Ref for scrolling to student section
+  const studentSectionRef = useRef(null);
+
   // Use cached data hook
-  const { 
-    data: assignedStudents = [], 
-    isLoading: loadingStudents 
+  const {
+    data: assignedStudents = [],
+    isLoading: loadingStudents
   } = useChildrenByStaff(selectedTeacherId);
 
   // Effect to update selection if navigating while component is already mounted
@@ -58,6 +65,12 @@ const ManageTeachers = () => {
       setSelectedTeacherId(location.state.selectedStaffId);
     }
   }, [location.state]);
+
+  // Reset filter and search when changing teacher selection
+  useEffect(() => {
+    setStudentSpecFilter(null);
+    setStudentSearch('');
+  }, [selectedTeacherId]);
 
   // Filter teachers based on search query
   const filteredTeachers = teachers.filter(teacher =>
@@ -78,6 +91,34 @@ const ManageTeachers = () => {
       .map(s => s.serviceName)
       .join(", ");
   };
+
+  // Handler for clicking a specialization to filter students
+  const handleSpecializationFilter = (spec) => {
+    if (studentSpecFilter === spec) {
+      setStudentSpecFilter(null); // Toggle off if already selected
+    } else {
+      setStudentSpecFilter(spec);
+      // Scroll to student section
+      setTimeout(() => {
+        studentSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  };
+
+  // Filter students based on selected specialization and search
+  const filteredStudents = assignedStudents.filter(student => {
+    // Search filter
+    const searchMatch = !studentSearch ||
+      `${student.firstName} ${student.lastName}`.toLowerCase().includes(studentSearch.toLowerCase());
+
+    // Specialization filter
+    const specMatch = !studentSpecFilter || (() => {
+      const all = [...(student.groupClassServices || []), ...(student.oneOnOneServices || [])];
+      return all.some(s => s.staffId === selectedTeacherId && s.serviceName === studentSpecFilter);
+    })();
+
+    return searchMatch && specMatch;
+  });
 
   const handleCreateTeacher = async (e) => {
     e.preventDefault();
@@ -183,30 +224,120 @@ const ManageTeachers = () => {
           {selectedTeacherId && selectedTeacher ? (
             /* ---------------- VIEW: SINGLE TEACHER PROFILE ---------------- */
             <div style={{ paddingBottom: '120px', width: '100%' }}>
-              <TeacherCard 
-                teacher={selectedTeacher} 
+              <TeacherCard
+                teacher={selectedTeacher}
                 isSuperAdmin={isSuperAdmin}
                 onManageSpecs={handleOpenSpecManager}
+                onSpecializationClick={handleSpecializationFilter}
+                activeFilter={studentSpecFilter}
               />
 
-              {/* --- NEW SECTION: ENROLLED STUDENTS --- */}
-              <div style={{ marginTop: '30px' }}>
-                <h3 className="mt-section-title">
-                  Enrolled Students ({assignedStudents.length})
-                </h3>
-                
+              {/* --- ENROLLED STUDENTS SECTION --- */}
+              <div ref={studentSectionRef} style={{ marginTop: '30px' }}>
+                {/* Header row with title */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                  <h3 className="mt-section-title" style={{ margin: 0 }}>
+                    Enrolled Students ({filteredStudents.length}{(studentSpecFilter || studentSearch) ? ` of ${assignedStudents.length}` : ''})
+                  </h3>
+
+                  {/* Search and Filter Controls */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                    {/* Search Input */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      backgroundColor: 'white',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      padding: '6px 12px',
+                      gap: '8px'
+                    }}>
+                      <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Search</span>
+                      <input
+                        type="text"
+                        placeholder="Student name..."
+                        value={studentSearch}
+                        onChange={(e) => setStudentSearch(e.target.value)}
+                        style={{
+                          border: 'none',
+                          outline: 'none',
+                          fontSize: '0.85rem',
+                          width: '140px',
+                          color: '#0f172a'
+                        }}
+                      />
+                      {studentSearch && (
+                        <button
+                          onClick={() => setStudentSearch('')}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#94a3b8',
+                            cursor: 'pointer',
+                            padding: 0,
+                            fontSize: '0.9rem',
+                            lineHeight: 1
+                          }}
+                        >
+                          x
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Filter Dropdown */}
+                    <select
+                      value={studentSpecFilter || ''}
+                      onChange={(e) => setStudentSpecFilter(e.target.value || null)}
+                      style={{
+                        padding: '8px 12px',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        fontSize: '0.85rem',
+                        color: studentSpecFilter ? '#0369a1' : '#64748b',
+                        backgroundColor: studentSpecFilter ? '#f0f9ff' : 'white',
+                        cursor: 'pointer',
+                        outline: 'none'
+                      }}
+                    >
+                      <option value="">All Specializations</option>
+                      {selectedTeacher?.specializations?.map((spec, idx) => (
+                        <option key={idx} value={spec}>{spec}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
                 {loadingStudents ? (
                    <p style={{ color: '#666', fontStyle: 'italic' }}>Loading students...</p>
-                ) : assignedStudents.length === 0 ? (
+                ) : filteredStudents.length === 0 ? (
                    <div className="mt-empty-state">
-                     <p>No students currently assigned to this teacher.</p>
+                     <p>{studentSpecFilter
+                       ? `No students enrolled in "${studentSpecFilter}" with this teacher.`
+                       : 'No students currently assigned to this teacher.'
+                     }</p>
                    </div>
                 ) : (
                   <div className="ooo-grid">
-                    {assignedStudents.map(student => (
+                    {filteredStudents.map(student => (
                       <div key={student.id} className="ooo-card" style={{ cursor: 'default' }}>
                         <div className="ooo-photo-area">
-                          {student.photoUrl ? <img src={student.photoUrl} alt="" /> : <span>📷</span>}
+                          {student.photoUrl ? (
+                            <img src={student.photoUrl} alt="" />
+                          ) : (
+                            <div style={{
+                              width: '100%',
+                              height: '100%',
+                              backgroundColor: '#e2e8f0',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '1.5rem',
+                              color: '#64748b',
+                              fontWeight: 'bold'
+                            }}>
+                              {student.firstName?.[0]}{student.lastName?.[0]}
+                            </div>
+                          )}
                         </div>
                         <div className="ooo-card-info">
                           <p className="ooo-name">{student.firstName} {student.lastName}</p>

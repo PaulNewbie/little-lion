@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useManageTherapists from '../../hooks/useManageTherapists';
 import { useAuth } from '../../hooks/useAuth';
@@ -48,10 +48,17 @@ const ManageTherapists = () => {
   const [showSpecModal, setShowSpecModal] = useState(false);
   const [staffForSpecUpdate, setStaffForSpecUpdate] = useState(null);
 
+  // Patient filter by specialization
+  const [patientSpecFilter, setPatientSpecFilter] = useState(null);
+  // Patient search
+  const [patientSearch, setPatientSearch] = useState('');
+  // Ref for scrolling to patient section
+  const patientSectionRef = useRef(null);
+
   // Use cached data
-  const { 
-    data: assignedStudents = [], 
-    isLoading: loadingStudents 
+  const {
+    data: assignedStudents = [],
+    isLoading: loadingStudents
   } = useChildrenByStaff(selectedTherapistId);
 
   // Effect to handle navigation updates
@@ -60,6 +67,12 @@ const ManageTherapists = () => {
       setSelectedTherapistId(location.state.selectedStaffId);
     }
   }, [location.state]);
+
+  // Reset filter and search when changing therapist selection
+  useEffect(() => {
+    setPatientSpecFilter(null);
+    setPatientSearch('');
+  }, [selectedTherapistId]);
 
   const filteredTherapists = therapists.filter(t =>
     `${t.firstName} ${t.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -74,6 +87,34 @@ const ManageTherapists = () => {
       .map(s => s.serviceName)
       .join(", ");
   };
+
+  // Handler for clicking a specialization to filter patients
+  const handleSpecializationFilter = (spec) => {
+    if (patientSpecFilter === spec) {
+      setPatientSpecFilter(null); // Toggle off if already selected
+    } else {
+      setPatientSpecFilter(spec);
+      // Scroll to patient section
+      setTimeout(() => {
+        patientSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  };
+
+  // Filter patients based on selected specialization and search
+  const filteredPatients = assignedStudents.filter(student => {
+    // Search filter
+    const searchMatch = !patientSearch ||
+      `${student.firstName} ${student.lastName}`.toLowerCase().includes(patientSearch.toLowerCase());
+
+    // Specialization filter
+    const specMatch = !patientSpecFilter || (() => {
+      const all = [...(student.oneOnOneServices || []), ...(student.groupClassServices || [])];
+      return all.some(s => s.staffId === selectedTherapistId && s.serviceName === patientSpecFilter);
+    })();
+
+    return searchMatch && specMatch;
+  });
 
   const handleCreateTherapist = async (e) => {
     e.preventDefault();
@@ -181,33 +222,121 @@ const ManageTherapists = () => {
               <div style={{ paddingBottom: '120px', width: '100%' }}>
     
                 <TherapistCard
-                  therapist={selectedTherapist}  
+                  therapist={selectedTherapist}
                   serviceName="Therapist Profile"
                   isSuperAdmin={isSuperAdmin}
                   onManageSpecs={handleOpenSpecManager}
+                  onSpecializationClick={handleSpecializationFilter}
+                  activeFilter={patientSpecFilter}
                 />
 
-              {/* --- ENROLLED PATIENTS SECTION --- */}
-              <div style={{ marginTop: '30px' }}>
-                <h3 className="mt-section-title">
-                  Assigned Patients ({assignedStudents.length})
-                </h3>
-                
+              {/* --- ASSIGNED PATIENTS SECTION --- */}
+              <div ref={patientSectionRef} style={{ marginTop: '30px' }}>
+                {/* Header row with title */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                  <h3 className="mt-section-title" style={{ margin: 0 }}>
+                    Assigned Patients ({filteredPatients.length}{(patientSpecFilter || patientSearch) ? ` of ${assignedStudents.length}` : ''})
+                  </h3>
+
+                  {/* Search and Filter Controls */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                    {/* Search Input */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      backgroundColor: 'white',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      padding: '6px 12px',
+                      gap: '8px'
+                    }}>
+                      <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Search</span>
+                      <input
+                        type="text"
+                        placeholder="Patient name..."
+                        value={patientSearch}
+                        onChange={(e) => setPatientSearch(e.target.value)}
+                        style={{
+                          border: 'none',
+                          outline: 'none',
+                          fontSize: '0.85rem',
+                          width: '140px',
+                          color: '#0f172a'
+                        }}
+                      />
+                      {patientSearch && (
+                        <button
+                          onClick={() => setPatientSearch('')}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#94a3b8',
+                            cursor: 'pointer',
+                            padding: 0,
+                            fontSize: '0.9rem',
+                            lineHeight: 1
+                          }}
+                        >
+                          x
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Filter Dropdown */}
+                    <select
+                      value={patientSpecFilter || ''}
+                      onChange={(e) => setPatientSpecFilter(e.target.value || null)}
+                      style={{
+                        padding: '8px 12px',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        fontSize: '0.85rem',
+                        color: patientSpecFilter ? '#7e22ce' : '#64748b',
+                        backgroundColor: patientSpecFilter ? '#faf5ff' : 'white',
+                        cursor: 'pointer',
+                        outline: 'none'
+                      }}
+                    >
+                      <option value="">All Specializations</option>
+                      {selectedTherapist?.specializations?.map((spec, idx) => (
+                        <option key={idx} value={spec}>{spec}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
                 {loadingStudents ? (
                    <p style={{ color: '#666', fontStyle: 'italic' }}>Loading patients...</p>
-                ) : assignedStudents.length === 0 ? (
+                ) : filteredPatients.length === 0 ? (
                    <div className="mt-empty-state">
-                     <p>No patients currently assigned to this therapist.</p>
+                     <p>{patientSpecFilter
+                       ? `No patients enrolled in "${patientSpecFilter}" with this therapist.`
+                       : 'No patients currently assigned to this therapist.'
+                     }</p>
                    </div>
                 ) : (
                   <div className="ooo-grid">
-                    {assignedStudents.map(student => (
+                    {filteredPatients.map(student => (
                       <div key={student.id} className="ooo-card" style={{ cursor: 'default' }}>
-                        
                         <div className="ooo-photo-area">
-                          {student.photoUrl ? <img src={student.photoUrl} alt="" /> : <span>📷</span>}
+                          {student.photoUrl ? (
+                            <img src={student.photoUrl} alt="" />
+                          ) : (
+                            <div style={{
+                              width: '100%',
+                              height: '100%',
+                              backgroundColor: '#e2e8f0',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '1.5rem',
+                              color: '#64748b',
+                              fontWeight: 'bold'
+                            }}>
+                              {student.firstName?.[0]}{student.lastName?.[0]}
+                            </div>
+                          )}
                         </div>
-                        
                         <div className="ooo-card-info">
                           <p className="ooo-name">{student.firstName} {student.lastName}</p>
                           <p className="ooo-sub" style={{ color: '#2563eb', fontWeight: '500' }}>
