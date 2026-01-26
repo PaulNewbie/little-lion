@@ -1,8 +1,8 @@
 /**
  * SeedButton.jsx
- * 
- * Creates 10 test students in ASSESSING status (Steps 1-12 complete)
+ * * Creates 10 test students in ASSESSING status (Steps 1-12 complete)
  * Step 13 (Service Enrollment) left empty for manual completion
+ * * IMPROVED: Expanded name lists and randomized selection for better variety.
  */
 
 import React, { useState } from 'react';
@@ -27,10 +27,32 @@ const calcAge = dob => {
   return `${y} years, ${m} months`;
 };
 
-// Test data
+// Helper to get n unique random items from an array
+const getUniqueRandoms = (arr, count) => {
+  const shuffled = [...arr].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+};
+
+// Expanded Test Data
 const DATA = {
-  firstNames: ['Sofia', 'Lucas', 'Emma', 'Noah', 'Olivia', 'Liam', 'Ava', 'Ethan', 'Mia', 'Aiden'],
-  lastNames: ['Garcia', 'Santos', 'Reyes', 'Cruz', 'Bautista', 'Gonzales', 'Torres', 'Dela Cruz', 'Ramos', 'Flores'],
+  firstNames: [
+    'Sofia', 'Lucas', 'Emma', 'Noah', 'Olivia', 'Liam', 'Ava', 'Ethan', 'Mia', 'Aiden',
+    'Isabella', 'Mason', 'Amelia', 'Jacob', 'Charlotte', 'William', 'Harper', 'Jayden',
+    'Evelyn', 'Michael', 'Abigail', 'Alexander', 'Emily', 'Elijah', 'Elizabeth', 'Daniel',
+    'Mila', 'Matthew', 'Ella', 'James', 'Avery', 'Benjamin', 'Camila', 'Sebastian',
+    'Aria', 'Jack', 'Scarlett', 'Luke', 'Victoria', 'Henry', 'Chloe', 'Andrew', 'Grace',
+    'Gabriel', 'Zoey', 'David', 'Nora', 'Carter', 'Lily', 'Wyatt', 'Miguel', 'Angelo', 
+    'Jasmine', 'Bea', 'Paulo', 'Kylie', 'Rafael', 'Julia', 'Marco', 'Clara'
+  ],
+  lastNames: [
+    'Garcia', 'Santos', 'Reyes', 'Cruz', 'Bautista', 'Gonzales', 'Torres', 'Dela Cruz',
+    'Ramos', 'Flores', 'Mendoza', 'Castro', 'Villanueva', 'Rivera', 'Aquino', 'Navarro',
+    'Mercado', 'Castillo', 'De Leon', 'Espiritu', 'Valdez', 'Salazar', 'Delos Santos',
+    'Gregorio', 'Enriquez', 'Sison', 'Pascual', 'Fernandez', 'Lopez', 'Martinez',
+    'Yap', 'Lim', 'Tan', 'Sy', 'Chua', 'Ong', 'Go', 'Gomez', 'Diaz', 'Soriano',
+    'Dizon', 'Manalo', 'Salvador', 'Ferrer', 'Domingo', 'Santiago', 'Corpus', 'David'
+  ],
+  middleNames: ['Marie', 'Jose', 'Mae', 'Anne', 'James', 'Rose', 'Luis', 'Joy', 'Grace', 'Paul', 'John', ''],
   genders: ['male', 'female'],
   referralReasons: [
     'Parent expressed concerns about delayed speech development and limited vocabulary for age.',
@@ -42,7 +64,10 @@ const DATA = {
     'Behavioral concerns including attention difficulties and hyperactivity.',
     'Limited social engagement and preference for solitary play noted by caregivers.',
     'Fine motor skills challenges affecting handwriting and daily self-care.',
-    'Language regression observed after previously meeting developmental targets.'
+    'Language regression observed after previously meeting developmental targets.',
+    'Sensory processing issues affecting daily routines (e.g., picky eating, noise sensitivity).',
+    'Difficulty with emotional regulation and frequent tantrums.',
+    'Struggles with transitions between activities and rigid behaviors.'
   ],
   assessmentPurposes: [
     ['Determine current developmental level', 'Identify areas of strength and weakness', 'Develop intervention plan'],
@@ -86,13 +111,23 @@ const DATA = {
     'In daycare since age 2. Struggles with group activities.',
     'Home-schooled until recently. Transitioning to classroom.'
   ],
-  clinicalDiagnoses: ['Global Developmental Delay', 'Autism Spectrum Disorder - Level 1', 'ADHD', 'Speech and Language Delay', 'Developmental Coordination Disorder'],
+  clinicalDiagnoses: [
+    'Global Developmental Delay', 
+    'Autism Spectrum Disorder - Level 1', 
+    'ADHD', 
+    'Speech and Language Delay', 
+    'Developmental Coordination Disorder',
+    'Sensory Processing Disorder',
+    'Social Communication Disorder'
+  ],
   strengthsAndInterests: [
     'Strong visual memory. Enjoys music. Loves outdoor activities.',
     'Good gross motor abilities. Interested in vehicles.',
     'Creative with art. Strong attachment to family.',
     'Good imitation skills. Interested in animals.',
-    'Persistence with preferred activities. Enjoys water play.'
+    'Persistence with preferred activities. Enjoys water play.',
+    'Loves puzzles and building blocks. Very observant.',
+    'Enjoys listening to stories and singing songs.'
   ],
   socialSkills: [
     'Beginning parallel play. Limited eye contact.',
@@ -106,18 +141,24 @@ const DATA = {
     'Alert and engaged. Required frequent breaks.',
     'Assessment conducted over two sessions. Generally compliant.',
     'Hesitant at beginning but became comfortable.',
-    'Cooperative behavior observed throughout.'
+    'Cooperative behavior observed throughout.',
+    'Demonstrated some anxiety but was redirectable.'
   ],
   assessmentTools: [
     { tool: 'Vineland Adaptive Behavior Scales-3', details: 'Adaptive functioning assessment' },
     { tool: 'Childhood Autism Rating Scale-2', details: 'Autism spectrum screening' },
     { tool: 'Peabody Developmental Motor Scales-2', details: 'Motor abilities evaluation' },
     { tool: 'Preschool Language Scales-5', details: 'Language assessment' },
-    { tool: 'Bayley Scales of Infant Development-4', details: 'Developmental assessment' }
+    { tool: 'Bayley Scales of Infant Development-4', details: 'Developmental assessment' },
+    { tool: 'Wechsler Preschool and Primary Scale of Intelligence-IV', details: 'Cognitive assessment' },
+    { tool: 'Sensory Profile 2', details: 'Sensory processing evaluation' }
   ],
-  assessmentResults: ['Below average', 'Average', 'Mild delay', 'Moderate delay', 'Age-appropriate'],
+  assessmentResults: ['Below average', 'Average', 'Mild delay', 'Moderate delay', 'Age-appropriate', 'Significant delay'],
   recommendations: ['Continue therapy with increased frequency', 'Implement visual supports', 'Refer for further assessment', 'Begin school-based intervention', 'Parent training on strategies'],
-  examiners: ['Dr. Maria Santos', 'Dr. Juan Reyes', 'Dr. Ana Cruz', 'Ms. Carmen Torres', 'Mr. Ricardo Bautista']
+  examiners: ['Dr. Maria Santos', 'Dr. Juan Reyes', 'Dr. Ana Cruz', 'Ms. Carmen Torres', 'Mr. Ricardo Bautista', 'Ms. Elena Gomez', 'Dr. Paolo Dizon'],
+  cities: ['Quezon City', 'Manila', 'Makati', 'Pasig', 'Taguig', 'Mandaluyong', 'San Juan', 'Caloocan'],
+  streets: ['Mabini', 'Rizal', 'Bonifacio', 'Luna', 'Quezon', 'Aguinaldo', 'Jacinto', 'Burgos', 'Kalaw', 'Amorsolo'],
+  schools: ['Little Stars Academy', 'Bright Minds Preschool', 'Happy Feet Learning Center', 'St. Mary\'s Kinder', 'Discovery Kids', '']
 };
 
 export default function SeedButton() {
@@ -157,17 +198,21 @@ export default function SeedButton() {
       
       const created = [];
       
+      // Get unique random names for this batch
+      const batchFirstNames = getUniqueRandoms(DATA.firstNames, 10);
+      const batchLastNames = getUniqueRandoms(DATA.lastNames, 10);
+      
       for (let i = 0; i < 10; i++) {
         const parent = parents[i % parents.length];
-        const firstName = DATA.firstNames[i];
-        const lastName = DATA.lastNames[i];
+        const firstName = batchFirstNames[i];
+        const lastName = batchLastNames[i];
         const dateOfBirth = randomDate(2018, 2022);
         const now = new Date().toISOString();
         const childId = generateUUID();
         const assessmentId = generateUUID();
         
         // Select 2-3 services for INTERVENTIONS (Step 7) - NOT enrollments
-        // This populates the dropdown in Step 13 for you to choose from
+        // This populates the dropdown in Step 13 for you to choose from 
         const selectedServices = [...services].sort(() => Math.random() - 0.5).slice(0, Math.floor(Math.random() * 2) + 2);
         
         // Create interventions for Step 7 (Diagnosis & Interventions)
@@ -203,7 +248,7 @@ export default function SeedButton() {
           childId,
           id: childId,
           firstName,
-          middleName: randomFrom(['Marie', 'Jose', 'Mae', '']),
+          middleName: randomFrom(DATA.middleNames),
           lastName,
           nickname: firstName.slice(0, 3),
           dateOfBirth,
@@ -211,8 +256,8 @@ export default function SeedButton() {
           relationshipToClient: 'biological child',
           photoUrl: '',
           active: true,
-          address: `${Math.floor(Math.random() * 999) + 1} ${randomFrom(['Mabini', 'Rizal', 'Bonifacio'])} St., ${randomFrom(['Quezon City', 'Manila', 'Makati'])}`,
-          school: randomFrom(['Little Stars Academy', 'Bright Minds Preschool', '']),
+          address: `${Math.floor(Math.random() * 999) + 1} ${randomFrom(DATA.streets)} St., ${randomFrom(DATA.cities)}`,
+          school: randomFrom(DATA.schools),
           gradeLevel: randomFrom(['Nursery', 'Pre-K', 'Kindergarten', '']),
           assessmentDates: now.split('T')[0],
           examiner: randomFrom(DATA.examiners),
@@ -220,7 +265,7 @@ export default function SeedButton() {
           assessmentId,
           
           // Step 2
-          reasonForReferral: DATA.referralReasons[i],
+          reasonForReferral: randomFrom(DATA.referralReasons),
           
           // Step 3
           purposeOfAssessment: DATA.assessmentPurposes[i % 5],
@@ -320,9 +365,9 @@ export default function SeedButton() {
       backgroundColor: '#f8fafc',
       fontFamily: 'system-ui, sans-serif'
     }}>
-      <h3 style={{ margin: '0 0 10px 0', color: '#1e293b' }}>🧪 Test Data Seeder</h3>
+      <h3 style={{ margin: '0 0 10px 0', color: '#1e293b' }}>🧪 Test Data Seeder (V2)</h3>
       <p style={{ margin: '0 0 5px 0', color: '#64748b', fontSize: '14px' }}>
-        Creates 10 students in <strong>ASSESSING</strong> status
+        Creates 10 students in <strong>ASSESSING</strong> status with random names
       </p>
       <p style={{ margin: '0 0 15px 0', color: '#64748b', fontSize: '13px' }}>
         Steps 1-12 complete • Step 13 (Service Enrollment) left empty for you
