@@ -7,12 +7,18 @@ const SpecializationManagerModal = ({ isOpen, onClose, staff, allServices, onSav
   const [selectedNewSpec, setSelectedNewSpec] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
+  // Deactivation confirmation state
+  const [confirmingDeactivation, setConfirmingDeactivation] = useState(null);
+  const [confirmationInput, setConfirmationInput] = useState('');
+
   // Initialize state when staff changes
   useEffect(() => {
     if (staff) {
       setActiveSpecs(staff.specializations || []);
       setInactiveSpecs(staff.deactivatedSpecializations || []);
       setSelectedNewSpec('');
+      setConfirmingDeactivation(null);
+      setConfirmationInput('');
     }
   }, [staff]);
 
@@ -24,9 +30,23 @@ const SpecializationManagerModal = ({ isOpen, onClose, staff, allServices, onSav
     return !activeSpecs.includes(serviceName) && !inactiveSpecs.includes(serviceName);
   });
 
-  const handleDeactivate = (spec) => {
-    setActiveSpecs(prev => prev.filter(s => s !== spec));
-    setInactiveSpecs(prev => [...prev, spec]);
+  const handleDeactivateClick = (spec) => {
+    setConfirmingDeactivation(spec);
+    setConfirmationInput('');
+  };
+
+  const handleConfirmDeactivation = () => {
+    if (confirmationInput.toLowerCase() === confirmingDeactivation.toLowerCase()) {
+      setActiveSpecs(prev => prev.filter(s => s !== confirmingDeactivation));
+      setInactiveSpecs(prev => [...prev, confirmingDeactivation]);
+      setConfirmingDeactivation(null);
+      setConfirmationInput('');
+    }
+  };
+
+  const handleCancelDeactivation = () => {
+    setConfirmingDeactivation(null);
+    setConfirmationInput('');
   };
 
   const handleReactivate = (spec) => {
@@ -79,14 +99,58 @@ const SpecializationManagerModal = ({ isOpen, onClose, staff, allServices, onSav
             ) : (
               activeSpecs.map((spec, idx) => (
                 <div key={idx} style={styles.listItem}>
-                  <span>{spec}</span>
-                  <button 
-                    onClick={() => handleDeactivate(spec)}
-                    style={{...styles.actionBtn, color: '#ef4444', borderColor: '#fecaca'}}
-                    title="Deactivate"
-                  >
-                    Deactivate ⛔
-                  </button>
+                  {confirmingDeactivation === spec ? (
+                    // Confirmation UI
+                    <div style={styles.confirmationContainer}>
+                      <p style={styles.confirmationText}>
+                        Type "<strong>{spec}</strong>" to confirm deactivation:
+                      </p>
+                      <div style={styles.confirmationInputRow}>
+                        <input
+                          type="text"
+                          value={confirmationInput}
+                          onChange={(e) => setConfirmationInput(e.target.value)}
+                          placeholder={spec}
+                          style={styles.confirmationInput}
+                          autoFocus
+                        />
+                        <button
+                          onClick={handleConfirmDeactivation}
+                          disabled={confirmationInput.toLowerCase() !== spec.toLowerCase()}
+                          style={{
+                            ...styles.confirmBtn,
+                            background: confirmationInput.toLowerCase() === spec.toLowerCase()
+                              ? '#ef4444' : '#e2e8f0',
+                            color: confirmationInput.toLowerCase() === spec.toLowerCase()
+                              ? 'white' : '#94a3b8',
+                            cursor: confirmationInput.toLowerCase() === spec.toLowerCase()
+                              ? 'pointer' : 'not-allowed',
+                          }}
+                        >
+                          Confirm
+                        </button>
+                        <button
+                          onClick={handleCancelDeactivation}
+                          style={styles.cancelConfirmBtn}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    // Normal display
+                    <>
+                      <span>{spec}</span>
+                      <button
+                        onClick={() => handleDeactivateClick(spec)}
+                        style={{...styles.actionBtn, color: '#ef4444', borderColor: '#fecaca'}}
+                        title="Deactivate"
+                        disabled={confirmingDeactivation !== null}
+                      >
+                        Deactivate ⛔
+                      </button>
+                    </>
+                  )}
                 </div>
               ))
             )}
@@ -162,7 +226,7 @@ const SpecializationManagerModal = ({ isOpen, onClose, staff, allServices, onSav
             type="button" 
             onClick={handleSave}
             disabled={isSaving}
-            className={`mt-btn-submit ${isSaving ? 'loading' : ''}`}
+            className={`mt-btn-submit ${isSaving ? 'loading' : 'normal'}`}
             style={{ width: 'auto', paddingLeft: '30px', paddingRight: '30px'}}
           >
             {isSaving ? 'SAVING...' : 'SAVE CHANGES'}
@@ -221,7 +285,48 @@ const styles = {
     borderRadius: '6px',
     border: '1px solid #cbd5e1',
     fontSize: '0.9rem',
-  }
+  },
+  confirmationContainer: {
+    width: '100%',
+  },
+  confirmationText: {
+    fontSize: '0.85rem',
+    color: '#64748b',
+    marginBottom: '8px',
+  },
+  confirmationInputRow: {
+    display: 'flex',
+    gap: '8px',
+    alignItems: 'center',
+  },
+  confirmationInput: {
+    flex: 1,
+    padding: '8px 12px',
+    border: '2px solid #fecaca',
+    borderRadius: '6px',
+    fontSize: '0.9rem',
+    outline: 'none',
+  },
+  confirmBtn: {
+    padding: '8px 14px',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '0.75rem',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    transition: 'all 0.2s',
+  },
+  cancelConfirmBtn: {
+    padding: '8px 14px',
+    background: 'white',
+    border: '1px solid #e2e8f0',
+    borderRadius: '6px',
+    fontSize: '0.75rem',
+    fontWeight: '600',
+    color: '#64748b',
+    cursor: 'pointer',
+    textTransform: 'uppercase',
+  },
 };
 
 export default SpecializationManagerModal;
