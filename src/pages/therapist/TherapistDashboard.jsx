@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../context/ToastContext';
 import Loading from '../../components/common/Loading';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getTherapistConfig } from '../../components/sidebar/sidebarConfigs';
@@ -13,7 +14,7 @@ import './css/TherapistDashboard.css';
 const TherapistDashboard = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-
+  const toast = useToast();
 
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -79,7 +80,7 @@ const TherapistDashboard = () => {
     const myServices = getMyServices(student);
 
     if (myServices.length === 0) {
-      alert("Error: You are not assigned to any services for this student.");
+      toast.error("You are not assigned to any services for this student.");
       return;
     }
 

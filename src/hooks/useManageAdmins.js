@@ -6,9 +6,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAdmins } from './useCachedData'; // Import the cached hook
 import authService from '../services/authService';
 import userService from '../services/userService';
+import { useToast } from '../context/ToastContext';
 
 const useManageAdmins = () => {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [error, setError] = useState(null);
   
   // 1. REPLACE useEffect WITH CACHED HOOK
@@ -46,7 +48,7 @@ const useManageAdmins = () => {
         password: 'Welcome123!' 
       });
       
-      alert('Admin created successfully');
+      toast.success('Admin created successfully');
     } catch (err) {
       setError(err.message);
     }

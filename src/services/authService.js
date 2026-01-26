@@ -64,6 +64,14 @@ class AuthService {
         createdAt: new Date().toISOString()
       });
 
+      // Create activation_codes document for public validation
+      await activationService.createActivationCodeDocument(user.uid, {
+        email,
+        firstName: parentData.firstName,
+        lastName: parentData.lastName,
+        role: 'parent'
+      }, activationData);
+
       return {
         uid: user.uid,
         email: email,
@@ -101,11 +109,19 @@ class AuthService {
         specializations: therapistData.specializations || [],
         active: true,
         profileCompleted: false,
-        permissions: getDefaultPermissions('therapist'),  // ADD THIS
-        permissionsHistory: [],                            // ADD THIS
+        permissions: getDefaultPermissions('therapist'),
+        permissionsHistory: [],
         ...activationData,
         createdAt: new Date().toISOString()
       });
+
+      // Create activation_codes document for public validation
+      await activationService.createActivationCodeDocument(user.uid, {
+        email,
+        firstName: therapistData.firstName,
+        lastName: therapistData.lastName,
+        role: 'therapist'
+      }, activationData);
 
       return {
         uid: user.uid,
@@ -143,11 +159,19 @@ class AuthService {
         role: 'teacher',
         specializations: teacherData.specializations || [],
         active: true,
-        permissions: getDefaultPermissions('teacher'),  // ADD THIS
-        permissionsHistory: [],                          // ADD THIS
+        permissions: getDefaultPermissions('teacher'),
+        permissionsHistory: [],
         ...activationData,
         createdAt: new Date().toISOString()
       });
+
+      // Create activation_codes document for public validation
+      await activationService.createActivationCodeDocument(user.uid, {
+        email,
+        firstName: teacherData.firstName,
+        lastName: teacherData.lastName,
+        role: 'teacher'
+      }, activationData);
 
       return {
         uid: user.uid,
@@ -184,11 +208,19 @@ class AuthService {
         email: email,
         role: 'admin',
         active: true,
-        permissions: getDefaultPermissions('admin'),  // ADD THIS
-        permissionsHistory: [],                        // ADD THIS
+        permissions: getDefaultPermissions('admin'),
+        permissionsHistory: [],
         ...activationData,
         createdAt: new Date().toISOString()
       });
+
+      // Create activation_codes document for public validation
+      await activationService.createActivationCodeDocument(user.uid, {
+        email,
+        firstName: adminData.firstName,
+        lastName: adminData.lastName,
+        role: 'admin'
+      }, activationData);
 
       return {
         uid: user.uid,

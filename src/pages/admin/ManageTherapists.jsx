@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useManageTherapists from '../../hooks/useManageTherapists';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../context/ToastContext';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import TherapistCard from '../shared/TherapistCard';
@@ -14,6 +15,7 @@ import "./css/managetherapist.css";
 
 const ManageTherapists = () => {
   const { currentUser } = useAuth();
+  const toast = useToast();
   const location = useLocation();
   const navigate = useNavigate(); // Added navigate hook
   const isSuperAdmin = currentUser?.role === 'super_admin';
@@ -80,7 +82,7 @@ const ManageTherapists = () => {
       setNewUserData(result.user);
       setShowActivationModal(true);
     } else {
-      alert('Failed to create therapist: ' + result.error);
+      toast.error('Failed to create therapist: ' + result.error);
     }
   };
 
@@ -234,7 +236,7 @@ const ManageTherapists = () => {
                         if (t.profileCompleted) {
                           setSelectedTherapistId(t.uid);
                         } else {
-                          alert("This therapist has not completed their profile yet.");
+                          toast.info("This therapist has not completed their profile yet.");
                         }
                       }}
                     >

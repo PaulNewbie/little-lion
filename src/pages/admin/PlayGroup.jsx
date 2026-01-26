@@ -14,6 +14,7 @@ import cloudinaryService from '../../services/cloudinaryService';
 
 // Components & Styles
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../context/ToastContext';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import Loading from '../../components/common/Loading';
@@ -46,6 +47,7 @@ const ServiceDescription = ({ description, maxLength = 70 }) => {
 
 const PlayGroup = () => {
   const { currentUser } = useAuth();
+  const toast = useToast();
   const isSuperAdmin = currentUser?.role === 'super_admin';
 
   const queryClient = useQueryClient();
@@ -163,7 +165,7 @@ const PlayGroup = () => {
       setServiceImage(null);
       setShowAddModal(false);
     } catch(err) {
-      alert("Failed to create service: " + err.message);
+      toast.error("Failed to create service: " + err.message);
     } finally {
       setUploading(false);
     }
@@ -431,7 +433,7 @@ const PlayGroup = () => {
                   await queryClient.invalidateQueries({ queryKey: ['services', 'Class'] });
                   setShowEditModal(false);
                 } catch(err) {
-                  alert("Failed to update service: " + err.message);
+                  toast.error("Failed to update service: " + err.message);
                 } finally {
                   setEditing(false);
                 }

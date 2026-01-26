@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../context/ToastContext';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import GeneralFooter from "../../components/footer/generalfooter";
@@ -34,6 +35,7 @@ const ServiceDescription = ({ description, maxLength = 38 }) => {
 
 const OneOnOne = () => {
   const { currentUser } = useAuth();
+  const toast = useToast();
   const isSuperAdmin = currentUser?.role === 'super_admin';
 
   const navigate = useNavigate();
@@ -134,10 +136,10 @@ const OneOnOne = () => {
       setShowAddServiceModal(false);
       setNewService({ name: "", description: "", type: "Therapy" });
       setNewServiceImage(null);
-      alert("Service added successfully!");
+      toast.success("Service added successfully!");
     } catch (err) {
       console.error(err);
-      alert("Failed to add service.");
+      toast.error("Failed to add service.");
     } finally { setUploading(false); }
   };
 
@@ -152,7 +154,7 @@ const OneOnOne = () => {
       setShowEditModal(false);
     } catch (err) {
       console.error(err);
-      alert("Failed to update service.");
+      toast.error("Failed to update service.");
     } finally { setEditing(false); }
   };
 

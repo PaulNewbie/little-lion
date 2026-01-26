@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../context/ToastContext';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import GeneralFooter from '../../components/footer/generalfooter';
@@ -14,6 +15,7 @@ import './css/UserAccessManagement.css';
 export default function UserAccessManagement() {
   const { currentUser } = useAuth();
   const queryClient = useQueryClient();
+  const toast = useToast();
   const isSuperAdmin = currentUser?.role === 'super_admin';
   const sidebarConfig = getAdminConfig(isSuperAdmin);
 
@@ -47,7 +49,7 @@ export default function UserAccessManagement() {
     onSuccess: invalidateUserCaches,
     onError: (error) => {
       console.error('Error updating permission:', error);
-      alert('Failed to update permission');
+      toast.error('Failed to update permission');
     },
   });
 
@@ -61,7 +63,7 @@ export default function UserAccessManagement() {
     },
     onError: (error) => {
       console.error('Error bulk updating:', error);
-      alert('Failed to update permissions');
+      toast.error('Failed to update permissions');
     },
   });
 
@@ -73,7 +75,7 @@ export default function UserAccessManagement() {
   // Bulk update permissions
   const handleBulkUpdate = (canEnroll) => {
     if (selectedUsers.length === 0) {
-      alert('Please select users first');
+      toast.warning('Please select users first');
       return;
     }
 

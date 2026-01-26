@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../context/ToastContext';
 import childService from '../../services/childService';
 import inquiryService from '../../services/inquiryService';
 
 const NewInquiry = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
 
   const [children, setChildren] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -88,7 +90,7 @@ const NewInquiry = () => {
     e.preventDefault();
     
     if (!selectedChildId || !selectedStaffId || !message) {
-      alert('Please fill in all required fields.');
+      toast.warning('Please fill in all required fields.');
       return;
     }
     
@@ -110,11 +112,11 @@ const NewInquiry = () => {
       };
 
       await inquiryService.createInquiry(inquiryData);
-      alert('✅ Inquiry Sent Successfully!');
+      toast.success('Inquiry sent successfully!');
       navigate('/parent/inquiries');
     } catch (error) {
       console.error('❌ Error sending inquiry:', error);
-      alert('Failed to send inquiry. Please try again.');
+      toast.error('Failed to send inquiry. Please try again.');
     } finally {
       setSending(false);
     }

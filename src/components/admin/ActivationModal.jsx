@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import activationService from '../../services/activationService';
+import { useToast } from '../../context/ToastContext';
 
 const styles = {
   overlay: {
@@ -174,6 +175,7 @@ export default function ActivationModal({
   userData,  // { uid, firstName, lastName, email, activationCode }
   onEmailSent 
 }) {
+  const toast = useToast();
   const [showAdminAssist, setShowAdminAssist] = useState(false);
   const [adminCode, setAdminCode] = useState('');
   const [adminCodeExpiry, setAdminCodeExpiry] = useState(null);
@@ -197,12 +199,12 @@ export default function ActivationModal({
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(userData.activationCode);
-    alert('Code copied!');
+    toast.success('Code copied!');
   };
 
   const handleCopyUrl = () => {
     navigator.clipboard.writeText(activationUrl);
-    alert('URL copied!');
+    toast.success('URL copied!');
   };
 
   const handleSendEmail = async () => {
@@ -217,7 +219,7 @@ export default function ActivationModal({
       setEmailSent(true);
       if (onEmailSent) onEmailSent();
     } else {
-      alert('Failed to send email: ' + result.error);
+      toast.error('Failed to send email: ' + result.error);
     }
   };
 
@@ -225,13 +227,13 @@ export default function ActivationModal({
     setLoading(true);
     const result = await activationService.generateAdminAssistCodeForUser(userData.uid);
     setLoading(false);
-    
+
     if (result.success) {
       setAdminCode(result.code);
       setAdminCodeExpiry(result.expiry);
       setShowAdminAssist(true);
     } else {
-      alert('Failed to generate admin code: ' + result.error);
+      toast.error('Failed to generate admin code: ' + result.error);
     }
   };
 

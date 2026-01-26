@@ -6,24 +6,24 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate', // Automatically updates the app when you deploy changes
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      registerType: 'autoUpdate',
+      includeAssets: ['logo.png'],
       manifest: {
         name: 'Little Lions Monitoring',
         short_name: 'Little Lions',
         description: 'Monitoring system for Little Lions Learning Center',
-        theme_color: '#ffffff',
+        theme_color: '#FFA500',
         background_color: '#ffffff',
         display: 'standalone',
         start_url: '/',
         icons: [
           {
-            src: 'logo192.png', // Ensure these exist in your public folder
+            src: 'logo.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'logo512.png',
+            src: 'logo.png',
             sizes: '512x512',
             type: 'image/png'
           }

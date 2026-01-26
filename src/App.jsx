@@ -8,6 +8,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 // Your existing imports
 import { queryClient } from './config/queryClient';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 import AppRoutes from './routes/routeConfig';
 
 // Read counter imports
@@ -27,7 +28,9 @@ function App() {
         <PageTracker />
         
         <AuthProvider>
-          <AppRoutes />
+          <ToastProvider>
+            <AppRoutes />
+          </ToastProvider>
         </AuthProvider>
         
         {/* Development: Show read stats overlay */}

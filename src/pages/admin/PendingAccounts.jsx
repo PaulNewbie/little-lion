@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../context/ToastContext';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import ActivationModal from '../../components/admin/ActivationModal';
@@ -148,6 +149,7 @@ const getDaysUntilExpiry = (expiry) => {
 
 export default function PendingAccounts() {
   const { currentUser } = useAuth();
+  const toast = useToast();
   const isSuperAdmin = currentUser?.role === 'super_admin';
 
   const [users, setUsers] = useState([]);
@@ -188,7 +190,7 @@ export default function PendingAccounts() {
       setSelectedUser({ ...user, activationCode: result.newCode });
       setShowModal(true);
     } else {
-      alert('Failed to regenerate code');
+      toast.error('Failed to regenerate code');
     }
   };
 

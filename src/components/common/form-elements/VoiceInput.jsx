@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useToast } from '../../../context/ToastContext';
 
 const VoiceInput = ({ onTranscript }) => {
+  const toast = useToast();
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
 
@@ -12,7 +14,7 @@ const VoiceInput = ({ onTranscript }) => {
 
   const toggleListen = () => {
     if (!isSupported) {
-      alert("Voice input is not supported in this browser. Please use Chrome, Edge, or Safari.");
+      toast.warning("Voice input is not supported in this browser. Please use Chrome, Edge, or Safari.");
       return;
     }
 

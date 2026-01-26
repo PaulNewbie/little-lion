@@ -16,7 +16,9 @@ export const VALIDATION_RULES = {
    */
   profile: {
     therapist: {
-      required: ['firstName', 'lastName', 'licenseType', 'licenseNumber', 'phone'],
+      // Note: Therapists use licenses[] array, validated separately below
+      required: ['firstName', 'lastName', 'phone'],
+      requiresLicenseArray: true, // Custom flag for array-based license validation
       optional: ['middleName', 'dateOfBirth', 'gender', 'address', 'emergencyContact'],
       recommended: ['educationHistory', 'certifications', 'specializations']
     },
@@ -104,16 +106,16 @@ export const VALIDATION_PATTERNS = {
     errorMessage: 'Please enter a valid ZIP code (e.g., 12345 or 12345-6789)'
   },
   licenseNumber: {
-    pattern: /^[A-Z0-9-]{3,20}$/i,
-    errorMessage: 'License number must be 3-20 characters (letters, numbers, hyphens only)'
+    pattern: /^[A-Z0-9\s\-\.\/]{2,30}$/i,
+    errorMessage: 'License number must be 2-30 characters (letters, numbers, spaces, hyphens, dots, slashes)'
   },
   teachingLicense: {
-    pattern: /^[A-Z0-9-]{3,20}$/i,
-    errorMessage: 'Teaching license must be 3-20 characters (letters, numbers, hyphens only)'
+    pattern: /^[A-Z0-9\s\-\.\/]{2,30}$/i,
+    errorMessage: 'Teaching license must be 2-30 characters (letters, numbers, spaces, hyphens, dots, slashes)'
   },
   prcId: {
-    pattern: /^[0-9]{7,10}$/,
-    errorMessage: 'PRC ID must be 7-10 digits'
+    pattern: /^[A-Z0-9\-]{5,15}$/i,
+    errorMessage: 'PRC ID must be 5-15 characters (letters, numbers, hyphens)'
   },
   year: {
     pattern: /^(19|20)\d{2}$/,
@@ -172,6 +174,24 @@ export const validateProfile = (data, role) => {
   
   // Role-specific validation
   if (role === 'therapist' || role === 'teacher') {
+    // Therapist: Check licenses array (required)
+    if (rules.requiresLicenseArray) {
+      if (!data.licenses || data.licenses.length === 0) {
+        errors.licenses = 'At least one license is required';
+      } else {
+        // Validate each license entry
+        data.licenses.forEach((license, index) => {
+          if (!license.licenseType || !license.licenseNumber) {
+            errors[`license_${index}`] = `License ${index + 1} is incomplete (type and number required)`;
+          }
+          // Validate license number format
+          if (license.licenseNumber && !VALIDATION_PATTERNS.licenseNumber.pattern.test(license.licenseNumber)) {
+            errors[`license_${index}_number`] = `License ${index + 1}: ${VALIDATION_PATTERNS.licenseNumber.errorMessage}`;
+          }
+        });
+      }
+    }
+
     // Check education history
     if (!data.educationHistory || data.educationHistory.length === 0) {
       warnings.educationHistory = 'Adding your education history is recommended';

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { saveSessionActivity } from '../../services/activityService';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../context/ToastContext';
 import Loading from '../../components/common/Loading';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getTherapistConfig } from '../../components/sidebar/sidebarConfigs';
@@ -51,6 +52,7 @@ const TherapySessionForm = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const toast = useToast();
   const { child, service } = location.state || {};
 
   // --- LOGIC: DETERMINE FORM TYPE ---
@@ -167,11 +169,11 @@ const TherapySessionForm = () => {
 
     try {
       await saveSessionActivity(sessionData);
-      alert('Saved successfully!');
+      toast.success('Session saved successfully!');
       navigate('/therapist/dashboard');
     } catch (error) {
       console.error("Error saving", error);
-      alert('Failed to save.');
+      toast.error('Failed to save session.');
     } finally {
       setLoading(false);
     }

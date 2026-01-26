@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import activationService from '../../services/activationService';
+import { useToast } from '../../context/ToastContext';
 
 // Minimal inline styles
 const styles = {
@@ -182,7 +183,8 @@ const styles = {
 export default function ActivatePage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  
+  const toast = useToast();
+
   // Get code from URL if present
   const urlCode = searchParams.get('code') || '';
   
@@ -222,22 +224,28 @@ export default function ActivatePage() {
   const validateCode = async (codeToValidate) => {
     setStep('validating');
     setError('');
-    
-    const result = await activationService.validateActivationCode(codeToValidate);
-    
-    if (result.valid) {
-      setUserData(result.user);
-      
-      // Fetch children if parent
-      if (result.user.role === 'parent') {
-        const childrenData = await activationService.getChildrenForParent(result.user.uid);
-        setChildren(childrenData);
+
+    try {
+      const result = await activationService.validateActivationCode(codeToValidate);
+
+      if (result.valid) {
+        setUserData(result.user);
+
+        // Fetch children if parent
+        if (result.user.role === 'parent') {
+          const childrenData = await activationService.getChildrenForParent(result.user.uid);
+          setChildren(childrenData);
+        }
+
+        setStep('welcome');
+      } else {
+        setErrorType(result.error);
+        setUserData(result.user || null);
+        setStep('error');
       }
-      
-      setStep('welcome');
-    } else {
-      setErrorType(result.error);
-      setUserData(result.user || null);
+    } catch (err) {
+      console.error('Validation error:', err);
+      setErrorType('validation_failed');
       setStep('error');
     }
   };
@@ -276,12 +284,13 @@ export default function ActivatePage() {
     setLoading(true);
     
     try {
-      // OPTION B: Set password directly (no email step!)
+      // Set password directly and clean up activation code document
       const result = await activationService.completeActivation(
         userData.uid,
         userData.email,
         password,
-        'self'
+        'self',
+        userData.activationCode  // Pass activation code for cleanup
       );
       
       if (result.success) {
@@ -304,7 +313,7 @@ export default function ActivatePage() {
     try {
       const result = await activationService.regenerateActivationCode(userData.uid, userData.email);
       if (result.success) {
-        alert(`New activation code: ${result.newCode}\n\nPlease use this code to activate your account.`);
+        toast.info(`New code generated: ${result.newCode}`, 8000);
         setCode(result.newCode);
         setStep('enter_code');
         setError('');
@@ -609,8 +618,8 @@ export default function ActivatePage() {
               <>
                 <h1 style={{ ...styles.title, color: '#dc2626' }}>❌ Invalid Code</h1>
                 <p style={styles.subtitle}>This activation code is not valid</p>
-                
-                <button 
+
+                <button
                   onClick={() => {
                     setStep('enter_code');
                     setError('');
@@ -620,7 +629,7 @@ export default function ActivatePage() {
                 >
                   Try Again
                 </button>
-                
+
                 <div style={styles.divider} />
                 <p style={{ textAlign: 'center', fontSize: '14px', color: '#666' }}>
                   Contact the school admin if you need help

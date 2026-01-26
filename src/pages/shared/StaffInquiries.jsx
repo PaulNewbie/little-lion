@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../context/ToastContext';
 import inquiryService from '../../services/inquiryService';
 
 const StaffInquiries = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
   const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -59,10 +61,10 @@ const StaffInquiries = () => {
       const updatedData = await inquiryService.getInquiriesByStaff(currentUser.uid);
       setInquiries(updatedData);
       setReplyText(prev => ({ ...prev, [inquiryId]: '' }));
-      
-      alert("Reply sent successfully.");
+
+      toast.success("Reply sent successfully.");
     } catch (error) {
-      alert("Failed to send reply.");
+      toast.error("Failed to send reply.");
     } finally {
       setSubmitting(null);
     }

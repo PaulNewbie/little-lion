@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../context/ToastContext';
 import { useChildrenByParent } from '../../hooks/useCachedData';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getParentConfig } from '../../components/sidebar/sidebarConfigs';
@@ -517,6 +518,7 @@ const PrintIcon = () => (
 
 export default function MonthlySummary() {
   const { currentUser } = useAuth();
+  const toast = useToast();
   const printRef = useRef(null);
 
   // Use cached children data - prevents re-fetching across parent pages
@@ -543,7 +545,7 @@ export default function MonthlySummary() {
     // Create print window
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      alert('Please allow popups to print the report');
+      toast.warning('Please allow popups to print the report');
       return;
     }
 
@@ -710,7 +712,7 @@ export default function MonthlySummary() {
       setSummary(summaryData);
     } catch (error) {
       console.error('Error generating summary:', error);
-      alert('Failed to generate summary');
+      toast.error('Failed to generate summary');
     } finally {
       setLoading(false);
     }
