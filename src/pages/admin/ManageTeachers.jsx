@@ -7,6 +7,7 @@ import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import TeacherCard from '../shared/TeacherCard';
 import ActivationModal from '../../components/admin/ActivationModal';
+import SpecializationManagerModal from '../../components/admin/SpecializationManagerModal';
 import Loading from '../../components/common/Loading';
 import { useChildrenByStaff } from '../../hooks/useCachedData';
 import "./css/OneOnOne.css";
@@ -16,7 +17,7 @@ const ManageTeachers = () => {
   const { currentUser } = useAuth();
   const toast = useToast();
   const location = useLocation();
-  const navigate = useNavigate(); // Added navigate hook
+  const navigate = useNavigate();
   const isSuperAdmin = currentUser?.role === 'super_admin';
 
   const {
@@ -26,7 +27,8 @@ const ManageTeachers = () => {
     createTeacher, 
     newTeacher, 
     handleInputChange, 
-    services 
+    services,
+    updateTeacher
   } = useManageTeachers();
   
   const [showForm, setShowForm] = useState(false);
@@ -40,7 +42,11 @@ const ManageTeachers = () => {
   const [newUserData, setNewUserData] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
 
-  // 2. USE THE CACHED HOOK
+  // Specialization Manager Modal State
+  const [showSpecModal, setShowSpecModal] = useState(false);
+  const [staffForSpecUpdate, setStaffForSpecUpdate] = useState(null);
+
+  // Use cached data hook
   const { 
     data: assignedStudents = [], 
     isLoading: loadingStudents 
@@ -90,13 +96,27 @@ const ManageTeachers = () => {
     }
   };
 
+  // Handler for opening the Specialization Manager
+  const handleOpenSpecManager = (teacher) => {
+    setStaffForSpecUpdate(teacher);
+    setShowSpecModal(true);
+  };
+
+  // Handler for saving specialization changes
+  const handleSaveSpecs = async (teacherId, updates) => {
+    const result = await updateTeacher(teacherId, updates);
+    if (result.success) {
+      toast.success("Specializations updated successfully!");
+    } else {
+      toast.error("Failed to update: " + result.error);
+    }
+  };
+
   // Handler for Back Button
   const handleBack = () => {
     if (location.state?.returnTo) {
-      // Navigate back to the previous page (StudentProfile) with its required state
       navigate(location.state.returnTo, { state: location.state.returnState });
     } else {
-      // Default behavior: go back to list view
       setSelectedTeacherId(null);
     }
   };
@@ -115,7 +135,6 @@ const ManageTeachers = () => {
             
             {/* Left side: Back Button + Title */}
             <div className="mt-header-left">
-              {/* Back Button – ONLY shows on Teacher Profile */}
               {selectedTeacherId && (
                 <span
                   className="mt-back-btn"
@@ -130,7 +149,6 @@ const ManageTeachers = () => {
                   {selectedTeacherId ? "TEACHER PROFILE" : "TEACHER PROFILES"}
                 </h1>
                 
-                {/* Hide subtitle when viewing detail */}
                 {!selectedTeacherId && (
                   <p className="header-subtitle">Add and Manage Teacher Accounts</p>
                 )}
@@ -165,7 +183,11 @@ const ManageTeachers = () => {
           {selectedTeacherId && selectedTeacher ? (
             /* ---------------- VIEW: SINGLE TEACHER PROFILE ---------------- */
             <div style={{ paddingBottom: '120px', width: '100%' }}>
-              <TeacherCard teacher={selectedTeacher} />
+              <TeacherCard 
+                teacher={selectedTeacher} 
+                isSuperAdmin={isSuperAdmin}
+                onManageSpecs={handleOpenSpecManager}
+              />
 
               {/* --- NEW SECTION: ENROLLED STUDENTS --- */}
               <div style={{ marginTop: '30px' }}>
@@ -349,6 +371,20 @@ const ManageTeachers = () => {
           }}
           userData={newUserData}
         />
+
+        {/* Specialization Manager Modal */}
+        <SpecializationManagerModal
+          isOpen={showSpecModal}
+          onClose={() => {
+            setShowSpecModal(false);
+            setStaffForSpecUpdate(null);
+          }}
+          staff={staffForSpecUpdate}
+          allServices={services}
+          onSave={handleSaveSpecs}
+          role="teacher"
+        />
+
       </div>
       )}
     </div>

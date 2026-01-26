@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const TeacherCard = ({ teacher }) => {
+const TeacherCard = ({ teacher, isSuperAdmin, onManageSpecs }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (!teacher) return null;
@@ -106,18 +106,51 @@ const TeacherCard = ({ teacher }) => {
             )}
 
             {/* Specializations */}
-            {teacher.specializations?.length > 0 && (
-              <div style={styles.section}>
-                <div style={styles.sectionHeader}>🎯 Specializations</div>
-                <div style={styles.tagContainer}>
-                  {teacher.specializations.map((spec, index) => (
+            <div style={styles.section}>
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem'}}>
+                <div style={{...styles.sectionHeader, marginBottom: 0}}>🎯 Specializations</div>
+                
+                {/* 2. Admin Button */}
+                {isSuperAdmin && onManageSpecs && (
+                  <button 
+                    onClick={() => onManageSpecs(teacher)}
+                    style={{
+                      background: 'none', 
+                      border: 'none', 
+                      color: '#2563eb', 
+                      fontSize: '0.75rem', 
+                      fontWeight: '700', 
+                      cursor: 'pointer',
+                      textDecoration: 'underline'
+                    }}
+                  >
+                    ⚙️ MANAGE
+                  </button>
+                )}
+              </div>
+
+              {/* 3. Show Inactive Specs (Optional visual cue) or just Active */}
+              <div style={styles.tagContainer}>
+                {(teacher.specializations && teacher.specializations.length > 0) ? (
+                  teacher.specializations.map((spec, index) => (
                     <span key={index} style={styles.specTag}>
                       {spec}
                     </span>
-                  ))}
-                </div>
+                  ))
+                ) : (
+                  <span style={{fontSize: '0.85rem', color: '#94a3b8', fontStyle: 'italic'}}>
+                    No active specializations
+                  </span>
+                )}
+                
+                {/* Optional: Show deactivated in grey if you want admin to see them here too */}
+                {isSuperAdmin && teacher.deactivatedSpecializations?.map((spec, index) => (
+                   <span key={`inactive-${index}`} style={{...styles.specTag, background: '#f1f5f9', color: '#94a3b8', border: '1px dashed #cbd5e1'}}>
+                      {spec} (Inactive)
+                   </span>
+                ))}
               </div>
-            )}
+            </div>
 
             {/* Education */}
             {teacher.educationHistory?.length > 0 && (

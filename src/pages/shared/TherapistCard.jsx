@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const TherapistCard = ({ therapist, serviceName }) => {
+const TherapistCard = ({ therapist, serviceName, isSuperAdmin, onManageSpecs }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (!therapist) return null;
@@ -85,16 +85,48 @@ const TherapistCard = ({ therapist, serviceName }) => {
           )}
 
           {/* Specializations */}
-          {therapist.specializations?.length > 0 && (
-            <div style={styles.section}>
-              <div style={styles.sectionHeader}>🎯 Specializations</div>
-              <div style={styles.tagsContainer}>
-                {therapist.specializations.map((spec, idx) => (
-                  <span key={idx} style={styles.specTag}>{spec}</span>
-                ))}
-              </div>
+          <div style={styles.section}>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem'}}>
+                <div style={{...styles.sectionHeader, marginBottom: 0}}>🎯 Specializations</div>
+                
+                {/* 2. Admin Button */}
+                {isSuperAdmin && onManageSpecs && (
+                  <button 
+                    onClick={() => onManageSpecs(therapist)}
+                    style={{
+                      background: 'none', 
+                      border: 'none', 
+                      color: '#2563eb', 
+                      fontSize: '0.75rem', 
+                      fontWeight: '700', 
+                      cursor: 'pointer',
+                      textDecoration: 'underline'
+                    }}
+                  >
+                    ⚙️ MANAGE
+                  </button>
+                )}
             </div>
-          )}
+
+            <div style={styles.tagsContainer}>
+              {(therapist.specializations && therapist.specializations.length > 0) ? (
+                therapist.specializations.map((spec, idx) => (
+                  <span key={idx} style={styles.specTag}>{spec}</span>
+                ))
+              ) : (
+                <span style={{fontSize: '0.85rem', color: '#94a3b8', fontStyle: 'italic'}}>
+                   No active specializations
+                </span>
+              )}
+
+              {/* Optional: Show deactivated in grey */}
+              {isSuperAdmin && therapist.deactivatedSpecializations?.map((spec, index) => (
+                   <span key={`inactive-${index}`} style={{...styles.specTag, background: '#f1f5f9', color: '#94a3b8', border: '1px dashed #cbd5e1'}}>
+                      {spec} (Inactive)
+                   </span>
+              ))}
+            </div>
+          </div>
 
           {/* Education */}
           {therapist.educationHistory?.length > 0 && (

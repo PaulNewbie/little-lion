@@ -7,6 +7,7 @@ import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import TherapistCard from '../shared/TherapistCard';
 import ActivationModal from '../../components/admin/ActivationModal';
+import SpecializationManagerModal from '../../components/admin/SpecializationManagerModal';
 import Loading from '../../components/common/Loading';
 import { useChildrenByStaff } from '../../hooks/useCachedData';
 import "./css/OneOnOne.css";      
@@ -17,7 +18,7 @@ const ManageTherapists = () => {
   const { currentUser } = useAuth();
   const toast = useToast();
   const location = useLocation();
-  const navigate = useNavigate(); // Added navigate hook
+  const navigate = useNavigate();
   const isSuperAdmin = currentUser?.role === 'super_admin';
 
   const {
@@ -29,6 +30,7 @@ const ManageTherapists = () => {
     handleInputChange,
     toggleSpecialization,
     createTherapist,
+    updateTherapist
   } = useManageTherapists();
 
   const [showForm, setShowForm] = useState(false);
@@ -42,7 +44,11 @@ const ManageTherapists = () => {
   const [newUserData, setNewUserData] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
 
-  // 3. USE CACHED DATA
+  // Specialization Manager Modal State
+  const [showSpecModal, setShowSpecModal] = useState(false);
+  const [staffForSpecUpdate, setStaffForSpecUpdate] = useState(null);
+
+  // Use cached data
   const { 
     data: assignedStudents = [], 
     isLoading: loadingStudents 
@@ -86,6 +92,22 @@ const ManageTherapists = () => {
     }
   };
 
+  // Handler for opening the Specialization Manager
+  const handleOpenSpecManager = (therapist) => {
+    setStaffForSpecUpdate(therapist);
+    setShowSpecModal(true);
+  };
+
+  // Handler for saving specialization changes
+  const handleSaveSpecs = async (therapistId, updates) => {
+    const result = await updateTherapist(therapistId, updates);
+    if (result.success) {
+      toast.success("Specializations updated successfully!");
+    } else {
+      toast.error("Failed to update: " + result.error);
+    }
+  };
+
   // Handler for Back Button
   const handleBack = () => {
     if (location.state?.returnTo) {
@@ -98,14 +120,6 @@ const ManageTherapists = () => {
   const selectedTherapist = selectedTherapistId 
     ? therapists.find(t => t.uid === selectedTherapistId) 
     : null;
-  // --- Specialization Handlers ---
-
-  // Update a specific row's selection
-  const handleSpecChange = (index, value) => {
-    const updatedSpecs = [...newTherapist.specializations];
-    updatedSpecs[index] = value;
-    newTherapist.specializations = updatedSpecs; 
-  };
 
   return (
     <div className="ooo-container">
@@ -166,11 +180,12 @@ const ManageTherapists = () => {
           {selectedTherapistId ? (
               <div style={{ paddingBottom: '120px', width: '100%' }}>
     
-                {/* FIXED: Passing the object 'therapist' instead of 'therapistId' */}
                 <TherapistCard
-                therapist={selectedTherapist}  
-                serviceName="Therapist Profile"
-              />
+                  therapist={selectedTherapist}  
+                  serviceName="Therapist Profile"
+                  isSuperAdmin={isSuperAdmin}
+                  onManageSpecs={handleOpenSpecManager}
+                />
 
               {/* --- ENROLLED PATIENTS SECTION --- */}
               <div style={{ marginTop: '30px' }}>
@@ -185,19 +200,16 @@ const ManageTherapists = () => {
                      <p>No patients currently assigned to this therapist.</p>
                    </div>
                 ) : (
-                  // FIX: Using 'ooo-grid' + 'ooo-card' + 'ooo-photo-area'
                   <div className="ooo-grid">
                     {assignedStudents.map(student => (
                       <div key={student.id} className="ooo-card" style={{ cursor: 'default' }}>
                         
-                        {/* THIS CLASS 'ooo-photo-area' MAKES THE COLORED CIRCLE! */}
                         <div className="ooo-photo-area">
                           {student.photoUrl ? <img src={student.photoUrl} alt="" /> : <span>📷</span>}
                         </div>
                         
                         <div className="ooo-card-info">
                           <p className="ooo-name">{student.firstName} {student.lastName}</p>
-                          {/* Blue text for service name */}
                           <p className="ooo-sub" style={{ color: '#2563eb', fontWeight: '500' }}>
                             {getStudentServices(student)}
                           </p>
@@ -476,6 +488,20 @@ const ManageTherapists = () => {
           }}
           userData={newUserData}
         />
+
+        {/* Specialization Manager Modal */}
+        <SpecializationManagerModal
+          isOpen={showSpecModal}
+          onClose={() => {
+            setShowSpecModal(false);
+            setStaffForSpecUpdate(null);
+          }}
+          staff={staffForSpecUpdate}
+          allServices={services}
+          onSave={handleSaveSpecs}
+          role="therapist"
+        />
+  
       </div>
       )}
     </div>
