@@ -144,7 +144,7 @@
 .sp-filter-select {
   padding: 0.875rem 2.5rem 0.875rem 1rem;
   border-radius: 12px;
-  border: none;
+  border: 2px solid transparent;
   background: white;
   font-size: 0.9375rem;
   color: #333333;
@@ -155,6 +155,16 @@
   -webkit-appearance: none;
   -moz-appearance: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sp-filter-select:hover {
+  border-color: #FFCB10;
+}
+
+.sp-filter-select:focus {
+  border-color: #FFCB10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 3px rgba(255, 203, 16, 0.3);
 }
 
 .filter-wrapper {
@@ -168,9 +178,15 @@
   right: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: #fbbf24;
+  color: #9ca3af;
   font-size: 12px;
   pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.filter-wrapper:hover::after,
+.filter-wrapper:focus-within::after {
+  color: #FFCB10;
 }
 
 /* Header Responsive */
@@ -205,44 +221,51 @@
 }
 
 /* ============================================================
-   STUDENT GRID (COMPACT NAME TAG STYLE)
+   STUDENT GRID (FULL IMAGE WITH BLUR OVERLAY)
 ============================================================ */
 .sp-content-area {
   padding: 40px;
-  flex: 1;               /* ✅ grow to fill space, pushing footer down */
+  flex: 1;               /* grow to fill space, pushing footer down */
 }
 
 .sp-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 25px;
+  gap: 24px;
 }
 
 .sp-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0);
-  border: 1px solid #e6e6e6;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  display: flex;
-  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e5e7eb;
+  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
   cursor: pointer;
+  position: relative;
+  aspect-ratio: 1 / 1;
 }
 
 .sp-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0);
-  border-color: #0052A1;
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 82, 161, 0.2);
+  border-color: #FFCB10;
 }
 
-/* The Image Box - Shortened */
+/* Selected state */
+.sp-card.selected {
+  border-color: #FFCB10;
+  box-shadow: 0 0 0 4px rgba(255, 203, 16, 0.3), 0 12px 32px rgba(0, 82, 161, 0.2);
+}
+
+/* Full-bleed Image Container */
 .sp-card-image-box {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 180px; /* Reduced from 220px */
-  background: #f0f0f0;
-  position: relative;
-  overflow: hidden;
+  height: 100%;
+  background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%);
 }
 
 .sp-photo {
@@ -250,39 +273,74 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: transform 0.5s ease;
 }
 
+.sp-card:hover .sp-photo {
+  transform: scale(1.08);
+}
+
+/* Placeholder with Little Lions background */
 .sp-photo-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-  color: #333333;
+  background-image: url("../../../images/little-lions-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 60px;
-  font-weight: bold;
+  position: relative;
+  color: #ffffff;
+  font-size: 72px;
+  font-weight: 800;
+  text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.6);
+  isolation: isolate;
+  padding-bottom: 60px; /* Offset for name section at bottom */
+  box-sizing: border-box;
 }
 
-/* The Info Body - Tighter Padding */
+/* Dark overlay with blur */
+.sp-photo-placeholder::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: -1;
+}
+
+/* Name Tag Style - Solid Bottom Section */
 .sp-card-body {
-  padding: 10px 15px 15px 15px; /* Reduced top padding */
-  text-align: center;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 14px 14px;
   background: white;
-  flex: 1;
+  text-align: center;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 8px;
+  z-index: 2;
+  border-top: 4px solid #FFCB10;
 }
 
 .sp-name {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
-  color: #333333;
-  margin: 0 0 10px 0; /* Space between name and badges */
+  color: #1f2937;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
 }
-
-/* Age removed */
 
 .sp-badges {
   display: flex;
@@ -292,37 +350,163 @@
 }
 
 .badge {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: 4px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
 }
 
 .badge-therapy {
-  background: #e3f2fd;
+  background: #eaf4ff;
   color: #0052A1;
+  border: 1px solid #0052A1;
 }
 
 .badge-group {
-  background: #e8f5e9;
-  color: #00ab54;
+  background: #ecfdf5;
+  color: #15803d;
+  border: 1px solid #15803d;
 }
 
 .badge-none {
-  background: #f5f5f5;
-  color: #999;
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
 }
 
-/* Empty State */
+/* Special badge with gold accent */
+.badge-enrolled {
+  background: #FFCB10;
+  color: #78350f;
+  border: 1px solid #f59e0b;
+  font-weight: 700;
+}
+
+/* Golden corner accent on hover */
+.sp-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 50px 50px 0;
+  border-color: transparent #FFCB10 transparent transparent;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 3;
+}
+
+.sp-card:hover::before,
+.sp-card.selected::before {
+  opacity: 1;
+}
+
+/* Small paw icon in corner */
+.sp-card::after {
+  content: '🦁';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 1s ease;
+  z-index: 4;
+}
+
+.sp-card:hover::after,
+.sp-card.selected::after {
+  opacity: 1;
+}
+
+/* Empty State - Little Lions themed */
 .empty-state {
   text-align: center;
-  padding: 60px;
-  color: #999;
-  background: white;
-  border-radius: 12px;
-  border: 1px dashed #999;
+  padding: 80px 40px;
+  color: #6b7280;
+  background: linear-gradient(135deg, #fafbfc 0%, #f0f4f8 100%);
+  border-radius: 16px;
+  border: 2px dashed #d1d5db;
+  position: relative;
+  overflow: hidden;
+}
+
+.empty-state::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(circle, rgba(255, 203, 16, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.empty-state::after {
+  content: '';
+  position: absolute;
+  bottom: -30px;
+  left: -30px;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(0, 82, 161, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+/* Card loading skeleton animation */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.sp-card.loading .sp-card-image-box {
+  background: linear-gradient(90deg, #1a365d 25%, #2c5282 50%, #1a365d 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sp-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+
+  .sp-photo-placeholder {
+    font-size: 40px;
+  }
+
+  .sp-name {
+    font-size: 12px;
+  }
+
+  .badge {
+    font-size: 7px;
+    padding: 2px 6px;
+  }
+
+  .sp-card-body {
+    padding: 6px 8px 8px;
+    max-height: 55px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sp-content-area {
+    padding: 20px;
+  }
+
+  .sp-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
 }
 
 /* ============================================================

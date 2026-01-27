@@ -522,7 +522,10 @@ export default function MonthlySummary() {
   const printRef = useRef(null);
 
   // Use cached children data - prevents re-fetching across parent pages
-  const { data: children = [], isLoading: childrenLoading } = useChildrenByParent(currentUser?.uid);
+  const { data: childrenData, isLoading: childrenLoading } = useChildrenByParent(currentUser?.uid);
+
+  // Ensure children is always an array (handles null/undefined/object responses)
+  const children = Array.isArray(childrenData) ? childrenData : [];
 
   const [selectedChild, setSelectedChild] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());

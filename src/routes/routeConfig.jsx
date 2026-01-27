@@ -10,6 +10,7 @@ import LandingPage from "../pages/auth/LandingPage";
 import ChangePassword from "../pages/auth/ChangePassword";
 import ActivatePage from "../pages/auth/ActivatePage";
 import AdminActivatePage from "../pages/auth/AdminActivatePage";
+import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
 
 // Admin Components
 import OneOnOne from "../pages/admin/OneOnOne";
@@ -55,8 +56,9 @@ import { hasPermission } from '../utils/permissions';
 export const ROUTES = {
   LOGIN: "/login",
   CHANGE_PASSWORD: "/change-password",
+  FORGOT_PASSWORD: "/forgot-password",
   UNAUTHORIZED: "/unauthorized",
-  
+
   // NEW: Activation routes (public)
   ACTIVATE: "/activate",
   ADMIN_ACTIVATE: "/admin-activate",
@@ -246,6 +248,9 @@ export const AppRoutes = () => {
       {/* NEW: Activation Routes (Public - no auth required) */}
       <Route path={ROUTES.ACTIVATE} element={<ActivatePage />} />
       <Route path={ROUTES.ADMIN_ACTIVATE} element={<AdminActivatePage />} />
+
+      {/* Forgot Password Route (Public) */}
+      <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
 
       {/* ADMIN ROUTES */}
       <Route path={ROUTES.ADMIN.DASHBOARD} element={<Navigate to={ROUTES.ADMIN.STUDENT_PROFILE} replace />} />

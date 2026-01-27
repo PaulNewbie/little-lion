@@ -1,8 +1,7 @@
 import React, { useState, useRef } from "react"; // 1. Added useRef
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { useToast } from "../../context/ToastContext";
-import authService from "../../services/authService";
+import { ROUTES } from "../../routes/routeConfig";
 import ErrorMessage from "../../components/common/ErrorMessage";
 import { ChevronDown } from 'lucide-react'; // 2. Import the arrow icon
 import { ArrowBigDown, Mail, Phone } from 'lucide-react'; // Added Mail and Phone
@@ -18,7 +17,6 @@ const LandingPage = () => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
-  const toast = useToast();
   
   // 3. Create a reference for the login section
   const loginRef = useRef(null);
@@ -62,16 +60,8 @@ const LandingPage = () => {
     }
   };
 
-  const handleForgotPassword = async () => {
-    const emailInput = prompt("Please enter your email address:");
-    if (emailInput) {
-      try {
-        await authService.resetPassword(emailInput);
-        toast.success("Password reset email sent!");
-      } catch (err) {
-        toast.error("Error: " + err.message);
-      }
-    }
+  const handleForgotPassword = () => {
+    navigate(ROUTES.FORGOT_PASSWORD);
   };
 
   return (

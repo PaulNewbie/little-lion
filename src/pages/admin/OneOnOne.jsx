@@ -274,18 +274,121 @@ const OneOnOne = () => {
             {/* ADD SERVICE MODAL */}
             {showAddServiceModal && (
               <div className="modal-overlay" onClick={() => !uploading && setShowAddServiceModal(false)}>
-                <div className="modal-box" onClick={e => e.stopPropagation()}>
+                <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxHeight: '90vh', overflowY: 'auto' }}>
                   <h2>Create New Service</h2>
                   <form onSubmit={createService} className="modal-form">
-                    <label>Service Name</label>
-                    <input name="name" placeholder="Service Name" value={newService.name} onChange={handleServiceInputChange} required />
-                    <label>Description</label>
-                    <textarea name="description" placeholder="Description" value={newService.description} onChange={handleServiceInputChange} />
-                    <div style={{ marginBottom: "10px" }}>
-                      <label>Service Image (Optional)</label>
-                      <input type="file" accept="image/*" onChange={(e) => setNewServiceImage(e.target.files[0])} />
-                      {newServiceImage && <span>Selected: {newServiceImage.name}</span>}
+
+                    {/* SERVICE DETAILS SECTION */}
+                    <div style={{
+                      padding: '20px',
+                      backgroundColor: '#faf5ff',
+                      borderRadius: '12px',
+                      border: '2px solid #a855f7',
+                      marginBottom: '20px'
+                    }}>
+                      <h3 style={{
+                        fontSize: '14px',
+                        fontWeight: '700',
+                        textTransform: 'uppercase',
+                        color: '#7e22ce',
+                        letterSpacing: '0.5px',
+                        marginBottom: '16px'
+                      }}>
+                        Service Details <span style={{ color: '#ef4444' }}>*</span>
+                      </h3>
+
+                      <p style={{
+                        fontSize: '13px',
+                        color: '#64748b',
+                        marginBottom: '16px'
+                      }}>
+                        Enter the name and description for this therapy service.
+                      </p>
+
+                      <div style={{ marginBottom: '16px' }}>
+                        <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>Service Name</label>
+                        <input
+                          name="name"
+                          placeholder="e.g. Speech Therapy"
+                          value={newService.name}
+                          onChange={handleServiceInputChange}
+                          required
+                          disabled={uploading}
+                          style={{
+                            width: '100%',
+                            padding: '12px 14px',
+                            border: newService.name ? '2px solid #22c55e' : '1px solid #ddd',
+                            borderRadius: '8px',
+                            fontSize: '14px',
+                            backgroundColor: newService.name ? '#f0fdf4' : 'white',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>Description</label>
+                        <textarea
+                          name="description"
+                          placeholder="Brief description of the service..."
+                          value={newService.description}
+                          onChange={handleServiceInputChange}
+                          disabled={uploading}
+                          style={{
+                            width: '100%',
+                            padding: '12px 14px',
+                            border: '1px solid #ddd',
+                            borderRadius: '8px',
+                            fontSize: '14px',
+                            minHeight: '80px',
+                            resize: 'vertical',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+
+                      {newService.name && (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '10px 14px',
+                          backgroundColor: '#dcfce7',
+                          borderRadius: '8px',
+                          marginTop: '12px'
+                        }}>
+                          <span style={{ fontSize: '13px', color: '#166534', fontWeight: '600' }}>
+                            Service name entered
+                          </span>
+                        </div>
+                      )}
                     </div>
+
+                    {/* IMAGE SECTION */}
+                    <div style={{
+                      padding: '16px',
+                      backgroundColor: '#f8fafc',
+                      borderRadius: '8px',
+                      border: '1px solid #e2e8f0',
+                      marginBottom: '20px'
+                    }}>
+                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>
+                        Service Image (Optional)
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setNewServiceImage(e.target.files[0])}
+                        disabled={uploading}
+                        style={{ fontSize: '14px' }}
+                      />
+                      {newServiceImage && (
+                        <span style={{ display: 'block', marginTop: '8px', fontSize: '13px', color: '#059669' }}>
+                          Selected: {newServiceImage.name}
+                        </span>
+                      )}
+                    </div>
+
                     <div className="modal-actions">
                       <button className="cancel-service-btn" type="button" onClick={() => setShowAddServiceModal(false)} disabled={uploading}>Cancel</button>
                       <button className="add-edit-service-btn" type="submit" disabled={uploading}>{uploading ? "Uploading..." : "Add Service"}</button>
@@ -298,17 +401,120 @@ const OneOnOne = () => {
             {/* EDIT SERVICE MODAL */}
             {showEditModal && (
               <div className="modal-overlay" onClick={() => !editing && setShowEditModal(false)}>
-                <div className="modal-box" onClick={e => e.stopPropagation()}>
+                <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxHeight: '90vh', overflowY: 'auto' }}>
                   <h2>Edit Service</h2>
                   <form onSubmit={handleEditServiceSubmit} className="modal-form">
-                    <label>Service Name</label>
-                    <input name="name" value={editServiceData.name} onChange={e => setEditServiceData({...editServiceData, name: e.target.value})} required autoFocus disabled={editing} />
-                    <label>Description</label>
-                    <textarea name="description" value={editServiceData.description} onChange={e => setEditServiceData({...editServiceData, description: e.target.value})} disabled={editing} />
-                    <div style={{ marginBottom: "10px" }}>
-                      <label>Service Image (Optional)</label>
-                      <input type="file" accept="image/*" onChange={e => setEditServiceImage(e.target.files[0])} disabled={editing} />
+
+                    {/* SERVICE DETAILS SECTION */}
+                    <div style={{
+                      padding: '20px',
+                      backgroundColor: '#faf5ff',
+                      borderRadius: '12px',
+                      border: '2px solid #a855f7',
+                      marginBottom: '20px'
+                    }}>
+                      <h3 style={{
+                        fontSize: '14px',
+                        fontWeight: '700',
+                        textTransform: 'uppercase',
+                        color: '#7e22ce',
+                        letterSpacing: '0.5px',
+                        marginBottom: '16px'
+                      }}>
+                        Service Details <span style={{ color: '#ef4444' }}>*</span>
+                      </h3>
+
+                      <p style={{
+                        fontSize: '13px',
+                        color: '#64748b',
+                        marginBottom: '16px'
+                      }}>
+                        Update the name and description for this therapy service.
+                      </p>
+
+                      <div style={{ marginBottom: '16px' }}>
+                        <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>Service Name</label>
+                        <input
+                          name="name"
+                          value={editServiceData.name}
+                          onChange={e => setEditServiceData({...editServiceData, name: e.target.value})}
+                          required
+                          autoFocus
+                          disabled={editing}
+                          style={{
+                            width: '100%',
+                            padding: '12px 14px',
+                            border: editServiceData.name ? '2px solid #22c55e' : '1px solid #ddd',
+                            borderRadius: '8px',
+                            fontSize: '14px',
+                            backgroundColor: editServiceData.name ? '#f0fdf4' : 'white',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>Description</label>
+                        <textarea
+                          name="description"
+                          value={editServiceData.description}
+                          onChange={e => setEditServiceData({...editServiceData, description: e.target.value})}
+                          disabled={editing}
+                          style={{
+                            width: '100%',
+                            padding: '12px 14px',
+                            border: '1px solid #ddd',
+                            borderRadius: '8px',
+                            fontSize: '14px',
+                            minHeight: '80px',
+                            resize: 'vertical',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+
+                      {editServiceData.name && (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '10px 14px',
+                          backgroundColor: '#dcfce7',
+                          borderRadius: '8px',
+                          marginTop: '12px'
+                        }}>
+                          <span style={{ fontSize: '13px', color: '#166534', fontWeight: '600' }}>
+                            Service name entered
+                          </span>
+                        </div>
+                      )}
                     </div>
+
+                    {/* IMAGE SECTION */}
+                    <div style={{
+                      padding: '16px',
+                      backgroundColor: '#f8fafc',
+                      borderRadius: '8px',
+                      border: '1px solid #e2e8f0',
+                      marginBottom: '20px'
+                    }}>
+                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>
+                        Service Image (Optional)
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={e => setEditServiceImage(e.target.files[0])}
+                        disabled={editing}
+                        style={{ fontSize: '14px' }}
+                      />
+                      {editServiceImage && (
+                        <span style={{ display: 'block', marginTop: '8px', fontSize: '13px', color: '#059669' }}>
+                          New image selected: {editServiceImage.name}
+                        </span>
+                      )}
+                    </div>
+
                     <div className="modal-actions">
                       <button className="cancel-service-btn" type="button" onClick={() => setShowEditModal(false)} disabled={editing}>Cancel</button>
                       <button className="add-edit-service-btn" type="submit" disabled={editing}>{editing ? "Saving..." : "Save Changes"}</button>

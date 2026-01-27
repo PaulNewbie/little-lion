@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useManageTeachers from '../../hooks/useManageTeachers';
 import { useAuth } from '../../hooks/useAuth';
@@ -13,6 +13,9 @@ import { useChildrenByStaff } from '../../hooks/useCachedData';
 import "./css/OneOnOne.css";
 import "./css/ManageTeacher.css";
 
+// Pagination config
+const PAGE_SIZE = 10;
+
 const ManageTeachers = () => {
   const { currentUser } = useAuth();
   const toast = useToast();
@@ -22,14 +25,18 @@ const ManageTeachers = () => {
 
   const {
     teachers,
-    loading, 
-    error, 
-    createTeacher, 
-    newTeacher, 
-    handleInputChange, 
+    loading,
+    error,
+    createTeacher,
+    newTeacher,
+    handleInputChange,
+    setSpecializations,
     services,
     updateTeacher
   } = useManageTeachers();
+
+  // Track if user attempted to submit without specialization
+  const [showSpecError, setShowSpecError] = useState(false);
   
   const [showForm, setShowForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -46,10 +53,19 @@ const ManageTeachers = () => {
   const [showSpecModal, setShowSpecModal] = useState(false);
   const [staffForSpecUpdate, setStaffForSpecUpdate] = useState(null);
 
+  // Student filter by specialization
+  const [studentSpecFilter, setStudentSpecFilter] = useState(null);
+  // Student search
+  const [studentSearch, setStudentSearch] = useState('');
+  // Ref for scrolling to student section
+  const studentSectionRef = useRef(null);
+  // Pagination state for enrolled students
+  const [studentDisplayCount, setStudentDisplayCount] = useState(PAGE_SIZE);
+
   // Use cached data hook
-  const { 
-    data: assignedStudents = [], 
-    isLoading: loadingStudents 
+  const {
+    data: assignedStudents = [],
+    isLoading: loadingStudents
   } = useChildrenByStaff(selectedTeacherId);
 
   // Effect to update selection if navigating while component is already mounted
@@ -58,6 +74,13 @@ const ManageTeachers = () => {
       setSelectedTeacherId(location.state.selectedStaffId);
     }
   }, [location.state]);
+
+  // Reset filter, search, and pagination when changing teacher selection
+  useEffect(() => {
+    setStudentSpecFilter(null);
+    setStudentSearch('');
+    setStudentDisplayCount(PAGE_SIZE);
+  }, [selectedTeacherId]);
 
   // Filter teachers based on search query
   const filteredTeachers = teachers.filter(teacher =>
@@ -79,14 +102,72 @@ const ManageTeachers = () => {
       .join(", ");
   };
 
+  // Handler for clicking a specialization to filter students
+  const handleSpecializationFilter = (spec) => {
+    if (studentSpecFilter === spec) {
+      setStudentSpecFilter(null); // Toggle off if already selected
+    } else {
+      setStudentSpecFilter(spec);
+      // Scroll to student section
+      setTimeout(() => {
+        studentSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  };
+
+  // Filter students based on selected specialization and search (all filtered)
+  const allFilteredStudents = useMemo(() => {
+    return assignedStudents.filter(student => {
+      // Search filter
+      const searchMatch = !studentSearch ||
+        `${student.firstName} ${student.lastName}`.toLowerCase().includes(studentSearch.toLowerCase());
+
+      // Specialization filter
+      const specMatch = !studentSpecFilter || (() => {
+        const all = [...(student.groupClassServices || []), ...(student.oneOnOneServices || [])];
+        return all.some(s => s.staffId === selectedTeacherId && s.serviceName === studentSpecFilter);
+      })();
+
+      return searchMatch && specMatch;
+    });
+  }, [assignedStudents, studentSearch, studentSpecFilter, selectedTeacherId]);
+
+  // Paginated students to display
+  const filteredStudents = useMemo(() => {
+    return allFilteredStudents.slice(0, studentDisplayCount);
+  }, [allFilteredStudents, studentDisplayCount]);
+
+  // Check if there are more students to load
+  const hasMoreStudents = allFilteredStudents.length > studentDisplayCount;
+
+  // Handle Load More for students
+  const handleLoadMoreStudents = () => {
+    setStudentDisplayCount(prev => prev + PAGE_SIZE);
+  };
+
+  // Reset pagination when search/filter changes
+  useEffect(() => {
+    setStudentDisplayCount(PAGE_SIZE);
+  }, [studentSearch, studentSpecFilter]);
+
   const handleCreateTeacher = async (e) => {
     e.preventDefault();
+
+    // Validate specialization - at least one required
+    const validSpecs = newTeacher.specializations.filter(s => s && s.trim() !== '');
+    if (validSpecs.length === 0) {
+      setShowSpecError(true);
+      toast.error('Please select at least one specialization for this teacher.');
+      return;
+    }
+
     setIsCreating(true);
-    
+    setShowSpecError(false);
+
     const result = await createTeacher(e);
-    
+
     setIsCreating(false);
-    
+
     if (result.success) {
       setShowForm(false);
       setNewUserData(result.user);
@@ -183,40 +264,159 @@ const ManageTeachers = () => {
           {selectedTeacherId && selectedTeacher ? (
             /* ---------------- VIEW: SINGLE TEACHER PROFILE ---------------- */
             <div style={{ paddingBottom: '120px', width: '100%' }}>
-              <TeacherCard 
-                teacher={selectedTeacher} 
+              <TeacherCard
+                teacher={selectedTeacher}
                 isSuperAdmin={isSuperAdmin}
                 onManageSpecs={handleOpenSpecManager}
+                onSpecializationClick={handleSpecializationFilter}
+                activeFilter={studentSpecFilter}
               />
 
-              {/* --- NEW SECTION: ENROLLED STUDENTS --- */}
-              <div style={{ marginTop: '30px' }}>
-                <h3 className="mt-section-title">
-                  Enrolled Students ({assignedStudents.length})
-                </h3>
-                
+              {/* --- ENROLLED STUDENTS SECTION --- */}
+              <div ref={studentSectionRef} style={{ marginTop: '30px' }}>
+                {/* Header row with title */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                  <h3 className="mt-section-title" style={{ margin: 0 }}>
+                    Enrolled Students ({filteredStudents.length}{(studentSpecFilter || studentSearch) ? ` of ${assignedStudents.length}` : ''})
+                  </h3>
+
+                  {/* Search and Filter Controls */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                    {/* Search Input */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      backgroundColor: 'white',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      padding: '6px 12px',
+                      gap: '8px'
+                    }}>
+                      <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Search</span>
+                      <input
+                        type="text"
+                        placeholder="Student name..."
+                        value={studentSearch}
+                        onChange={(e) => setStudentSearch(e.target.value)}
+                        style={{
+                          border: 'none',
+                          outline: 'none',
+                          fontSize: '0.85rem',
+                          width: '140px',
+                          color: '#0f172a'
+                        }}
+                      />
+                      {studentSearch && (
+                        <button
+                          onClick={() => setStudentSearch('')}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#94a3b8',
+                            cursor: 'pointer',
+                            padding: 0,
+                            fontSize: '0.9rem',
+                            lineHeight: 1
+                          }}
+                        >
+                          x
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Filter Dropdown */}
+                    <select
+                      value={studentSpecFilter || ''}
+                      onChange={(e) => setStudentSpecFilter(e.target.value || null)}
+                      style={{
+                        padding: '8px 12px',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        fontSize: '0.85rem',
+                        color: studentSpecFilter ? '#0369a1' : '#64748b',
+                        backgroundColor: studentSpecFilter ? '#f0f9ff' : 'white',
+                        cursor: 'pointer',
+                        outline: 'none'
+                      }}
+                    >
+                      <option value="">All Specializations</option>
+                      {selectedTeacher?.specializations?.map((spec, idx) => (
+                        <option key={idx} value={spec}>{spec}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
                 {loadingStudents ? (
                    <p style={{ color: '#666', fontStyle: 'italic' }}>Loading students...</p>
-                ) : assignedStudents.length === 0 ? (
+                ) : filteredStudents.length === 0 ? (
                    <div className="mt-empty-state">
-                     <p>No students currently assigned to this teacher.</p>
+                     <p>{studentSpecFilter
+                       ? `No students enrolled in "${studentSpecFilter}" with this teacher.`
+                       : 'No students currently assigned to this teacher.'
+                     }</p>
                    </div>
                 ) : (
-                  <div className="ooo-grid">
-                    {assignedStudents.map(student => (
-                      <div key={student.id} className="ooo-card" style={{ cursor: 'default' }}>
-                        <div className="ooo-photo-area">
-                          {student.photoUrl ? <img src={student.photoUrl} alt="" /> : <span>📷</span>}
+                  <>
+                    <div className="ooo-grid">
+                      {filteredStudents.map(student => (
+                        <div key={student.id} className="ooo-card" style={{ cursor: 'default' }}>
+                          <div className="ooo-photo-area">
+                            {student.photoUrl ? (
+                              <img src={student.photoUrl} alt="" />
+                            ) : (
+                              <div style={{
+                                width: '100%',
+                                height: '100%',
+                                backgroundColor: '#e2e8f0',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '1.5rem',
+                                color: '#64748b',
+                                fontWeight: 'bold'
+                              }}>
+                                {student.firstName?.[0]}{student.lastName?.[0]}
+                              </div>
+                            )}
+                          </div>
+                          <div className="ooo-card-info">
+                            <p className="ooo-name">{student.firstName} {student.lastName}</p>
+                            <p className="ooo-sub" style={{ color: '#2563eb', fontWeight: '500' }}>
+                              {getStudentServices(student)}
+                            </p>
+                          </div>
                         </div>
-                        <div className="ooo-card-info">
-                          <p className="ooo-name">{student.firstName} {student.lastName}</p>
-                          <p className="ooo-sub" style={{ color: '#2563eb', fontWeight: '500' }}>
-                            {getStudentServices(student)}
-                          </p>
+                      ))}
+                    </div>
+
+                    {/* Pagination Load More */}
+                    {hasMoreStudents && (
+                      <div style={{ textAlign: 'center', marginTop: '24px', padding: '16px 0' }}>
+                        <button
+                          onClick={handleLoadMoreStudents}
+                          style={{
+                            padding: '12px 32px',
+                            background: 'transparent',
+                            border: '2px solid #0052A1',
+                            color: '#0052A1',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: '600',
+                            fontSize: '0.9375rem',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseOver={(e) => { e.target.style.background = '#0052A1'; e.target.style.color = 'white'; }}
+                          onMouseOut={(e) => { e.target.style.background = 'transparent'; e.target.style.color = '#0052A1'; }}
+                        >
+                          Load More Students
+                        </button>
+                        <div style={{ marginTop: '8px', fontSize: '0.875rem', color: '#64748b' }}>
+                          Showing {filteredStudents.length} of {allFilteredStudents.length} students
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -298,59 +498,253 @@ const ManageTeachers = () => {
 
         {/* Modal for Creating New Teacher Account */}
         {showForm && (
-          <div className="mt-modal-overlay" onClick={() => setShowForm(false)}>
+          <div className="mt-modal-overlay" onClick={() => { setShowForm(false); setShowSpecError(false); }}>
             <div className="mt-form-container" onClick={(e) => e.stopPropagation()}>
               <h2 className="mt-form-title">ADD TEACHER</h2>
-              
+
               <form onSubmit={handleCreateTeacher}>
                 <div className="mt-form-row">
-                  <input 
-                    name="lastName" 
-                    placeholder="Surname *" 
-                    value={newTeacher.lastName} 
-                    onChange={handleInputChange} 
-                    required 
+                  <input
+                    name="lastName"
+                    placeholder="Surname *"
+                    value={newTeacher.lastName}
+                    onChange={handleInputChange}
+                    required
                     className="mt-input"
                   />
-                  <input 
-                    name="firstName" 
-                    placeholder="First Name *" 
-                    value={newTeacher.firstName} 
-                    onChange={handleInputChange} 
-                    required 
+                  <input
+                    name="firstName"
+                    placeholder="First Name *"
+                    value={newTeacher.firstName}
+                    onChange={handleInputChange}
+                    required
                     className="mt-input"
                   />
                 </div>
-                
-                <input 
-                  name="email" 
-                  type="email" 
-                  placeholder="Email Address *" 
-                  value={newTeacher.email} 
-                  onChange={handleInputChange} 
-                  required 
+
+                <input
+                  name="middleName"
+                  placeholder="Middle Name (Optional)"
+                  value={newTeacher.middleName || ''}
+                  onChange={handleInputChange}
                   className="mt-input-full"
                 />
+
+                <input
+                  name="email"
+                  type="email"
+                  placeholder="Email Address *"
+                  value={newTeacher.email}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-input-full"
+                />
+
+                {/* ===== SPECIALIZATION SECTION (REQUIRED) ===== */}
+                <div style={{
+                  marginTop: '24px',
+                  marginBottom: '24px',
+                  padding: '20px',
+                  backgroundColor: showSpecError ? '#fef2f2' : '#f0f9ff',
+                  borderRadius: '12px',
+                  border: showSpecError ? '2px solid #ef4444' : '2px solid #0ea5e9'
+                }}>
+                  <h3 style={{
+                    fontSize: '14px',
+                    fontWeight: '700',
+                    textTransform: 'uppercase',
+                    color: showSpecError ? '#dc2626' : '#0369a1',
+                    letterSpacing: '0.5px',
+                    marginBottom: '16px'
+                  }}>
+                    Specialization <span style={{ color: '#ef4444' }}>*</span>
+                  </h3>
+
+                  <p style={{
+                    fontSize: '13px',
+                    color: showSpecError ? '#dc2626' : '#64748b',
+                    marginBottom: '16px',
+                    fontWeight: showSpecError ? '500' : '400'
+                  }}>
+                    {showSpecError
+                      ? 'Please select at least one class/service this teacher will handle.'
+                      : 'Select the class or service this teacher will handle.'}
+                  </p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {/* Render Dynamic Rows */}
+                    {newTeacher.specializations.map((currentSpec, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          animation: 'fadeIn 0.3s ease-out'
+                        }}
+                      >
+                        <div style={{ flex: 1 }}>
+                          <select
+                            style={{
+                              width: '100%',
+                              padding: '12px 14px',
+                              border: currentSpec ? '2px solid #22c55e' : '1px solid #ddd',
+                              borderRadius: '8px',
+                              fontSize: '14px',
+                              backgroundColor: currentSpec ? '#f0fdf4' : 'white',
+                              outline: 'none',
+                              fontWeight: currentSpec ? '500' : '400',
+                              color: currentSpec ? '#166534' : '#333'
+                            }}
+                            value={currentSpec}
+                            onChange={(e) => {
+                              const updatedSpecs = [...newTeacher.specializations];
+                              updatedSpecs[index] = e.target.value;
+                              setSpecializations(updatedSpecs);
+                              if (e.target.value) setShowSpecError(false);
+                            }}
+                          >
+                            <option value="">-- Select Class/Service --</option>
+                            {services
+                              .filter((service) => {
+                                const isCurrentlySelected = service.name === currentSpec;
+                                const isAlreadyUsed = newTeacher.specializations.includes(service.name);
+                                return isCurrentlySelected || !isAlreadyUsed;
+                              })
+                              .map((service) => (
+                                <option key={service.id} value={service.name}>
+                                  {service.name.toUpperCase()}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+
+                        {/* Confirmation checkmark for selected */}
+                        {currentSpec && (
+                          <span style={{
+                            color: '#22c55e',
+                            fontSize: '14px',
+                            fontWeight: 'bold'
+                          }}>Selected</span>
+                        )}
+
+                        {/* Remove Button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updatedSpecs = newTeacher.specializations.filter((_, i) => i !== index);
+                            setSpecializations(updatedSpecs);
+                          }}
+                          style={{
+                            border: 'none',
+                            background: '#fee2e2',
+                            color: '#ef4444',
+                            borderRadius: '8px',
+                            width: '40px',
+                            height: '40px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '16px',
+                            transition: 'all 0.2s'
+                          }}
+                          title="Remove"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* Add Button */}
+                    {services && newTeacher.specializations.length < services.length && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updatedSpecs = [...newTeacher.specializations, ''];
+                          setSpecializations(updatedSpecs);
+                        }}
+                        style={{
+                          alignSelf: 'flex-start',
+                          marginTop: '8px',
+                          background: 'white',
+                          border: '2px dashed #0ea5e9',
+                          color: '#0369a1',
+                          padding: '10px 20px',
+                          borderRadius: '8px',
+                          fontSize: '13px',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        <span style={{ fontSize: '16px' }}>+</span> ADD SPECIALIZATION
+                      </button>
+                    )}
+
+                    {/* Empty state with prompt */}
+                    {newTeacher.specializations.length === 0 && (
+                      <div style={{
+                        padding: '16px',
+                        backgroundColor: showSpecError ? '#fee2e2' : '#e0f2fe',
+                        borderRadius: '8px',
+                        textAlign: 'center'
+                      }}>
+                        <p style={{
+                          fontSize: '13px',
+                          color: showSpecError ? '#dc2626' : '#0369a1',
+                          margin: 0,
+                          fontWeight: '500'
+                        }}>
+                          {showSpecError
+                            ? 'At least one specialization is required!'
+                            : 'Click "ADD SPECIALIZATION" to select a class/service'}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Success confirmation */}
+                    {newTeacher.specializations.filter(s => s && s.trim() !== '').length > 0 && (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '10px 14px',
+                        backgroundColor: '#dcfce7',
+                        borderRadius: '8px',
+                        marginTop: '8px'
+                      }}>
+                        <span style={{ fontSize: '13px', color: '#166534', fontWeight: '600' }}>
+                          {newTeacher.specializations.filter(s => s && s.trim() !== '').length} specialization(s) selected
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {/* ===== END SPECIALIZATION SECTION ===== */}
 
                 <div className="mt-info-box">
                   <strong>ℹ️ How it works:</strong>
                   <p>
-                    After creating the account, a QR code will appear. 
+                    After creating the account, a QR code will appear.
                     The teacher can scan it to set up their password and complete their profile.
                   </p>
                 </div>
 
                 <div className="mt-action-row">
-                  <button 
-                    type="button" 
-                    onClick={() => setShowForm(false)} 
+                  <button
+                    type="button"
+                    onClick={() => { setShowForm(false); setShowSpecError(false); }}
                     disabled={isCreating}
                     className="mt-btn-cancel"
                   >
                     CANCEL
                   </button>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     disabled={isCreating}
                     className={`mt-btn-submit ${isCreating ? 'loading' : 'normal'}`}
                   >

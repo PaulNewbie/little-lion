@@ -4,9 +4,14 @@
 
 .app-footer {
   background: #0052A1;
-  padding: 10px 40px;
+  padding: 10px 0;
   border-top: 1px solid #e5e7eb;
+  margin: 0;
   margin-top: auto;
+  margin-left: -20px;
+  margin-right: -20px;
+  margin-bottom: -20px;
+  width: calc(100% + 40px);
 }
 
 .app-footer-inner {
@@ -57,7 +62,7 @@
 /* Footer Responsive */
 @media (max-width: 768px) {
   .app-footer {
-    padding: 12px 20px;
+    padding: 12px 0;
   }
 
   .app-footer-inner {

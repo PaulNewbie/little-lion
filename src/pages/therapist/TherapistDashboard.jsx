@@ -10,6 +10,8 @@ import { useTherapistDashboardData } from '../../hooks/useCachedData';
 import logo from '../../images/logo.png';
 import './css/TherapistDashboard.css';
 
+// --- PAGINATION CONFIG ---
+const PAGE_SIZE = 10;
 
 const TherapistDashboard = () => {
   const { currentUser } = useAuth();
@@ -17,6 +19,7 @@ const TherapistDashboard = () => {
   const toast = useToast();
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
 
   // Service Selection Modal State
   const [showServiceModal, setShowServiceModal] = useState(false);
@@ -49,11 +52,30 @@ const TherapistDashboard = () => {
     }
   }, [currentUser, navigate]);
 
-  const filteredStudents = useMemo(() => {
+  // All filtered students (before pagination)
+  const allFilteredStudents = useMemo(() => {
     return students.filter(student =>
       `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [students, searchTerm]);
+
+  // Paginated students to display
+  const filteredStudents = useMemo(() => {
+    return allFilteredStudents.slice(0, displayCount);
+  }, [allFilteredStudents, displayCount]);
+
+  // Check if there are more students to load
+  const hasMoreStudents = allFilteredStudents.length > displayCount;
+
+  // Handle Load More
+  const handleLoadMore = () => {
+    setDisplayCount(prev => prev + PAGE_SIZE);
+  };
+
+  // Reset display count when search changes
+  useEffect(() => {
+    setDisplayCount(PAGE_SIZE);
+  }, [searchTerm]);
 
   const getMyServices = (student) => {
     // NEW MODEL: Read from serviceEnrollments (primary)
@@ -196,57 +218,74 @@ const TherapistDashboard = () => {
             </p>
           </div>
         ) : (
-          <div className="therapist-dashboard__grid">
-            {filteredStudents.map((student) => {
-              const myServices = getMyServices(student);
-              return (
-                <div key={student.id} className="therapist-dashboard__student-card">
-                  <div className="therapist-dashboard__student-card-body">
-                    <div className="therapist-dashboard__student-info">
-                      <div className="therapist-dashboard__avatar-wrapper">
-                        {student.photoUrl ? <img src={student.photoUrl} alt="" /> : '👤'}
-                      </div>
-                      <div>
-                        <h3 className="therapist-dashboard__student-name">
-                          {student.firstName} {student.lastName}
-                        </h3>
-                        <p className="therapist-dashboard__student-dob">
-                          DOB: {student.dateOfBirth}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="therapist-dashboard__services-list">
-                      {myServices.map((svc, idx) => (
-                        <div key={idx} className="therapist-dashboard__service-tag">
-                          {svc.serviceName}
+          <>
+            <div className="therapist-dashboard__grid">
+              {filteredStudents.map((student) => {
+                const myServices = getMyServices(student);
+                return (
+                  <div key={student.id} className="therapist-dashboard__student-card">
+                    <div className="therapist-dashboard__student-card-body">
+                      <div className="therapist-dashboard__student-info">
+                        <div className="therapist-dashboard__avatar-wrapper">
+                          {student.photoUrl ? <img src={student.photoUrl} alt="" /> : '👤'}
                         </div>
-                      ))}
+                        <div>
+                          <h3 className="therapist-dashboard__student-name">
+                            {student.firstName} {student.lastName}
+                          </h3>
+                          <p className="therapist-dashboard__student-dob">
+                            DOB: {student.dateOfBirth}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="therapist-dashboard__services-list">
+                        {myServices.map((svc, idx) => (
+                          <div key={idx} className="therapist-dashboard__service-tag">
+                            {svc.serviceName}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="therapist-dashboard__student-card-footer">
+                      <button
+                        onClick={() => navigate('/admin/StudentProfile', { state: { studentId: student.id, student, isStaffView: true } })}
+                        className="therapist-dashboard__view-profile-button"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                        View Profile
+                      </button>
+                      <button
+                        onClick={() => handleStartSessionClick(student)}
+                        className="therapist-dashboard__start-session-button"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
+                        Start Session
+                      </button>
                     </div>
                   </div>
-                  <div className="therapist-dashboard__student-card-footer">
-                    <button
-                      onClick={() => navigate('/admin/StudentProfile', { state: { studentId: student.id, student, isStaffView: true } })}
-                      className="therapist-dashboard__view-profile-button"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                      </svg>
-                      View Profile
-                    </button>
-                    <button
-                      onClick={() => handleStartSessionClick(student)}
-                      className="therapist-dashboard__start-session-button"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M8 5v14l11-7z"/>
-                      </svg>
-                      Start Session
-                    </button>
-                  </div>
+                );
+              })}
+            </div>
+
+            {/* Pagination Load More */}
+            {hasMoreStudents && (
+              <div className="therapist-dashboard__load-more-wrapper">
+                <button
+                  className="therapist-dashboard__load-more-btn"
+                  onClick={handleLoadMore}
+                >
+                  Load More Students
+                </button>
+                <div className="therapist-dashboard__pagination-info">
+                  Showing {filteredStudents.length} of {allFilteredStudents.length} students
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 

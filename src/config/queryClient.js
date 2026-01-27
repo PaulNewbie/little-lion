@@ -198,6 +198,10 @@ export const invalidateRelatedCaches = async (entityType, entityId) => {
       await queryClient.invalidateQueries({ queryKey: ['staff'] });
       await queryClient.invalidateQueries({ queryKey: ['teachers'] });
       await queryClient.invalidateQueries({ queryKey: ['therapists'] });
+      // Also invalidate the actual query keys used by data hooks
+      await queryClient.invalidateQueries({ queryKey: ['users', 'teacher'] });
+      await queryClient.invalidateQueries({ queryKey: ['users', 'therapist'] });
+      await queryClient.invalidateQueries({ queryKey: ['users', 'admin'] });
       await queryClient.invalidateQueries({ queryKey: ['metadata', 'staffSummary'] });
       if (entityId) {
         await queryClient.invalidateQueries({ queryKey: ['user', entityId] });
