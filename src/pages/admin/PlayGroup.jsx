@@ -19,7 +19,8 @@ import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import Loading from '../../components/common/Loading';
 import './css/PlayGroup.css';
-import './studentProfile/StudentProfile.css'; 
+import './studentProfile/StudentProfile.css';
+import '../../components/common/Header.css'; 
 
 // ===== HELPER: SERVICE DESCRIPTION WITH SEE MORE =====
 const ServiceDescription = ({ description, maxLength = 70 }) => {
@@ -201,10 +202,12 @@ const PlayGroup = () => {
         {/* === VIEW 1: SERVICE SELECTION === */}
         {currentView === 'service-list' && (
           <div className="pg-service-list-view">
-             <div className="pg-header">
-                <div className="pg-title">
-                  <h1>PLAY GROUP SERVICES</h1>
-                  <p>Select a class to view calendar and students</p>
+             <div className="ll-header">
+                <div className="ll-header-content">
+                  <div className="header-title">
+                    <h1>PLAY GROUP SERVICES</h1>
+                    <p className="header-subtitle">Select a class to view calendar and students</p>
+                  </div>
                 </div>
              </div>
 
@@ -258,23 +261,24 @@ const PlayGroup = () => {
         {/* === VIEW 2: SERVICE DASHBOARD (REFACTORED) === */}
         {currentView === 'service-dashboard' && selectedService && (
           <div className="pg-dashboard-view">
-            <div className="pg-header">
-              <div className="pg-service-name-desc">
-                  <span className="pg-back-btn" onClick={goBackToServices}>
-                  {/* FIX: Replaced fill-rule/clip-rule with camelCase react props */}
-                  <svg width="32" height="52" viewBox="0 0 32 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path fillRule="evenodd" clipRule="evenodd" d="M11.6255 22.8691C9.89159 24.4549 9.89159 27.1866 11.6255 28.7724L30.3211 45.8712C31.7604 47.1876 31.7604 49.455 30.3211 50.7714C29.0525 51.9316 27.1081 51.9316 25.8395 50.7714L1.01868 28.0705C0.366419 27.4738 0 26.6645 0 25.8208C0 24.977 0.366419 24.1678 1.01868 23.571L25.8395 0.87018C27.1081 -0.290054 29.0525 -0.290057 30.3211 0.870177C31.7604 2.1865 31.7604 4.45398 30.3211 5.7703L11.6255 22.8691Z" fill="#636363"/>
-                  </svg>
-                  </span>
-                  <h1 className="pg-service-name">{selectedService.name}</h1>
+            <div className="ll-header">
+              <span className="back-arrow" onClick={goBackToServices}>
+                <svg width="20" height="20" viewBox="0 0 32 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fillRule="evenodd" clipRule="evenodd" d="M11.6255 22.8691C9.89159 24.4549 9.89159 27.1866 11.6255 28.7724L30.3211 45.8712C31.7604 47.1876 31.7604 49.455 30.3211 50.7714C29.0525 51.9316 27.1081 51.9316 25.8395 50.7714L1.01868 28.0705C0.366419 27.4738 0 26.6645 0 25.8208C0 24.977 0.366419 24.1678 1.01868 23.571L25.8395 0.87018C27.1081 -0.290054 29.0525 -0.290057 30.3211 0.870177C31.7604 2.1865 31.7604 4.45398 30.3211 5.7703L11.6255 22.8691Z" fill="#ffffff"/>
+                </svg>
+              </span>
+              <div className="ll-header-content" style={{ marginLeft: '50px' }}>
+                <div className="header-title">
+                  <h1>{selectedService.name}</h1>
                   {selectedService.description && (
-                  <div className="pg-service-description">
-                    <ServiceDescription
-                      description={selectedService.description}
-                      maxLength={120}
-                    />
-                  </div>
-                )}
+                    <p className="header-subtitle">
+                      <ServiceDescription
+                        description={selectedService.description}
+                        maxLength={120}
+                      />
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 

@@ -13,6 +13,7 @@ import { useChildrenByStaff } from '../../hooks/useCachedData';
 import "./css/OneOnOne.css";
 import "./css/ManageTeacher.css";
 import "./css/managetherapist.css";
+import "../../components/common/Header.css";
 
 // Pagination config
 const PAGE_SIZE = 10; 
@@ -203,50 +204,39 @@ const ManageTherapists = () => {
     : null;
 
   return (
-    <div className="ooo-container">
+    <div className="ooo-container therapist-page">
       <Sidebar {...getAdminConfig(isSuperAdmin)} />
       {loading ? (
         <Loading role="admin" message="Loading therapists" variant="content" />
       ) : (
       <div className="ooo-main">
         {/* ================= HEADER ================= */}
-        <div className="ooo-header">
-          <div className="mt-header-wrapper">
-            
-            <div className="mt-header-left">
-              {selectedTherapistId && (
-                <span
-                  className="mt-back-btn"
-                  onClick={handleBack}
-                >
-                  ‹
-                </span>
+        <div className="ll-header">
+          <div className="ll-header-content">
+            <div className="header-title">
+              <h1>
+                {selectedTherapistId ? "THERAPIST PROFILE" : "THERAPIST PROFILES"}
+              </h1>
+              {!selectedTherapistId && (
+                <p className="header-subtitle">Add and Manage Therapist Accounts</p>
               )}
-
-              {/* Title matches Teacher UI */}
-              <div className="header-title">
-                <h1>
-                  {selectedTherapistId ? "THERAPIST PROFILE" : "THERAPIST PROFILES"}
-                </h1>
-                
-                {!selectedTherapistId && (
-                  <p className="header-subtitle">
-                    Add and Manage Therapist Accounts
-                  </p>
-                )}
-              </div>
             </div>
 
-            {/* Search Box */}
+            {/* Hide search when viewing a specific profile */}
             {!selectedTherapistId && (
-              <div className="mt-search-container">
-                <span className="mt-search-icon">🔍</span>
+              <div className="search-wrapper">
+                <span className="search-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="M21 21l-4.35-4.35"/>
+                  </svg>
+                </span>
                 <input
                   type="text"
                   placeholder="Search therapist name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="mt-search-input"
+                  className="ll-search"
                 />
               </div>
             )}
@@ -439,9 +429,7 @@ const ManageTherapists = () => {
                   {filteredTherapists.map(t => (
                     <div
                       key={t.uid}
-                      className={`mt-card ${
-                        t.profileCompleted ? 'is-clickable' : 'is-locked'
-                      }`}
+                      className={`mt-card ${t.profileCompleted ? 'is-clickable' : 'is-locked'}`}
                       onClick={() => {
                         if (t.profileCompleted) {
                           setSelectedTherapistId(t.uid);
@@ -450,41 +438,48 @@ const ManageTherapists = () => {
                         }
                       }}
                     >
-                      <div>
-                        {/* Status Dot */}
-                        <div 
-                          className={`mt-status-dot ${t.profileCompleted ? 'active' : 'pending'}`}
-                          title={t.profileCompleted ? "Profile Complete" : "Profile Incomplete"} 
-                        />
+                      {/* Colored Banner with Status Badge */}
+                      <div className="mt-card-banner">
+                        <div className={`mt-badge ${t.profileCompleted ? 'complete' : 'incomplete'}`}>
+                          {t.profileCompleted ? 'Active' : 'Pending Setup'}
+                        </div>
+                      </div>
 
-                        {/* Avatar */}
+                      {/* Card Content */}
+                      <div className="mt-card-content">
+                        {/* Avatar with Status Dot */}
                         <div className="mt-avatar-container">
                           {t.profilePhoto ? (
                             <img src={t.profilePhoto} alt="" className="mt-avatar-img" />
                           ) : (
-                            '👤'
+                            <span>{t.firstName?.[0]}{t.lastName?.[0]}</span>
                           )}
+                          <div
+                            className={`mt-status-dot ${t.profileCompleted ? 'active' : 'pending'}`}
+                            title={t.profileCompleted ? "Profile Complete" : "Profile Incomplete"}
+                          />
                         </div>
 
+                        {/* Therapist Name */}
                         <h3 className="mt-teacher-name">
                           {t.firstName} {t.lastName}
                         </h3>
 
-                        {/* Status Badge */}
-                        <div className={`mt-badge ${t.profileCompleted ? 'complete' : 'incomplete'}`}>
-                          {t.profileCompleted ? '✅ Profile Active' : '⚠️ Setup Pending'}
-                        </div>
-
-                        {/* Specializations Tags */}
+                        {/* Specialization Tags */}
                         <div className="mt-tags-wrapper">
                           {t.specializations?.length ? (
-                            t.specializations.slice(0, 2).map((s, i) => (
-                              <span key={i} className="mt-tag">
-                                {s}
-                              </span>
-                            ))
+                            <>
+                              {t.specializations.slice(0, 2).map((s, i) => (
+                                <span key={i} className="mt-tag" title={s}>
+                                  {s.length > 15 ? s.substring(0, 15) + '...' : s}
+                                </span>
+                              ))}
+                              {t.specializations.length > 2 && (
+                                <span className="mt-tag mt-tag-more">+{t.specializations.length - 2}</span>
+                              )}
+                            </>
                           ) : (
-                            <span className="mt-tag">No specs</span>
+                            <span className="mt-tag">No specialization</span>
                           )}
                         </div>
                       </div>

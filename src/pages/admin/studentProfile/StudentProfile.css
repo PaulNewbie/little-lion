@@ -5,7 +5,7 @@
   display: flex;
   min-height: 100vh;
   background: #f0f2f5;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
 /* Make the content area scroll */

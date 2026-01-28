@@ -26,6 +26,7 @@ import {
 } from "./components";
 
 import "./StudentProfile.css";
+import "../../../components/common/Header.css";
 
 const StudentProfile = ({
   isParentView = false,

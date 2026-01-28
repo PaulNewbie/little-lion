@@ -12,6 +12,7 @@ import Loading from '../../components/common/Loading';
 import { useChildrenByStaff } from '../../hooks/useCachedData';
 import "./css/OneOnOne.css";
 import "./css/ManageTeacher.css";
+import "../../components/common/Header.css";
 
 // Pagination config
 const PAGE_SIZE = 10;
@@ -203,7 +204,7 @@ const ManageTeachers = () => {
   };
 
   return (
-    <div className="ooo-container">
+    <div className="ooo-container teacher-page">
       <Sidebar {...getAdminConfig(isSuperAdmin)} />
       {loading ? (
         <Loading role="admin" message="Loading teachers" variant="content" />
@@ -211,41 +212,32 @@ const ManageTeachers = () => {
       <div className="ooo-main">
 
         {/* ================= HEADER ================= */}
-        <div className="ooo-header">
-          <div className="mt-header-wrapper">
-            
-            {/* Left side: Back Button + Title */}
-            <div className="mt-header-left">
-              {selectedTeacherId && (
-                <span
-                  className="mt-back-btn"
-                  onClick={handleBack}
-                >
-                  ‹
-                </span>
+        <div className="ll-header">
+          <div className="ll-header-content">
+            <div className="header-title">
+              <h1>
+                {selectedTeacherId ? "TEACHER PROFILE" : "TEACHER PROFILES"}
+              </h1>
+              {!selectedTeacherId && (
+                <p className="header-subtitle">Add and Manage Teacher Accounts</p>
               )}
-
-              <div className="header-title">
-                <h1>
-                  {selectedTeacherId ? "TEACHER PROFILE" : "TEACHER PROFILES"}
-                </h1>
-                
-                {!selectedTeacherId && (
-                  <p className="header-subtitle">Add and Manage Teacher Accounts</p>
-                )}
-              </div>
             </div>
-            
-            {/* Hide search when viewing a specific profile to avoid confusion */}
+
+            {/* Hide search when viewing a specific profile */}
             {!selectedTeacherId && (
-              <div className="mt-search-container">
-                <span className="mt-search-icon">🔍</span>
+              <div className="search-wrapper">
+                <span className="search-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="M21 21l-4.35-4.35"/>
+                  </svg>
+                </span>
                 <input
                   type="text"
                   placeholder="Search teacher name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="mt-search-input"
+                  className="ll-search"
                 />
               </div>
             )}
@@ -439,43 +431,57 @@ const ManageTeachers = () => {
               ) : (
                 <div className="mt-grid">
                   {filteredTeachers.map(teacher => (
-                    <div 
-                      key={teacher.uid} 
+                    <div
+                      key={teacher.uid}
                       className={`mt-card ${teacher.profileCompleted ? 'is-clickable' : 'is-locked'}`}
                       onClick={() => {
                         if (teacher.profileCompleted) setSelectedTeacherId(teacher.uid);
                         else toast.info("This teacher has not completed their profile yet.");
                       }}
                     >
-                      <div>
-                        {/* Status Badge (Dot) */}
-                        <div 
-                          className={`mt-status-dot ${teacher.profileCompleted ? 'active' : 'pending'}`}
-                          title={teacher.profileCompleted ? "Profile Complete" : "Profile Incomplete"} 
-                        />
+                      {/* Colored Banner with Status Badge */}
+                      <div className="mt-card-banner">
+                        <div className={`mt-badge ${teacher.profileCompleted ? 'complete' : 'incomplete'}`}>
+                          {teacher.profileCompleted ? 'Active' : 'Pending Setup'}
+                        </div>
+                      </div>
 
-                        {/* Avatar */}
+                      {/* Card Content */}
+                      <div className="mt-card-content">
+                        {/* Avatar with Status Dot */}
                         <div className="mt-avatar-container">
                           {teacher.profilePhoto ? (
                             <img src={teacher.profilePhoto} alt="" className="mt-avatar-img" />
-                          ) : '👤'}
+                          ) : (
+                            <span>{teacher.firstName?.[0]}{teacher.lastName?.[0]}</span>
+                          )}
+                          <div
+                            className={`mt-status-dot ${teacher.profileCompleted ? 'active' : 'pending'}`}
+                            title={teacher.profileCompleted ? "Profile Complete" : "Profile Incomplete"}
+                          />
                         </div>
 
+                        {/* Teacher Name */}
                         <h3 className="mt-teacher-name">
                           {teacher.firstName} {teacher.lastName}
                         </h3>
-                        
-                        {/* Status Text */}
-                        <div className={`mt-badge ${teacher.profileCompleted ? 'complete' : 'incomplete'}`}>
-                          {teacher.profileCompleted ? '✅ Profile Active' : '⚠️ Setup Pending'}
-                        </div>
 
+                        {/* Specialization Tags */}
                         <div className="mt-tags-wrapper">
-                          {teacher.specializations?.slice(0, 2).map((spec, idx) => (
-                            <span key={idx} className="mt-tag">
-                              {spec}
-                            </span>
-                          ))}
+                          {teacher.specializations?.length > 0 ? (
+                            <>
+                              {teacher.specializations.slice(0, 2).map((spec, idx) => (
+                                <span key={idx} className="mt-tag" title={spec}>
+                                  {spec.length > 15 ? spec.substring(0, 15) + '...' : spec}
+                                </span>
+                              ))}
+                              {teacher.specializations.length > 2 && (
+                                <span className="mt-tag mt-tag-more">+{teacher.specializations.length - 2}</span>
+                              )}
+                            </>
+                          ) : (
+                            <span className="mt-tag">No specialization</span>
+                          )}
                         </div>
                       </div>
                     </div>

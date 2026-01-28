@@ -1,65 +1,16 @@
 /* ==========================================================================
    1. CORE LAYOUT & CONTAINERS
+   Note: Using shared styles from OneOnOne.css for ooo-container, ooo-main, etc.
    ========================================================================== */
-.ooo-container {
-  display: flex;
-  height: 100vh;
-  background-color: #f8f9fa;
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
-}
-
-.ooo-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  position: relative;
-}
 
 .ooo-content-area {
   padding: 30px 40px;
   flex: 1;
 }
 
-.header-title h1{
-  font-size: 28px;
-  font-weight: 700;
-  color: #0052A1;
-  margin: 0 0 5px 0;
-}
-
-.header-title p{
-  color: #666;
-  margin: 0;
-  font-size: 14px;
-}
-
-.search-wrapper {
-  position: relative;
-  width: 300px;
-}
-
-.search-wrapper .search-icon {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: white;
-  font-size: 14px;
-  border: none;
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  border-radius: 5px;
-}
-
-.sp-search {
-  width: 100%;
-  padding: 10px 15px 10px 40px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  font-size: 14px;
-  background: #f9f9f9;
-  transition: all 0.2s;
-}
+/* ==========================================================================
+   HEADER - Now using shared Header.css (ll-header)
+   ========================================================================== */
 
 /* ==========================================================================
    2. MODAL SYSTEM
@@ -310,6 +261,13 @@
   background: #f1f5f9;
 }
 
+.profile-top h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
 .service-row {
   display: flex;
   justify-content: space-between;
@@ -335,3 +293,17 @@
     transform: translateY(0);
   }
 }
+
+/* ==========================================================================
+   7. ENROLLMENT PAGE - MT-CARD STYLING (Parent/Guardian Cards)
+   ========================================================================== */
+/* Enrollment page cards: Orange banner */
+.enrollment-page .mt-card-banner {
+  background: #fa8d3f; /* Orange for guardians/parents */
+}
+
+/* Ensure grid centers properly in enrollment */
+.enrollment-page .mt-grid {
+  justify-content: center;
+}
+

@@ -1,0 +1,162 @@
+/* ==========================================================================
+   SHARED HEADER STYLES - Little Lions Theme
+   Import this file in any page that needs the branded header
+   ========================================================================== */
+
+/* ============================================================
+   HEADER CONTAINER
+============================================================ */
+.ll-header {
+  background-image: url("../../images/little-lions-bg.jpg");
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  border-radius: 1rem;
+  padding: 2.5rem 2rem;
+  margin: 20px 20px 2rem 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ll-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.25) 100%);
+}
+
+/* ============================================================
+   HEADER CONTENT LAYOUT
+============================================================ */
+.ll-header-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+/* ============================================================
+   HEADER TITLE
+============================================================ */
+.ll-header .header-title {
+  flex: 1;
+  min-width: 200px;
+  text-align: left;
+  position: relative;
+  z-index: 1;
+}
+
+.ll-header .header-title h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #ffffff !important;
+  margin: 0 0 0.3rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+  text-align: left;
+}
+
+.ll-header .header-subtitle {
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  text-align: left;
+}
+
+/* ============================================================
+   SEARCH BAR
+============================================================ */
+.ll-header .search-wrapper {
+  position: relative;
+  min-width: 280px;
+  max-width: 320px;
+}
+
+.ll-header .search-wrapper .search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  z-index: 1;
+  color: white;
+  border: none;
+}
+
+.ll-header .ll-search {
+  width: 100%;
+  padding: 0.875rem 1rem 0.875rem 3.5rem;
+  background-color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.9375rem;
+  outline: none;
+  box-sizing: border-box;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+.ll-header .ll-search:focus {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.ll-header .ll-search::placeholder {
+  color: #9ca3af;
+}
+
+/* ============================================================
+   BACK ARROW (for detail views)
+============================================================ */
+.ll-header .back-arrow {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  z-index: 2;
+}
+
+.ll-header .back-arrow svg path {
+  fill: #ffffff;
+}
+
+/* ============================================================
+   RESPONSIVE STYLES
+============================================================ */
+@media (max-width: 768px) {
+  .ll-header {
+    padding: 1.5rem;
+    margin: 15px;
+  }
+
+  .ll-header .header-title h1 {
+    font-size: 1.5rem;
+  }
+
+  .ll-header-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ll-header .search-wrapper {
+    min-width: unset;
+    max-width: unset;
+    width: 100%;
+  }
+}

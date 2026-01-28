@@ -25,6 +25,7 @@
   height: 100vh;
   background-color: #f5f5f5;
   overflow: hidden; /* prevent double scrollbars */
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
 .pg-main{
@@ -37,52 +38,181 @@
   scrollbar-color: #0052a1 rgba(0, 0, 0, 0);
 }
 
-.pg-header{
-  padding: 40px 40px;
-  border-bottom: 1px solid #e0e0e0;
+/* ================================================================
+   HEADER - StudentProfile Style
+================================================================ */
+.pg-header {
+  background-image: url("../../../images/little-lions-bg.jpg");
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  border-radius: 1rem;
+  padding: 2.5rem 2rem;
+  margin: 20px 20px 2rem 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.pg-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.25) 100%);
+}
+
+.pg-header-content {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 1.5rem;
 }
 
-.pg-title h1{
-  font-size: 28px;
-  font-weight: 700;
-  color: #0052A1;
-  margin: 0 0 5px 0;
+.pg-header .header-title {
+  flex: 1;
+  min-width: 200px;
+  text-align: left;
 }
 
-.pg-title p{
-  color: #999;
+.pg-header .header-title h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #ffffff !important;
+  margin: 0 0 0.3rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+  text-align: left;
+}
+
+.pg-header .header-subtitle {
+  color: rgba(255, 255, 255, 0.9) !important;
   margin: 0;
-  font-size: 14px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  text-align: left;
 }
 
-.pg-service-name-desc{
-margin-left: 50px;
-margin-bottom: 15px;
+/* Legacy title support */
+.pg-title h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #ffffff !important;
+  margin: 0 0 0.3rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.pg-title {
+  position: relative;
+  z-index: 1;
+}
+
+.pg-title p {
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.pg-service-name-desc {
+  margin-left: 70px;
+  margin-bottom: 15px;
+  position: relative;
+  z-index: 1;
 }
 
 .pg-header .pg-back-btn {
-  position:absolute;
-  bottom: 592px;
-  left: 40px;
-  font-size: 150px;
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
   cursor: pointer;
+  z-index: 2;
 }
 
-.pg-header .pg-service-name{
-  font-size: 2rem;
-  color: #0052A1;
-  font-weight: bold;
+.pg-header .pg-back-btn svg path {
+  fill: #ffffff;
 }
 
-.pg-header .pg-service-description{
+.pg-header .pg-service-name {
+  font-size: 1.85rem;
+  color: #ffffff !important;
+  font-weight: 800;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pg-header .pg-service-description {
   font-size: 0.9rem;
-  color: #333;
+  color: rgba(255, 255, 255, 0.9) !important;
   max-width: 700px;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.pg-header .pg-service-description p {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Header title inside pg-header */
+.pg-header .header-title {
+  flex: 1;
+  min-width: 200px;
+  text-align: left;
+  position: relative;
+  z-index: 1;
+}
+
+.pg-header .header-title h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #ffffff !important;
+  margin: 0 0 0.3rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+  text-align: left;
+}
+
+.pg-header .header-subtitle {
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  text-align: left;
+}
+
+/* Responsive Header */
+@media (max-width: 768px) {
+  .pg-header {
+    padding: 1.5rem;
+    margin: 15px;
+  }
+
+  .pg-header .header-title h1,
+  .pg-title h1,
+  .pg-header .pg-service-name {
+    font-size: 1.5rem;
+  }
+
+  .pg-header-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pg-service-name-desc {
+    margin-left: 50px;
+  }
 }
 
 
@@ -117,7 +247,7 @@ margin-bottom: 15px;
 }
 
 .pg-fab-text {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   letter-spacing: 0.5px;
 }
 

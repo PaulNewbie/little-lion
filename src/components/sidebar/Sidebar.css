@@ -18,6 +18,9 @@
   transform: translateX(-100%);
   z-index: 1000;
   overflow-y: auto;
+  /* Explicit font-family for consistency across all pages */
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 16px;
 }
 
 .sidebar.open {

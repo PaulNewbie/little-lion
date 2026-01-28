@@ -303,3 +303,8 @@
   box-shadow: none;
 }
 
+/* Therapist cards: Blue banner */
+.therapist-page .mt-card-banner {
+  background: #0052A1; /* Blue for therapists */
+}
+

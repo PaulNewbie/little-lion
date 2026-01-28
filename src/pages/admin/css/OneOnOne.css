@@ -5,7 +5,7 @@
 .ooo-container {
   display: flex;
   height: 100vh;
-  font-family: Arial, sans-serif;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   background-color: #f5f5f5;
   overflow: hidden;
 }
@@ -46,55 +46,180 @@
 }
 
 /* ================================================================
-   HEADER
+   HEADER - StudentProfile Style
 ================================================================ */
 .ooo-header {
-  padding: 40px 40px;
-  border-bottom: 1px solid #e0e0e0;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 20px;
+  background-image: url("../../../images/little-lions-bg.jpg");
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  border-radius: 1rem;
+  padding: 2.5rem 2rem;
+  margin: 20px 20px 2rem 20px;
+  position: relative;
+  overflow: hidden;
 }
 
+.ooo-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.25) 100%);
+}
+
+.ooo-header-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.ooo-header .header-title {
+  flex: 1;
+  min-width: 200px;
+  text-align: left;
+}
+
+.ooo-header .header-title h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #ffffff !important;
+  margin: 0 0 0.3rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+  text-align: left;
+}
+
+.ooo-header .header-subtitle {
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  text-align: left;
+}
+
+/* Legacy title support */
 .ooo-title h1 {
-  font-size: 28px;
-  font-weight: 700;
-  color: #0052A1;
-  margin: 0 0 5px 0;
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #ffffff !important;
+  margin: 0 0 0.3rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.ooo-title {
+  position: relative;
+  z-index: 1;
 }
 
 .ooo-subtitle {
-  color: #999;
+  color: rgba(255, 255, 255, 0.9) !important;
   margin: 0;
-  font-size: 14px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
 }
 
-.ooo-service-name-desc{
-margin-left: 70px;
-margin-bottom: 15px;
+.ooo-service-name-desc {
+  margin-left: 70px;
+  margin-bottom: 15px;
+  position: relative;
+  z-index: 1;
 }
 
 .ooo-header .back-arrow {
-  position:absolute;
-  left: 40px;
-  bottom: 40px;
-  font-size: 150px;
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
   cursor: pointer;
-  color: #333333;
+  z-index: 2;
+}
+
+.ooo-header .back-arrow svg path {
+  fill: #ffffff;
 }
 
 .ooo-header .service-name {
-  font-size: 2rem;
-  color: #0052A1;
-  font-weight: bold;
+  font-size: 1.85rem;
+  color: #ffffff !important;
+  font-weight: 800;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .ooo-service-description {
   font-size: 0.9rem;
-  color: #333;
+  color: rgba(255, 255, 255, 0.9) !important;
   max-width: 700px;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.ooo-service-description p {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Header title inside ooo-header */
+.ooo-header .header-title {
+  flex: 1;
+  min-width: 200px;
+  text-align: left;
+  position: relative;
+  z-index: 1;
+}
+
+.ooo-header .header-title h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #ffffff !important;
+  margin: 0 0 0.3rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+  text-align: left;
+}
+
+.ooo-header .header-subtitle {
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  text-align: left;
+}
+
+/* Responsive Header */
+@media (max-width: 768px) {
+  .ooo-header {
+    padding: 1.5rem;
+    margin: 15px;
+  }
+
+  .ooo-header .header-title h1,
+  .ooo-title h1,
+  .ooo-header .service-name {
+    font-size: 1.5rem;
+  }
+
+  .ooo-header-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ooo-service-name-desc {
+    margin-left: 50px;
+  }
 }
 
 /* ================================================================

@@ -9,6 +9,9 @@ import ActivationModal from "../../../components/admin/ActivationModal";
 import GeneralFooter from "../../../components/footer/generalfooter";
 import Toast from "./enrollmentForm/components/Toast";
 import "./EnrollStudent.css";
+import "../css/ManageTeacher.css";
+import "../css/OneOnOne.css";
+import "../../../components/common/Header.css";
 import authService from "../../../services/authService";
 
 // Firebase services
@@ -192,58 +195,77 @@ export default function EnrollStudent() {
   );
 
   return (
-    <div className="ooo-container">
+    <div className="ooo-container enrollment-page">
       <Sidebar {...getSidebarConfig()} />
       <div className="ooo-main">
-        {/* HEADER */}
-        <div className="ooo-header">
-          <div className="header-title">
-            <h1>STUDENT ENROLLMENT</h1>
-            <p className="header-subtitle">
-              Manage accounts and enrollment progress
-            </p>
-          </div>
-            <div className="search-wrapper">
-              <span className="search-icon">🔍</span>
-              <input
-                className="sp-search"
-                placeholder="Search by name..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
+        <div className="ooo-page">
+          <div className="ooo-content">
+            {/* HEADER */}
+            <div className="ll-header">
+              <div className="ll-header-content">
+                <div className="header-title">
+                  <h1>STUDENT ENROLLMENT</h1>
+                </div>
+                {!selectedParent && (
+                  <div className="search-wrapper">
+                    <span className="search-icon">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                      </svg>
+                    </span>
+                    <input
+                      className="ll-search"
+                      placeholder="Search guardian name..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
 
-        {/* PARENT GRID VIEW */}
-        <div className="ooo-content-area">
+            {/* PARENT GRID VIEW */}
+            <div className="ooo-content-area">
           {!selectedParent ? (
-            <div className="ooo-grid">
+            <div className="mt-grid">
               {filteredParents.map((p) => (
                 <div
                   key={p.uid}
-                  className="ooo-card"
+                  className={`mt-card ${p.accountStatus !== "pending_setup" ? 'is-clickable' : 'is-clickable'}`}
                   onClick={() => setSelectedParent(p)}
                 >
-                  <div className="ooo-photo-area">👤</div>
-                  <div className="ooo-card-info">
-                    <p className="ooo-name">
-                      {p.lastName}, {p.firstName}{" "}
-                      {p.middleName ? p.middleName[0] + "." : ""}
-                    </p>
-                    {/* Show pending badge if account not activated */}
-                    {p.accountStatus === "pending_setup" && (
-                      <span style={{
-                        fontSize: '11px',
-                        backgroundColor: '#fef3c7',
-                        color: '#92400e',
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        marginTop: '4px',
-                        display: 'inline-block'
-                      }}>
-                        ⏳ Pending Activation
-                      </span>
-                    )}
+                  {/* Colored Banner with Status Badge */}
+                  <div className="mt-card-banner">
+                    <div className={`mt-badge ${p.accountStatus !== "pending_setup" ? 'complete' : 'incomplete'}`}>
+                      {p.accountStatus !== "pending_setup" ? 'Active' : 'Pending Setup'}
+                    </div>
+                  </div>
+
+                  {/* Card Content */}
+                  <div className="mt-card-content">
+                    {/* Avatar with Status Dot */}
+                    <div className="mt-avatar-container">
+                      {p.profilePhoto ? (
+                        <img src={p.profilePhoto} alt="" className="mt-avatar-img" />
+                      ) : (
+                        <span>{p.firstName?.[0]}{p.lastName?.[0]}</span>
+                      )}
+                      <div
+                        className={`mt-status-dot ${p.accountStatus !== "pending_setup" ? 'active' : 'pending'}`}
+                        title={p.accountStatus !== "pending_setup" ? "Account Active" : "Pending Activation"}
+                      />
+                    </div>
+
+                    {/* Parent Name */}
+                    <h3 className="mt-teacher-name">
+                      {p.firstName} {p.lastName}
+                    </h3>
+
+                    {/* Role Tag */}
+                    <div className="mt-tags-wrapper">
+                      <span className="mt-tag">Guardian</span>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -251,15 +273,17 @@ export default function EnrollStudent() {
           ) : (
             <div className="profile-wrapper">
               <div className="profile-top">
-                <span
-                  className="back-arrow"
-                  onClick={() => setSelectedParent(null)}
-                >
-                  <svg width="32" height="52" viewBox="0 0 32 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path fill-rule="evenodd" clip-rule="evenodd" d="M11.6255 22.8691C9.89159 24.4549 9.89159 27.1866 11.6255 28.7724L30.3211 45.8712C31.7604 47.1876 31.7604 49.455 30.3211 50.7714C29.0525 51.9316 27.1081 51.9316 25.8395 50.7714L1.01868 28.0705C0.366419 27.4738 0 26.6645 0 25.8208C0 24.977 0.366419 24.1678 1.01868 23.571L25.8395 0.87018C27.1081 -0.290054 29.0525 -0.290057 30.3211 0.870177C31.7604 2.1865 31.7604 4.45398 30.3211 5.7703L11.6255 22.8691Z" fill="#636363"/>
+                <span className="back-arrow" onClick={() => setSelectedParent(null)}>
+                  <svg width="20" height="20" viewBox="0 0 32 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M11.6255 22.8691C9.89159 24.4549 9.89159 27.1866 11.6255 28.7724L30.3211 45.8712C31.7604 47.1876 31.7604 49.455 30.3211 50.7714C29.0525 51.9316 27.1081 51.9316 25.8395 50.7714L1.01868 28.0705C0.366419 27.4738 0 26.6645 0 25.8208C0 24.977 0.366419 24.1678 1.01868 23.571L25.8395 0.87018C27.1081 -0.290054 29.0525 -0.290057 30.3211 0.870177C31.7604 2.1865 31.7604 4.45398 30.3211 5.7703L11.6255 22.8691Z"
+                      fill="#636363"
+                    />
                   </svg>
                 </span>
-                <h2>{selectedParent.lastName} Family</h2>
+                <h2>{selectedParent.lastName.toUpperCase()} FAMILY</h2>
               </div>
               <div className="profile-info">
                 <h3 className="services-header">Family Children</h3>
@@ -551,9 +575,10 @@ export default function EnrollStudent() {
           type={toast.type}
           onClose={hideToast}
         />
-
-        {/* FOOTER */}
-        <GeneralFooter pageLabel="Enrollment" />
+          </div>
+          {/* FOOTER */}
+          <GeneralFooter pageLabel="Enrollment" />
+        </div>
       </div>
     </div>
   );
