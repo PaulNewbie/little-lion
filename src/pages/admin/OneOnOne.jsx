@@ -90,16 +90,26 @@ const OneOnOne = () => {
   // ENROLLED STUDENTS
   const enrolledStudents = selectedService
     ? students.filter((s) => {
-        // 1. Combine the new specific arrays
-        const allSrv = [
+        // 1. Combine all service arrays (legacy + new model)
+        const legacySrvs = [
           ...(s.oneOnOneServices || []),
           ...(s.groupClassServices || [])
         ];
         
-        // 2. Check if any matches the selected service name
-        return allSrv.some(
+        const newModelSrvs = (s.serviceEnrollments || [])
+          .filter(e => e.status === 'ACTIVE' || e.status === 'active'); // Only active enrollments
+        
+        // 2. Check legacy format
+        const foundLegacy = legacySrvs.some(
           (srv) => srv.serviceName?.trim().toLowerCase() === selectedService.name?.trim().toLowerCase()
         );
+        
+        // 3. Check new model format
+        const foundNew = newModelSrvs.some(
+          (srv) => srv.serviceName?.trim().toLowerCase() === selectedService.name?.trim().toLowerCase()
+        );
+        
+        return foundLegacy || foundNew;
       })
     : [];
 
@@ -248,14 +258,29 @@ const OneOnOne = () => {
                     ) : (
                       enrolledStudents.map(student => {
                         // 1. Find the specific service entry to get the staff name
-                        const allSrv = [
+                        const legacySrvs = [
                           ...(student.oneOnOneServices || []),
                           ...(student.groupClassServices || [])
                         ];
                         
-                        const serviceInfo = allSrv.find(
+                        const activeSrvs = (student.serviceEnrollments || [])
+                          .filter(e => e.status === 'ACTIVE' || e.status === 'active');
+                        
+                        const legacyServiceInfo = legacySrvs.find(
                           s => s.serviceName?.trim().toLowerCase() === selectedService.name?.trim().toLowerCase()
                         );
+                        
+                        const newModelServiceInfo = activeSrvs.find(
+                          s => s.serviceName?.trim().toLowerCase() === selectedService.name?.trim().toLowerCase()
+                        );
+                        
+                        // Determine which staff name to show
+                        let staffName = "Not assigned";
+                        if (newModelServiceInfo?.currentStaff?.staffName) {
+                          staffName = newModelServiceInfo.currentStaff.staffName;
+                        } else if (legacyServiceInfo?.staffName) {
+                          staffName = legacyServiceInfo.staffName;
+                        }
 
                         return (
                           <div key={student.id} className="ooo-card" onClick={() => handleSelectStudent(student)}>
@@ -264,8 +289,8 @@ const OneOnOne = () => {
                             </div>
                             <div className="ooo-card-info">
                               <p className="ooo-name">{student.lastName}, {student.firstName}</p>
-                              {/* Use the standard 'staffName' field from the new structure */}
-                              <p className="ooo-sub">Therapist: {serviceInfo?.staffName || "Not assigned"}</p>
+                              {/* Use staff name from either new or legacy structure */}
+                              <p className="ooo-sub">Therapist: {staffName}</p>
                             </div>
                           </div>
                         );
