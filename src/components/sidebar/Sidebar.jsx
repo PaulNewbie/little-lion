@@ -229,12 +229,24 @@ const Sidebar = ({
 
         {/* Profile Section */}
         <div className="sidebar__profile">
-          <div className="sidebar__avatar">{avatar}</div>
+          <div className="sidebar__avatar">
+            {currentUser?.profilePhoto ? (
+              <img 
+                src={currentUser.profilePhoto} 
+                alt="Profile" 
+                style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} 
+              />
+            ) : (
+              avatar
+            )}
+          </div>
+          
           <div>
             <div className="sidebar__role">{roleLabel}</div>
             <div className="sidebar__name">
               {currentUser?.firstName || role.charAt(0).toUpperCase() + role.slice(1)}
             </div>
+            {/* This is where our upload button will appear for parents */}
             {renderExtraProfile && renderExtraProfile()}
           </div>
         </div>

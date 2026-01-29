@@ -292,11 +292,11 @@ export default function EnrollStudent() {
                     <p style={{ textAlign: "center", padding: "20px" }}>
                       Loading children...
                     </p>
-                  ) : allStudents.length === 0 ? (
+                  ) : !Array.isArray(allStudents) || allStudents.length === 0 ? ( // Updated check
                     <p style={{ textAlign: "center", padding: "20px" }}>
                       No children enrolled yet
                     </p>
-                  ) : (
+                  ) : ( 
                     allStudents.map((s) => (
                       <div
                         key={s.id}
