@@ -348,10 +348,22 @@ const ServiceEnrollmentsPanel = ({
         <div className="se-panel__summary">
           <h3 className="se-panel__summary-title">Current Team</h3>
           <div className="se-panel__avatars">
-            {filteredActiveEnrollments
-              .filter(e => e.currentStaff)
-              .map((enrollment) => {
-                const staff = enrollment.currentStaff;
+            {/* Deduplicate staff by staffId */}
+            {(() => {
+              const uniqueStaff = [];
+              const seenIds = new Set();
+
+              filteredActiveEnrollments
+                .filter(e => e.currentStaff)
+                .forEach((enrollment) => {
+                  const staffId = enrollment.currentStaff.staffId;
+                  if (!seenIds.has(staffId)) {
+                    seenIds.add(staffId);
+                    uniqueStaff.push(enrollment.currentStaff);
+                  }
+                });
+
+              return uniqueStaff.map((staff) => {
                 const nameParts = staff.staffName?.split(' ') || ['?'];
                 const initials = nameParts.length >= 2
                   ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`
@@ -360,29 +372,33 @@ const ServiceEnrollmentsPanel = ({
 
                 return (
                   <div
-                    key={enrollment.enrollmentId}
+                    key={staff.staffId}
                     className="se-panel__avatar-item"
-                    title={`${staff.staffName} - ${enrollment.serviceName} (Click to view profile)`}
+                    title={`${staff.staffName} (Click to view profile)`}
                     onClick={() => handleStaffClick(staff)}
                     style={{ cursor: 'pointer' }}
                   >
-                    <div className={`se-panel__avatar ${staff.staffRole === 'therapist' ? 'se-panel__avatar--therapist' : 'se-panel__avatar--teacher'}`}>
-                      {photoUrl ? (
-                        <img
-                          src={photoUrl}
-                          alt={staff.staffName}
-                          className="se-panel__avatar-img"
-                        />
-                      ) : (
-                        <span className="se-panel__avatar-initials">{initials.toUpperCase()}</span>
-                      )}
+                    <div className={`se-panel__avatar-banner ${staff.staffRole === 'therapist' ? 'se-panel__avatar-banner--therapist' : 'se-panel__avatar-banner--teacher'}`} />
+                    <div className="se-panel__avatar-content">
+                      <div className={`se-panel__avatar ${staff.staffRole === 'therapist' ? 'se-panel__avatar--therapist' : 'se-panel__avatar--teacher'}`}>
+                        {photoUrl ? (
+                          <img
+                            src={photoUrl}
+                            alt={staff.staffName}
+                            className="se-panel__avatar-img"
+                          />
+                        ) : (
+                          <span className="se-panel__avatar-initials">{initials.toUpperCase()}</span>
+                        )}
+                      </div>
+                      <span className="se-panel__avatar-name">
+                        {staff.staffName}
+                      </span>
                     </div>
-                    <span className="se-panel__avatar-name">
-                      {nameParts[0]}
-                    </span>
                   </div>
                 );
-              })}
+              });
+            })()}
           </div>
         </div>
       )}

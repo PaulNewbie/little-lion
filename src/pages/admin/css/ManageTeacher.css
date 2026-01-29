@@ -365,6 +365,32 @@
 .mt-btn-submit.normal { background: #fbbf24; cursor: pointer; }
 .mt-btn-submit.loading { background: #fcd34d; cursor: not-allowed; }
 
+/* ================================================================
+   SP-CARD OVERRIDE FOR TEACHER/THERAPIST ENROLLED STUDENTS
+   (Matches OneOnOne styling with therapist name)
+================================================================ */
+.ooo-content-area .sp-card {
+  aspect-ratio: 1 / 1;
+}
+
+.ooo-content-area .sp-card-body {
+  padding: 8px 10px 10px;
+  gap: 2px;
+}
+
+.ooo-content-area .sp-name {
+  font-size: 13px;
+}
+
+.ooo-content-area .sp-therapist {
+  font-size: 10px;
+  color: #6b7280;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Responsive - Search Bar */
 @media (max-width: 768px) {
   .mt-header-wrapper {

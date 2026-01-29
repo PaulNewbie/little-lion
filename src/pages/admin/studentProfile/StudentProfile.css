@@ -279,7 +279,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   position: relative;
 }
 
@@ -509,7 +509,7 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 24px;
+  padding: 12px 40px;
   background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%);
   color: white;
   border: none;
@@ -519,6 +519,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 4px 12px rgba(0, 82, 161, 0.3);
+  white-space: nowrap;
 }
 
 .assessment-toggle-btn:hover {
@@ -534,6 +535,62 @@
 
 .assessment-toggle-btn svg {
   opacity: 0.9;
+}
+
+/* Age and Gender info in photo section */
+.photo-section-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 16px;
+  width: 100%;
+}
+
+/* Compact info items in photo section */
+.photo-section-info .info-item {
+  padding: 8px 10px;
+  gap: 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.photo-section-info .info-item:hover {
+  background: rgba(255, 255, 255, 1);
+}
+
+.photo-section-info .info-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+}
+
+.photo-section-info .info-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.photo-section-info .info-label {
+  font-size: 9px;
+  letter-spacing: 0.3px;
+}
+
+.photo-section-info .info-value {
+  font-size: 12px;
+}
+
+/* Assessment button when in photo section - pushed to absolute bottom */
+.assessment-toggle-btn.photo-section-btn {
+  margin-top: auto;
+  padding-top: 16px;
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Add margin-bottom to the gender info-item (last item) in photo section */
+.photo-section-info .info-item:last-child {
+  margin-bottom: 12px;
 }
 
 /* Profile Header Responsive */

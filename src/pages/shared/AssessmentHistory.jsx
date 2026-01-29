@@ -1,5 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import "./AssessmentHistory.css";
+
+// Slide labels for quick navigation
+const SLIDE_LABELS = [
+  "Overview",
+  "Referral",
+  "Purpose",
+  "History",
+  "Behavior",
+  "Tools"
+];
 
 const AssessmentHistory = ({ childData, assessmentData }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -22,6 +32,14 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
 
   const bg = backgroundHistory || {};
 
+  // Background History Card Component for better organization
+  const BackgroundHistoryCard = ({ title, children, fullWidth = false }) => (
+    <div className={`bg-history-card ${fullWidth ? 'full-width' : ''}`}>
+      <h4>{title}</h4>
+      {children}
+    </div>
+  );
+
   // Define slides
   const slides = [
     {
@@ -30,17 +48,20 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
         <div className="slide-content">
           <div className="report-meta-grid">
             <div className="meta-item">
-              <span className="label">Examiner:</span> {examiner || "N/A"}
+              <span className="label">Examiner</span>
+              <span className="value">{examiner || "N/A"}</span>
             </div>
             <div className="meta-item">
-              <span className="label">Date(s):</span>{" "}
-              {Array.isArray(assessmentDates)
-                ? assessmentDates.join(", ")
-                : assessmentDates || "N/A"}
+              <span className="label">Assessment Date(s)</span>
+              <span className="value">
+                {Array.isArray(assessmentDates)
+                  ? assessmentDates.join(", ")
+                  : assessmentDates || "N/A"}
+              </span>
             </div>
             <div className="meta-item">
-              <span className="label">Age at Assessment:</span>{" "}
-              {ageAtAssessment || "N/A"}
+              <span className="label">Age at Assessment</span>
+              <span className="value">{ageAtAssessment || "N/A"}</span>
             </div>
           </div>
         </div>
@@ -76,84 +97,76 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
       title: "IV. Background History",
       content: (
         <div className="slide-content background-history-slide">
-          <div className="sub-section">
-            <h4>Family Background:</h4>
-            <p className="report-text">{bg.familyBackground || "N/A"}</p>
-          </div>
+          <div className="bg-history-grid">
+            <BackgroundHistoryCard title="Family Background">
+              <p className="report-text">{bg.familyBackground || "N/A"}</p>
+            </BackgroundHistoryCard>
 
-          <div className="sub-section">
-            <h4>Family Relationships:</h4>
-            <p className="report-text">{bg.familyRelationships || "N/A"}</p>
-          </div>
+            <BackgroundHistoryCard title="Family Relationships">
+              <p className="report-text">{bg.familyRelationships || "N/A"}</p>
+            </BackgroundHistoryCard>
 
-          <div className="sub-section">
-            <h4>Daily Life & Activities:</h4>
-            <p className="report-text">{bg.dailyLifeActivities || "N/A"}</p>
-          </div>
+            <BackgroundHistoryCard title="Daily Life & Activities">
+              <p className="report-text">{bg.dailyLifeActivities || "N/A"}</p>
+            </BackgroundHistoryCard>
 
-          <div className="sub-section">
-            <h4>Medical History:</h4>
-            <p className="report-text">{bg.medicalHistory || "N/A"}</p>
-          </div>
+            <BackgroundHistoryCard title="Medical History">
+              <p className="report-text">{bg.medicalHistory || "N/A"}</p>
+            </BackgroundHistoryCard>
 
-          <div className="sub-section">
-            <h4>Developmental Background:</h4>
-            {bg.developmentalBackground && bg.developmentalBackground.length > 0 ? (
-              <ul className="report-list bulleted">
-                {bg.developmentalBackground.map((item, i) => (
-                  <li key={i}>
-                    <strong>{item.devBgTitle}:</strong> {item.devBgInfo}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="report-text">N/A</p>
-            )}
-          </div>
-
-          <div className="sub-section">
-            <h4>School History:</h4>
-            <p className="report-text">{bg.schoolHistory || "N/A"}</p>
-          </div>
-
-          <div className="sub-section">
-            <h4>Clinical Diagnosis:</h4>
-            <p className="report-text">{bg.clinicalDiagnosis || "N/A"}</p>
-          </div>
-
-          <div className="sub-section">
-            <h4>Therapies/Interventions:</h4>
-            {bg.interventions && bg.interventions.length > 0 ? (
-              <ul className="report-list bulleted">
-                {bg.interventions.map((item, i) => {
-                  if (!item) return (
-                    <li key={i} className="report-text">N/A</li>
-                  );
-                  if (typeof item === "string") return <li key={i}>{item}</li>;
-
-                  const name = item.name || item.serviceName || item.serviceId || "Unnamed intervention";
-                  const freq = item.frequency ? ` — ${item.frequency}` : "";
-
-                  return (
+            <BackgroundHistoryCard title="Developmental Background" fullWidth>
+              {bg.developmentalBackground && bg.developmentalBackground.length > 0 ? (
+                <ul className="report-list bulleted">
+                  {bg.developmentalBackground.map((item, i) => (
                     <li key={i}>
-                      <strong>{name}</strong>{freq}
+                      <strong>{item.devBgTitle}:</strong> {item.devBgInfo}
                     </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <p className="report-text">N/A</p>
-            )}
-          </div>
+                  ))}
+                </ul>
+              ) : (
+                <p className="report-text">N/A</p>
+              )}
+            </BackgroundHistoryCard>
 
-          <div className="sub-section">
-            <h4>Strengths & Interests:</h4>
-            <p className="report-text">{bg.strengthsAndInterests || "N/A"}</p>
-          </div>
+            <BackgroundHistoryCard title="School History">
+              <p className="report-text">{bg.schoolHistory || "N/A"}</p>
+            </BackgroundHistoryCard>
 
-          <div className="sub-section">
-            <h4>Social Skills:</h4>
-            <p className="report-text">{bg.socialSkills || "N/A"}</p>
+            <BackgroundHistoryCard title="Clinical Diagnosis">
+              <p className="report-text">{bg.clinicalDiagnosis || "N/A"}</p>
+            </BackgroundHistoryCard>
+
+            <BackgroundHistoryCard title="Therapies/Interventions" fullWidth>
+              {bg.interventions && bg.interventions.length > 0 ? (
+                <ul className="report-list bulleted">
+                  {bg.interventions.map((item, i) => {
+                    if (!item) return (
+                      <li key={i} className="report-text">N/A</li>
+                    );
+                    if (typeof item === "string") return <li key={i}>{item}</li>;
+
+                    const name = item.name || item.serviceName || item.serviceId || "Unnamed intervention";
+                    const freq = item.frequency ? ` - ${item.frequency}` : "";
+
+                    return (
+                      <li key={i}>
+                        <strong>{name}</strong>{freq}
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p className="report-text">N/A</p>
+              )}
+            </BackgroundHistoryCard>
+
+            <BackgroundHistoryCard title="Strengths & Interests">
+              <p className="report-text">{bg.strengthsAndInterests || "N/A"}</p>
+            </BackgroundHistoryCard>
+
+            <BackgroundHistoryCard title="Social Skills">
+              <p className="report-text">{bg.socialSkills || "N/A"}</p>
+            </BackgroundHistoryCard>
           </div>
         </div>
       ),
@@ -183,12 +196,12 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
                   <div className="tool-body">
                     <p><strong>Measure:</strong> {item.details}</p>
                     <div className="result-box">
-                      <strong>Results:</strong>
+                      <strong>Results</strong>
                       <p>{item.result || "No results recorded."}</p>
                     </div>
                     {item.recommendation && (
                       <div className="recommendation-box">
-                        <strong>Specific Recommendation:</strong>
+                        <strong>Specific Recommendation</strong>
                         <p>{item.recommendation}</p>
                       </div>
                     )}
@@ -201,7 +214,7 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
           )}
 
           <div className="summary-final-section">
-            <h4 className="summary-title">SUMMARY</h4>
+            <h4 className="summary-title">Summary</h4>
             <div className="summary-content-box">
               <p className="report-text">
                 {assessmentSummary || "No overall summary provided."}
@@ -215,40 +228,87 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
 
   const totalSlides = slides.length;
 
-  const goToPrevious = () => {
+  const goToPrevious = useCallback(() => {
     setCurrentSlide((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
-  };
+  }, [totalSlides]);
 
-  const goToNext = () => {
+  const goToNext = useCallback(() => {
     setCurrentSlide((prev) => (prev === totalSlides - 1 ? 0 : prev + 1));
-  };
+  }, [totalSlides]);
 
-  const goToSlide = (index) => {
+  const goToSlide = useCallback((index) => {
     setCurrentSlide(index);
-  };
+  }, []);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "ArrowLeft") {
+        goToPrevious();
+      } else if (e.key === "ArrowRight") {
+        goToNext();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [goToPrevious, goToNext]);
+
+  // Calculate progress percentage
+  const progressPercentage = ((currentSlide + 1) / totalSlides) * 100;
 
   return (
     <div className="assessment-history-container">
+      {/* Header */}
       <div className="history-top-header">
-        <h2 className="report-main-title">ASSESSMENT REPORT</h2>
+        <h2 className="report-main-title">Assessment Report</h2>
       </div>
 
-      {/* Slide Navigation Dots */}
-      <div className="slide-dots">
-        {slides.map((_, index) => (
-          <button
-            key={index}
-            className={`slide-dot ${index === currentSlide ? "active" : ""}`}
-            onClick={() => goToSlide(index)}
-            aria-label={`Go to slide ${index + 1}`}
+      {/* Navigation Section */}
+      <div className="slide-navigation">
+        {/* Progress Bar */}
+        <div className="slide-progress-bar">
+          <div
+            className="slide-progress-fill"
+            style={{ width: `${progressPercentage}%` }}
           />
-        ))}
+        </div>
+
+        {/* Slide Dots */}
+        <div className="slide-dots">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              className={`slide-dot ${index === currentSlide ? "active" : ""}`}
+              onClick={() => goToSlide(index)}
+              aria-label={`Go to ${SLIDE_LABELS[index]} slide`}
+              aria-current={index === currentSlide ? "step" : undefined}
+            />
+          ))}
+        </div>
+
+        {/* Slide Labels */}
+        <div className="slide-labels">
+          {SLIDE_LABELS.map((label, index) => (
+            <button
+              key={index}
+              className={`slide-label ${index === currentSlide ? "active" : ""}`}
+              onClick={() => goToSlide(index)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Current Slide */}
+      {/* Slide Content */}
       <div className="slide-wrapper">
         {/* Left Arrow */}
-        <button className="slide-arrow slide-arrow-left" onClick={goToPrevious} aria-label="Previous slide">
+        <button
+          className="slide-arrow slide-arrow-left"
+          onClick={goToPrevious}
+          aria-label="Previous slide"
+        >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <path d="M15 18l-6-6 6-6" />
           </svg>
@@ -265,7 +325,11 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
         </div>
 
         {/* Right Arrow */}
-        <button className="slide-arrow slide-arrow-right" onClick={goToNext} aria-label="Next slide">
+        <button
+          className="slide-arrow slide-arrow-right"
+          onClick={goToNext}
+          aria-label="Next slide"
+        >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <path d="M9 18l6-6-6-6" />
           </svg>

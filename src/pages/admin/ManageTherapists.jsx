@@ -10,9 +10,11 @@ import ActivationModal from '../../components/admin/ActivationModal';
 import SpecializationManagerModal from '../../components/admin/SpecializationManagerModal';
 import Loading from '../../components/common/Loading';
 import { useChildrenByStaff } from '../../hooks/useCachedData';
+import { ROUTES } from '../../routes/routeConfig';
 import "./css/OneOnOne.css";
 import "./css/ManageTeacher.css";
 import "./css/managetherapist.css";
+import "./studentProfile/StudentProfile.css";
 import "../../components/common/Header.css";
 
 // Pagination config
@@ -199,6 +201,18 @@ const ManageTherapists = () => {
     }
   };
 
+  // Handler for navigating to student profile
+  const handlePatientClick = (student) => {
+    navigate(ROUTES.ADMIN.STUDENT_PROFILE, {
+      state: {
+        studentId: student.id,
+        student: student,
+        returnTo: ROUTES.ADMIN.MANAGE_THERAPISTS,
+        returnState: { selectedStaffId: selectedTherapistId }
+      }
+    });
+  };
+
   const selectedTherapist = selectedTherapistId 
     ? therapists.find(t => t.uid === selectedTherapistId) 
     : null;
@@ -346,33 +360,27 @@ const ManageTherapists = () => {
                    </div>
                 ) : (
                   <>
-                    <div className="ooo-grid">
+                    <div className="sp-grid">
                       {filteredPatients.map(student => (
-                        <div key={student.id} className="ooo-card" style={{ cursor: 'default' }}>
-                          <div className="ooo-photo-area">
+                        <div
+                          key={student.id}
+                          className="sp-card"
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => handlePatientClick(student)}
+                          title={`View ${student.firstName}'s profile`}
+                        >
+                          <div className="sp-card-image-box">
                             {student.photoUrl ? (
-                              <img src={student.photoUrl} alt="" />
+                              <img src={student.photoUrl} className="sp-photo" alt="" />
                             ) : (
-                              <div style={{
-                                width: '100%',
-                                height: '100%',
-                                backgroundColor: '#e2e8f0',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '1.5rem',
-                                color: '#64748b',
-                                fontWeight: 'bold'
-                              }}>
-                                {student.firstName?.[0]}{student.lastName?.[0]}
+                              <div className="sp-photo-placeholder">
+                                {student.firstName?.[0]}
                               </div>
                             )}
                           </div>
-                          <div className="ooo-card-info">
-                            <p className="ooo-name">{student.firstName} {student.lastName}</p>
-                            <p className="ooo-sub" style={{ color: '#2563eb', fontWeight: '500' }}>
-                              {getStudentServices(student)}
-                            </p>
+                          <div className="sp-card-body">
+                            <p className="sp-name">{student.lastName}, {student.firstName}</p>
+                            <p className="sp-therapist">{getStudentServices(student)}</p>
                           </div>
                         </div>
                       ))}

@@ -346,18 +346,30 @@ export const useStudentProfileData = (locationState, options = {}) => {
   }, [loadedStudents, searchResults, shouldServerSearch, searchTerm, filterType]);
 
   // ================= HELPERS =================
-  const refreshData = useCallback(() => {
+  const refreshData = useCallback(async () => {
+    const invalidations = [];
+
     if (isParentView && parentId) {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.studentsByParent(parentId) });
+      invalidations.push(queryClient.invalidateQueries({ queryKey: QUERY_KEYS.studentsByParent(parentId) }));
     } else if (isStaffView && staffId) {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.studentsByStaff(staffId) });
+      invalidations.push(queryClient.invalidateQueries({ queryKey: QUERY_KEYS.studentsByStaff(staffId) }));
     } else {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.students() });
+      invalidations.push(queryClient.invalidateQueries({ queryKey: QUERY_KEYS.students() }));
     }
+
     if (selectedStudent?.assessmentId) {
-      queryClient.invalidateQueries({ queryKey: ["assessment", selectedStudent.assessmentId] });
+      invalidations.push(queryClient.invalidateQueries({ queryKey: ["assessment", selectedStudent.assessmentId] }));
     }
-  }, [queryClient, isParentView, parentId, isStaffView, staffId, selectedStudent]);
+
+    // Also invalidate service enrollment queries for the selected student
+    if (selectedStudentId) {
+      invalidations.push(queryClient.invalidateQueries({ queryKey: ['serviceEnrollments', selectedStudentId] }));
+      invalidations.push(queryClient.invalidateQueries({ queryKey: ['staffHistory', selectedStudentId] }));
+      invalidations.push(queryClient.invalidateQueries({ queryKey: ['student', selectedStudentId] }));
+    }
+
+    await Promise.all(invalidations);
+  }, [queryClient, isParentView, parentId, isStaffView, staffId, selectedStudent, selectedStudentId]);
 
   // Expose all loaded students (for display count)
   const students = loadedStudents;

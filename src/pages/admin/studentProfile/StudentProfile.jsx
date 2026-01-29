@@ -1,6 +1,7 @@
 // src/pages/admin/studentProfile/StudentProfile.jsx
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../../../hooks/useAuth";
 import { useToast } from "../../../context/ToastContext";
 import Sidebar from '../../../components/sidebar/Sidebar';
@@ -12,7 +13,7 @@ import userService from "../../../services/userService";
 import cloudinaryService from "../../../services/cloudinaryService";
 import { useTeachers, useTherapists } from "../../../hooks/useRoleBasedData";
 import { useStudentProfileData } from "./hooks/useStudentProfileData";
-import AssessmentHistory from "../../shared/AssessmentHistory";
+import AssessmentHistoryModal from "../../shared/AssessmentHistoryModal";
 import Loading from "../../../components/common/Loading";
 import { ServiceEnrollmentsPanel } from "../../../components/serviceEnrollments";
 import { CurrentTeamSection } from "../../../components/staffCredentials";
@@ -36,6 +37,7 @@ const StudentProfile = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { currentUser } = useAuth();
   const toast = useToast();
   const calendarRef = useRef(null);
@@ -181,6 +183,10 @@ const StudentProfile = ({
     }, 100);
   };
 
+  const handleToggleAssessment = () => {
+    setShowAssessment(!showAssessment);
+  };
+
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -316,7 +322,13 @@ const StudentProfile = ({
         });
       }
 
-      await refreshData();
+      // Invalidate all related caches for immediate UI update
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['serviceEnrollments', selectedStudent.id] }),
+        queryClient.invalidateQueries({ queryKey: ['staffHistory', selectedStudent.id] }),
+        queryClient.invalidateQueries({ queryKey: ['student', selectedStudent.id] }),
+        refreshData(),
+      ]);
 
       setIsAddModalOpen(false);
       toast.success("Service enrolled successfully!");
@@ -398,17 +410,8 @@ const StudentProfile = ({
                   uploadingPhoto={uploadingPhoto}
                   onBack={handleBack}
                   onPhotoUpload={handlePhotoUpload}
-                  showAssessment={showAssessment}
-                  onToggleAssessment={() => setShowAssessment(!showAssessment)}
+                  onToggleAssessment={handleToggleAssessment}
                 />
-
-                {showAssessment && (
-                  isAssessmentLoading ? (
-                    <Loading variant="compact" message="Loading assessment" showBrand={false} />
-                  ) : (
-                    <AssessmentHistory childData={selectedStudent} assessmentData={assessmentData} />
-                  )
-                )}
 
                 <div className="profile-content-scroll">
                   {/* Service Enrollments Panel */}
@@ -446,6 +449,15 @@ const StudentProfile = ({
 
         <GeneralFooter pageLabel={isParentView ? "Child Profile" : "Student Profile"} />
       </div>
+
+      {/* Assessment History Modal */}
+      <AssessmentHistoryModal
+        isOpen={showAssessment}
+        onClose={() => setShowAssessment(false)}
+        childData={selectedStudent}
+        assessmentData={assessmentData}
+        isLoading={isAssessmentLoading}
+      />
 
       {/* Add Service Modal */}
       <AddServiceModal
