@@ -5,7 +5,7 @@
   display: flex;
   min-height: 100vh;
   background: #f0f2f5;
-  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* Make the content area scroll */
@@ -82,7 +82,6 @@
 
 .sp-header .header-subtitle {
   color: rgba(255, 255, 255, 0.9) !important;
-  margin: 0;
   font-size: 0.9375rem;
   font-weight: 600;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
@@ -144,7 +143,7 @@
 .sp-filter-select {
   padding: 0.875rem 2.5rem 0.875rem 1rem;
   border-radius: 12px;
-  border: 2px solid transparent;
+  border: none;
   background: white;
   font-size: 0.9375rem;
   color: #333333;
@@ -155,16 +154,6 @@
   -webkit-appearance: none;
   -moz-appearance: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.sp-filter-select:hover {
-  border-color: #FFCB10;
-}
-
-.sp-filter-select:focus {
-  border-color: #FFCB10;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 3px rgba(255, 203, 16, 0.3);
 }
 
 .filter-wrapper {
@@ -178,15 +167,9 @@
   right: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: #9ca3af;
+  color: #fbbf24;
   font-size: 12px;
   pointer-events: none;
-  transition: color 0.2s ease;
-}
-
-.filter-wrapper:hover::after,
-.filter-wrapper:focus-within::after {
-  color: #FFCB10;
 }
 
 /* Header Responsive */
@@ -221,10 +204,388 @@
 }
 
 /* ============================================================
+   NEW PROFILE HEADER SECTION
+============================================================ */
+.profile-header-section {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+/* Header Bar */
+.profile-header-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.header-back-arrow {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+  padding: 8px;
+}
+
+.header-back-arrow:hover {
+  transform: translateX(-3px);
+}
+
+.header-back-arrow svg {
+  width: 70px;
+  height: 70px;
+  color: #FFCB10;
+}
+
+.header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.header-title-text {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0052A1;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.header-subtitle-text {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Profile Card Container */
+.profile-card-container {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 0;
+}
+
+/* Photo Section */
+.profile-photo-section {
+  padding: 24px;
+  background: #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.profile-photo-wrapper {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+
+.profile-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.profile-photo-placeholder-new {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border-radius: 16px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.placeholder-initial {
+  font-size: 80px;
+  font-weight: 800;
+  color: white;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.photo-badge {
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #FFCB10 0%, #f59e0b 100%);
+  padding: 6px 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.photo-badge span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #78350f;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Info Section */
+.profile-info-section {
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.profile-name-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.profile-student-name {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.profile-nickname {
+  font-size: 16px;
+  color: #64748b;
+  font-style: italic;
+}
+
+/* Info Grid */
+.profile-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.info-item:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.info-item-full {
+  grid-column: 1 / -1;
+}
+
+.info-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.info-icon svg {
+  color: white;
+}
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.info-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Guardian Card */
+.guardian-card {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.guardian-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.5);
+  border-bottom: 1px solid #bae6fd;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0369a1;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.guardian-header svg {
+  color: #0284c7;
+}
+
+.guardian-body {
+  padding: 16px;
+}
+
+.guardian-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.guardian-fullname {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0c4a6e;
+}
+
+.guardian-relationship {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0284c7;
+  background: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid #7dd3fc;
+}
+
+.guardian-contact {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #0369a1;
+}
+
+.contact-item svg {
+  color: #38bdf8;
+}
+
+/* Profile Actions */
+.profile-actions {
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.assessment-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 82, 161, 0.3);
+}
+
+.assessment-toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 82, 161, 0.4);
+}
+
+.assessment-toggle-btn.active {
+  background: linear-gradient(135deg, #FFCB10 0%, #f59e0b 100%);
+  color: #78350f;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+}
+
+.assessment-toggle-btn svg {
+  opacity: 0.9;
+}
+
+/* Profile Header Responsive */
+@media (max-width: 900px) {
+  .profile-card-container {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-photo-section {
+    padding: 32px 24px;
+  }
+
+  .profile-photo-wrapper {
+    width: 160px;
+    height: 160px;
+  }
+
+  .placeholder-initial {
+    font-size: 60px;
+  }
+
+  .profile-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-student-name {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-header-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .profile-info-section {
+    padding: 20px 16px;
+  }
+
+  .guardian-contact {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* ============================================================
    STUDENT GRID (FULL IMAGE WITH BLUR OVERLAY)
 ============================================================ */
 .sp-content-area {
-  padding: 40px;
+  padding: 0 20px 20px 20px;
   flex: 1;               /* grow to fill space, pushing footer down */
 }
 
@@ -310,8 +671,8 @@
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: -1;
 }
 
@@ -417,7 +778,7 @@
   right: 6px;
   font-size: 14px;
   opacity: 0;
-  transition: opacity 1s ease;
+  transition: opacity 0.3s ease;
   z-index: 4;
 }
 
@@ -814,40 +1175,130 @@
 }
 
 .calendar-section {
-  border-right: 1px solid #eee;
-  padding-right: 30px;
+  border-right: none;
+  padding-right: 0;
 }
 
 .react-calendar {
   width: 100% !important;
   border: none !important;
   font-family: inherit !important;
+  background: transparent !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
 }
 
+/* Calendar navigation */
+.react-calendar__navigation {
+  margin-bottom: 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+.react-calendar__navigation button {
+  background: transparent !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #6b7280 !important;
+  min-width: 32px !important;
+  padding: 4px 8px !important;
+}
+
+.react-calendar__navigation button:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-radius: 6px !important;
+}
+
+.react-calendar__navigation__label {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: #1f2937 !important;
+}
+
+/* Weekday labels */
+.react-calendar__month-view__weekdays {
+  text-transform: uppercase !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: #6b7280 !important;
+  margin-bottom: 8px !important;
+}
+
+.react-calendar__month-view__weekdays__weekday {
+  padding: 8px 0 !important;
+  text-align: center !important;
+}
+
+.react-calendar__month-view__weekdays__weekday abbr {
+  text-decoration: none !important;
+}
+
+/* Calendar days container */
+.react-calendar__month-view__days {
+  gap: 6px !important;
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+}
+
+/* Calendar tiles (date cells) */
 .react-calendar__tile {
-  height: 60px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  height: 38px !important;
+  max-width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #cfd4da !important;
+  border-radius: 10px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #374151 !important;
+  transition: all 0.15s ease !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
-.calendar-dot {
-  width: 6px;
-  height: 6px;
-  background-color: #0052A1;
-  border-radius: 50%;
-  margin-top: 4px;
+.react-calendar__tile:hover {
+  background: #fbbf24 !important;
+  color: #1f2937 !important;
+}
+
+.react-calendar__tile--now {
+  background: #fbbf24 !important;
+  color: #1f2937 !important;
+  font-weight: 600 !important;
 }
 
 .react-calendar__tile--active {
   background: #0052A1 !important;
   color: white !important;
-  border-radius: 8px;
+}
+
+.react-calendar__month-view__days__day--neighboringMonth {
+  color: #9ca3af !important;
+  background: #dde1e6 !important;
+}
+
+.react-calendar__month-view__days__day--weekend {
+  color: #374151 !important;
+}
+
+.calendar-dot {
+  width: 5px;
+  height: 5px;
+  background-color: #0052A1;
+  border-radius: 50%;
+  margin-top: 2px;
 }
 
 .react-calendar__tile--active .calendar-dot {
   background-color: white;
+}
+
+.react-calendar__tile--now .calendar-dot {
+  background-color: #1f2937;
 }
 
 .day-details-section {

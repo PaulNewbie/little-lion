@@ -14,6 +14,7 @@ import useManageTherapists from "../../hooks/useManageTherapists";
 import { db } from "../../config/firebase";
 import { collection, addDoc } from "firebase/firestore";
 import "./css/OneOnOne.css";
+import "./studentProfile/StudentProfile.css";
 import "../../components/common/Header.css";
 
 /* ==============================
@@ -233,7 +234,7 @@ const OneOnOne = () => {
                 {/* --- HEADER --- */}
                 <div className="ll-header">
                   <span className="back-arrow" onClick={goBack}>
-                    <svg width="20" height="20" viewBox="0 0 32 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="24" height="40" viewBox="0 0 32 52" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path fillRule="evenodd" clipRule="evenodd" d="M11.6255 22.8691C9.89159 24.4549 9.89159 27.1866 11.6255 28.7724L30.3211 45.8712C31.7604 47.1876 31.7604 49.455 30.3211 50.7714C29.0525 51.9316 27.1081 51.9316 25.8395 50.7714L1.01868 28.0705C0.366419 27.4738 0 26.6645 0 25.8208C0 24.977 0.366419 24.1678 1.01868 23.571L25.8395 0.87018C27.1081 -0.290054 29.0525 -0.290057 30.3211 0.870177C31.7604 2.1865 31.7604 4.45398 30.3211 5.7703L11.6255 22.8691Z" fill="#ffffff"/>
                     </svg>
                   </span>
@@ -252,51 +253,58 @@ const OneOnOne = () => {
                   </div>
                 </div>
                 {/* ----------------------- */}
-                <div className="ooo-grid">
-                    {enrolledStudents.length === 0 ? (
-                      <p style={{ color: "#888", fontStyle: "italic" }}>No students enrolled for this service yet.</p>
-                    ) : (
-                      enrolledStudents.map(student => {
-                        // 1. Find the specific service entry to get the staff name
-                        const legacySrvs = [
-                          ...(student.oneOnOneServices || []),
-                          ...(student.groupClassServices || [])
-                        ];
-                        
-                        const activeSrvs = (student.serviceEnrollments || [])
-                          .filter(e => e.status === 'ACTIVE' || e.status === 'active');
-                        
-                        const legacyServiceInfo = legacySrvs.find(
-                          s => s.serviceName?.trim().toLowerCase() === selectedService.name?.trim().toLowerCase()
-                        );
-                        
-                        const newModelServiceInfo = activeSrvs.find(
-                          s => s.serviceName?.trim().toLowerCase() === selectedService.name?.trim().toLowerCase()
-                        );
-                        
-                        // Determine which staff name to show
-                        let staffName = "Not assigned";
-                        if (newModelServiceInfo?.currentStaff?.staffName) {
-                          staffName = newModelServiceInfo.currentStaff.staffName;
-                        } else if (legacyServiceInfo?.staffName) {
-                          staffName = legacyServiceInfo.staffName;
-                        }
+                <div className="sp-content-area">
+                  <div className="sp-grid">
+                      {enrolledStudents.length === 0 ? (
+                        <p style={{ color: "#888", fontStyle: "italic" }}>No students enrolled for this service yet.</p>
+                      ) : (
+                        enrolledStudents.map(student => {
+                          // 1. Find the specific service entry to get the staff name
+                          const legacySrvs = [
+                            ...(student.oneOnOneServices || []),
+                            ...(student.groupClassServices || [])
+                          ];
 
-                        return (
-                          <div key={student.id} className="ooo-card" onClick={() => handleSelectStudent(student)}>
-                            <div className="ooo-photo-area">
-                              {student.photoUrl ? <img src={student.photoUrl} alt="" /> : <span>📷</span>}
+                          const activeSrvs = (student.serviceEnrollments || [])
+                            .filter(e => e.status === 'ACTIVE' || e.status === 'active');
+
+                          const legacyServiceInfo = legacySrvs.find(
+                            s => s.serviceName?.trim().toLowerCase() === selectedService.name?.trim().toLowerCase()
+                          );
+
+                          const newModelServiceInfo = activeSrvs.find(
+                            s => s.serviceName?.trim().toLowerCase() === selectedService.name?.trim().toLowerCase()
+                          );
+
+                          // Determine which staff name to show
+                          let staffName = "Not assigned";
+                          if (newModelServiceInfo?.currentStaff?.staffName) {
+                            staffName = newModelServiceInfo.currentStaff.staffName;
+                          } else if (legacyServiceInfo?.staffName) {
+                            staffName = legacyServiceInfo.staffName;
+                          }
+
+                          return (
+                            <div key={student.id} className="sp-card" onClick={() => handleSelectStudent(student)}>
+                              <div className="sp-card-image-box">
+                                {student.photoUrl ? (
+                                  <img src={student.photoUrl} className="sp-photo" alt="" />
+                                ) : (
+                                  <div className="sp-photo-placeholder">
+                                    {student.firstName?.[0] || '?'}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="sp-card-body">
+                                <p className="sp-name">{student.lastName}, {student.firstName}</p>
+                                <p className="sp-therapist">Therapist: {staffName}</p>
+                              </div>
                             </div>
-                            <div className="ooo-card-info">
-                              <p className="ooo-name">{student.lastName}, {student.firstName}</p>
-                              {/* Use staff name from either new or legacy structure */}
-                              <p className="ooo-sub">Therapist: {staffName}</p>
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
+                          );
+                        })
+                      )}
                   </div>
+                </div>
               </>
             )}
 

@@ -18,6 +18,7 @@ import './ServiceEnrollments.css';
  * @param {boolean} isSelected - Whether this service is currently selected
  * @param {boolean} isReadOnly - If true, hides action buttons (for parent view)
  * @param {boolean} isInactive - If true, renders in inactive/muted style
+ * @param {object} staffPhotos - Map of staffId to profile photo URL
  */
 const ServiceCard = ({
   enrollment,
@@ -28,6 +29,7 @@ const ServiceCard = ({
   isSelected = false,
   isReadOnly = false,
   isInactive = false,
+  staffPhotos = {},
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showHistoryAccordion, setShowHistoryAccordion] = useState(false);
@@ -50,7 +52,24 @@ const ServiceCard = ({
 
   const isActive = status === SERVICE_ENROLLMENT_STATUS.ACTIVE;
   const hasHistory = staffHistory.length > 0;
-  const serviceIcon = serviceType === 'Therapy' ? '🧠' : '👥';
+
+  // Service type icons as SVG
+  const TherapyIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+    </svg>
+  );
+
+  const ClassIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+  );
+
+  const serviceIcon = serviceType === 'Therapy' ? <TherapyIcon /> : <ClassIcon />;
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -132,6 +151,7 @@ const ServiceCard = ({
                 staff={currentStaff}
                 isCurrent={true}
                 serviceName={serviceName}
+                photoUrl={staffPhotos[currentStaff?.staffId]}
               />
             </div>
           )}

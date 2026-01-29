@@ -296,12 +296,41 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--se-primary-light);
+  background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  border: 2px solid var(--se-primary);
+  border: 2px solid #0052A1;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.se-panel__avatar:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 82, 161, 0.3);
+}
+
+.se-panel__avatar--therapist {
+  background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%);
+  border-color: #0052A1;
+}
+
+.se-panel__avatar--teacher {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  border-color: #059669;
+}
+
+.se-panel__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.se-panel__avatar-initials {
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.5px;
 }
 
 .se-panel__avatar-name {
@@ -361,7 +390,19 @@
 }
 
 .se-card__icon {
-  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%);
+  border-radius: 8px;
+  color: white;
+}
+
+.se-card__icon svg {
+  width: 20px;
+  height: 20px;
 }
 
 .se-card__title-group {
@@ -628,8 +669,19 @@
   object-fit: cover;
 }
 
-.staff-card__avatar-icon {
-  font-size: 24px;
+.staff-card__avatar--therapist {
+  background: #e2e8f0;
+}
+
+.staff-card__avatar--teacher {
+  background: #e2e8f0;
+}
+
+.staff-card__avatar-initials {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--se-primary);
+  text-transform: uppercase;
 }
 
 .staff-card__info {

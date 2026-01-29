@@ -17,6 +17,8 @@
   overflow-x: hidden;
   position: relative;
   box-sizing: border-box;
+  padding: 20px;
+  background-color: #f8f9fa;
 }
 
 /* ================================================================
@@ -67,7 +69,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.25) 100%);
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 1rem;
 }
 
 .ooo-header-content {
@@ -97,12 +100,13 @@
   text-align: left;
 }
 
-.ooo-header .header-subtitle {
-  color: rgba(255, 255, 255, 0.9) !important;
+.ooo-header .header-subtitle,
+.ooo-header .header-subtitle p {
+  color: #ffffff !important;
   margin: 0;
   font-size: 0.9375rem;
   font-weight: 600;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
   text-align: left;
 }
 
@@ -190,12 +194,13 @@
   text-align: left;
 }
 
-.ooo-header .header-subtitle {
-  color: rgba(255, 255, 255, 0.9) !important;
+.ooo-header .header-subtitle,
+.ooo-header .header-subtitle p {
+  color: #ffffff !important;
   margin: 0;
   font-size: 0.9375rem;
   font-weight: 600;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
   text-align: left;
 }
 
@@ -451,5 +456,30 @@
   flex: 1 0 auto;
   width: 100%;
   box-sizing: border-box;
+}
+
+/* ================================================================
+   SP-CARD OVERRIDE FOR ONEONONE (with therapist name)
+================================================================ */
+.ooo-content .sp-card {
+  aspect-ratio: 1 / 1;
+}
+
+.ooo-content .sp-card-body {
+  padding: 8px 10px 10px;
+  gap: 2px;
+}
+
+.ooo-content .sp-name {
+  font-size: 13px;
+}
+
+.ooo-content .sp-therapist {
+  font-size: 10px;
+  color: #6b7280;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 

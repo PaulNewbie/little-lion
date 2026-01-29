@@ -51,17 +51,23 @@ const StaffCard = ({
     }
   };
 
-  const getRoleIcon = (role) => {
-    return role === 'therapist' ? '👨‍⚕️' : '👩‍🏫';
+  // Get initials from staff name for fallback avatar
+  const getInitials = (name) => {
+    if (!name) return '?';
+    const parts = name.split(' ').filter(Boolean);
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    }
+    return parts[0]?.[0]?.toUpperCase() || '?';
   };
 
   return (
     <div className={`staff-card ${isCurrent ? 'staff-card--current' : 'staff-card--past'}`}>
-      <div className="staff-card__avatar">
+      <div className={`staff-card__avatar ${!photoUrl ? (staffRole === 'therapist' ? 'staff-card__avatar--therapist' : 'staff-card__avatar--teacher') : ''}`}>
         {photoUrl ? (
           <img src={photoUrl} alt={staffName} className="staff-card__photo" />
         ) : (
-          <span className="staff-card__avatar-icon">{getRoleIcon(staffRole)}</span>
+          <span className="staff-card__avatar-initials">{getInitials(staffName)}</span>
         )}
       </div>
 

@@ -370,77 +370,79 @@ const StudentProfile = ({
   const mainContent = (
     <div className="sp-main">
       <div className="sp-page">
-        {/* LIST VIEW */}
-        {viewMode === "list" && (
-          <StudentListView
-            isParentView={isParentView}
-            students={effectiveFilteredStudents}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            filterType={filterType}
-            onFilterChange={setFilterType}
-            onSelectStudent={handleSelectStudent}
-            hasMore={hasMore}
-            onLoadMore={handleLoadMore}
-            isLoadingMore={isLoadingMore}
-            isSearching={isSearching}
-          />
-        )}
-
-        {/* PROFILE VIEW */}
-        {viewMode === "profile" && selectedStudent && (
-          <div className="profile-wrapper">
-            <StudentProfileHeader
-              student={selectedStudent}
-              parentData={parentData}
+          {/* LIST VIEW */}
+          {viewMode === "list" && (
+            <StudentListView
               isParentView={isParentView}
-              uploadingPhoto={uploadingPhoto}
-              onBack={handleBack}
-              onPhotoUpload={handlePhotoUpload}
-              showAssessment={showAssessment}
-              onToggleAssessment={() => setShowAssessment(!showAssessment)}
+              students={effectiveFilteredStudents}
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              filterType={filterType}
+              onFilterChange={setFilterType}
+              onSelectStudent={handleSelectStudent}
+              hasMore={hasMore}
+              onLoadMore={handleLoadMore}
+              isLoadingMore={isLoadingMore}
+              isSearching={isSearching}
             />
+          )}
 
-            {showAssessment && (
-              isAssessmentLoading ? (
-                <Loading variant="compact" message="Loading assessment" showBrand={false} />
-              ) : (
-                <AssessmentHistory childData={selectedStudent} assessmentData={assessmentData} />
-              )
-            )}
+          {/* PROFILE VIEW */}
+          {viewMode === "profile" && selectedStudent && (
+            <div className="sp-content-area">
+              <div className="profile-wrapper">
+                <StudentProfileHeader
+                  student={selectedStudent}
+                  parentData={parentData}
+                  isParentView={isParentView}
+                  uploadingPhoto={uploadingPhoto}
+                  onBack={handleBack}
+                  onPhotoUpload={handlePhotoUpload}
+                  showAssessment={showAssessment}
+                  onToggleAssessment={() => setShowAssessment(!showAssessment)}
+                />
 
-            <div className="profile-content-scroll">
-              {/* Service Enrollments Panel */}
-              <ServiceEnrollmentsPanel
-                childId={selectedStudent.id}
-                onServiceClick={handleServiceClick}
-                selectedService={selectedService}
-                isReadOnly={isParentView || isStaffView}
-                onAddService={!isParentView && !isStaffView ? handleOpenAddModal : undefined}
-                viewerRole={isParentView ? 'parent' : currentUser?.role}
-                viewerId={currentUser?.uid}
-              />
+                {showAssessment && (
+                  isAssessmentLoading ? (
+                    <Loading variant="compact" message="Loading assessment" showBrand={false} />
+                  ) : (
+                    <AssessmentHistory childData={selectedStudent} assessmentData={assessmentData} />
+                  )
+                )}
 
-              {/* Activity Calendar */}
-              {selectedService && (
-                <div ref={calendarRef}>
-                  <ActivityCalendar
-                    activities={studentActivities.filter(
-                      (a) => a.serviceName === selectedService || a.serviceType === selectedService || a.className === selectedService
-                    )}
-                    teachers={combinedStaff}
-                    selectedServiceName={selectedService}
+                <div className="profile-content-scroll">
+                  {/* Service Enrollments Panel */}
+                  <ServiceEnrollmentsPanel
+                    childId={selectedStudent.id}
+                    onServiceClick={handleServiceClick}
+                    selectedService={selectedService}
+                    isReadOnly={isParentView || isStaffView}
+                    onAddService={!isParentView && !isStaffView ? handleOpenAddModal : undefined}
+                    viewerRole={isParentView ? 'parent' : currentUser?.role}
+                    viewerId={currentUser?.uid}
                   />
-                </div>
-              )}
 
-              {/* Care Team - Parent view only */}
-              {isParentView && (
-                <CurrentTeamSection student={selectedStudent} />
-              )}
+                  {/* Activity Calendar */}
+                  {selectedService && (
+                    <div ref={calendarRef}>
+                      <ActivityCalendar
+                        activities={studentActivities.filter(
+                          (a) => a.serviceName === selectedService || a.serviceType === selectedService || a.className === selectedService
+                        )}
+                        teachers={combinedStaff}
+                        selectedServiceName={selectedService}
+                      />
+                    </div>
+                  )}
+
+                  {/* Care Team - Parent view only */}
+                  {isParentView && (
+                    <CurrentTeamSection student={selectedStudent} />
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         <GeneralFooter pageLabel={isParentView ? "Child Profile" : "Student Profile"} />
       </div>

@@ -44,8 +44,10 @@
 
 /* Subtitle */
 .header-subtitle {
-  font-size: 13px;
-  color: #6b7280;
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.95) !important;
+  font-weight: 600;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 /* ===== Back Button ===== */

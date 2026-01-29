@@ -15,7 +15,7 @@
   padding: 2.5rem 2rem;
   margin: 20px 20px 2rem 20px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .ll-header::before {
@@ -25,7 +25,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.25) 100%);
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 1rem;
 }
 
 /* ============================================================
@@ -63,12 +64,13 @@
   text-align: left;
 }
 
-.ll-header .header-subtitle {
-  color: rgba(255, 255, 255, 0.9) !important;
+.ll-header .header-subtitle,
+.ll-header .header-subtitle p {
+  color: #ffffff !important;
   margin: 0;
   font-size: 0.9375rem;
   font-weight: 600;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
   text-align: left;
 }
 
@@ -125,11 +127,45 @@
 ============================================================ */
 .ll-header .back-arrow {
   position: absolute;
-  left: 20px;
+  left: 2rem;
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
-  z-index: 2;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0;
+}
+
+.ll-header .back-arrow:hover {
+  transform: translateY(-50%) translateX(-3px);
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.ll-header .back-arrow:focus,
+.ll-header .back-arrow:active {
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.ll-header .back-arrow::before,
+.ll-header .back-arrow::after {
+  display: none !important;
+}
+
+.ll-header .back-arrow svg {
+  width: 24px;
+  height: 40px;
 }
 
 .ll-header .back-arrow svg path {

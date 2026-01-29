@@ -60,7 +60,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.25) 100%);
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 1rem;
 }
 
 .pg-header-content {
@@ -90,12 +91,13 @@
   text-align: left;
 }
 
-.pg-header .header-subtitle {
-  color: rgba(255, 255, 255, 0.9) !important;
+.pg-header .header-subtitle,
+.pg-header .header-subtitle p {
+  color: #ffffff !important;
   margin: 0;
   font-size: 0.9375rem;
   font-weight: 600;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
   text-align: left;
 }
 
@@ -183,12 +185,13 @@
   text-align: left;
 }
 
-.pg-header .header-subtitle {
-  color: rgba(255, 255, 255, 0.9) !important;
+.pg-header .header-subtitle,
+.pg-header .header-subtitle p {
+  color: #ffffff !important;
   margin: 0;
   font-size: 0.9375rem;
   font-weight: 600;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
   text-align: left;
 }
 

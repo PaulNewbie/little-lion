@@ -1,13 +1,14 @@
 // src/components/serviceEnrollments/ServiceEnrollmentsPanel.jsx
 // Container panel for displaying and managing all service enrollments
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ServiceCard from './ServiceCard';
 import ChangeStaffModal from './ChangeStaffModal';
 import DeactivateServiceModal from './DeactivateServiceModal';
 import ReactivateServiceModal from './ReactivateServiceModal';
 import { useServiceEnrollments } from '../../hooks/useServiceEnrollments';
+import userService from '../../services/userService';
 import Loading from '../common/Loading';
 import { ROUTES } from '../../routes/routeConfig';
 import './ServiceEnrollments.css';
@@ -73,6 +74,40 @@ const ServiceEnrollmentsPanel = ({
 
   // Show/hide inactive services
   const [showInactive, setShowInactive] = useState(false);
+
+  // Staff photos state
+  const [staffPhotos, setStaffPhotos] = useState({});
+
+  // Fetch staff photos when enrollments change
+  useEffect(() => {
+    const fetchStaffPhotos = async () => {
+      if (!activeEnrollments || activeEnrollments.length === 0) return;
+
+      // Get unique staff IDs
+      const staffIds = [...new Set(
+        activeEnrollments
+          .filter(e => e.currentStaff?.staffId)
+          .map(e => e.currentStaff.staffId)
+      )];
+
+      if (staffIds.length === 0) return;
+
+      try {
+        const staffData = await userService.getStaffByIds(staffIds);
+        const photosMap = {};
+        staffData.forEach(staff => {
+          if (staff.profilePhoto) {
+            photosMap[staff.uid] = staff.profilePhoto;
+          }
+        });
+        setStaffPhotos(photosMap);
+      } catch (error) {
+        console.error('Error fetching staff photos:', error);
+      }
+    };
+
+    fetchStaffPhotos();
+  }, [activeEnrollments]);
 
   // Handlers
   const handleChangeStaff = (enrollmentId, currentStaff) => {
@@ -224,6 +259,7 @@ const ServiceEnrollmentsPanel = ({
                       onServiceClick={onServiceClick}
                       isSelected={selectedService === enrollment.serviceName}
                       isReadOnly={isReadOnly}
+                      staffPhotos={staffPhotos}
                     />
                   ))}
                 </div>
@@ -249,6 +285,7 @@ const ServiceEnrollmentsPanel = ({
                       onServiceClick={onServiceClick}
                       isSelected={selectedService === enrollment.serviceName}
                       isReadOnly={isReadOnly}
+                      staffPhotos={staffPhotos}
                     />
                   ))}
                 </div>
@@ -297,6 +334,7 @@ const ServiceEnrollmentsPanel = ({
                   onReactivate={handleReactivate}
                   isReadOnly={isReadOnly}
                   isInactive={true}
+                  staffPhotos={staffPhotos}
                 />
               ))}
             </div>
@@ -312,22 +350,39 @@ const ServiceEnrollmentsPanel = ({
           <div className="se-panel__avatars">
             {filteredActiveEnrollments
               .filter(e => e.currentStaff)
-              .map((enrollment) => (
-                <div
-                  key={enrollment.enrollmentId}
-                  className="se-panel__avatar-item"
-                  title={`${enrollment.currentStaff.staffName} - ${enrollment.serviceName} (Click to view profile)`}
-                  onClick={() => handleStaffClick(enrollment.currentStaff)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <div className="se-panel__avatar">
-                    {enrollment.currentStaff.staffRole === 'therapist' ? '👨‍⚕️' : '👩‍🏫'}
+              .map((enrollment) => {
+                const staff = enrollment.currentStaff;
+                const nameParts = staff.staffName?.split(' ') || ['?'];
+                const initials = nameParts.length >= 2
+                  ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`
+                  : nameParts[0][0] || '?';
+                const photoUrl = staffPhotos[staff.staffId];
+
+                return (
+                  <div
+                    key={enrollment.enrollmentId}
+                    className="se-panel__avatar-item"
+                    title={`${staff.staffName} - ${enrollment.serviceName} (Click to view profile)`}
+                    onClick={() => handleStaffClick(staff)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div className={`se-panel__avatar ${staff.staffRole === 'therapist' ? 'se-panel__avatar--therapist' : 'se-panel__avatar--teacher'}`}>
+                      {photoUrl ? (
+                        <img
+                          src={photoUrl}
+                          alt={staff.staffName}
+                          className="se-panel__avatar-img"
+                        />
+                      ) : (
+                        <span className="se-panel__avatar-initials">{initials.toUpperCase()}</span>
+                      )}
+                    </div>
+                    <span className="se-panel__avatar-name">
+                      {nameParts[0]}
+                    </span>
                   </div>
-                  <span className="se-panel__avatar-name">
-                    {enrollment.currentStaff.staffName.split(' ')[0]}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
           </div>
         </div>
       )}
