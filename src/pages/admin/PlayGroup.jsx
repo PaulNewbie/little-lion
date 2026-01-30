@@ -22,7 +22,7 @@ import Loading from '../../components/common/Loading';
 import './css/PlayGroup.css';
 import './studentProfile/StudentProfile.css';
 import '../../components/common/Header.css';
-import '../../components/common/ServiceModal.css'; 
+import '../../components/common/ServiceModal.css';
 
 // ===== HELPER: SERVICE DESCRIPTION WITH SEE MORE =====
 const ServiceDescription = ({ description, maxLength = 70 }) => {
@@ -58,11 +58,11 @@ const PlayGroup = () => {
 
   // Navigation: 'service-list' | 'service-dashboard'
   const [currentView, setCurrentView] = useState('service-list');
-  
+
   // Selection State
   const [selectedService, setSelectedService] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  
+
   // --- Add Service Modal State ---
   const [showAddModal, setShowAddModal] = useState(false);
   const [newServiceData, setNewServiceData] = useState({ name: '', description: '' });
@@ -78,7 +78,7 @@ const PlayGroup = () => {
 
   // --- 1. Fetch Play Group Services ---
   const { data: services = [], isLoading: loadingServices } = useQuery({
-    queryKey: ['services', 'Class'], 
+    queryKey: ['services', 'Class'],
     queryFn: () => offeringsService.getServicesByType('Class'),
     staleTime: 1000 * 60 * 5,
   });
@@ -87,7 +87,7 @@ const PlayGroup = () => {
   // FIX: Use getChildrenPaginated to ensure correct data structure and avoid deprecation issues.
   // We request a large limit to get "all" students for the roster lookup.
   const { data: allChildren = [], isLoading: loadingChildren } = useQuery({
-    queryKey: ['students'], 
+    queryKey: ['students'],
     queryFn: async () => {
       const result = await childService.getChildrenPaginated({ limit: 2000 });
       return result.students || [];
@@ -108,14 +108,14 @@ const PlayGroup = () => {
   const handleServiceSelect = (service) => {
     setSelectedService(service);
     setCurrentView('service-dashboard');
-    setSelectedDate(new Date()); 
+    setSelectedDate(new Date());
   };
 
   // --- HELPERS (Derived Data) ---
   const getServiceActivities = () => {
     if (!selectedService) return [];
-    return allActivities.filter(act => 
-      (act.className === selectedService.name) || 
+    return allActivities.filter(act =>
+      (act.className === selectedService.name) ||
       (act.serviceType === selectedService.name)
     );
   };
@@ -143,7 +143,7 @@ const PlayGroup = () => {
     if (!Array.isArray(allChildren)) return [];
 
     const dailyActs = getDailyActivities();
-    
+
     const presentIds = new Set();
     dailyActs.forEach(a => {
       if (a.participatingStudentIds) {
@@ -157,7 +157,7 @@ const PlayGroup = () => {
   const handleCreateService = async (e) => {
     e.preventDefault();
     if(!newServiceData.name) return;
-    
+
     setUploading(true);
     try {
       let imageUrl = "";
@@ -165,18 +165,19 @@ const PlayGroup = () => {
         imageUrl = await cloudinaryService.uploadImage(serviceImage, 'little-lions/services');
       }
 
-      await offeringsService.createService({ 
-        name: newServiceData.name, 
+      await offeringsService.createService({
+        name: newServiceData.name,
         description: newServiceData.description,
         type: 'Class',
         imageUrl: imageUrl
       });
-      
+
       await queryClient.invalidateQueries({ queryKey: ['services', 'Class'] });
-      
+
       setNewServiceData({ name: '', description: '' });
       setServiceImage(null);
       setShowAddModal(false);
+      toast.success('Play group class created successfully!');
     } catch(err) {
       toast.error("Failed to create service: " + err.message);
     } finally {
@@ -312,10 +313,16 @@ const PlayGroup = () => {
                       getDailyActivities().map((activity, index) => (
                         <div key={index} className="pg-activity-block">
                            <div className="pg-activity-text">
-                              <h3 className="pg-activity-title"> Activity: {activity.title || activity.activityName || "Activity"}</h3>
+                              <h3 className="pg-activity-title">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '8px' }}>
+                                  <circle cx="12" cy="12" r="10"/>
+                                  <polyline points="12 6 12 12 16 14"/>
+                                </svg>
+                                {activity.title || activity.activityName || "Activity"}
+                              </h3>
                               <p className="pg-activity-desc">{activity.description || activity.notes}</p>
                            </div>
-                           
+
                            {/* Photos for this specific activity */}
                            {activity.photoUrls && activity.photoUrls.length > 0 ? (
                              <div className="pg-photo-grid">
@@ -332,7 +339,7 @@ const PlayGroup = () => {
                       ))
                     ) : (
                       <div className="pg-no-data">
-                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1.5">
+                         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5">
                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                            <line x1="16" y1="2" x2="16" y2="6"/>
                            <line x1="8" y1="2" x2="8" y2="6"/>
@@ -348,16 +355,31 @@ const PlayGroup = () => {
                   {getDailyActivities().length > 0 && (
                     <div className="pg-attendance-section">
                       <div className="pg-attendance-header">
-                        <h3>Students Present ({getPresentChildren().length})</h3>
+                        <div className="pg-attendance-title-row">
+                          <h3>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }}>
+                              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                              <circle cx="9" cy="7" r="4"/>
+                              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                            Students Present
+                          </h3>
+                          <span className="pg-attendance-count">{getPresentChildren().length}</span>
+                        </div>
                       </div>
-                      <div className="pg-attendance-grid">
-                        {getPresentChildren().map(child => (
-                           <div key={child.id} className="pg-simple-student-card">
+                      {getPresentChildren().length > 0 ? (
+                        <div className="pg-attendance-grid">
+                          {getPresentChildren().map(child => (
+                            <div key={child.id} className="pg-simple-student-card">
                               <img src={child.photoUrl || "https://via.placeholder.com/40"} alt={child.firstName} />
-                              <span>{child.firstName} {child.lastName}</span>
-                           </div>
-                        ))}
-                      </div>
+                              <span className="pg-student-name">{child.firstName} {child.lastName}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="pg-no-students">No students recorded for this activity</div>
+                      )}
                     </div>
                   )}
 
@@ -366,17 +388,27 @@ const PlayGroup = () => {
 
               {/* RIGHT PANEL: Calendar */}
               <div className="pg-right-panel">
-                 <div className="pg-panel-header"><h2>Schedule</h2></div>
+                 <div className="pg-panel-header">
+                    <h2>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '8px' }}>
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                      </svg>
+                      Schedule
+                    </h2>
+                 </div>
                  <div className="pg-calendar-wrapper">
-                    <Calendar 
-                      onChange={handleDateChange} 
+                    <Calendar
+                      onChange={handleDateChange}
                       value={selectedDate}
                       tileClassName={({ date, view }) => {
                         if (view === 'month') {
                           const offset = date.getTimezoneOffset();
                           const localDate = new Date(date.getTime() - (offset * 60 * 1000));
                           const dStr = localDate.toISOString().split('T')[0];
-                          if (getActivityDates().includes(dStr)) return 'has-activity-dot'; 
+                          if (getActivityDates().includes(dStr)) return 'has-activity-dot';
                         }
                       }}
                     />
@@ -389,7 +421,7 @@ const PlayGroup = () => {
           </div>
         )}
 
-        {/* ... (ADD AND EDIT MODALS REMAIN UNCHANGED) ... */}
+        {/* === ADD SERVICE MODAL === */}
         {showAddModal && (
           <div className="service-modal-overlay" onClick={() => !uploading && setShowAddModal(false)}>
             <div className="service-modal" onClick={e => e.stopPropagation()}>
@@ -484,6 +516,7 @@ const PlayGroup = () => {
           </div>
         )}
 
+        {/* === EDIT SERVICE MODAL === */}
         {showEditModal && (
           <div className="service-modal-overlay" onClick={() => !editing && setShowEditModal(false)}>
             <div className="service-modal" onClick={e => e.stopPropagation()}>
@@ -510,6 +543,7 @@ const PlayGroup = () => {
 
                   await queryClient.invalidateQueries({ queryKey: ['services', 'Class'] });
                   setShowEditModal(false);
+                  toast.success('Class updated successfully!');
                 } catch(err) {
                   toast.error("Failed to update service: " + err.message);
                 } finally {
