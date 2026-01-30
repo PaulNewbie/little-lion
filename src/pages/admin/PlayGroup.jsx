@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import GeneralFooter from "../../components/footer/generalfooter";
@@ -50,6 +51,7 @@ const ServiceDescription = ({ description, maxLength = 70 }) => {
 const PlayGroup = () => {
   const { currentUser } = useAuth();
   const toast = useToast();
+  const navigate = useNavigate();
   const isSuperAdmin = currentUser?.role === 'super_admin';
 
   const queryClient = useQueryClient();
@@ -72,6 +74,7 @@ const PlayGroup = () => {
   const [editServiceData, setEditServiceData] = useState({ id: null, name: '', description: '', imageUrl: '' });
   const [editServiceImage, setEditServiceImage] = useState(null);
   const [editing, setEditing] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
   // --- 1. Fetch Play Group Services ---
   const { data: services = [], isLoading: loadingServices } = useQuery({
@@ -209,16 +212,39 @@ const PlayGroup = () => {
                     <h1>PLAY GROUP SERVICES</h1>
                     <p className="header-subtitle">Select a class to view calendar and students</p>
                   </div>
+                  <button
+                    className={`pg-header-edit-btn ${editMode ? 'active' : ''}`}
+                    onClick={() => setEditMode(!editMode)}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    {editMode ? 'Done' : 'Edit'}
+                  </button>
                 </div>
              </div>
 
              <div className="pg-content-area">
                 <div className="pg-services-grid">
                   {services.map(service => (
-                    <div 
-                      key={service.id} 
-                      className="pg-service-card"
-                      onClick={() => handleServiceSelect(service)}
+                    <div
+                      key={service.id}
+                      className={`pg-service-card ${editMode ? 'edit-mode' : ''}`}
+                      onClick={() => {
+                        if (editMode) {
+                          setEditServiceData({
+                            id: service.id,
+                            name: service.name,
+                            description: service.description || '',
+                            imageUrl: service.imageUrl || ''
+                          });
+                          setEditServiceImage(null);
+                          setShowEditModal(true);
+                        } else {
+                          handleServiceSelect(service);
+                        }
+                      }}
                     >
                       {service.imageUrl ? (
                         <div className="pg-card-image-box">
@@ -228,22 +254,7 @@ const PlayGroup = () => {
                         <div className="pg-card-icon">🎨</div>
                       )}
                       <h3>{service.name}</h3>
-                      <button 
-                        className="pg-edit-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditServiceData({ 
-                            id: service.id,
-                            name: service.name,
-                            description: service.description || '',
-                            imageUrl: service.imageUrl || ''
-                          });
-                          setEditServiceImage(null);
-                          setShowEditModal(true);
-                        }}
-                      >
-                        ✎
-                      </button>
+                      {editMode && <span className="pg-edit-indicator">✎</span>}
                     </div>
                   ))}
                   {services.length === 0 && !isLoading && (
@@ -503,16 +514,14 @@ const PlayGroup = () => {
                   {/* Class Name */}
                   <div className="service-form-group">
                     <label className="service-form-label">
-                      Class Name<span className="required">*</span>
+                      Class Name
                     </label>
                     <input
-                      className={`service-form-input ${editServiceData.name ? 'has-value' : ''}`}
+                      className="service-form-input disabled"
                       type="text"
                       value={editServiceData.name}
-                      onChange={(e) => setEditServiceData({...editServiceData, name: e.target.value})}
-                      required
-                      autoFocus
-                      disabled={editing}
+                      disabled
+                      readOnly
                     />
                   </div>
 

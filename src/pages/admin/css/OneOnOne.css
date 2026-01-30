@@ -246,12 +246,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
 }
 
 .ooo-content .ooo-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  border: 2px solid #0052a1;
+  border: 2px solid #FFCB10;
 }
 
 /* Card image box for service */
@@ -290,9 +291,17 @@
 }
 
 .ooo-content .ooo-card h3 {
-  margin: 0 0 8px 0;
+  margin: 0;
   color: #333333;
-  font-size: 18px;
+  font-size: clamp(12px, 3.5vw, 15px);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  text-align: center;
+  padding: 0 4px;
+  box-sizing: border-box;
 }
 
 .ooo-content .ooo-card p {
@@ -318,33 +327,65 @@
   margin-left: 3px;
 }
 
-/* Edit button */
-.ooo-content .ooo-card {
+/* Header Edit Button */
+.ooo-header-edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ooo-header-edit-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+.ooo-header-edit-btn.active {
+  background: #FFCB10;
+  border-color: #FFCB10;
+  color: #ffffff;
+}
+
+.ooo-header-edit-btn svg {
+  flex-shrink: 0;
+  stroke-width: 2.5;
+}
+
+/* Edit mode card styles */
+.ooo-content .ooo-card.edit-mode {
+  border: 2px dashed #FFCB10;
   position: relative;
 }
 
-.ooo-edit-btn {
+.ooo-content .ooo-card.edit-mode:hover {
+  border: 2px solid #FFCB10;
+  background: #fffef5;
+}
+
+.ooo-edit-indicator {
   position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background-color: #FFCB10;
-  border: none;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  background: #FFCB10;
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
-  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.ooo-edit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  color: #fff;
+  font-size: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
 /* Student photo area */

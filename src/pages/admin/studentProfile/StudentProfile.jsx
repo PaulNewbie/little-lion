@@ -163,7 +163,11 @@ const StudentProfile = ({
       return;
     }
     if (location.state?.fromOneOnOne) {
-      navigate("/admin/one-on-one", { state: { ...location.state, level: "students" } });
+      navigate("/admin/one-on-one", {
+        state: {
+          returnToService: location.state.selectedService || location.state.selectedServiceFromOneOnOne
+        }
+      });
     } else if (fromEnrollment) {
       navigate("/admin/enrollment", { state: { selectedParent: parentFromEnrollment } });
     } else if (currentUser?.role === 'therapist') {

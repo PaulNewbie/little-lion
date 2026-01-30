@@ -150,6 +150,13 @@
   background: #fffef5;
 }
 
+.service-form-input.disabled {
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+  border-color: #e5e7eb;
+}
+
 .service-form-textarea {
   min-height: 70px;
   resize: vertical;
