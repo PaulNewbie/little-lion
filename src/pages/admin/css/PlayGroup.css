@@ -903,58 +903,7 @@
 }
 
 
-/* === DASHBOARD SPLIT VIEW === */
-.pg-split-layout {
-  display: flex;
-  gap: 30px;
-  padding: 30px 40px;
-  height: calc(100vh - 140px);
-  box-sizing: border-box;
-}
-
-/* Left Panel: Activities & Attendance */
-.pg-left-panel {
-  flex: 1; 
-  background: white;
-  border-radius: 16px;
-  padding: 25px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden; 
-}
-
-/* Right Panel: Calendar */
-.pg-right-panel {
-  width: 400px;
-  background: white;
-  border-radius: 16px;
-  padding: 25px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  display: flex;
-  flex-direction: column;
-}
-
-.pg-panel-header {
-  border-bottom: 1px solid #eee;
-  padding-bottom: 15px;
-  margin-bottom: 15px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  min-height: 40px;
-}
-
-.pg-panel-header h2 {
-  margin: 0;
-  font-size: 20px;
-  color: #2c3e50;
-}
-
-.pg-date-label {
-  color: #4ECDC4;
-  font-weight: bold;
-}
+/* Legacy duplicate styles removed - using styled definitions above */
 
 /* === NEW: Activity & Photo Section === */
 .pg-inner-scroll {
