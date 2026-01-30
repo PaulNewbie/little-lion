@@ -42,18 +42,30 @@ const styles = {
   },
   controls: {
     display: 'flex',
-    gap: '12px',
+    gap: '16px',
     marginBottom: '24px',
     flexWrap: 'wrap',
-    alignItems: 'center'
+    alignItems: 'flex-end'
+  },
+  controlGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+  },
+  controlLabel: {
+    fontSize: '13px',
+    fontWeight: '600',
+    color: '#64748b',
   },
   select: {
     padding: '10px 14px',
-    border: '1px solid #ddd',
+    border: '2px solid #e2e8f0',
     borderRadius: '8px',
     fontSize: '14px',
     backgroundColor: 'white',
-    minWidth: '180px'
+    minWidth: '140px',
+    cursor: 'pointer',
+    transition: 'border-color 0.2s ease',
   },
   generateBtn: {
     padding: '10px 20px',
@@ -516,16 +528,249 @@ const PrintIcon = () => (
   </svg>
 );
 
+// Child Selector Component - Visual card-based selector
+const ChildSelector = ({ children, selectedChild, onSelect, isLoading, isFetching }) => {
+  // Show loading if explicitly loading OR if we have no children and still fetching
+  const showLoading = isLoading || (children.length === 0 && isFetching);
+
+  if (showLoading) {
+    return (
+      <div style={childSelectorStyles.container}>
+        <div style={childSelectorStyles.loadingCard}>
+          <div style={childSelectorStyles.loadingSpinner}></div>
+          <span style={{ color: '#64748b', fontSize: '14px' }}>Loading children...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (children.length === 0) {
+    return (
+      <div style={childSelectorStyles.container}>
+        <div style={childSelectorStyles.emptyCard}>
+          <span style={{ fontSize: '24px', marginBottom: '8px' }}>👶</span>
+          <span style={{ color: '#64748b', fontSize: '14px' }}>No children found</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={childSelectorStyles.container}>
+      <label style={childSelectorStyles.label}>Select Child</label>
+      <div style={childSelectorStyles.grid}>
+        {children.map((child) => {
+          const isSelected = selectedChild === child.id;
+          return (
+            <div
+              key={child.id}
+              onClick={() => onSelect(child.id)}
+              style={{
+                ...childSelectorStyles.card,
+                ...(isSelected ? childSelectorStyles.cardSelected : {}),
+              }}
+            >
+              {/* Checkmark for selected */}
+              {isSelected && (
+                <div style={childSelectorStyles.checkmark}>✓</div>
+              )}
+
+              {/* Avatar */}
+              <div style={{
+                ...childSelectorStyles.avatar,
+                ...(isSelected ? childSelectorStyles.avatarSelected : {}),
+              }}>
+                {child.photoUrl ? (
+                  <img
+                    src={child.photoUrl}
+                    alt={child.firstName}
+                    style={childSelectorStyles.avatarImg}
+                  />
+                ) : (
+                  <span style={childSelectorStyles.avatarPlaceholder}>
+                    {child.firstName?.charAt(0)?.toUpperCase() || '?'}
+                  </span>
+                )}
+              </div>
+
+              {/* Name */}
+              <div style={childSelectorStyles.name}>
+                {child.firstName} {child.lastName?.charAt(0)}.
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const childSelectorStyles = {
+  container: {
+    marginBottom: '20px',
+  },
+  label: {
+    display: 'block',
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: '10px',
+  },
+  grid: {
+    display: 'flex',
+    gap: '12px',
+    flexWrap: 'wrap',
+  },
+  card: {
+    position: 'relative',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '16px 20px',
+    backgroundColor: 'white',
+    borderRadius: '12px',
+    border: '2px solid #e2e8f0',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    minWidth: '100px',
+  },
+  cardSelected: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#0052A1',
+    boxShadow: '0 4px 12px rgba(0, 82, 161, 0.15)',
+  },
+  checkmark: {
+    position: 'absolute',
+    top: '8px',
+    right: '8px',
+    width: '20px',
+    height: '20px',
+    backgroundColor: '#0052A1',
+    color: 'white',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '12px',
+    fontWeight: 'bold',
+  },
+  avatar: {
+    width: '56px',
+    height: '56px',
+    borderRadius: '50%',
+    backgroundColor: '#f1f5f9',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: '8px',
+    border: '3px solid #e2e8f0',
+    overflow: 'hidden',
+    transition: 'border-color 0.2s ease',
+  },
+  avatarSelected: {
+    borderColor: '#0052A1',
+  },
+  avatarImg: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  avatarPlaceholder: {
+    fontSize: '20px',
+    fontWeight: '700',
+    color: '#64748b',
+  },
+  name: {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#1e293b',
+    textAlign: 'center',
+  },
+  loadingCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '16px 24px',
+    backgroundColor: '#f8fafc',
+    borderRadius: '12px',
+    border: '2px dashed #e2e8f0',
+  },
+  loadingSpinner: {
+    width: '20px',
+    height: '20px',
+    border: '3px solid #e2e8f0',
+    borderTopColor: '#0052A1',
+    borderRadius: '50%',
+    animation: 'spin 0.8s linear infinite',
+  },
+  emptyCard: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '24px',
+    backgroundColor: '#f8fafc',
+    borderRadius: '12px',
+    border: '2px dashed #e2e8f0',
+  },
+};
+
+// Add keyframe animation for spinner
+const spinnerKeyframes = `
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+`;
+
 export default function MonthlySummary() {
   const { currentUser } = useAuth();
   const toast = useToast();
   const printRef = useRef(null);
 
   // Use cached children data - prevents re-fetching across parent pages
-  const { data: childrenData, isLoading: childrenLoading } = useChildrenByParent(currentUser?.uid);
+  const {
+    data: childrenData,
+    isLoading,
+    isFetching,
+    isPending,
+    status,
+    refetch
+  } = useChildrenByParent(currentUser?.uid);
 
   // Ensure children is always an array (handles null/undefined/object responses)
   const children = Array.isArray(childrenData) ? childrenData : [];
+
+  // True loading state:
+  // - isPending: query has never been fetched (React Query v5)
+  // - isLoading: initial loading state
+  // - isFetching: currently fetching (even in background)
+  // - status is 'pending': query is in pending state
+  // - No data and query is enabled: still waiting for first successful fetch
+  const queryEnabled = !!currentUser?.uid;
+  const hasNoData = children.length === 0 && !childrenData;
+  const childrenLoading = isPending || isLoading || (isFetching && children.length === 0) || (queryEnabled && hasNoData && status !== 'error');
+
+  // Force refetch if we have no data but should have (parent is logged in)
+  // This handles the case where cache is empty/stale
+  useEffect(() => {
+    if (currentUser?.uid && !childrenData && !isLoading && !isFetching && status === 'success') {
+      console.log('MonthlySummary - Forcing refetch: cached data is empty but query succeeded');
+      refetch();
+    }
+  }, [currentUser?.uid, childrenData, isLoading, isFetching, status, refetch]);
+
+  // Debug log to understand the state
+  useEffect(() => {
+    console.log('MonthlySummary - Children State:', {
+      isPending,
+      isLoading,
+      isFetching,
+      status,
+      childrenDataExists: !!childrenData,
+      childrenLength: children.length,
+      currentUserId: currentUser?.uid,
+      childrenLoading
+    });
+  }, [isPending, isLoading, isFetching, status, childrenData, children.length, currentUser?.uid, childrenLoading]);
 
   const [selectedChild, setSelectedChild] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
@@ -535,7 +780,9 @@ export default function MonthlySummary() {
 
   // Set default selected child when children data loads
   useEffect(() => {
+    // Only auto-select if we have children and no selection yet
     if (children.length > 0 && !selectedChild) {
+      console.log('Auto-selecting first child:', children[0].id);
       setSelectedChild(children[0].id);
     }
   }, [children, selectedChild]);
@@ -739,6 +986,8 @@ export default function MonthlySummary() {
 
   return (
     <div style={styles.layout}>
+      {/* Inject keyframes for spinner animation */}
+      <style>{spinnerKeyframes}</style>
       <Sidebar {...getParentConfig()} forceActive="/parent/summary" />
 
       <div style={styles.mainWrapper}>
@@ -750,50 +999,46 @@ export default function MonthlySummary() {
           </p>
         </div>
 
+        {/* Child Selector - Visual card-based */}
+        <ChildSelector
+          children={children}
+          selectedChild={selectedChild}
+          onSelect={setSelectedChild}
+          isLoading={childrenLoading}
+          isFetching={isFetching}
+        />
+
         {/* Controls */}
         <div style={styles.controls}>
-          <select
-            style={styles.select}
-            value={selectedChild}
-            onChange={(e) => setSelectedChild(e.target.value)}
-            disabled={childrenLoading}
-          >
-            {childrenLoading ? (
-              <option>Loading children...</option>
-            ) : children.length === 0 ? (
-              <option>No children found</option>
-            ) : (
-              children.map((child) => (
-                <option key={child.id} value={child.id}>
-                  {child.firstName} {child.lastName}
+          <div style={styles.controlGroup}>
+            <label style={styles.controlLabel}>Month</label>
+            <select
+              style={styles.select}
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+            >
+              {months.map((month, index) => (
+                <option key={index} value={index}>
+                  {month}
                 </option>
-              ))
-            )}
-          </select>
+              ))}
+            </select>
+          </div>
 
-          <select
-            style={styles.select}
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-          >
-            {months.map((month, index) => (
-              <option key={index} value={index}>
-                {month}
-              </option>
-            ))}
-          </select>
-
-          <select
-            style={styles.select}
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-          >
-            {years.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
+          <div style={styles.controlGroup}>
+            <label style={styles.controlLabel}>Year</label>
+            <select
+              style={styles.select}
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+            >
+              {years.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <button
             style={{
