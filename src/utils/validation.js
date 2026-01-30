@@ -3,7 +3,7 @@
  * Centralized validation logic for all forms across the application
  * 
  * Usage:
- * import { validateProfile, validateEnrollmentStep, validateSession } from '../utils/validation';
+ * import { validateProfile, validateEnrollmentStep, validateSession, validateParentAccount, validateStaffAccount, validateField, combineValidationResults, VALIDATION_RULES, VALIDATION_PATTERNS } from './utils/validation';
  */
 
 // ============================================================================
@@ -23,8 +23,8 @@ export const VALIDATION_RULES = {
       recommended: ['educationHistory', 'certifications', 'specializations']
     },
     teacher: {
-      required: ['firstName', 'lastName', 'teachingLicense', 'certificationLevel', 'phone'],
-      optional: ['middleName', 'dateOfBirth', 'gender', 'address', 'emergencyContact', 'prcIdNumber'],
+      required: ['firstName', 'lastName', 'phone'], // Removed teachingLicense and certificationLevel
+      optional: ['middleName', 'dateOfBirth', 'gender', 'address', 'emergencyContact', 'prcIdNumber', 'teachingLicense', 'certificationLevel'],
       recommended: ['educationHistory', 'certifications', 'specializations']
     },
     parent: {

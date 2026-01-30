@@ -25,7 +25,7 @@ const CertificationEntry = ({
         
         <div className="tp-form-row">
           <div className="tp-input-group">
-            <label className="tp-label">Certification Name <span className="tp-required">*</span></label>
+            <label className="tp-label">Certification Name</label>
             <input
               type="text"
               className="tp-input"
@@ -36,7 +36,7 @@ const CertificationEntry = ({
           </div>
           
           <div className="tp-input-group">
-            <label className="tp-label">Issuing Organization <span className="tp-required">*</span></label>
+            <label className="tp-label">Issuing Organization</label>
             <input
               type="text"
               className="tp-input"
@@ -60,7 +60,7 @@ const CertificationEntry = ({
           </div>
           
           <div className="tp-input-group">
-            <label className="tp-label">Issue Date <span className="tp-required">*</span></label>
+            <label className="tp-label">Issue Date</label>
             <input
               type="date"
               className="tp-input"
@@ -156,9 +156,9 @@ const CertificationEntry = ({
       </div>
       
       <div className="tp-entry-details">
-        <p><strong>Issuing Organization:</strong> {certification.issuingOrg}</p>
+        {certification.issuingOrg && <p><strong>Issuing Organization:</strong> {certification.issuingOrg}</p>}
         {certification.certNumber && <p><strong>Certification Number:</strong> {certification.certNumber}</p>}
-        <p><strong>Issue Date:</strong> {formatDate(certification.issueDate)}</p>
+        {certification.issueDate && <p><strong>Issue Date:</strong> {formatDate(certification.issueDate)}</p>}
         {certification.expirationDate && (
           <p><strong>Expiration Date:</strong> {formatDate(certification.expirationDate)}</p>
         )}

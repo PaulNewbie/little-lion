@@ -22,7 +22,7 @@ const TeacherCredentialsSection = ({
       <div className="tp-form-row">
         <div className="tp-input-group">
           <label className="tp-label">
-            Teaching License Number <span className="tp-required">*</span>
+            Teaching License Number
           </label>
           <input
             type="text"
@@ -52,7 +52,7 @@ const TeacherCredentialsSection = ({
       <div className="tp-form-row">
         <div className="tp-input-group">
           <label className="tp-label">
-            Certification Level <span className="tp-required">*</span>
+            Certification Level
           </label>
           <select
             className={`tp-input ${validationErrors.certificationLevel ? 'tp-input-error' : ''}`}

@@ -24,7 +24,7 @@ const EducationEntry = ({
         
         <div className="tp-form-row">
           <div className="tp-input-group">
-            <label className="tp-label">Institution Name <span className="tp-required">*</span></label>
+            <label className="tp-label">Institution Name</label>
             <input
               type="text"
               className="tp-input"
@@ -35,7 +35,7 @@ const EducationEntry = ({
           </div>
           
           <div className="tp-input-group">
-            <label className="tp-label">Degree Type <span className="tp-required">*</span></label>
+            <label className="tp-label">Degree Type</label>
             <select
               className="tp-input"
               value={education.degreeType}
@@ -46,13 +46,16 @@ const EducationEntry = ({
               <option value="Master's">Master's</option>
               <option value="Doctorate">Doctorate</option>
               <option value="Professional Degree">Professional Degree</option>
+              <option value="Certificate">Certificate</option>
+              <option value="Diploma">Diploma</option>
+              <option value="Other">Other</option>
             </select>
           </div>
         </div>
 
         <div className="tp-form-row">
           <div className="tp-input-group">
-            <label className="tp-label">Field of Study <span className="tp-required">*</span></label>
+            <label className="tp-label">Field of Study</label>
             <input
               type="text"
               className="tp-input"
@@ -63,7 +66,7 @@ const EducationEntry = ({
           </div>
           
           <div className="tp-input-group">
-            <label className="tp-label">Graduation Year <span className="tp-required">*</span></label>
+            <label className="tp-label">Graduation Year</label>
             <input
               type="number"
               className="tp-input"
@@ -137,7 +140,7 @@ const EducationEntry = ({
   return (
     <div className="tp-entry-card">
       <div className="tp-entry-header">
-        <h4 className="tp-entry-title">{education.degreeType} - {education.fieldOfStudy}</h4>
+        <h4 className="tp-entry-title">{education.degreeType || 'Degree'} - {education.fieldOfStudy || 'Field of Study'}</h4>
         <button
           type="button"
           className="tp-remove-btn"
@@ -148,8 +151,8 @@ const EducationEntry = ({
       </div>
       
       <div className="tp-entry-details">
-        <p><strong>Institution:</strong> {education.institution}</p>
-        <p><strong>Graduation Year:</strong> {education.graduationYear}</p>
+        {education.institution && <p><strong>Institution:</strong> {education.institution}</p>}
+        {education.graduationYear && <p><strong>Graduation Year:</strong> {education.graduationYear}</p>}
         {education.gpa && <p><strong>GPA:</strong> {education.gpa}</p>}
         {education.certificateURL && (
           <a 

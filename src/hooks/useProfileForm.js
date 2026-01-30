@@ -256,8 +256,9 @@ export const useProfileForm = (currentUser, role, navigate) => {
   };
 
   const handleAddEducation = () => {
-    if (!newEducation.institution || !newEducation.degreeType || !newEducation.fieldOfStudy || !newEducation.graduationYear) {
-      toast.warning('Please fill in all required education fields (Institution, Degree Type, Field of Study, Graduation Year).');
+    // Relaxed validation: Require at least an institution or degree
+    if (!newEducation.institution && !newEducation.degreeType) {
+      toast.warning('Please provide at least an Institution Name or Degree Type.');
       return;
     }
 
@@ -266,7 +267,7 @@ export const useProfileForm = (currentUser, role, navigate) => {
       institution: newEducation.institution,
       degreeType: newEducation.degreeType,
       fieldOfStudy: newEducation.fieldOfStudy,
-      graduationYear: parseInt(newEducation.graduationYear),
+      graduationYear: newEducation.graduationYear ? parseInt(newEducation.graduationYear) : null,
       gpa: newEducation.gpa ? parseFloat(newEducation.gpa) : null,
       certificateURL: newEducation.certificateURL
     };
