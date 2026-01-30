@@ -978,14 +978,24 @@
 /* === NEW: Attendance Section === */
 .pg-attendance-section {
   background: linear-gradient(135deg, #f0f9ff 0%, #f8fafc 100%);
-  padding: 16px;
+  padding: 20px;
   border-radius: 12px;
   border: 1px solid #e0f2fe;
 }
 
+.pg-attendance-header {
+  margin-bottom: 16px;
+}
+
+.pg-attendance-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .pg-attendance-header h3 {
-  margin: 0 0 12px 0;
-  font-size: 13px;
+  margin: 0;
+  font-size: 14px;
   color: #0052A1;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1001,6 +1011,25 @@
   height: 14px;
   background: #FFCB10;
   border-radius: 2px;
+}
+
+.pg-attendance-count {
+  background: linear-gradient(135deg, #0052A1 0%, #0073e6 100%);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  min-width: 28px;
+  text-align: center;
+}
+
+.pg-no-students {
+  color: #6b7280;
+  font-size: 13px;
+  font-style: italic;
+  text-align: center;
+  padding: 12px;
 }
 
 .pg-attendance-grid {
@@ -1033,8 +1062,10 @@
   object-fit: cover;
 }
 
-.pg-simple-student-card span {
+.pg-simple-student-card span,
+.pg-simple-student-card .pg-student-name {
   font-size: 13px;
   font-weight: 600;
-  color: #333;
+  color: #1f2937;
+  white-space: nowrap;
 }

@@ -348,16 +348,23 @@ const PlayGroup = () => {
                   {getDailyActivities().length > 0 && (
                     <div className="pg-attendance-section">
                       <div className="pg-attendance-header">
-                        <h3>Students Present ({getPresentChildren().length})</h3>
+                        <div className="pg-attendance-title-row">
+                          <h3>Students Present</h3>
+                          <span className="pg-attendance-count">{getPresentChildren().length}</span>
+                        </div>
                       </div>
-                      <div className="pg-attendance-grid">
-                        {getPresentChildren().map(child => (
-                           <div key={child.id} className="pg-simple-student-card">
+                      {getPresentChildren().length > 0 ? (
+                        <div className="pg-attendance-grid">
+                          {getPresentChildren().map(child => (
+                            <div key={child.id} className="pg-simple-student-card">
                               <img src={child.photoUrl || "https://via.placeholder.com/40"} alt={child.firstName} />
-                              <span>{child.firstName} {child.lastName}</span>
-                           </div>
-                        ))}
-                      </div>
+                              <span className="pg-student-name">{child.firstName} {child.lastName}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="pg-no-students">No students recorded for this activity</div>
+                      )}
                     </div>
                   )}
 
