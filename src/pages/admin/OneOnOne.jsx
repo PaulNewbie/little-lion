@@ -16,6 +16,7 @@ import { collection, addDoc } from "firebase/firestore";
 import "./css/OneOnOne.css";
 import "./studentProfile/StudentProfile.css";
 import "../../components/common/Header.css";
+import "../../components/common/ServiceModal.css";
 
 /* ==============================
    HELPER: DESCRIPTION WITH SEE MORE
@@ -190,22 +191,21 @@ const OneOnOne = () => {
                   </div>
                 </div>
 
-                <div className="ooo-grid">
-                  <button className="floating-add-btn" onClick={() => setShowAddServiceModal(true)}>
-                    + ONE-ON-ONE SERVICE
-                  </button>
+                <button className="floating-add-btn" onClick={() => setShowAddServiceModal(true)}>
+                  + ONE-ON-ONE SERVICE
+                </button>
 
+                <div className="ooo-grid">
                   {services.map(service => (
                     <div key={service.id} className="ooo-card" onClick={() => handleSelectService(service)}>
                       {service.imageUrl ? (
-                        <div className="ooo-card-image-box"><img src={service.imageUrl} alt={service.name} /></div>
-                      ) : <div className="ooo-card-icon">🎨</div>}
-
-                      <div className="ooo-card-info">
-                        <h3>{service.name}</h3>
-                      </div>
-
-                      {/* EDIT BUTTON */}
+                        <div className="ooo-card-image-box">
+                          <img src={service.imageUrl} alt={service.name} className="ooo-card-image" />
+                        </div>
+                      ) : (
+                        <div className="ooo-card-icon">🎨</div>
+                      )}
+                      <h3>{service.name}</h3>
                       <button
                         className="ooo-edit-btn"
                         onClick={e => {
@@ -310,125 +310,93 @@ const OneOnOne = () => {
 
             {/* ADD SERVICE MODAL */}
             {showAddServiceModal && (
-              <div className="modal-overlay" onClick={() => !uploading && setShowAddServiceModal(false)}>
-                <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxHeight: '90vh', overflowY: 'auto' }}>
-                  <h2>Create New Service</h2>
-                  <form onSubmit={createService} className="modal-form">
-
-                    {/* SERVICE DETAILS SECTION */}
-                    <div style={{
-                      padding: '20px',
-                      backgroundColor: '#faf5ff',
-                      borderRadius: '12px',
-                      border: '2px solid #a855f7',
-                      marginBottom: '20px'
-                    }}>
-                      <h3 style={{
-                        fontSize: '14px',
-                        fontWeight: '700',
-                        textTransform: 'uppercase',
-                        color: '#7e22ce',
-                        letterSpacing: '0.5px',
-                        marginBottom: '16px'
-                      }}>
-                        Service Details <span style={{ color: '#ef4444' }}>*</span>
-                      </h3>
-
-                      <p style={{
-                        fontSize: '13px',
-                        color: '#64748b',
-                        marginBottom: '16px'
-                      }}>
-                        Enter the name and description for this therapy service.
-                      </p>
-
-                      <div style={{ marginBottom: '16px' }}>
-                        <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>Service Name</label>
+              <div className="service-modal-overlay" onClick={() => !uploading && setShowAddServiceModal(false)}>
+                <div className="service-modal" onClick={e => e.stopPropagation()}>
+                  <div className="service-modal-header">
+                    <h2>Create New Service</h2>
+                    <button className="service-modal-close" onClick={() => !uploading && setShowAddServiceModal(false)} disabled={uploading}>
+                      &times;
+                    </button>
+                  </div>
+                  <form onSubmit={createService}>
+                    <div className="service-modal-body">
+                      {/* Service Name */}
+                      <div className="service-form-group">
+                        <label className="service-form-label">
+                          Service Name<span className="required">*</span>
+                        </label>
                         <input
+                          className={`service-form-input ${newService.name ? 'has-value' : ''}`}
                           name="name"
                           placeholder="e.g. Speech Therapy"
                           value={newService.name}
                           onChange={handleServiceInputChange}
                           required
                           disabled={uploading}
-                          style={{
-                            width: '100%',
-                            padding: '12px 14px',
-                            border: newService.name ? '2px solid #22c55e' : '1px solid #ddd',
-                            borderRadius: '8px',
-                            fontSize: '14px',
-                            backgroundColor: newService.name ? '#f0fdf4' : 'white',
-                            boxSizing: 'border-box'
-                          }}
                         />
                       </div>
 
-                      <div>
-                        <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>Description</label>
+                      {/* Description */}
+                      <div className="service-form-group">
+                        <label className="service-form-label">Description</label>
                         <textarea
+                          className="service-form-textarea"
                           name="description"
                           placeholder="Brief description of the service..."
                           value={newService.description}
                           onChange={handleServiceInputChange}
                           disabled={uploading}
-                          style={{
-                            width: '100%',
-                            padding: '12px 14px',
-                            border: '1px solid #ddd',
-                            borderRadius: '8px',
-                            fontSize: '14px',
-                            minHeight: '80px',
-                            resize: 'vertical',
-                            boxSizing: 'border-box'
-                          }}
                         />
                       </div>
 
-                      {newService.name && (
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          padding: '10px 14px',
-                          backgroundColor: '#dcfce7',
-                          borderRadius: '8px',
-                          marginTop: '12px'
-                        }}>
-                          <span style={{ fontSize: '13px', color: '#166534', fontWeight: '600' }}>
-                            Service name entered
+                      {/* Image Upload */}
+                      <div className={`service-image-section ${newServiceImage ? 'has-image' : ''}`}>
+                        <svg className="service-image-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                          <circle cx="8.5" cy="8.5" r="1.5"/>
+                          <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                        <span className="service-image-label">Service Image</span>
+                        <p className="service-image-hint">Optional - Upload an image for this service</p>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => setNewServiceImage(e.target.files[0])}
+                          disabled={uploading}
+                          className="service-image-input"
+                          id="add-service-image"
+                        />
+                        <label htmlFor="add-service-image" className="service-image-btn">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                          </svg>
+                          Choose Image
+                        </label>
+                        {newServiceImage && (
+                          <div className="service-image-filename">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            {newServiceImage.name}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="service-modal-footer">
+                      <button type="button" className="service-btn service-btn-cancel" onClick={() => setShowAddServiceModal(false)} disabled={uploading}>
+                        Cancel
+                      </button>
+                      <button type="submit" className="service-btn service-btn-submit" disabled={uploading}>
+                        {uploading ? (
+                          <span className="service-btn-loading">
+                            <span className="service-spinner"></span>
+                            Uploading...
                           </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* IMAGE SECTION */}
-                    <div style={{
-                      padding: '16px',
-                      backgroundColor: '#f8fafc',
-                      borderRadius: '8px',
-                      border: '1px solid #e2e8f0',
-                      marginBottom: '20px'
-                    }}>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>
-                        Service Image (Optional)
-                      </label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setNewServiceImage(e.target.files[0])}
-                        disabled={uploading}
-                        style={{ fontSize: '14px' }}
-                      />
-                      {newServiceImage && (
-                        <span style={{ display: 'block', marginTop: '8px', fontSize: '13px', color: '#059669' }}>
-                          Selected: {newServiceImage.name}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="modal-actions">
-                      <button className="cancel-service-btn" type="button" onClick={() => setShowAddServiceModal(false)} disabled={uploading}>Cancel</button>
-                      <button className="add-edit-service-btn" type="submit" disabled={uploading}>{uploading ? "Uploading..." : "Add Service"}</button>
+                        ) : 'Add Service'}
+                      </button>
                     </div>
                   </form>
                 </div>
@@ -437,124 +405,92 @@ const OneOnOne = () => {
 
             {/* EDIT SERVICE MODAL */}
             {showEditModal && (
-              <div className="modal-overlay" onClick={() => !editing && setShowEditModal(false)}>
-                <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxHeight: '90vh', overflowY: 'auto' }}>
-                  <h2>Edit Service</h2>
-                  <form onSubmit={handleEditServiceSubmit} className="modal-form">
-
-                    {/* SERVICE DETAILS SECTION */}
-                    <div style={{
-                      padding: '20px',
-                      backgroundColor: '#faf5ff',
-                      borderRadius: '12px',
-                      border: '2px solid #a855f7',
-                      marginBottom: '20px'
-                    }}>
-                      <h3 style={{
-                        fontSize: '14px',
-                        fontWeight: '700',
-                        textTransform: 'uppercase',
-                        color: '#7e22ce',
-                        letterSpacing: '0.5px',
-                        marginBottom: '16px'
-                      }}>
-                        Service Details <span style={{ color: '#ef4444' }}>*</span>
-                      </h3>
-
-                      <p style={{
-                        fontSize: '13px',
-                        color: '#64748b',
-                        marginBottom: '16px'
-                      }}>
-                        Update the name and description for this therapy service.
-                      </p>
-
-                      <div style={{ marginBottom: '16px' }}>
-                        <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>Service Name</label>
+              <div className="service-modal-overlay" onClick={() => !editing && setShowEditModal(false)}>
+                <div className="service-modal" onClick={e => e.stopPropagation()}>
+                  <div className="service-modal-header">
+                    <h2>Edit Service</h2>
+                    <button className="service-modal-close" onClick={() => !editing && setShowEditModal(false)} disabled={editing}>
+                      &times;
+                    </button>
+                  </div>
+                  <form onSubmit={handleEditServiceSubmit}>
+                    <div className="service-modal-body">
+                      {/* Service Name */}
+                      <div className="service-form-group">
+                        <label className="service-form-label">
+                          Service Name<span className="required">*</span>
+                        </label>
                         <input
+                          className={`service-form-input ${editServiceData.name ? 'has-value' : ''}`}
                           name="name"
                           value={editServiceData.name}
                           onChange={e => setEditServiceData({...editServiceData, name: e.target.value})}
                           required
                           autoFocus
                           disabled={editing}
-                          style={{
-                            width: '100%',
-                            padding: '12px 14px',
-                            border: editServiceData.name ? '2px solid #22c55e' : '1px solid #ddd',
-                            borderRadius: '8px',
-                            fontSize: '14px',
-                            backgroundColor: editServiceData.name ? '#f0fdf4' : 'white',
-                            boxSizing: 'border-box'
-                          }}
                         />
                       </div>
 
-                      <div>
-                        <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>Description</label>
+                      {/* Description */}
+                      <div className="service-form-group">
+                        <label className="service-form-label">Description</label>
                         <textarea
+                          className="service-form-textarea"
                           name="description"
                           value={editServiceData.description}
                           onChange={e => setEditServiceData({...editServiceData, description: e.target.value})}
                           disabled={editing}
-                          style={{
-                            width: '100%',
-                            padding: '12px 14px',
-                            border: '1px solid #ddd',
-                            borderRadius: '8px',
-                            fontSize: '14px',
-                            minHeight: '80px',
-                            resize: 'vertical',
-                            boxSizing: 'border-box'
-                          }}
                         />
                       </div>
 
-                      {editServiceData.name && (
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          padding: '10px 14px',
-                          backgroundColor: '#dcfce7',
-                          borderRadius: '8px',
-                          marginTop: '12px'
-                        }}>
-                          <span style={{ fontSize: '13px', color: '#166534', fontWeight: '600' }}>
-                            Service name entered
+                      {/* Image Upload */}
+                      <div className={`service-image-section ${editServiceImage ? 'has-image' : ''}`}>
+                        <svg className="service-image-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                          <circle cx="8.5" cy="8.5" r="1.5"/>
+                          <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                        <span className="service-image-label">{editServiceData.imageUrl ? 'Change Image' : 'Service Image'}</span>
+                        <p className="service-image-hint">Optional - Upload a new image</p>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={e => setEditServiceImage(e.target.files[0])}
+                          disabled={editing}
+                          className="service-image-input"
+                          id="edit-service-image"
+                        />
+                        <label htmlFor="edit-service-image" className="service-image-btn">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                          </svg>
+                          Choose Image
+                        </label>
+                        {editServiceImage && (
+                          <div className="service-image-filename">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            {editServiceImage.name}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="service-modal-footer">
+                      <button type="button" className="service-btn service-btn-cancel" onClick={() => setShowEditModal(false)} disabled={editing}>
+                        Cancel
+                      </button>
+                      <button type="submit" className="service-btn service-btn-submit" disabled={editing}>
+                        {editing ? (
+                          <span className="service-btn-loading">
+                            <span className="service-spinner"></span>
+                            Saving...
                           </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* IMAGE SECTION */}
-                    <div style={{
-                      padding: '16px',
-                      backgroundColor: '#f8fafc',
-                      borderRadius: '8px',
-                      border: '1px solid #e2e8f0',
-                      marginBottom: '20px'
-                    }}>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>
-                        Service Image (Optional)
-                      </label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={e => setEditServiceImage(e.target.files[0])}
-                        disabled={editing}
-                        style={{ fontSize: '14px' }}
-                      />
-                      {editServiceImage && (
-                        <span style={{ display: 'block', marginTop: '8px', fontSize: '13px', color: '#059669' }}>
-                          New image selected: {editServiceImage.name}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="modal-actions">
-                      <button className="cancel-service-btn" type="button" onClick={() => setShowEditModal(false)} disabled={editing}>Cancel</button>
-                      <button className="add-edit-service-btn" type="submit" disabled={editing}>{editing ? "Saving..." : "Save Changes"}</button>
+                        ) : 'Save Changes'}
+                      </button>
                     </div>
                   </form>
                 </div>

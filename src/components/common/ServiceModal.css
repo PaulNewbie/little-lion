@@ -1,0 +1,360 @@
+/* ================================================================
+   SERVICE MODAL - Shared styles for Edit/Add Service Modals
+   Used in: OneOnOne.jsx, PlayGroup.jsx
+================================================================ */
+
+/* Overlay */
+.service-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: serviceModalFadeIn 0.2s ease-out;
+}
+
+@keyframes serviceModalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Modal Container */
+.service-modal {
+  background: #ffffff;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  animation: serviceModalSlideUp 0.25s ease-out;
+  display: flex;
+  flex-direction: column;
+}
+
+
+@keyframes serviceModalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Modal Header */
+.service-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%);
+  color: #ffffff;
+}
+
+.service-modal-header h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.service-modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.service-modal-close:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+/* Modal Body */
+.service-modal-body {
+  padding: 20px 24px;
+  flex: 1;
+}
+
+/* Form Group */
+.service-form-group {
+  margin-bottom: 16px;
+}
+
+.service-form-group:last-child {
+  margin-bottom: 0;
+}
+
+.service-form-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #1a1a2e;
+}
+
+.service-form-label .required {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+/* Input Styles */
+.service-form-input,
+.service-form-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #ffffff;
+  color: #1a1a2e;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.service-form-input:hover,
+.service-form-textarea:hover {
+  border-color: #d1d5db;
+}
+
+.service-form-input:focus,
+.service-form-textarea:focus {
+  outline: none;
+  border-color: #0052A1;
+  box-shadow: 0 0 0 3px rgba(0, 82, 161, 0.1);
+}
+
+.service-form-input::placeholder,
+.service-form-textarea::placeholder {
+  color: #9ca3af;
+}
+
+.service-form-input.has-value {
+  border-color: #FFCB10;
+  background: #fffef5;
+}
+
+.service-form-textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+/* Image Upload Section */
+.service-image-section {
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 2px dashed #e5e7eb;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.service-image-section:hover {
+  border-color: #0052A1;
+  background: #f0f9ff;
+}
+
+.service-image-section.has-image {
+  border-style: solid;
+  border-color: #FFCB10;
+  background: #fffef5;
+}
+
+.service-image-icon {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto 8px;
+  color: #9ca3af;
+}
+
+.service-image-section.has-image .service-image-icon {
+  color: #FFCB10;
+}
+
+.service-image-label {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 2px;
+}
+
+.service-image-hint {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 10px;
+}
+
+.service-image-input {
+  display: none;
+}
+
+.service-image-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #ffffff;
+  border: 2px solid #0052A1;
+  border-radius: 6px;
+  color: #0052A1;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.service-image-btn:hover {
+  background: #0052A1;
+  color: #ffffff;
+}
+
+
+.service-image-filename {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 6px 12px;
+  background: #fef9e7;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #92600e;
+  font-weight: 500;
+}
+
+.service-image-filename svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: #FFCB10;
+}
+
+/* Modal Footer */
+.service-modal-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 16px 24px;
+  background: #f8fafc;
+  border-top: 1px solid #e5e7eb;
+}
+
+.service-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.service-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.service-btn-cancel {
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  color: #6b7280;
+}
+
+.service-btn-cancel:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.service-btn-submit {
+  background: linear-gradient(135deg, #FFCB10 0%, #f59e0b 100%);
+  border: none;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(255, 203, 16, 0.3);
+}
+
+.service-btn-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(255, 203, 16, 0.4);
+}
+
+.service-btn-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Loading State */
+.service-btn-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.service-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: serviceSpinner 0.8s linear infinite;
+}
+
+@keyframes serviceSpinner {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 520px) {
+  .service-modal-overlay {
+    padding: 12px;
+  }
+
+  .service-modal {
+    max-height: 95vh;
+  }
+
+  .service-modal-header {
+    padding: 16px 20px;
+  }
+
+  .service-modal-body {
+    padding: 20px;
+  }
+
+  .service-modal-footer {
+    padding: 16px 20px;
+    flex-direction: column;
+  }
+
+  .service-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .service-btn-cancel {
+    order: 1;
+  }
+
+  .service-btn-submit {
+    order: 0;
+  }
+}

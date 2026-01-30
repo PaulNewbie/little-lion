@@ -12,6 +12,9 @@ import './Modal.css';
  * @param {boolean} [props.closeOnOverlay=true] - Close when clicking overlay
  * @param {boolean} [props.showCloseButton=true] - Show the X close button
  * @param {React.ReactNode} [props.footer] - Optional footer content
+ * @param {string} [props.bodyClassName] - Optional additional class for modal-body
+ * @param {boolean} [props.noBodyWrapper=false] - Skip the modal-body wrapper div
+ * @param {string} [props.className] - Optional additional class for modal-container
  */
 const Modal = ({
   isOpen,
@@ -21,7 +24,10 @@ const Modal = ({
   size = 'medium',
   closeOnOverlay = true,
   showCloseButton = true,
-  footer
+  footer,
+  bodyClassName = '',
+  noBodyWrapper = false,
+  className = ''
 }) => {
   // Handle escape key
   const handleEscape = useCallback((e) => {
@@ -52,7 +58,7 @@ const Modal = ({
 
   return (
     <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className={`modal-container modal-container--${size}`}>
+      <div className={`modal-container modal-container--${size} ${className}`.trim()}>
         {(title || showCloseButton) && (
           <div className="modal-header">
             {title && <h2 className="modal-title">{title}</h2>}
@@ -64,9 +70,11 @@ const Modal = ({
           </div>
         )}
 
-        <div className="modal-body">
-          {children}
-        </div>
+        {noBodyWrapper ? children : (
+          <div className={`modal-body ${bodyClassName}`.trim()}>
+            {children}
+          </div>
+        )}
 
         {footer && (
           <div className="modal-footer">

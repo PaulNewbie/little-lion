@@ -1,19 +1,8 @@
 /* ===========================================
    ASSESSMENT HISTORY REPORT STYLES
    Professional, Modern Design for SPED Schools
+   Scrollable Layout with Sticky Navigation
    =========================================== */
-
-/* Container */
-.assessment-history-container {
-  margin-top: 20px;
-  background-color: #ffffff;
-  border-radius: 16px;
-  padding: 0;
-  border: 1px solid #e2e8f0;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-}
 
 /* ============================================================
    HEADER SECTION
@@ -23,6 +12,7 @@
   padding: 24px 32px;
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .history-top-header::before {
@@ -74,250 +64,240 @@
 }
 
 /* ============================================================
-   SLIDE NAVIGATION
+   SCROLLABLE CONTENT CONTAINER
 ============================================================ */
-.slide-navigation {
+.assessment-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar styling */
+.assessment-scroll-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.assessment-scroll-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.assessment-scroll-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.assessment-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ============================================================
+   STICKY NAVIGATION BADGES
+============================================================ */
+.section-nav-badges {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 20px 32px;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-/* Progress Bar */
-.slide-progress-bar {
-  width: 100%;
-  max-width: 500px;
-  height: 4px;
-  background: #e2e8f0;
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.slide-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #0052A1 0%, #FFCB10 100%);
-  border-radius: 2px;
-  transition: width 0.3s ease;
-}
-
-/* Slide Dots */
-.slide-dots {
-  display: flex;
-  justify-content: center;
   gap: 8px;
-  margin: 0;
+  padding: 16px 24px;
+  background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%);
+  border-bottom: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.slide-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  border: 2px solid #cbd5e1;
-  background: transparent;
+.nav-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  padding: 8px 16px;
+  background: #f1f5f9;
+  border-radius: 20px;
   cursor: pointer;
-  padding: 0;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
-.slide-dot:hover {
-  border-color: #0052A1;
-  background: rgba(0, 82, 161, 0.1);
+.nav-badge:hover {
+  background: #e2e8f0;
+  color: #475569;
+  transform: translateY(-1px);
 }
 
-.slide-dot:focus {
+.nav-badge:focus {
   outline: none;
   box-shadow: 0 0 0 3px rgba(0, 82, 161, 0.2);
 }
 
-.slide-dot.active {
+.nav-badge.active {
   background: #0052A1;
+  color: #ffffff;
   border-color: #0052A1;
-  transform: scale(1.2);
+  box-shadow: 0 2px 8px rgba(0, 82, 161, 0.3);
 }
 
-/* Slide Labels */
-.slide-labels {
+.nav-badge.active:hover {
+  background: #003d7a;
+  border-color: #003d7a;
+}
+
+/* ============================================================
+   ASSESSMENT SECTIONS
+============================================================ */
+.assessment-sections {
+  padding: 24px;
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.slide-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: #64748b;
-  padding: 4px 10px;
-  background: #e2e8f0;
+.assessment-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.slide-label:hover {
-  background: #cbd5e1;
-  color: #475569;
-}
-
-.slide-label:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(0, 82, 161, 0.3);
-}
-
-.slide-label.active {
-  background: #0052A1;
-  color: #ffffff;
-}
-
-/* ============================================================
-   SLIDE WRAPPER & ARROWS
-============================================================ */
-.slide-wrapper {
-  background: #ffffff;
-  min-height: 400px;
-  max-height: none;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  border-radius: 0;
-  box-shadow: none;
-  border: none;
-  overflow: visible;
-}
-
-/* Arrow Buttons */
-.slide-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  background: #ffffff;
-  border: 2px solid #e2e8f0;
-  border-radius: 50%;
-  cursor: pointer;
-  color: #64748b;
-  transition: all 0.2s ease;
-  z-index: 10;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.slide-arrow:hover {
-  background: #0052A1;
-  border-color: #0052A1;
-  color: #ffffff;
-  transform: translateY(-50%) scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 82, 161, 0.25);
-}
-
-.slide-arrow:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 82, 161, 0.2), 0 4px 12px rgba(0, 82, 161, 0.25);
-}
-
-.slide-arrow:active {
-  transform: translateY(-50%) scale(0.98);
-}
-
-.slide-arrow-left {
-  left: -24px;
-}
-
-.slide-arrow-right {
-  right: -24px;
-}
-
-.slide-arrow svg {
-  width: 20px;
-  height: 20px;
-}
-
-/* ============================================================
-   SLIDE CONTENT AREA
-============================================================ */
-.slide-content-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
   overflow: hidden;
-  margin: 0 40px;
+  transition: box-shadow 0.2s ease;
 }
 
-/* Slide Header */
-.slide-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 28px;
+.assessment-section:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* Section Header */
+.section-header {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 16px 24px;
   border-bottom: 2px solid #FFCB10;
-  border-radius: 12px 12px 0 0;
-  margin-top: 24px;
 }
 
-.slide-title {
+.section-title {
   margin: 0;
   color: #0052A1;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.slide-counter {
-  background: #0052A1;
-  color: #ffffff;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+/* Section Content */
+.section-content {
+  padding: 24px;
 }
 
-/* Slide Body */
-.slide-body {
-  padding: 28px;
-  overflow-y: auto;
-  flex: 1;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-top: none;
-  border-radius: 0 0 12px 12px;
-  margin-bottom: 24px;
-}
-
-.slide-content {
-  animation: slideIn 0.35s ease;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.background-history-content {
+  padding: 20px;
 }
 
 /* ============================================================
-   OVERVIEW SLIDE - META GRID
+   OVERVIEW SECTION - STUDENT PROFILE CARD
+============================================================ */
+.overview-section .section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.student-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%);
+  border-radius: 12px;
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.student-profile-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 150px;
+  height: 150px;
+  background: rgba(255, 203, 16, 0.15);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.student-avatar {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.student-avatar img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.avatar-placeholder {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FFCB10 0%, #f59e0b 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f2937;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.student-info {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.student-name {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.student-details {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.detail-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  stroke: rgba(255, 255, 255, 0.9);
+}
+
+/* ============================================================
+   OVERVIEW SECTION - META GRID
 ============================================================ */
 .report-meta-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 16px;
   background: transparent;
   padding: 0;
   border-radius: 0;
@@ -325,35 +305,54 @@
 }
 
 .meta-item {
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  padding: 20px 24px;
+  background: #ffffff;
+  padding: 20px;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
   text-align: center;
   transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
 
 .meta-item:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border-color: #0052A1;
+  box-shadow: 0 4px 12px rgba(0, 82, 161, 0.1);
+  transform: translateY(-2px);
+}
+
+.meta-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  border-radius: 12px;
+}
+
+.meta-icon svg {
+  width: 24px;
+  height: 24px;
+  stroke: #0052A1;
 }
 
 .meta-item .label {
   display: block;
   font-size: 11px;
   font-weight: 700;
-  color: #0052A1;
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 8px;
 }
 
-.meta-item .value,
-.meta-item:not(:has(.label)) {
+.meta-item .value {
   font-size: 15px;
   font-weight: 600;
-  color: #1f2937;
-  line-height: 1.5;
+  color: #0052A1;
+  line-height: 1.4;
 }
 
 /* ============================================================
@@ -388,13 +387,8 @@
 }
 
 /* ============================================================
-   BACKGROUND HISTORY SLIDE - CARD GRID
+   BACKGROUND HISTORY SECTION - CARD GRID
 ============================================================ */
-.background-history-slide {
-  max-height: none;
-  overflow-y: visible;
-}
-
 .bg-history-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -444,33 +438,8 @@
   margin-bottom: 8px;
 }
 
-/* Legacy sub-section styles (fallback) */
-.sub-section {
-  margin-bottom: 24px;
-  padding: 20px;
-  background: #f8fafc;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-}
-
-.sub-section:last-child {
-  margin-bottom: 0;
-}
-
-.sub-section h4 {
-  font-size: 12px;
-  color: #0052A1;
-  margin: 0 0 12px 0;
-  text-transform: uppercase;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid #FFCB10;
-  display: inline-block;
-}
-
 /* ============================================================
-   ASSESSMENT TOOLS SLIDE
+   ASSESSMENT TOOLS SECTION
 ============================================================ */
 .tools-list {
   display: flex;
@@ -651,10 +620,6 @@
    RESPONSIVE DESIGN
 ============================================================ */
 @media (max-width: 900px) {
-  .assessment-history-container {
-    margin-top: 16px;
-  }
-
   .history-top-header {
     padding: 20px 24px;
   }
@@ -663,39 +628,46 @@
     font-size: 18px;
   }
 
-  .slide-navigation {
-    padding: 16px 24px;
+  .section-nav-badges {
+    padding: 12px 16px;
+    gap: 6px;
   }
 
-  .slide-labels {
-    display: none;
+  .nav-badge {
+    font-size: 11px;
+    padding: 6px 12px;
   }
 
-  .slide-content-area {
-    margin: 0 32px;
+  .assessment-sections {
+    padding: 16px;
+    gap: 16px;
   }
 
-  .slide-arrow {
-    width: 40px;
-    height: 40px;
+  .section-header {
+    padding: 14px 20px;
   }
 
-  .slide-arrow-left {
-    left: -16px;
+  .section-title {
+    font-size: 14px;
   }
 
-  .slide-arrow-right {
-    right: -16px;
-  }
-
-  .slide-header {
-    padding: 16px 20px;
-    margin-top: 16px;
-  }
-
-  .slide-body {
+  .section-content {
     padding: 20px;
-    margin-bottom: 16px;
+  }
+
+  .student-profile-card {
+    padding: 14px 16px;
+  }
+
+  .student-avatar img,
+  .avatar-placeholder {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+
+  .student-name {
+    font-size: 16px;
   }
 
   .report-meta-grid {
@@ -709,10 +681,6 @@
 }
 
 @media (max-width: 640px) {
-  .assessment-history-container {
-    border-radius: 12px;
-  }
-
   .history-top-header {
     padding: 16px 20px;
   }
@@ -721,63 +689,69 @@
     font-size: 16px;
   }
 
-  .slide-navigation {
-    padding: 12px 16px;
+  .section-nav-badges {
+    padding: 10px 12px;
+    gap: 4px;
   }
 
-  .slide-dots {
-    gap: 6px;
+  .nav-badge {
+    font-size: 10px;
+    padding: 5px 10px;
+    border-radius: 16px;
   }
 
-  .slide-dot {
-    width: 8px;
-    height: 8px;
-  }
-
-  .slide-content-area {
-    margin: 0 16px;
-  }
-
-  .slide-arrow {
-    width: 36px;
-    height: 36px;
-  }
-
-  .slide-arrow svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  .slide-arrow-left {
-    left: -8px;
-  }
-
-  .slide-arrow-right {
-    right: -8px;
-  }
-
-  .slide-header {
-    flex-direction: column;
+  .assessment-sections {
+    padding: 12px;
     gap: 12px;
+  }
+
+  .student-profile-card {
+    flex-direction: column;
     text-align: center;
-    padding: 16px;
-    margin-top: 12px;
+    padding: 14px;
   }
 
-  .slide-title {
-    font-size: 14px;
+  .student-avatar img,
+  .avatar-placeholder {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
   }
 
-  .slide-body {
-    padding: 16px;
-    margin-bottom: 12px;
+  .student-name {
+    font-size: 15px;
+  }
+
+  .student-details {
+    justify-content: center;
   }
 
   .meta-item {
     padding: 16px;
   }
 
-  .sub-section,
+  .meta-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .meta-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .section-header {
+    padding: 12px 16px;
+  }
+
+  .section-title {
+    font-size: 13px;
+  }
+
+  .section-content {
+    padding: 16px;
+  }
+
   .bg-history-card {
     padding: 16px;
   }
@@ -800,71 +774,86 @@
   }
 }
 
+@media (max-width: 480px) {
+  .section-nav-badges {
+    justify-content: flex-start;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .section-nav-badges::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-badge {
+    flex-shrink: 0;
+  }
+}
+
 /* ============================================================
    KEYBOARD NAVIGATION & ACCESSIBILITY
 ============================================================ */
-.slide-arrow:focus-visible,
-.slide-dot:focus-visible,
-.slide-label:focus-visible {
+.nav-badge:focus-visible {
   outline: 2px solid #0052A1;
   outline-offset: 2px;
 }
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-  .assessment-history-container {
-    border-width: 2px;
-  }
-
-  .slide-header {
+  .section-header {
     border-bottom-width: 3px;
   }
 
+  .assessment-section,
   .meta-item,
-  .sub-section,
   .bg-history-card,
   .tool-card {
     border-width: 2px;
+  }
+
+  .nav-badge {
+    border-width: 2px;
+  }
+
+  .nav-badge.active {
+    border-color: #ffffff;
   }
 }
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  .slide-content {
-    animation: none;
+  .assessment-scroll-container {
+    scroll-behavior: auto;
   }
 
-  .slide-dot,
-  .slide-arrow,
+  .nav-badge,
+  .assessment-section,
   .meta-item,
   .bg-history-card,
   .tool-card {
-    transition: none;
-  }
-
-  .slide-progress-fill {
     transition: none;
   }
 }
 
 /* Print styles */
 @media print {
-  .assessment-history-container {
-    box-shadow: none;
-    border: 1px solid #000;
-  }
-
-  .slide-navigation,
-  .slide-arrow {
+  .section-nav-badges {
     display: none;
   }
 
-  .slide-wrapper {
-    max-height: none;
+  .assessment-scroll-container {
     overflow: visible;
   }
 
-  .slide-content-area {
-    margin: 0;
+  .assessment-sections {
+    padding: 0;
+  }
+
+  .assessment-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
 }

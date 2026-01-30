@@ -1,0 +1,68 @@
+/* ===========================================
+   ASSESSMENT HISTORY MODAL STYLES
+   =========================================== */
+
+/* Position modal closer to the top */
+.modal-overlay:has(.assessment-history-modal) {
+  align-items: flex-start;
+  padding-top: 40px;
+}
+
+/* Modal container styling */
+.assessment-history-modal {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(90vh - 60px);
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Exit button */
+.assessment-modal-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 110;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 20px;
+  line-height: 0;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 0;
+  padding-bottom: 2px;
+}
+
+.assessment-modal-close-btn:hover {
+  background: #ef4444;
+  color: #ffffff;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.assessment-modal-close-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+}
+
+/* Loading state styling */
+.assessment-loading {
+  padding: 60px 40px;
+  text-align: center;
+  color: #64748b;
+}
+
+.assessment-loading p {
+  margin: 0;
+  font-size: 15px;
+}

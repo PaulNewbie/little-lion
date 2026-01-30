@@ -57,7 +57,7 @@
   background-repeat: no-repeat;
   border-radius: 1rem;
   padding: 2.5rem 2rem;
-  margin: 20px 20px 2rem 20px;
+  margin: 0 0 20px 0;
   position: relative;
   overflow: hidden;
 }
@@ -228,17 +228,16 @@
 }
 
 /* ================================================================
-   CARDS / GRID
+   CARDS / GRID - Exact copy of PlayGroup.css pg-services-grid
 ================================================================ */
-.ooo-grid {
+.ooo-content .ooo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1rem;
   justify-content: center;
-  margin-left: 20px;
 }
 
-.ooo-card {
+.ooo-content .ooo-card {
   background-color: #fff;
   border-radius: 8px;
   padding: 1rem;
@@ -247,47 +246,68 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  position: relative; /* Needed for edit button */
 }
 
-.ooo-card:hover {
-  box-shadow: 0 4px 8px rgba(0,0,0,0);
+.ooo-content .ooo-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  border: 2px solid #0052a1;
 }
 
 /* Card image box for service */
-.ooo-card-image-box {
+.ooo-content .ooo-card-image-box {
   width: 100%;
-  height: 140px;
-  overflow: hidden;
+  height: 160px;
+  margin-bottom: 15px;
   border-radius: 8px;
-  margin-bottom: 0.5rem;
+  overflow: hidden;
+  background: #f9f9f9;
 }
 
-.ooo-card-image-box img {
+.ooo-card-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.3s;
 }
 
-.ooo-card-icon {
-  font-size: 50px;
-  margin-bottom: 0.5rem;
+.ooo-content .ooo-card:hover .ooo-card-image {
+  transform: none;
 }
 
-.ooo-card-info {
+/* Fallback Icon Area */
+.ooo-content .ooo-card-icon {
+  font-size: 40px;
+  margin-bottom: 15px;
+  width: 100%;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f8ff;
+  border-radius: 8px;
+  color: #4ECDC4;
+}
+
+.ooo-content .ooo-card h3 {
+  margin: 0 0 8px 0;
+  color: #333333;
+  font-size: 18px;
+}
+
+.ooo-content .ooo-card p {
+  color: #333;
+  font-size: 14px;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.ooo-content .ooo-card-info {
   text-align: center;
   width: 100%;
-}
-
-.ooo-card-info h3 {
-  margin: 0.5rem 0;
-  font-size: 1.2rem;
-}
-
-.ooo-card-info p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: #333333;
 }
 
 /* See more / see less link */
@@ -299,6 +319,10 @@
 }
 
 /* Edit button */
+.ooo-content .ooo-card {
+  position: relative;
+}
+
 .ooo-edit-btn {
   position: absolute;
   bottom: 10px;
@@ -320,7 +344,7 @@
 
 .ooo-edit-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
 /* Student photo area */
