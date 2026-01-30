@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../context/ToastContext';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
 import childService from '../../services/childService';
 import activityService from '../../services/activityService';
 import cloudinaryService from '../../services/cloudinaryService';
@@ -28,7 +30,28 @@ const PlayGroupActivity = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [className, setClassName] = useState(preSelectedClassName || '');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(new Date());
+  const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
+
+  // Constants
+  const MAX_IMAGES = 10;
+
+  // Format date for display
+  const formatDate = (d) => {
+    if (!d) return '';
+    return d.toLocaleDateString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  // Format date for submission (YYYY-MM-DD)
+  const getDateString = (d) => {
+    if (!d) return '';
+    return d.toISOString().split('T')[0];
+  };
 
   // Selection Data
   const [selectedImages, setSelectedImages] = useState([]);
@@ -69,9 +92,29 @@ const PlayGroupActivity = () => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
+    // Check if adding these files would exceed the limit
+    const totalAfterAdd = selectedImages.length + files.length;
+
+    if (totalAfterAdd > MAX_IMAGES) {
+      const canAdd = MAX_IMAGES - selectedImages.length;
+      if (canAdd <= 0) {
+        toast.warning(`Maximum ${MAX_IMAGES} photos allowed. Please remove some before adding more.`);
+        e.target.value = ''; // Reset file input
+        return;
+      }
+      toast.warning(`Only ${canAdd} more photo${canAdd !== 1 ? 's' : ''} can be added (max ${MAX_IMAGES}). Some photos were not added.`);
+      const allowedFiles = files.slice(0, canAdd);
+      const newPreviews = allowedFiles.map(file => URL.createObjectURL(file));
+      setSelectedImages(prev => [...prev, ...allowedFiles]);
+      setPreviews(prev => [...prev, ...newPreviews]);
+      e.target.value = ''; // Reset file input
+      return;
+    }
+
     const newPreviews = files.map(file => URL.createObjectURL(file));
     setSelectedImages(prev => [...prev, ...files]);
     setPreviews(prev => [...prev, ...newPreviews]);
+    e.target.value = ''; // Reset file input for re-selection
   };
 
   const removeImage = (index) => {
@@ -141,11 +184,11 @@ const PlayGroupActivity = () => {
       .filter(Boolean);
 
     // Confirmation dialog
-    const confirmMessage = 
+    const confirmMessage =
       `Post Group Activity?\n\n` +
       `Activity: "${title || 'Untitled'}"\n` +
       `Class: ${className || 'Not specified'}\n` +
-      `Date: ${date}\n` +
+      `Date: ${formatDate(date)}\n` +
       `Photos: ${selectedImages.length}\n\n` +
       `✓ Students Present (${taggedStudentIds.length}):\n` +
       `${selectedStudentNames.join(', ')}\n\n` +
@@ -156,19 +199,35 @@ const PlayGroupActivity = () => {
     }
 
     setUploading(true);
+    setUploadProgress({ current: 0, total: selectedImages.length });
 
     try {
-      const folderPath = `little-lions/group-images/${date}`;
+      const dateString = getDateString(date);
+      const folderPath = `little-lions/group-images/${dateString}`;
 
-      const uploadPromises = selectedImages.map(file =>
-        cloudinaryService.uploadImage(file, folderPath)
+      // Use improved upload with compression and progress tracking
+      const { urls: uploadedUrls, errors } = await cloudinaryService.uploadMultipleImages(
+        selectedImages,
+        folderPath,
+        (current, total) => setUploadProgress({ current, total })
       );
-      const uploadedUrls = await Promise.all(uploadPromises);
+
+      // Check if any uploads failed
+      if (errors.length > 0) {
+        console.error('Some uploads failed:', errors);
+        if (uploadedUrls.length === 0) {
+          toast.error('All photo uploads failed. Please try again with fewer or smaller images.');
+          setUploading(false);
+          return;
+        }
+        // Some succeeded, some failed - warn but continue
+        toast.warning(`${errors.length} photo${errors.length !== 1 ? 's' : ''} failed to upload. Activity saved with ${uploadedUrls.length} photo${uploadedUrls.length !== 1 ? 's' : ''}.`);
+      }
 
       const activityData = {
         title,
         description,
-        date,
+        date: dateString,
         className,
         photoUrls: uploadedUrls,
         participatingStudentIds: taggedStudentIds,
@@ -184,7 +243,7 @@ const PlayGroupActivity = () => {
 
     } catch (error) {
       console.error("Upload failed:", error);
-      toast.error("Failed to upload activity. Please try again.");
+      toast.error("Failed to upload activity. Please try again with fewer or smaller images.");
       setUploading(false);
     }
   };
@@ -196,18 +255,21 @@ const PlayGroupActivity = () => {
         <div style={{ padding: '20px', flex: 1 }}>
           <div className="play-group__content">
 
-            {/* Header Banner */}
+            {/* Header Banner - Matches Dashboard Pattern */}
             <div className="play-group__header-banner">
               <div className="play-group__header-content">
-                <h1 className="play-group__title">NEW GROUP ACTIVITY</h1>
-                <p className="play-group__subtitle">Upload photos and tag participating students</p>
+                <div className="play-group__header-text">
+                  <h1 className="play-group__title">NEW GROUP ACTIVITY</h1>
+                  <p className="play-group__subtitle">Upload photos and tag participating students</p>
+                </div>
+                <button onClick={() => navigate(-1)} className="play-group__header-back-btn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                  </svg>
+                  Back to Dashboard
+                </button>
               </div>
             </div>
-
-            {/* Back Button */}
-            <button onClick={() => navigate(-1)} className="play-group__back-btn">
-              ← Back to Dashboard
-            </button>
 
             <form onSubmit={handleSubmit}>
               {/* Section 1: Activity Details */}
@@ -217,51 +279,68 @@ const PlayGroupActivity = () => {
                   Activity Details
                 </h3>
 
-                <div className="play-group__form-group">
-                  <label className="play-group__label">Class Name</label>
-                  <input
-                    className={`play-group__input ${preSelectedClassName ? 'play-group__input--prefilled' : ''}`}
-                    placeholder="e.g. Art Class"
-                    value={className}
-                    onChange={e => !preSelectedClassName && setClassName(e.target.value)}
-                    readOnly={!!preSelectedClassName}
-                    disabled={!!preSelectedClassName}
-                  />
-                  {preSelectedClassName && (
-                    <span className="play-group__field-note">Class name is set from your selected class</span>
-                  )}
-                </div>
+                <div className="play-group__details-grid">
+                  {/* Left Column: Form Fields */}
+                  <div className="play-group__form-column">
+                    <div className="play-group__form-group">
+                      <label className="play-group__label">Class Name</label>
+                      <input
+                        className={`play-group__input ${preSelectedClassName ? 'play-group__input--prefilled' : ''}`}
+                        placeholder="e.g. Art Class"
+                        value={className}
+                        onChange={e => !preSelectedClassName && setClassName(e.target.value)}
+                        readOnly={!!preSelectedClassName}
+                        disabled={!!preSelectedClassName}
+                      />
+                      {preSelectedClassName && (
+                        <span className="play-group__field-note">Set from selected class</span>
+                      )}
+                    </div>
 
-                <div className="play-group__form-group">
-                  <label className="play-group__label">Activity Title</label>
-                  <input
-                    className="play-group__input"
-                    placeholder="e.g. Outdoor Building Blocks"
-                    value={title}
-                    onChange={e => setTitle(e.target.value)}
-                    required
-                  />
-                </div>
+                    <div className="play-group__form-group">
+                      <label className="play-group__label">Activity Title</label>
+                      <input
+                        className="play-group__input"
+                        placeholder="e.g. Outdoor Building Blocks"
+                        value={title}
+                        onChange={e => setTitle(e.target.value)}
+                        required
+                      />
+                    </div>
 
-                <div className="play-group__form-group">
-                  <label className="play-group__label">Date</label>
-                  <input
-                    className="play-group__input"
-                    type="date"
-                    value={date}
-                    onChange={e => setDate(e.target.value)}
-                    required
-                  />
-                </div>
+                    <div className="play-group__form-group">
+                      <label className="play-group__label">Description</label>
+                      <textarea
+                        className="play-group__textarea"
+                        value={description}
+                        onChange={e => setDescription(e.target.value)}
+                        placeholder="What did the children do today?"
+                        rows={4}
+                      />
+                    </div>
+                  </div>
 
-                <div className="play-group__form-group">
-                  <label className="play-group__label">Description</label>
-                  <textarea
-                    className="play-group__textarea"
-                    value={description}
-                    onChange={e => setDescription(e.target.value)}
-                    placeholder="What did the children do today?"
-                  />
+                  {/* Right Column: Calendar */}
+                  <div className="play-group__calendar-column">
+                    <label className="play-group__label">Activity Date</label>
+                    <div className="play-group__calendar-container">
+                      <Calendar
+                        onChange={setDate}
+                        value={date}
+                        maxDate={new Date()}
+                        className="play-group__calendar"
+                      />
+                      <div className="play-group__selected-date">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                          <line x1="16" y1="2" x2="16" y2="6"/>
+                          <line x1="8" y1="2" x2="8" y2="6"/>
+                          <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        <span>{formatDate(date)}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -270,6 +349,9 @@ const PlayGroupActivity = () => {
                 <h3 className="play-group__section-title">
                   <span className="play-group__section-number">2</span>
                   Select Photos
+                  <span className="play-group__photo-counter">
+                    {selectedImages.length}/{MAX_IMAGES}
+                  </span>
                 </h3>
 
                 <div className="play-group__photo-upload">
@@ -279,7 +361,13 @@ const PlayGroupActivity = () => {
                     accept="image/*"
                     onChange={handleImageSelect}
                     className="play-group__file-input"
+                    disabled={selectedImages.length >= MAX_IMAGES}
                   />
+                  {selectedImages.length >= MAX_IMAGES && (
+                    <p className="play-group__photo-limit-message">
+                      Maximum {MAX_IMAGES} photos reached. Remove some to add more.
+                    </p>
+                  )}
                   <div className="play-group__previews">
                     {previews.map((src, idx) => (
                       <div key={idx} className="play-group__preview-item">
@@ -421,7 +509,7 @@ const PlayGroupActivity = () => {
                 {uploading ? (
                   <>
                     <span className="play-group__btn-spinner"></span>
-                    Uploading Activity...
+                    Uploading {uploadProgress.current}/{uploadProgress.total} photos...
                   </>
                 ) : (
                   <>
