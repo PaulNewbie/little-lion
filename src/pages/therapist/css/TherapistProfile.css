@@ -449,6 +449,7 @@
 .tp-modal-footer-right {
   display: flex;
   justify-content: flex-end;
+  gap: 10px;
 }
 
 .tp-modal-footer-center {

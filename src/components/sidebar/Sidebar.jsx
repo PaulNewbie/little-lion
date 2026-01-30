@@ -93,8 +93,9 @@ const Sidebar = ({
         }
       });
     });
-    setExpandedDropdowns(prev => ({ ...prev, ...newExpanded }));
-  }, [location.pathname, menuSections]);
+    setExpandedDropdowns(newExpanded);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, forceActive]);
 
   // Handle window resize
   useEffect(() => {

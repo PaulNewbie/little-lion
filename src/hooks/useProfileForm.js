@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUser } from './useCachedData';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from './useAuth';
 import { QUERY_KEYS } from '../config/queryClient';
 import userService from '../services/userService';
 import cloudinaryService from '../services/cloudinaryService';
@@ -17,6 +18,7 @@ import { parseFileName, validateFileSize, validateFileType } from '../utils/prof
 export const useProfileForm = (currentUser, role, navigate) => {
   const queryClient = useQueryClient();
   const toast = useToast();
+  const { refreshUser } = useAuth();
 
   // ============ CACHED: Use cached user data ============
   const { data: userData, isLoading: userLoading } = useUser(currentUser?.uid);
@@ -188,6 +190,9 @@ export const useProfileForm = (currentUser, role, navigate) => {
 
       // Invalidate cache so the new photo shows everywhere
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user(currentUser.uid) });
+
+      // Refresh AuthContext so currentUser has the updated profilePhoto
+      await refreshUser();
 
     } catch (error) {
       console.error('Upload failed:', error);
@@ -422,6 +427,9 @@ export const useProfileForm = (currentUser, role, navigate) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user(currentUser.uid) });
       // Also invalidate role-specific cache if this user is in a list
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.users(role) });
+
+      // Refresh AuthContext so currentUser has updated data
+      await refreshUser();
 
       toast.success('Profile updated successfully!');
       navigate(`/${role}/dashboard`);

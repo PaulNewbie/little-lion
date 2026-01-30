@@ -39,11 +39,27 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(null);
   };
 
+  // Refresh user data from Firestore (useful after profile updates)
+  const refreshUser = async () => {
+    if (currentUser?.uid) {
+      try {
+        const userData = await authService.getUserData(currentUser.uid);
+        setCurrentUser(prev => ({
+          ...prev,
+          ...userData
+        }));
+      } catch (error) {
+        console.error('Error refreshing user data:', error);
+      }
+    }
+  };
+
   const value = {
     currentUser,
     loading,
     login,
-    logout
+    logout,
+    refreshUser
   };
 
   return (
