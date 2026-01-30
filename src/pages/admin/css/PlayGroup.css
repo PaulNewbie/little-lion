@@ -350,54 +350,72 @@
 /* === DASHBOARD SPLIT VIEW === */
 .pg-split-layout {
   display: flex;
-  gap: 30px;
-  padding: 30px 40px;
-  height: calc(100vh - 140px);
+  gap: 24px;
+  padding: 20px;
+  height: calc(100vh - 160px);
   box-sizing: border-box;
 }
 
-/* Left Panel: Students & Photos */
+/* Left Panel: Activities & Photos */
 .pg-left-panel {
-  flex: 1; 
-  background: white;
+  flex: 1;
+  background: #ffffff;
   border-radius: 16px;
-  padding: 25px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0);
+  padding: 0;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
-  overflow: hidden; 
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
 }
 
 /* Right Panel: Calendar */
 .pg-right-panel {
-  width: 400px;
-  background: white;
+  width: 380px;
+  background: #ffffff;
   border-radius: 16px;
-  padding: 25px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0);
+  padding: 0;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
+  border: 1px solid #e5e7eb;
 }
 
 .pg-panel-header {
-  border-bottom: 1px solid #eee;
-  padding-bottom: 15px;
-  margin-bottom: 15px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  min-height: 40px;
+  min-height: 60px;
+  border-radius: 16px 16px 0 0;
 }
 
 .pg-panel-header h2 {
   margin: 0;
-  font-size: 20px;
-  color: #2c3e50;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pg-panel-header h2::before {
+  content: '';
+  width: 4px;
+  height: 20px;
+  background: #FFCB10;
+  border-radius: 2px;
 }
 
 .pg-date-label {
-  color: #4ECDC4;
-  font-weight: bold;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 6px 14px;
+  border-radius: 20px;
 }
 
 /* --- Panel Header for Photo View --- */
@@ -489,31 +507,81 @@
   font-size: 20px;
 }
 
-/* --- Inline Photo Grid --- */
+/* --- Inner Scroll Area --- */
 .pg-inner-scroll {
   overflow-y: auto;
   flex: 1;
-  padding-right: 5px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
+/* Activities Container */
+.pg-activities-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Activity Block */
+.pg-activity-block {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.pg-activity-block:hover {
+  border-color: #FFCB10;
+  box-shadow: 0 4px 12px rgba(255, 203, 16, 0.15);
+}
+
+.pg-activity-text {
+  margin-bottom: 12px;
+}
+
+.pg-activity-title {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0052A1;
+}
+
+.pg-activity-desc {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.pg-no-photos-msg {
+  font-size: 12px;
+  color: #9ca3af;
+  font-style: italic;
+  padding: 8px 0;
+}
+
+/* Photo Grid */
 .pg-photo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
 }
 
 .pg-photo-card {
-  height: 180px;
-  border-radius: 8px;
+  aspect-ratio: 1;
+  border-radius: 10px;
   overflow: hidden;
-  border: 1px solid #eee;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .pg-photo-card:hover {
-  transform: scale(1.02);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .pg-photo-card img {
@@ -522,43 +590,99 @@
   object-fit: cover;
 }
 
+/* No Data State */
 .pg-no-data {
   text-align: center;
-  color: #999;
-  margin-top: 50px;
-  grid-column: 1 / -1;
+  padding: 40px 20px;
+  color: #9ca3af;
 }
 
-/* --- Calendar Overrides --- */
+.pg-no-data p {
+  margin: 0 0 8px 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.pg-no-data small {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+/* --- Calendar Wrapper --- */
+.pg-calendar-wrapper {
+  padding: 20px 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .pg-calendar-wrapper .react-calendar {
   width: 100% !important;
   border: none !important;
   background: white !important;
   padding: 0 !important;
+  font-family: inherit !important;
+}
+
+.pg-calendar-wrapper .react-calendar__navigation {
+  margin-bottom: 10px;
+}
+
+.pg-calendar-wrapper .react-calendar__navigation button {
+  color: #0052A1;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.pg-calendar-wrapper .react-calendar__navigation button:hover {
+  background: #f0f9ff !important;
+}
+
+.pg-calendar-wrapper .react-calendar__tile {
+  padding: 10px 6px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+.pg-calendar-wrapper .react-calendar__tile:hover {
+  background: #f0f9ff !important;
+}
+
+.pg-calendar-wrapper .react-calendar__tile--now {
+  background: #fffef5 !important;
+  border: 2px solid #FFCB10;
+}
+
+.pg-calendar-wrapper .react-calendar__tile--active {
+  background: #0052A1 !important;
+  color: white !important;
 }
 
 .has-activity-dot {
   position: relative;
   background: transparent !important;
-  color: black !important;
+  color: inherit !important;
 }
 
 .has-activity-dot::after {
   content: '';
   position: absolute;
-  bottom: 5px;
+  bottom: 4px;
   left: 50%;
   transform: translateX(-50%);
   width: 6px;
   height: 6px;
-  background: #4ECDC4;
+  background: #FFCB10;
   border-radius: 50%;
 }
 
 .pg-calendar-legend {
-  margin-top: 20px;
-  font-size: 13px;
-  color: #666;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+  font-size: 12px;
+  color: #6b7280;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -568,7 +692,7 @@
 .dot-legend {
   width: 8px;
   height: 8px;
-  background: #4ECDC4;
+  background: #FFCB10;
   border-radius: 50%;
   display: inline-block;
 }
@@ -904,35 +1028,53 @@
 
 /* === NEW: Attendance Section === */
 .pg-attendance-section {
-  background-color: #f9fbfc;
-  padding: 15px;
-  border-radius: 10px;
-  border: 1px solid #edf2f7;
+  background: linear-gradient(135deg, #f0f9ff 0%, #f8fafc 100%);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #e0f2fe;
 }
 
 .pg-attendance-header h3 {
-  margin: 0 0 15px 0;
-  font-size: 16px;
-  color: #555;
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  color: #0052A1;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pg-attendance-header h3::before {
+  content: '';
+  width: 3px;
+  height: 14px;
+  background: #FFCB10;
+  border-radius: 2px;
 }
 
 .pg-attendance-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .pg-simple-student-card {
   display: flex;
   align-items: center;
-  background: white;
+  background: #ffffff;
   padding: 6px 12px 6px 6px;
-  border-radius: 30px;
-  border: 1px solid #e0e0e0;
-  gap: 10px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  border-radius: 24px;
+  border: 1px solid #e5e7eb;
+  gap: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.pg-simple-student-card:hover {
+  border-color: #FFCB10;
+  box-shadow: 0 2px 8px rgba(255, 203, 16, 0.2);
 }
 
 .pg-simple-student-card img {

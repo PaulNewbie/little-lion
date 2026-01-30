@@ -297,11 +297,11 @@ const PlayGroup = () => {
             <div className="pg-split-layout">
               {/* LEFT PANEL: Activities & Attendance */}
               <div className="pg-left-panel">
-                
+
                 <div className="pg-panel-header">
                    <h2>Daily Activities</h2>
                    <span className="pg-date-label">
-                     {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                     {selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                    </span>
                 </div>
 
@@ -332,8 +332,14 @@ const PlayGroup = () => {
                       ))
                     ) : (
                       <div className="pg-no-data">
-                         <p>No activities recorded for this date.</p>
-                         <small>Select a date with a green dot on the calendar.</small>
+                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1.5">
+                           <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                           <line x1="16" y1="2" x2="16" y2="6"/>
+                           <line x1="8" y1="2" x2="8" y2="6"/>
+                           <line x1="3" y1="10" x2="21" y2="10"/>
+                         </svg>
+                         <p>No activities recorded for this date</p>
+                         <small>Select a date with a yellow dot on the calendar</small>
                       </div>
                     )}
                   </div>
