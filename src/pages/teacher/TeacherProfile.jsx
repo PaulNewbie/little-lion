@@ -327,169 +327,181 @@ const TeacherProfile = () => {
             </div>
           )}
 
-          {/* Profile Display Section - Shows when profile is complete */}
-          {profileCompletion.isComplete && (
-            <div className="tp-profile-display">
-              {/* Edit Profile Button */}
-              <div className="tp-profile-display__header">
-                <h2 className="tp-profile-display__title">Profile Information</h2>
-                <button
-                  type="button"
-                  className="tp-btn tp-btn--secondary"
-                  onClick={openProfileModal}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
-                  Edit Profile
-                </button>
-              </div>
+          {/* Profile Display Section - Always Visible */}
+          <div className="tp-profile-display">
+            {/* Edit Profile Button */}
+            <div className="tp-profile-display__header">
+              <h2 className="tp-profile-display__title">Profile Information</h2>
+              <button
+                type="button"
+                className="tp-btn tp-btn--secondary"
+                onClick={openProfileModal}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Edit Profile
+              </button>
+            </div>
 
-              {/* Personal Information */}
-              <div className="tp-profile-section">
-                <h3 className="tp-profile-section__title">Personal Information</h3>
+            {/* Personal Information */}
+            <div className="tp-profile-section">
+              <h3 className="tp-profile-section__title">Personal Information</h3>
+              <div className="tp-profile-grid">
+                <div className="tp-profile-field">
+                  <span className="tp-profile-field__label">Date of Birth</span>
+                  <span className={`tp-profile-field__value ${!formData.dateOfBirth ? 'tp-value-missing' : ''}`}>
+                    {formData.dateOfBirth || 'Information not yet input'}
+                  </span>
+                </div>
+                <div className="tp-profile-field">
+                  <span className="tp-profile-field__label">Gender</span>
+                  <span className={`tp-profile-field__value ${!formData.gender ? 'tp-value-missing' : ''}`}>
+                    {formData.gender || 'Information not yet input'}
+                  </span>
+                </div>
+                <div className="tp-profile-field">
+                  <span className="tp-profile-field__label">Phone</span>
+                  <span className={`tp-profile-field__value ${!formData.phone ? 'tp-value-missing' : ''}`}>
+                    {formData.phone || 'Information not yet input'}
+                  </span>
+                </div>
+                <div className="tp-profile-field">
+                  <span className="tp-profile-field__label">Email</span>
+                  <span className="tp-profile-field__value">{formData.email || '-'}</span>
+                </div>
+                <div className="tp-profile-field tp-profile-field--full">
+                  <span className="tp-profile-field__label">Address</span>
+                  <span className={`tp-profile-field__value ${(!formData.address?.street && !formData.address?.city) ? 'tp-value-missing' : ''}`}>
+                    {formData.address?.street || formData.address?.city ? (
+                      <>
+                        {formData.address?.street && `${formData.address.street}, `}
+                        {formData.address?.city && `${formData.address.city}, `}
+                        {formData.address?.state && `${formData.address.state} `}
+                        {formData.address?.zip || ''}
+                      </>
+                    ) : 'Information not yet input'}
+                  </span>
+                </div>
+                <div className="tp-profile-field">
+                  <span className="tp-profile-field__label">Emergency Contact</span>
+                  <span className={`tp-profile-field__value ${!formData.emergencyContact?.name ? 'tp-value-missing' : ''}`}>
+                    {formData.emergencyContact?.name ? (
+                      `${formData.emergencyContact.name}${formData.emergencyContact.phone ? ` (${formData.emergencyContact.phone})` : ''}`
+                    ) : 'Information not yet input'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Teaching Credentials */}
+            <div className="tp-profile-section">
+              <h3 className="tp-profile-section__title">Teaching Credentials</h3>
+              { (formData.licenseType || formData.teachingLicense || formData.prcIdNumber || formData.certificationLevel) ? (
                 <div className="tp-profile-grid">
-                  <div className="tp-profile-field">
-                    <span className="tp-profile-field__label">Date of Birth</span>
-                    <span className="tp-profile-field__value">{formData.dateOfBirth || '-'}</span>
-                  </div>
-                  <div className="tp-profile-field">
-                    <span className="tp-profile-field__label">Gender</span>
-                    <span className="tp-profile-field__value">{formData.gender || '-'}</span>
-                  </div>
-                  <div className="tp-profile-field">
-                    <span className="tp-profile-field__label">Phone</span>
-                    <span className="tp-profile-field__value">{formData.phone || '-'}</span>
-                  </div>
-                  <div className="tp-profile-field">
-                    <span className="tp-profile-field__label">Email</span>
-                    <span className="tp-profile-field__value">{formData.email || '-'}</span>
-                  </div>
-                  <div className="tp-profile-field tp-profile-field--full">
-                    <span className="tp-profile-field__label">Address</span>
-                    <span className="tp-profile-field__value">
-                      {formData.address?.street && `${formData.address.street}, `}
-                      {formData.address?.city && `${formData.address.city}, `}
-                      {formData.address?.state && `${formData.address.state} `}
-                      {formData.address?.zip || ''}
-                      {!formData.address?.street && !formData.address?.city && '-'}
-                    </span>
-                  </div>
-                  <div className="tp-profile-field">
-                    <span className="tp-profile-field__label">Emergency Contact</span>
-                    <span className="tp-profile-field__value">
-                      {formData.emergencyContact?.name || '-'}
-                      {formData.emergencyContact?.phone && ` (${formData.emergencyContact.phone})`}
-                    </span>
-                  </div>
+                  {formData.licenseType && (
+                    <div className="tp-profile-field">
+                      <span className="tp-profile-field__label">License Type</span>
+                      <span className="tp-profile-field__value">{formData.licenseType}</span>
+                    </div>
+                  )}
+                  {formData.teachingLicense && (
+                    <div className="tp-profile-field">
+                      <span className="tp-profile-field__label">Teaching License</span>
+                      <span className="tp-profile-field__value">{formData.teachingLicense}</span>
+                    </div>
+                  )}
+                  {formData.prcIdNumber && (
+                    <div className="tp-profile-field">
+                      <span className="tp-profile-field__label">PRC ID Number</span>
+                      <span className="tp-profile-field__value">{formData.prcIdNumber}</span>
+                    </div>
+                  )}
+                  {formData.certificationLevel && (
+                    <div className="tp-profile-field">
+                      <span className="tp-profile-field__label">Certification Level</span>
+                      <span className="tp-profile-field__value">{formData.certificationLevel}</span>
+                    </div>
+                  )}
+                  {formData.yearsExperience > 0 && (
+                    <div className="tp-profile-field">
+                      <span className="tp-profile-field__label">Years of Experience</span>
+                      <span className="tp-profile-field__value">{formData.yearsExperience}</span>
+                    </div>
+                  )}
+                  {formData.specializations?.length > 0 && (
+                    <div className="tp-profile-field tp-profile-field--full">
+                      <span className="tp-profile-field__label">Specializations</span>
+                      <div className="tp-profile-tags">
+                        {formData.specializations.map((spec, idx) => (
+                          <span key={idx} className="tp-profile-tag">{spec}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-
-              {/* Teaching Credentials */}
-              {(formData.teachingLicense || formData.prcIdNumber || formData.certificationLevel) && (
-                <div className="tp-profile-section">
-                  <h3 className="tp-profile-section__title">Teaching Credentials</h3>
-                  <div className="tp-profile-grid">
-                    {formData.licenseType && (
-                      <div className="tp-profile-field">
-                        <span className="tp-profile-field__label">License Type</span>
-                        <span className="tp-profile-field__value">{formData.licenseType}</span>
-                      </div>
-                    )}
-                    {formData.teachingLicense && (
-                      <div className="tp-profile-field">
-                        <span className="tp-profile-field__label">Teaching License</span>
-                        <span className="tp-profile-field__value">{formData.teachingLicense}</span>
-                      </div>
-                    )}
-                    {formData.prcIdNumber && (
-                      <div className="tp-profile-field">
-                        <span className="tp-profile-field__label">PRC ID Number</span>
-                        <span className="tp-profile-field__value">{formData.prcIdNumber}</span>
-                      </div>
-                    )}
-                    {formData.certificationLevel && (
-                      <div className="tp-profile-field">
-                        <span className="tp-profile-field__label">Certification Level</span>
-                        <span className="tp-profile-field__value">{formData.certificationLevel}</span>
-                      </div>
-                    )}
-                    {formData.yearsExperience > 0 && (
-                      <div className="tp-profile-field">
-                        <span className="tp-profile-field__label">Years of Experience</span>
-                        <span className="tp-profile-field__value">{formData.yearsExperience}</span>
-                      </div>
-                    )}
-                    {formData.specializations?.length > 0 && (
-                      <div className="tp-profile-field tp-profile-field--full">
-                        <span className="tp-profile-field__label">Specializations</span>
-                        <div className="tp-profile-tags">
-                          {formData.specializations.map((spec, idx) => (
-                            <span key={idx} className="tp-profile-tag">{spec}</span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-{formData.educationHistory?.length > 0 && (
-                <div className="tp-profile-section">
-                  <h3 className="tp-profile-section__title">Education History</h3>
-                  <div className="tp-profile-cards">
-                    {formData.educationHistory.map((edu, idx) => (
-                      <div key={idx} className="tp-profile-card tp-profile-card--with-image">
-                        {edu.certificateURL && (
-                          <a href={edu.certificateURL} target="_blank" rel="noopener noreferrer" className="tp-profile-card__image">
-                            <img src={edu.certificateURL} alt={`${edu.degreeType} - ${edu.institution}`} />
-                          </a>
-                        )}
-                        <div className="tp-profile-card__content">
-                          <div className="tp-profile-card__header">
-                            <strong>{edu.degreeType}</strong> in {edu.fieldOfStudy}
-                          </div>
-                          <div className="tp-profile-card__body">
-                            <p>{edu.institution}</p>
-                            <p className="tp-profile-card__meta">Graduated: {edu.graduationYear}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Certifications - Only show if data exists */}
-              {formData.certifications?.length > 0 && (
-                <div className="tp-profile-section">
-                  <h3 className="tp-profile-section__title">Certifications</h3>
-                  <div className="tp-profile-cards">
-                    {formData.certifications.map((cert, idx) => (
-                      <div key={idx} className="tp-profile-card tp-profile-card--with-image">
-                        {cert.certificateURL && (
-                          <a href={cert.certificateURL} target="_blank" rel="noopener noreferrer" className="tp-profile-card__image">
-                            <img src={cert.certificateURL} alt={cert.name} />
-                          </a>
-                        )}
-                        <div className="tp-profile-card__content">
-                          <div className="tp-profile-card__header">
-                            <strong>{cert.name}</strong>
-                          </div>
-                          <div className="tp-profile-card__body">
-                            <p>{cert.issuingOrg}</p>
-                            <p className="tp-profile-card__meta">Issued: {cert.issueDate}</p>
-                            {cert.expirationDate && <p className="tp-profile-card__meta">Expires: {cert.expirationDate}</p>}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              ) : (
+                <p className="tp-profile-empty">Teaching credentials not yet input</p>
               )}
             </div>
-          )}
+
+            <div className="tp-profile-section">
+              <h3 className="tp-profile-section__title">Education History</h3>
+              {formData.educationHistory?.length > 0 ? (
+                <div className="tp-profile-cards">
+                  {formData.educationHistory.map((edu, idx) => (
+                    <div key={idx} className="tp-profile-card tp-profile-card--with-image">
+                      {edu.certificateURL && (
+                        <a href={edu.certificateURL} target="_blank" rel="noopener noreferrer" className="tp-profile-card__image">
+                          <img src={edu.certificateURL} alt={`${edu.degreeType} - ${edu.institution}`} />
+                        </a>
+                      )}
+                      <div className="tp-profile-card__content">
+                        <div className="tp-profile-card__header">
+                          <strong>{edu.degreeType}</strong> in {edu.fieldOfStudy}
+                        </div>
+                        <div className="tp-profile-card__body">
+                          <p>{edu.institution}</p>
+                          <p className="tp-profile-card__meta">Graduated: {edu.graduationYear}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="tp-profile-empty">Education history not yet input</p>
+              )}
+            </div>
+
+            {/* Certifications - Only show if data exists */}
+            {formData.certifications?.length > 0 && (
+              <div className="tp-profile-section">
+                <h3 className="tp-profile-section__title">Certifications</h3>
+                <div className="tp-profile-cards">
+                  {formData.certifications.map((cert, idx) => (
+                    <div key={idx} className="tp-profile-card tp-profile-card--with-image">
+                      {cert.certificateURL && (
+                        <a href={cert.certificateURL} target="_blank" rel="noopener noreferrer" className="tp-profile-card__image">
+                          <img src={cert.certificateURL} alt={cert.name} />
+                        </a>
+                      )}
+                      <div className="tp-profile-card__content">
+                        <div className="tp-profile-card__header">
+                          <strong>{cert.name}</strong>
+                        </div>
+                        <div className="tp-profile-card__body">
+                          <p>{cert.issuingOrg}</p>
+                          <p className="tp-profile-card__meta">Issued: {cert.issueDate}</p>
+                          {cert.expirationDate && <p className="tp-profile-card__meta">Expires: {cert.expirationDate}</p>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Profile Completion Modal */}
           {showProfileModal && (

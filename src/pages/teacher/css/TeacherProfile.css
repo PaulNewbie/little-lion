@@ -105,3 +105,17 @@
     height: 26px;
   }
 }
+
+.tp-value-missing {
+  color: #888;
+  font-style: italic;
+}
+
+.tp-profile-empty {
+  padding: 20px;
+  background-color: #f1f3f5;
+  border: 1px dashed #ced4da;
+  border-radius: 8px;
+  color: #6c757d;
+  text-align: center;
+}
