@@ -102,13 +102,21 @@ const TeacherDashboard = () => {
     }
   }, [students, currentUser]);
 
-  // Profile Completion Check
+  // Profile Completion Check - show welcome for new users with empty profile
   useEffect(() => {
-    if (currentUser && currentUser.profileCompleted === false) {
-      const timer = setTimeout(() => {
-        setShowWelcomeModal(true);
-      }, 500);
-      return () => clearTimeout(timer);
+    if (currentUser) {
+      // Check if profile is essentially empty (new user)
+      const isNewUser = !currentUser.profilePhoto &&
+                        !currentUser.phone &&
+                        !currentUser.gender &&
+                        !currentUser.dateOfBirth;
+
+      if (isNewUser) {
+        const timer = setTimeout(() => {
+          setShowWelcomeModal(true);
+        }, 500);
+        return () => clearTimeout(timer);
+      }
     }
   }, [currentUser]);
 
@@ -253,7 +261,7 @@ const TeacherDashboard = () => {
             )}
 
             {/* Profile Completion Banner */}
-            {currentUser?.profileCompleted === false && (
+            {(!currentUser?.profilePhoto || !currentUser?.phone || !currentUser?.gender) && (
               <div className="teacher-dashboard__profile-banner">
                 <div>
                   <h3 className="teacher-dashboard__profile-banner-title">

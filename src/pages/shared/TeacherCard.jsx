@@ -151,149 +151,149 @@ const TeacherCard = ({ teacher, isSuperAdmin, onManageSpecs, onSpecializationCli
 
       {/* ================= BOTTOM SECTIONS: Credentials (Separate Cards) ================= */}
 
-      {/* Professional Licenses Section */}
-      <div style={styles.credentialCard}>
-        <div style={styles.sectionLabel}>PROFESSIONAL LICENSES</div>
+      {/* Professional Licenses Section - Only show if data exists */}
+      {((teacher.licenses && teacher.licenses.length > 0) || teacher.teachingLicense || teacher.prcIdNumber || teacher.certificationLevel) && (
+        <div style={styles.credentialCard}>
+          <div style={styles.sectionLabel}>PROFESSIONAL LICENSES</div>
 
-        {teacher.licenses && teacher.licenses.length > 0 ? (
-          <div style={{
-            ...styles.licensesGrid,
-            gridTemplateColumns: teacher.licenses.length === 1 ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))'
-          }}>
-            {teacher.licenses.map((license, idx) => (
-              <div key={idx} style={styles.licenseCard}>
-                <div style={styles.licenseHeader}>
-                  <span style={styles.licenseType}>{license.licenseType}</span>
-                </div>
-                <div style={styles.licenseBody}>
-                  <div style={styles.licenseRow}>
-                    <span style={styles.licenseLabel}>License #:</span>
-                    <span style={styles.licenseValue}>{license.licenseNumber}</span>
+          {teacher.licenses && teacher.licenses.length > 0 ? (
+            <div style={{
+              ...styles.licensesGrid,
+              gridTemplateColumns: teacher.licenses.length === 1 ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))'
+            }}>
+              {teacher.licenses.map((license, idx) => (
+                <div key={idx} style={styles.licenseCard}>
+                  <div style={styles.licenseHeader}>
+                    <span style={styles.licenseType}>{license.licenseType}</span>
                   </div>
-                  {license.licenseState && (
+                  <div style={styles.licenseBody}>
                     <div style={styles.licenseRow}>
-                      <span style={styles.licenseLabel}>State/Region:</span>
-                      <span style={styles.licenseValue}>{license.licenseState}</span>
+                      <span style={styles.licenseLabel}>License #:</span>
+                      <span style={styles.licenseValue}>{license.licenseNumber}</span>
                     </div>
-                  )}
-                  {license.licenseIssueDate && (
-                    <div style={styles.licenseRow}>
-                      <span style={styles.licenseLabel}>Issued:</span>
-                      <span style={styles.licenseValue}>{license.licenseIssueDate}</span>
-                    </div>
-                  )}
-                  {license.licenseExpirationDate && (
-                    <div style={styles.licenseRow}>
-                      <span style={styles.licenseLabel}>Expires:</span>
-                      <span style={styles.licenseValue}>{license.licenseExpirationDate}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (teacher.teachingLicense || teacher.prcIdNumber || teacher.certificationLevel) ? (
-          <div style={styles.licensesGrid}>
-            {teacher.teachingLicense && (
-              <div style={styles.licenseCard}>
-                <div style={styles.licenseHeader}>
-                  <span style={styles.licenseType}>Teaching License</span>
-                </div>
-                <div style={styles.licenseBody}>
-                  <div style={styles.licenseRow}>
-                    <span style={styles.licenseLabel}>License #:</span>
-                    <span style={styles.licenseValue}>{teacher.teachingLicense}</span>
-                  </div>
-                  {teacher.certificationLevel && (
-                    <div style={styles.licenseRow}>
-                      <span style={styles.licenseLabel}>Level:</span>
-                      <span style={styles.licenseValue}>{teacher.certificationLevel}</span>
-                    </div>
-                  )}
-                  {teacher.licenseState && (
-                    <div style={styles.licenseRow}>
-                      <span style={styles.licenseLabel}>State/Region:</span>
-                      <span style={styles.licenseValue}>{teacher.licenseState}</span>
-                    </div>
-                  )}
-                  {teacher.licenseExpirationDate && (
-                    <div style={styles.licenseRow}>
-                      <span style={styles.licenseLabel}>Expires:</span>
-                      <span style={styles.licenseValue}>{teacher.licenseExpirationDate}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-            {teacher.prcIdNumber && (
-              <div style={styles.licenseCard}>
-                <div style={styles.licenseHeader}>
-                  <span style={styles.licenseType}>PRC ID</span>
-                </div>
-                <div style={styles.licenseBody}>
-                  <div style={styles.licenseRow}>
-                    <span style={styles.licenseLabel}>ID #:</span>
-                    <span style={styles.licenseValue}>{teacher.prcIdNumber}</span>
+                    {license.licenseState && (
+                      <div style={styles.licenseRow}>
+                        <span style={styles.licenseLabel}>State/Region:</span>
+                        <span style={styles.licenseValue}>{license.licenseState}</span>
+                      </div>
+                    )}
+                    {license.licenseIssueDate && (
+                      <div style={styles.licenseRow}>
+                        <span style={styles.licenseLabel}>Issued:</span>
+                        <span style={styles.licenseValue}>{license.licenseIssueDate}</span>
+                      </div>
+                    )}
+                    {license.licenseExpirationDate && (
+                      <div style={styles.licenseRow}>
+                        <span style={styles.licenseLabel}>Expires:</span>
+                        <span style={styles.licenseValue}>{license.licenseExpirationDate}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <span style={styles.emptyText}>No professional licenses uploaded</span>
-        )}
-      </div>
-
-      {/* Education History Section */}
-      <div style={styles.credentialCard}>
-        <div style={styles.sectionLabel}>EDUCATION HISTORY</div>
-
-        {teacher.educationHistory && teacher.educationHistory.length > 0 ? (
-          <div style={{
-            ...styles.educationGrid,
-            gridTemplateColumns: teacher.educationHistory.length === 1 ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))'
-          }}>
-            {teacher.educationHistory.map((edu, idx) => (
-              <div key={idx} style={styles.educationCard}>
-                {edu.certificateURL && (
-                  <div
-                    style={styles.educationImage}
-                    onClick={() => window.open(edu.certificateURL, '_blank')}
-                  >
-                    <img src={edu.certificateURL} alt={`${edu.degreeType} Certificate`} style={styles.certImg} />
+              ))}
+            </div>
+          ) : (
+            <div style={styles.licensesGrid}>
+              {teacher.teachingLicense && (
+                <div style={styles.licenseCard}>
+                  <div style={styles.licenseHeader}>
+                    <span style={styles.licenseType}>Teaching License</span>
                   </div>
-                )}
-                <div style={styles.educationInfo}>
-                  <div style={styles.educationDegree}>
-                    {edu.degreeType || edu.degree} {edu.fieldOfStudy && `in ${edu.fieldOfStudy}`}
+                  <div style={styles.licenseBody}>
+                    <div style={styles.licenseRow}>
+                      <span style={styles.licenseLabel}>License #:</span>
+                      <span style={styles.licenseValue}>{teacher.teachingLicense}</span>
+                    </div>
+                    {teacher.certificationLevel && (
+                      <div style={styles.licenseRow}>
+                        <span style={styles.licenseLabel}>Level:</span>
+                        <span style={styles.licenseValue}>{teacher.certificationLevel}</span>
+                      </div>
+                    )}
+                    {teacher.licenseState && (
+                      <div style={styles.licenseRow}>
+                        <span style={styles.licenseLabel}>State/Region:</span>
+                        <span style={styles.licenseValue}>{teacher.licenseState}</span>
+                      </div>
+                    )}
+                    {teacher.licenseExpirationDate && (
+                      <div style={styles.licenseRow}>
+                        <span style={styles.licenseLabel}>Expires:</span>
+                        <span style={styles.licenseValue}>{teacher.licenseExpirationDate}</span>
+                      </div>
+                    )}
                   </div>
-                  <div style={styles.educationSchool}>{edu.institution}</div>
-                  {edu.graduationYear && (
-                    <div style={styles.educationYear}>Graduated: {edu.graduationYear}</div>
-                  )}
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : teacher.diplomaUrl ? (
-          <div style={styles.documentPreview}>
-            <img
-              src={teacher.diplomaUrl}
-              alt="Diploma"
-              style={styles.documentImage}
-              onClick={() => window.open(teacher.diplomaUrl, '_blank')}
-            />
-          </div>
-        ) : (
-          <span style={styles.emptyText}>No education history uploaded</span>
-        )}
-      </div>
+              )}
+              {teacher.prcIdNumber && (
+                <div style={styles.licenseCard}>
+                  <div style={styles.licenseHeader}>
+                    <span style={styles.licenseType}>PRC ID</span>
+                  </div>
+                  <div style={styles.licenseBody}>
+                    <div style={styles.licenseRow}>
+                      <span style={styles.licenseLabel}>ID #:</span>
+                      <span style={styles.licenseValue}>{teacher.prcIdNumber}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
-      {/* Certifications Section */}
-      <div style={styles.credentialCard}>
-        <div style={styles.sectionLabel}>CERTIFICATIONS</div>
+      {/* Education History Section - Only show if data exists */}
+      {((teacher.educationHistory && teacher.educationHistory.length > 0) || teacher.diplomaUrl) && (
+        <div style={styles.credentialCard}>
+          <div style={styles.sectionLabel}>EDUCATION HISTORY</div>
 
-        {teacher.certifications && teacher.certifications.length > 0 ? (
+          {teacher.educationHistory && teacher.educationHistory.length > 0 ? (
+            <div style={{
+              ...styles.educationGrid,
+              gridTemplateColumns: teacher.educationHistory.length === 1 ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))'
+            }}>
+              {teacher.educationHistory.map((edu, idx) => (
+                <div key={idx} style={styles.educationCard}>
+                  {edu.certificateURL && (
+                    <div
+                      style={styles.educationImage}
+                      onClick={() => window.open(edu.certificateURL, '_blank')}
+                    >
+                      <img src={edu.certificateURL} alt={`${edu.degreeType} Certificate`} style={styles.certImg} />
+                    </div>
+                  )}
+                  <div style={styles.educationInfo}>
+                    <div style={styles.educationDegree}>
+                      {edu.degreeType || edu.degree} {edu.fieldOfStudy && `in ${edu.fieldOfStudy}`}
+                    </div>
+                    <div style={styles.educationSchool}>{edu.institution}</div>
+                    {edu.graduationYear && (
+                      <div style={styles.educationYear}>Graduated: {edu.graduationYear}</div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={styles.documentPreview}>
+              <img
+                src={teacher.diplomaUrl}
+                alt="Diploma"
+                style={styles.documentImage}
+                onClick={() => window.open(teacher.diplomaUrl, '_blank')}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Certifications Section - Only show if data exists */}
+      {teacher.certifications && teacher.certifications.length > 0 && (
+        <div style={styles.credentialCard}>
+          <div style={styles.sectionLabel}>CERTIFICATIONS</div>
+
           <div style={{
             ...styles.certificationsGrid,
             gridTemplateColumns: teacher.certifications.length === 1 ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))'
@@ -321,10 +321,8 @@ const TeacherCard = ({ teacher, isSuperAdmin, onManageSpecs, onSpecializationCli
               </div>
             ))}
           </div>
-        ) : (
-          <span style={styles.emptyText}>No certifications uploaded</span>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

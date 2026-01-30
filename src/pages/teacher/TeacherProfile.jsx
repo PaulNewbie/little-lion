@@ -55,14 +55,11 @@ const TeacherProfile = () => {
   const fullName = `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim();
   const licenseStatus = formData.licenseExpirationDate ? getExpirationStatus(formData.licenseExpirationDate) : null;
 
-  // Calculate profile completion status
+  // Calculate profile completion status (only essential items required)
   const getProfileCompletion = () => {
     const requirements = [
       { label: 'Profile photo', completed: !!formData.profilePhoto },
-      { label: 'Personal information', completed: !!(formData.firstName && formData.lastName && formData.email && formData.phone) },
-      { label: 'License information', completed: true }, 
-      { label: 'Education history', completed: true },
-      { label: 'Certifications', completed: true }
+      { label: 'Personal information', completed: !!(formData.firstName && formData.lastName && formData.email && formData.phone && formData.gender && formData.dateOfBirth) }
     ];
 
     const completedCount = requirements.filter(r => r.completed).length;
@@ -293,7 +290,7 @@ const TeacherProfile = () => {
               <div className="tp-completion-content">
                 <h3 className="tp-completion-title">Complete Your Profile</h3>
                 <p className="tp-completion-text">
-                  Please complete your personal information and upload required documents before you can fully use the system.
+                  Please complete your personal information and upload required documents. This information will be visible to parents.
                 </p>
                 <div className="tp-completion-progress">
                   <div className="tp-progress-bar">
@@ -352,24 +349,24 @@ const TeacherProfile = () => {
                 <div className="tp-profile-field">
                   <span className="tp-profile-field__label">Date of Birth</span>
                   <span className={`tp-profile-field__value ${!formData.dateOfBirth ? 'tp-value-missing' : ''}`}>
-                    {formData.dateOfBirth || 'Information not yet input'}
+                    {formData.dateOfBirth || '—'}
                   </span>
                 </div>
                 <div className="tp-profile-field">
                   <span className="tp-profile-field__label">Gender</span>
                   <span className={`tp-profile-field__value ${!formData.gender ? 'tp-value-missing' : ''}`}>
-                    {formData.gender || 'Information not yet input'}
+                    {formData.gender || '—'}
                   </span>
                 </div>
                 <div className="tp-profile-field">
                   <span className="tp-profile-field__label">Phone</span>
                   <span className={`tp-profile-field__value ${!formData.phone ? 'tp-value-missing' : ''}`}>
-                    {formData.phone || 'Information not yet input'}
+                    {formData.phone || '—'}
                   </span>
                 </div>
                 <div className="tp-profile-field">
                   <span className="tp-profile-field__label">Email</span>
-                  <span className="tp-profile-field__value">{formData.email || '-'}</span>
+                  <span className="tp-profile-field__value">{formData.email || '—'}</span>
                 </div>
                 <div className="tp-profile-field tp-profile-field--full">
                   <span className="tp-profile-field__label">Address</span>
@@ -381,7 +378,7 @@ const TeacherProfile = () => {
                         {formData.address?.state && `${formData.address.state} `}
                         {formData.address?.zip || ''}
                       </>
-                    ) : 'Information not yet input'}
+                    ) : '—'}
                   </span>
                 </div>
                 <div className="tp-profile-field">
@@ -389,16 +386,16 @@ const TeacherProfile = () => {
                   <span className={`tp-profile-field__value ${!formData.emergencyContact?.name ? 'tp-value-missing' : ''}`}>
                     {formData.emergencyContact?.name ? (
                       `${formData.emergencyContact.name}${formData.emergencyContact.phone ? ` (${formData.emergencyContact.phone})` : ''}`
-                    ) : 'Information not yet input'}
+                    ) : '—'}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Teaching Credentials */}
-            <div className="tp-profile-section">
-              <h3 className="tp-profile-section__title">Teaching Credentials</h3>
-              { (formData.licenseType || formData.teachingLicense || formData.prcIdNumber || formData.certificationLevel) ? (
+            {/* Teaching Credentials - Only show if has any data */}
+            {(formData.licenseType || formData.teachingLicense || formData.prcIdNumber || formData.certificationLevel || formData.yearsExperience > 0 || formData.specializations?.length > 0) && (
+              <div className="tp-profile-section">
+                <h3 className="tp-profile-section__title">Teaching Credentials</h3>
                 <div className="tp-profile-grid">
                   {formData.licenseType && (
                     <div className="tp-profile-field">
@@ -441,14 +438,13 @@ const TeacherProfile = () => {
                     </div>
                   )}
                 </div>
-              ) : (
-                <p className="tp-profile-empty">Teaching credentials not yet input</p>
-              )}
-            </div>
+              </div>
+            )}
 
-            <div className="tp-profile-section">
-              <h3 className="tp-profile-section__title">Education History</h3>
-              {formData.educationHistory?.length > 0 ? (
+            {/* Education History - Only show if has data */}
+            {formData.educationHistory?.length > 0 && (
+              <div className="tp-profile-section">
+                <h3 className="tp-profile-section__title">Education History</h3>
                 <div className="tp-profile-cards">
                   {formData.educationHistory.map((edu, idx) => (
                     <div key={idx} className="tp-profile-card tp-profile-card--with-image">
@@ -469,10 +465,8 @@ const TeacherProfile = () => {
                     </div>
                   ))}
                 </div>
-              ) : (
-                <p className="tp-profile-empty">Education history not yet input</p>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Certifications - Only show if data exists */}
             {formData.certifications?.length > 0 && (

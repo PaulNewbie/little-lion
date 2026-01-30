@@ -63,13 +63,11 @@ const TherapistProfile = () => {
     ? getExpirationStatus(primaryLicense.licenseExpirationDate)
     : null;
 
+  // Calculate profile completion status (only essential items required)
   const getProfileCompletion = () => {
     const requirements = [
       { label: 'Profile photo', completed: !!formData.profilePhoto },
-      { label: 'Personal information', completed: !!(formData.firstName && formData.lastName && formData.email && formData.phone) },
-      { label: 'License information', completed: formData.licenses?.length > 0 },
-      { label: 'Education history', completed: formData.educationHistory?.length > 0 },
-      { label: 'Certifications', completed: formData.certifications?.length > 0 }
+      { label: 'Personal information', completed: !!(formData.firstName && formData.lastName && formData.email && formData.phone && formData.gender && formData.dateOfBirth) }
     ];
 
     const completedCount = requirements.filter(r => r.completed).length;
@@ -306,7 +304,7 @@ const TherapistProfile = () => {
               <div className="tp-completion-content">
                 <h3 className="tp-completion-title">Complete Your Profile</h3>
                 <p className="tp-completion-text">
-                  Please complete your personal information and upload required documents before you can fully use the system.
+                  Please complete your personal information and upload required documents. This information will be visible to parents.
                 </p>
                 <div className="tp-completion-progress">
                   <div className="tp-progress-bar">
@@ -363,24 +361,24 @@ const TherapistProfile = () => {
                 <div className="tp-profile-field">
                   <span className="tp-profile-field__label">Date of Birth</span>
                   <span className={`tp-profile-field__value ${!formData.dateOfBirth ? 'tp-value-missing' : ''}`}>
-                    {formData.dateOfBirth || 'Information not yet input'}
+                    {formData.dateOfBirth || '—'}
                   </span>
                 </div>
                 <div className="tp-profile-field">
                   <span className="tp-profile-field__label">Gender</span>
                   <span className={`tp-profile-field__value ${!formData.gender ? 'tp-value-missing' : ''}`}>
-                    {formData.gender || 'Information not yet input'}
+                    {formData.gender || '—'}
                   </span>
                 </div>
                 <div className="tp-profile-field">
                   <span className="tp-profile-field__label">Phone</span>
                   <span className={`tp-profile-field__value ${!formData.phone ? 'tp-value-missing' : ''}`}>
-                    {formData.phone || 'Information not yet input'}
+                    {formData.phone || '—'}
                   </span>
                 </div>
                 <div className="tp-profile-field">
                   <span className="tp-profile-field__label">Email</span>
-                  <span className="tp-profile-field__value">{formData.email || '-'}</span>
+                  <span className="tp-profile-field__value">{formData.email || '—'}</span>
                 </div>
                 <div className="tp-profile-field tp-profile-field--full">
                   <span className="tp-profile-field__label">Address</span>
@@ -392,7 +390,7 @@ const TherapistProfile = () => {
                         {formData.address?.state && `${formData.address.state} `}
                         {formData.address?.zip || ''}
                       </>
-                    ) : 'Information not yet input'}
+                    ) : '—'}
                   </span>
                 </div>
                 <div className="tp-profile-field">
@@ -400,15 +398,16 @@ const TherapistProfile = () => {
                   <span className={`tp-profile-field__value ${!formData.emergencyContact?.name ? 'tp-value-missing' : ''}`}>
                     {formData.emergencyContact?.name ? (
                       `${formData.emergencyContact.name}${formData.emergencyContact.phone ? ` (${formData.emergencyContact.phone})` : ''}`
-                    ) : 'Information not yet input'}
+                    ) : '—'}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="tp-profile-section">
-              <h3 className="tp-profile-section__title">Professional Licenses</h3>
-              {formData.licenses?.length > 0 ? (
+            {/* Professional Licenses - Only show if has data */}
+            {formData.licenses?.length > 0 && (
+              <div className="tp-profile-section">
+                <h3 className="tp-profile-section__title">Professional Licenses</h3>
                 <div className="tp-profile-cards">
                   {formData.licenses.map((license, idx) => {
                     const status = license.licenseExpirationDate
@@ -437,37 +436,44 @@ const TherapistProfile = () => {
                     );
                   })}
                 </div>
-              ) : (
-                <p className="tp-profile-empty">License information not yet input</p>
-              )}
+              </div>
+            )}
 
-              <div className="tp-profile-grid" style={{ marginTop: '16px' }}>
-                <div className="tp-profile-field">
-                  <span className="tp-profile-field__label">Years of Experience</span>
-                  <span className="tp-profile-field__value">{formData.yearsExperience || 0}</span>
-                </div>
-                <div className="tp-profile-field">
-                  <span className="tp-profile-field__label">Employment Status</span>
-                  <span className="tp-profile-field__value">{formData.employmentStatus || '-'}</span>
-                </div>
-                <div className="tp-profile-field tp-profile-field--full">
-                  <span className="tp-profile-field__label">Specializations</span>
-                  <div className="tp-profile-tags">
-                    {formData.specializations?.length > 0 ? (
-                      formData.specializations.map((spec, idx) => (
-                        <span key={idx} className="tp-profile-tag">{spec}</span>
-                      ))
-                    ) : (
-                      <span className="tp-profile-field__value">Managed by admin</span>
-                    )}
-                  </div>
+            {/* Experience & Specializations - Only show if has data */}
+            {(formData.yearsExperience > 0 || formData.employmentStatus || formData.specializations?.length > 0) && (
+              <div className="tp-profile-section">
+                <h3 className="tp-profile-section__title">Experience & Specializations</h3>
+                <div className="tp-profile-grid">
+                  {formData.yearsExperience > 0 && (
+                    <div className="tp-profile-field">
+                      <span className="tp-profile-field__label">Years of Experience</span>
+                      <span className="tp-profile-field__value">{formData.yearsExperience}</span>
+                    </div>
+                  )}
+                  {formData.employmentStatus && (
+                    <div className="tp-profile-field">
+                      <span className="tp-profile-field__label">Employment Status</span>
+                      <span className="tp-profile-field__value">{formData.employmentStatus}</span>
+                    </div>
+                  )}
+                  {formData.specializations?.length > 0 && (
+                    <div className="tp-profile-field tp-profile-field--full">
+                      <span className="tp-profile-field__label">Specializations</span>
+                      <div className="tp-profile-tags">
+                        {formData.specializations.map((spec, idx) => (
+                          <span key={idx} className="tp-profile-tag">{spec}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
+            )}
 
-            <div className="tp-profile-section">
-              <h3 className="tp-profile-section__title">Education History</h3>
-              {formData.educationHistory?.length > 0 ? (
+            {/* Education History - Only show if has data */}
+            {formData.educationHistory?.length > 0 && (
+              <div className="tp-profile-section">
+                <h3 className="tp-profile-section__title">Education History</h3>
                 <div className="tp-profile-cards">
                   {formData.educationHistory.map((edu, idx) => (
                     <div key={idx} className="tp-profile-card tp-profile-card--with-image">
@@ -493,14 +499,13 @@ const TherapistProfile = () => {
                     </div>
                   ))}
                 </div>
-              ) : (
-                <p className="tp-profile-empty">Academic background not yet input</p>
-              )}
-            </div>
+              </div>
+            )}
 
-            <div className="tp-profile-section">
-              <h3 className="tp-profile-section__title">Certifications</h3>
-              {formData.certifications?.length > 0 ? (
+            {/* Certifications - Only show if has data */}
+            {formData.certifications?.length > 0 && (
+              <div className="tp-profile-section">
+                <h3 className="tp-profile-section__title">Certifications</h3>
                 <div className="tp-profile-cards">
                   {formData.certifications.map((cert, idx) => (
                     <div key={idx} className="tp-profile-card tp-profile-card--with-image">
@@ -527,10 +532,8 @@ const TherapistProfile = () => {
                     </div>
                   ))}
                 </div>
-              ) : (
-                <p className="tp-profile-empty">No certifications added</p>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {showProfileModal && (
