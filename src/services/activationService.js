@@ -229,7 +229,7 @@ class ActivationService {
         await sendPasswordResetEmail(auth, email, {
           url: `${window.location.origin}/login?activated=true`
         });
-        await this.markAccountAsActive(uid, activatedBy, activationCode);
+        await this.markAccountAsActive(uid, activatedBy, activationCode, new Date().toISOString());
         return { success: true, method: 'email_reset' };
       }
 
@@ -250,7 +250,7 @@ class ActivationService {
       await tempAuth.signOut();
 
       // 7. Mark account as active and remove temp key
-      await this.markAccountAsActive(uid, activatedBy, activationCode);
+      await this.markAccountAsActive(uid, activatedBy, activationCode, new Date().toISOString());
 
       return { success: true, method: 'direct' };
 
@@ -264,7 +264,7 @@ class ActivationService {
           await sendPasswordResetEmail(auth, email, {
             url: `${window.location.origin}/login?activated=true`
           });
-          await this.markAccountAsActive(uid, activatedBy, activationCode);
+          await this.markAccountAsActive(uid, activatedBy, activationCode, new Date().toISOString());
           return { success: true, method: 'email_reset', fallback: true };
         } catch (resetError) {
           return { success: false, error: 'Failed to set password. Please contact support.' };
@@ -290,8 +290,9 @@ class ActivationService {
    * @param {string} uid - User's UID
    * @param {string} activatedBy - 'self' or 'admin'
    * @param {string} activationCode - The activation code to delete
+   * @param {string} termsAcceptedAt - ISO timestamp of terms acceptance
    */
-  async markAccountAsActive(uid, activatedBy = 'self', activationCode = null) {
+  async markAccountAsActive(uid, activatedBy = 'self', activationCode = null, termsAcceptedAt = null) {
     const userRef = doc(db, 'users', uid);
 
     // First, set the active status
@@ -299,6 +300,7 @@ class ActivationService {
       accountStatus: 'active',
       activatedAt: new Date().toISOString(),
       activatedBy: activatedBy,
+      ...(termsAcceptedAt && { termsAcceptedAt }),
       updatedAt: serverTimestamp()
     });
 

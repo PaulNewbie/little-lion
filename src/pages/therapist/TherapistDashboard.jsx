@@ -9,6 +9,7 @@ import { Mail, Phone, X, Play } from 'lucide-react';
 import { useTherapistDashboardData } from '../../hooks/useCachedData';
 import logo from '../../images/logo.png';
 import './css/TherapistDashboard.css';
+import WelcomeModal from '../../components/common/WelcomeModal';
 
 // --- PAGINATION CONFIG ---
 const PAGE_SIZE = 10;
@@ -29,6 +30,7 @@ const TherapistDashboard = () => {
   const { students, isLoading: loading, error: queryError } = useTherapistDashboardData();
   const [error, setError] = useState('');
 
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   // Set error from query if needed
   useEffect(() => {
     if (queryError) {
@@ -40,17 +42,20 @@ const TherapistDashboard = () => {
   useEffect(() => {
     if (currentUser && currentUser.profileCompleted === false) {
       const timer = setTimeout(() => {
-        const shouldComplete = window.confirm(
-          "📋 Complete your professional profile to help parents know you better.\n\nWould you like to do it now?"
-        );
-        if (shouldComplete) {
-          navigate('/therapist/profile');
-        }
-      }, 1000);
-
+        setShowWelcomeModal(true);
+      }, 500);
       return () => clearTimeout(timer);
     }
-  }, [currentUser, navigate]);
+  }, [currentUser]);
+
+  const handleCompleteProfile = () => {
+    setShowWelcomeModal(false);
+    navigate('/therapist/profile');
+  };
+
+  const handleSkipWelcome = () => {
+    setShowWelcomeModal(false);
+  };
 
   // All filtered students (before pagination)
   const allFilteredStudents = useMemo(() => {
@@ -398,6 +403,13 @@ const TherapistDashboard = () => {
         </footer>
       </div>
       )}
+
+    <WelcomeModal
+      isOpen={showWelcomeModal}
+      userName={currentUser?.firstName || 'there'}
+      onCompleteProfile={handleCompleteProfile}
+      onSkip={handleSkipWelcome}
+    />
     </div>
   );
 };

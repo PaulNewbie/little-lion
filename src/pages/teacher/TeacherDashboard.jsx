@@ -13,6 +13,7 @@ import { Mail, Phone } from 'lucide-react';
 import { useTeacherDashboardData } from '../../hooks/useCachedData';
 import logo from '../../images/logo.png';
 import './css/TeacherDashboard.css';
+import WelcomeModal from '../../components/common/WelcomeModal';
 
 // --- PAGINATION CONFIG ---
 const PAGE_SIZE = 10;
@@ -51,6 +52,8 @@ const TeacherDashboard = () => {
   const [needNote, setNeedNote] = useState('');
   const [homeNote, setHomeNote] = useState('');
   const [concernNote, setConcernNote] = useState('');
+
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   // Fetch Data
   const { students, isLoading: loading, error: queryError } = useTeacherDashboardData();
@@ -103,17 +106,20 @@ const TeacherDashboard = () => {
   useEffect(() => {
     if (currentUser && currentUser.profileCompleted === false) {
       const timer = setTimeout(() => {
-        const shouldComplete = window.confirm(
-          "Complete your professional profile to help parents know you better.\n\nWould you like to do it now?"
-        );
-        if (shouldComplete) {
-          navigate('/teacher/profile');
-        }
-      }, 1000);
-
+        setShowWelcomeModal(true);
+      }, 500);
       return () => clearTimeout(timer);
     }
-  }, [currentUser, navigate]);
+  }, [currentUser]);
+
+  const handleCompleteProfile = () => {
+    setShowWelcomeModal(false);
+    navigate('/teacher/profile');
+  };
+
+  const handleSkipWelcome = () => {
+    setShowWelcomeModal(false);
+  };
 
   // Filter students based on search
   const allFilteredStudents = useMemo(() => {
@@ -501,6 +507,13 @@ const TeacherDashboard = () => {
         </footer>
       </div>
       )}
+
+      <WelcomeModal
+        isOpen={showWelcomeModal}
+        userName={currentUser?.firstName || 'there'}
+        onCompleteProfile={handleCompleteProfile}
+        onSkip={handleSkipWelcome}
+      />
     </div>
   );
 };

@@ -6,6 +6,35 @@ import activationService from '../../services/activationService';
 import { useToast } from '../../context/ToastContext';
 import bgImage from '../../images/Little-lion-bg.png';
 
+// Terms and Agreement content
+const TERMS_CONTENT = `Welcome to Little Lions Learning and Development Center's Parent Portal.
+
+1. Account Security
+Keep your login credentials private. You are fully responsible for all activities performed under your account.
+
+2. Privacy & Confidentiality
+All information related to your child, including therapy notes, assessments, progress reports, and records, is confidential. You agree not to share or misuse any sensitive information obtained from this system.
+
+3. Appropriate Use
+This system is intended solely for monitoring and supporting your child’s educational and therapy progress. Use the system respectfully and report concerns through proper and official channels.
+
+4. Photo & Media Content
+Parents or legal guardians are allowed to upload and post photos or media only if the child in the content is their own.
+
+By uploading photos or media, you confirm that:
+  - You have the legal right and consent to upload the content.
+  - The content is appropriate and respectful.
+  - You are fully accountable for all photos or media you upload.
+  -  The school or system administrators are not responsible for user-uploaded content.
+
+5. Data Accuracy
+Information shown in the system is based on records entered by authorized staff and parents. If you notice incorrect or outdated information, please contact the school for verification or correction.
+
+6. System Access
+The school reserves the right to modify, suspend, or revoke access to the system if these terms are violated or when the child is no longer enrolled or active in the program.
+
+By proceeding, you confirm that you have read, understood, and agreed to these Terms and Agreement.`;
+
 // Minimal inline styles
 const styles = {
   container: {
@@ -218,6 +247,8 @@ export default function ActivatePage() {
   const [error, setError] = useState('');
   const [errorType, setErrorType] = useState(''); // 'expired', 'already_active', 'invalid'
 
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
   // Validate code on mount if present in URL
   useEffect(() => {
     if (urlCode) {
@@ -410,6 +441,7 @@ export default function ActivatePage() {
               <div style={styles.stepDotActive} />
               <div style={styles.stepDot} />
               <div style={styles.stepDot} />
+              <div style={styles.stepDot} />
             </div>
             
             <h1 style={styles.title}>Welcome!</h1>
@@ -430,7 +462,7 @@ export default function ActivatePage() {
             
             <div style={styles.divider} />
             <p style={{ textAlign: 'center', fontSize: '14px', color: '#666' }}>
-              Need help? Ask the admin or call the school
+              Need help? Contact the school admin
             </p>
           </>
         );
@@ -441,6 +473,7 @@ export default function ActivatePage() {
             <div style={styles.stepIndicator}>
               <div style={styles.stepDotActive} />
               <div style={styles.stepDotActive} />
+              <div style={styles.stepDot} />
               <div style={styles.stepDot} />
             </div>
             
@@ -465,7 +498,7 @@ export default function ActivatePage() {
             </div>
             
             <button
-              onClick={() => setStep('password')}
+              onClick={() => setStep('terms')}
               style={styles.button}
             >
               Yes, this is me
@@ -483,10 +516,74 @@ export default function ActivatePage() {
           </>
         );
 
+      case 'terms':
+        return (
+          <>
+            <div style={styles.stepIndicator}>
+              <div style={styles.stepDotActive} />
+              <div style={styles.stepDotActive} />
+              <div style={styles.stepDotActive} />
+              <div style={styles.stepDot} />
+            </div>
+            
+            <h1 style={styles.title}>Terms & Agreement</h1>
+            <p style={styles.subtitle}>Please read and accept to continue</p>
+            
+            <div style={{
+              maxHeight: '200px',
+              overflowY: 'auto',
+              padding: '12px',
+              backgroundColor: '#f9fafb',
+              border: '1px solid #e5e7eb',
+              borderRadius: '6px',
+              fontSize: '13px',
+              lineHeight: '1.6',
+              color: '#374151',
+              marginBottom: '16px',
+              whiteSpace: 'pre-line'
+            }}>
+              {TERMS_CONTENT}
+            </div>
+            
+            <label style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '10px',
+              cursor: 'pointer',
+              marginBottom: '16px',
+              fontSize: '14px'
+            }}>
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                style={{ marginTop: '2px', width: '18px', height: '18px', cursor: 'pointer' }}
+              />
+              <span>I have read and agree to the Terms & Agreement</span>
+            </label>
+            
+            <button
+              onClick={() => setStep('password')}
+              disabled={!termsAccepted}
+              style={termsAccepted ? styles.button : styles.buttonDisabled}
+            >
+              Continue
+            </button>
+            
+            <button
+              onClick={() => { setStep('verify'); setTermsAccepted(false); }}
+              style={{ ...styles.linkButton, marginTop: '16px', display: 'block', textAlign: 'center', width: '100%' }}
+            >
+              ← Back
+            </button>
+          </>
+        );
+
       case 'password':
         return (
           <>
             <div style={styles.stepIndicator}>
+              <div style={styles.stepDotActive} />
               <div style={styles.stepDotActive} />
               <div style={styles.stepDotActive} />
               <div style={styles.stepDotActive} />
