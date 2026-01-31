@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../context/ToastContext';
-import { useChildrenByParent } from '../../hooks/useCachedData';
+import childService from '../../services/childService';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getParentConfig } from '../../components/sidebar/sidebarConfigs';
 import GeneralFooter from '../../components/footer/generalfooter';
@@ -529,11 +529,8 @@ const PrintIcon = () => (
 );
 
 // Child Selector Component - Visual card-based selector
-const ChildSelector = ({ children, selectedChild, onSelect, isLoading, isFetching }) => {
-  // Show loading if explicitly loading OR if we have no children and still fetching
-  const showLoading = isLoading || (children.length === 0 && isFetching);
-
-  if (showLoading) {
+const ChildSelector = ({ children, selectedChild, onSelect, isLoading }) => {
+  if (isLoading) {
     return (
       <div style={childSelectorStyles.container}>
         <div style={childSelectorStyles.loadingCard}>
@@ -726,51 +723,48 @@ export default function MonthlySummary() {
   const toast = useToast();
   const printRef = useRef(null);
 
-  // Use cached children data - prevents re-fetching across parent pages
-  const {
-    data: childrenData,
-    isLoading,
-    isFetching,
-    isPending,
-    status,
-    refetch
-  } = useChildrenByParent(currentUser?.uid);
+  // Fetch children directly - bypassing cache to fix loading issues
+  const [children, setChildren] = useState([]);
+  const [childrenLoading, setChildrenLoading] = useState(true);
 
-  // Ensure children is always an array (handles null/undefined/object responses)
-  const children = Array.isArray(childrenData) ? childrenData : [];
-
-  // True loading state:
-  // - isPending: query has never been fetched (React Query v5)
-  // - isLoading: initial loading state
-  // - isFetching: currently fetching (even in background)
-  // - status is 'pending': query is in pending state
-  // - No data and query is enabled: still waiting for first successful fetch
-  const queryEnabled = !!currentUser?.uid;
-  const hasNoData = children.length === 0 && !childrenData;
-  const childrenLoading = isPending || isLoading || (isFetching && children.length === 0) || (queryEnabled && hasNoData && status !== 'error');
-
-  // Force refetch if we have no data but should have (parent is logged in)
-  // This handles the case where cache is empty/stale
   useEffect(() => {
-    if (currentUser?.uid && !childrenData && !isLoading && !isFetching && status === 'success') {
-      console.log('MonthlySummary - Forcing refetch: cached data is empty but query succeeded');
-      refetch();
+    // Reset state when user changes
+    setChildren([]);
+    setChildrenLoading(true);
+
+    if (!currentUser?.uid) {
+      setChildrenLoading(false);
+      return;
     }
-  }, [currentUser?.uid, childrenData, isLoading, isFetching, status, refetch]);
 
-  // Debug log to understand the state
-  useEffect(() => {
-    console.log('MonthlySummary - Children State:', {
-      isPending,
-      isLoading,
-      isFetching,
-      status,
-      childrenDataExists: !!childrenData,
-      childrenLength: children.length,
-      currentUserId: currentUser?.uid,
-      childrenLoading
-    });
-  }, [isPending, isLoading, isFetching, status, childrenData, children.length, currentUser?.uid, childrenLoading]);
+    let cancelled = false;
+
+    const fetchChildren = async () => {
+      try {
+        const data = await childService.getChildrenByParentId(currentUser.uid);
+
+        if (cancelled) return;
+
+        // Deduplicate by ID
+        const uniqueChildren = data?.length > 0
+          ? [...new Map(data.map(child => [child.id, child])).values()]
+          : [];
+
+        setChildren(uniqueChildren);
+      } catch (error) {
+        console.error('Error fetching children:', error);
+        if (!cancelled) setChildren([]);
+      } finally {
+        if (!cancelled) setChildrenLoading(false);
+      }
+    };
+
+    fetchChildren();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUser?.uid]);
 
   const [selectedChild, setSelectedChild] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
@@ -1005,7 +999,6 @@ export default function MonthlySummary() {
           selectedChild={selectedChild}
           onSelect={setSelectedChild}
           isLoading={childrenLoading}
-          isFetching={isFetching}
         />
 
         {/* Controls */}
