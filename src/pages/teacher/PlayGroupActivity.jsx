@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../context/ToastContext';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -17,6 +18,7 @@ const PlayGroupActivity = () => {
   const toast = useToast();
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Retrieve passed data from Dashboard (if any)
   const { preSelectedClassName, preSelectedStudents } = location.state || {};
@@ -237,6 +239,9 @@ const PlayGroupActivity = () => {
       };
 
       await activityService.createGroupActivity(activityData);
+
+      // Invalidate the playgroup activities cache so admin dashboard shows updated data
+      await queryClient.invalidateQueries({ queryKey: ['activities', 'playgroup'] });
 
       toast.success('Activity uploaded successfully!');
       navigate(-1);

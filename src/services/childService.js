@@ -323,6 +323,51 @@ class ChildService {
   // SINGLE DOCUMENT OPERATIONS
   // ==========================================================================
 
+  /**
+   * Fetch multiple children by their IDs
+   * Efficient batch fetch with caching support
+   * @param {string[]} childIds - Array of child document IDs
+   * @returns {Promise<object[]>} Array of child objects
+   */
+  async getChildrenByIds(childIds) {
+    if (!childIds || childIds.length === 0) return [];
+
+    // Remove duplicates
+    const uniqueIds = [...new Set(childIds)];
+
+    try {
+      // Firestore 'in' query supports max 30 items, so batch if needed
+      const BATCH_SIZE = 30;
+      const batches = [];
+
+      for (let i = 0; i < uniqueIds.length; i += BATCH_SIZE) {
+        batches.push(uniqueIds.slice(i, i + BATCH_SIZE));
+      }
+
+      const results = [];
+
+      for (const batchIds of batches) {
+        // Use documentId() with 'in' for efficient batch fetch
+        const q = query(
+          collection(db, COLLECTION_NAME),
+          where('__name__', 'in', batchIds)
+        );
+
+        const snapshot = await getDocs(q);
+        trackRead(COLLECTION_NAME, snapshot.docs.length);
+
+        snapshot.docs.forEach(doc => {
+          results.push({ id: doc.id, ...doc.data() });
+        });
+      }
+
+      return results;
+    } catch (error) {
+      console.error('Error fetching children by IDs:', error);
+      throw error;
+    }
+  }
+
   async getChildById(childId) {
     if (!childId) return null;
 

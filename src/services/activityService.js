@@ -1,10 +1,12 @@
-import { 
-  collection, 
-  query, 
-  where, 
-  getDocs, 
+import {
+  collection,
+  query,
+  where,
+  getDocs,
   addDoc,
-  serverTimestamp
+  serverTimestamp,
+  onSnapshot,
+  orderBy
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
@@ -105,7 +107,7 @@ class ActivityService {
         collection(db, 'activities'),
         where('type', '==', 'group_activity')
       );
-      
+
       const querySnapshot = await getDocs(q);
       const activities = querySnapshot.docs.map(doc => ({
         id: doc.id,
@@ -116,6 +118,28 @@ class ActivityService {
     } catch (error) {
       throw new Error('Failed to fetch group activities: ' + error.message);
     }
+  }
+
+  // 5. Real-time listener for Play Group Activities (Admin Dashboard)
+  // Returns unsubscribe function for cleanup
+  listenToPlayGroupActivities(callback) {
+    const q = query(
+      collection(db, 'activities'),
+      where('type', '==', 'group_activity')
+    );
+
+    return onSnapshot(q, (snapshot) => {
+      const activities = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      // Sort by date descending (newest first)
+      activities.sort((a, b) => new Date(b.date) - new Date(a.date));
+      callback(activities);
+    }, (error) => {
+      console.error('Error listening to play group activities:', error);
+      callback([]);
+    });
   }
 }
 

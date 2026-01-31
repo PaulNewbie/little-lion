@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
@@ -83,26 +83,66 @@ const PlayGroup = () => {
     staleTime: 1000 * 60 * 5,
   });
 
-  // --- 2. Fetch All Students ---
-  // FIX: Use getChildrenPaginated to ensure correct data structure and avoid deprecation issues.
-  // We request a large limit to get "all" students for the roster lookup.
-  const { data: allChildren = [], isLoading: loadingChildren } = useQuery({
-    queryKey: ['students'],
-    queryFn: async () => {
-      const result = await childService.getChildrenPaginated({ limit: 2000 });
-      return result.students || [];
-    },
-    staleTime: 1000 * 60 * 5,
+  // --- 2. Students are fetched lazily based on activity participants ---
+  // No upfront fetch - we'll fetch only the students we need
+
+  // --- 3. Real-time listener for Activities ---
+  const [allActivities, setAllActivities] = useState([]);
+  const [loadingActivities, setLoadingActivities] = useState(true);
+
+  useEffect(() => {
+    setLoadingActivities(true);
+
+    const unsubscribe = activityService.listenToPlayGroupActivities((activities) => {
+      setAllActivities(activities);
+      setLoadingActivities(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // --- 4. Lazy load students based on selected date's activities ---
+  // Get participating student IDs only from the selected date's activities
+  const participantIds = React.useMemo(() => {
+    if (!selectedService) return [];
+
+    // Get date string for selected date
+    const offset = selectedDate.getTimezoneOffset();
+    const localDate = new Date(selectedDate.getTime() - (offset * 60 * 1000));
+    const dateString = localDate.toISOString().split('T')[0];
+
+    // Filter activities by service AND date
+    const dailyActs = allActivities.filter(act =>
+      ((act.className === selectedService.name) || (act.serviceType === selectedService.name)) &&
+      act.date === dateString
+    );
+
+    const ids = new Set();
+    dailyActs.forEach(a => {
+      if (a.participatingStudentIds) {
+        a.participatingStudentIds.forEach(id => ids.add(id));
+      }
+    });
+
+    return [...ids];
+  }, [selectedService, selectedDate, allActivities]);
+
+  // Fetch only the students we need (with caching per unique set of IDs)
+  const { data: fetchedStudents = [], isLoading: loadingStudents } = useQuery({
+    queryKey: ['students', 'byIds', participantIds.sort().join(',')],
+    queryFn: () => childService.getChildrenByIds(participantIds),
+    enabled: participantIds.length > 0,
+    staleTime: 1000 * 60 * 10, // Cache for 10 minutes - students are reused across dates
   });
 
-  // --- 3. Fetch All Activities ---
-  const { data: allActivities = [], isLoading: loadingActivities } = useQuery({
-    queryKey: ['activities', 'playgroup'],
-    queryFn: () => activityService.getAllPlayGroupActivities(),
-    staleTime: 1000 * 60 * 5,
-  });
+  // Create a map for quick lookup
+  const studentsMap = React.useMemo(() => {
+    const map = new Map();
+    fetchedStudents.forEach(student => map.set(student.id, student));
+    return map;
+  }, [fetchedStudents]);
 
-  const isLoading = loadingServices || loadingChildren || loadingActivities;
+  const isLoading = loadingServices || loadingActivities;
 
   // --- DASHBOARD LOGIC ---
   const handleServiceSelect = (service) => {
@@ -139,9 +179,6 @@ const PlayGroup = () => {
   };
 
   const getPresentChildren = () => {
-    // FIX: Add safety check to prevent crash if allChildren is not an array
-    if (!Array.isArray(allChildren)) return [];
-
     const dailyActs = getDailyActivities();
 
     const presentIds = new Set();
@@ -150,7 +187,11 @@ const PlayGroup = () => {
         a.participatingStudentIds.forEach(id => presentIds.add(id));
       }
     });
-    return allChildren.filter(c => presentIds.has(c.id));
+
+    // Use the cached students map for lookup
+    return [...presentIds]
+      .map(id => studentsMap.get(id))
+      .filter(Boolean); // Remove any undefined entries
   };
 
   // --- HANDLERS ---
@@ -314,9 +355,11 @@ const PlayGroup = () => {
                   <div className="pg-activities-container">
                     {getDailyActivities().length > 0 ? (
                       getDailyActivities().map((activity, index) => {
-                        // Get participating students for this activity
-                        const activityStudents = Array.isArray(allChildren) && activity.participatingStudentIds
-                          ? allChildren.filter(c => activity.participatingStudentIds.includes(c.id))
+                        // Get participating students for this activity using cached map
+                        const activityStudents = activity.participatingStudentIds
+                          ? activity.participatingStudentIds
+                              .map(id => studentsMap.get(id))
+                              .filter(Boolean)
                           : [];
 
                         return (
@@ -362,7 +405,7 @@ const PlayGroup = () => {
                             )}
 
                             {/* Participating Students */}
-                            {activityStudents.length > 0 && (
+                            {(activityStudents.length > 0 || (loadingStudents && activity.participatingStudentIds?.length > 0)) && (
                               <div className="pg-activity-students">
                                 <div className="pg-activity-students-header">
                                   <span className="pg-activity-students-label">
@@ -374,15 +417,21 @@ const PlayGroup = () => {
                                     </svg>
                                     Students Present
                                   </span>
-                                  <span className="pg-activity-students-count">{activityStudents.length}</span>
+                                  <span className="pg-activity-students-count">
+                                    {loadingStudents ? '...' : activityStudents.length}
+                                  </span>
                                 </div>
                                 <div className="pg-activity-students-list">
-                                  {activityStudents.map(child => (
-                                    <div key={child.id} className="pg-activity-student-chip">
-                                      <img src={child.photoUrl || "https://via.placeholder.com/24"} alt={child.firstName} />
-                                      <span>{child.firstName} {child.lastName?.charAt(0)}.</span>
-                                    </div>
-                                  ))}
+                                  {loadingStudents ? (
+                                    <span style={{ color: '#94a3b8', fontSize: '13px' }}>Loading...</span>
+                                  ) : (
+                                    activityStudents.map(child => (
+                                      <div key={child.id} className="pg-activity-student-chip">
+                                        <img src={child.photoUrl || "https://via.placeholder.com/24"} alt={child.firstName} />
+                                        <span>{child.firstName} {child.lastName?.charAt(0)}.</span>
+                                      </div>
+                                    ))
+                                  )}
                                 </div>
                               </div>
                             )}
@@ -417,10 +466,14 @@ const PlayGroup = () => {
                             </svg>
                             Overall Students Present
                           </h3>
-                          <span className="pg-attendance-count">{getPresentChildren().length}</span>
+                          <span className="pg-attendance-count">
+                            {loadingStudents ? '...' : getPresentChildren().length}
+                          </span>
                         </div>
                       </div>
-                      {getPresentChildren().length > 0 ? (
+                      {loadingStudents ? (
+                        <div className="pg-no-students">Loading students...</div>
+                      ) : getPresentChildren().length > 0 ? (
                         <div className="pg-attendance-grid">
                           {getPresentChildren().map(child => (
                             <div key={child.id} className="pg-simple-student-card">
