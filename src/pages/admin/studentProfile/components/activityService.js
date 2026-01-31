@@ -1,13 +1,14 @@
-import { 
-  collection, 
-  query, 
-  where, 
-  getDocs, 
+import {
+  collection,
+  query,
+  where,
+  getDocs,
   addDoc,
-  deleteDoc, // <--- ADDED THIS IMPORT
-  doc,       // <--- ADDED THIS IMPORT
+  deleteDoc,
+  doc,
+  updateDoc,
   serverTimestamp,
-  orderBy 
+  orderBy
 } from 'firebase/firestore';
 import { db } from '../../../../config/firebase';
 
@@ -147,18 +148,61 @@ class ActivityService {
     }
   }
 
-  // --- NEW METHOD ADDED HERE ---
   async deleteComment(activityId, collectionName, commentId) {
     try {
       if (!activityId || !collectionName || !commentId) throw new Error("Invalid IDs");
-      
+
       // Construct the path: collection -> document -> subcollection (comments) -> commentId
       const commentRef = doc(db, collectionName, activityId, 'comments', commentId);
-      
+
       await deleteDoc(commentRef);
     } catch (error) {
        console.error("Error deleting comment:", error);
-       throw error; 
+       throw error;
+    }
+  }
+
+  // =========================================================
+  // 6. COMMENT VISIBILITY METHODS (Admin Only)
+  // =========================================================
+
+  /**
+   * Hide a comment from specific user groups
+   * @param {string} hiddenFrom - 'parents', 'staff', or 'all'
+   */
+  async hideComment(activityId, collectionName, commentId, adminId, hiddenFrom = 'all') {
+    try {
+      if (!activityId || !collectionName || !commentId) throw new Error("Invalid IDs");
+
+      const commentRef = doc(db, collectionName, activityId, 'comments', commentId);
+
+      await updateDoc(commentRef, {
+        hidden: true,
+        hiddenFrom: hiddenFrom, // 'parents', 'staff', or 'all'
+        hiddenBy: adminId,
+        hiddenAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Error hiding comment:", error);
+      throw error;
+    }
+  }
+
+  async unhideComment(activityId, collectionName, commentId) {
+    try {
+      if (!activityId || !collectionName || !commentId) throw new Error("Invalid IDs");
+
+      const commentRef = doc(db, collectionName, activityId, 'comments', commentId);
+
+      await updateDoc(commentRef, {
+        hidden: false,
+        hiddenFrom: null,
+        hiddenBy: null,
+        hiddenAt: null
+      });
+    } catch (error) {
+      console.error("Error unhiding comment:", error);
+      throw error;
     }
   }
 }

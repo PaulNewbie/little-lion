@@ -9,7 +9,7 @@ import activityService from "./activityService";
 // ==========================================
 // 1. Recursive Comment Item (Thread Node)
 // ==========================================
-const CommentNode = ({ comment, allComments, currentUser, onReplySubmit, onDelete }) => {
+const CommentNode = ({ comment, allComments, currentUser, onReplySubmit, onDelete, onToggleHide }) => {
   const [isReplying, setIsReplying] = useState(false);
   const [replyText, setReplyText] = useState("");
   const [showReplies, setShowReplies] = useState(false);
@@ -49,10 +49,35 @@ const CommentNode = ({ comment, allComments, currentUser, onReplySubmit, onDelet
 
   // 5. Check if user is Author (For Delete & Styling)
   const isAuthor = currentUser && currentUser.uid === comment.authorId;
+  const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'super_admin');
+  const isHidden = comment.hidden === true;
 
   const handleDeleteClick = () => {
     if (window.confirm("Are you sure you want to delete this comment?")) {
       onDelete(comment.id);
+    }
+  };
+
+  const [showHideMenu, setShowHideMenu] = useState(false);
+
+  const handleHideOption = (hiddenFrom) => {
+    onToggleHide(comment.id, true, hiddenFrom);
+    setShowHideMenu(false);
+  };
+
+  const handleUnhide = () => {
+    if (window.confirm("Make this comment visible to everyone?")) {
+      onToggleHide(comment.id, false, null);
+    }
+  };
+
+  // Get label for who the comment is hidden from
+  const getHiddenLabel = () => {
+    if (!isHidden) return "";
+    switch (comment.hiddenFrom) {
+      case 'parents': return "🙈 Hidden from parents";
+      case 'staff': return "🙈 Hidden from staff";
+      default: return "🙈 Hidden from staff & parents";
     }
   };
 
@@ -76,12 +101,18 @@ const CommentNode = ({ comment, allComments, currentUser, onReplySubmit, onDelet
           
           {/* Bubble */}
           <div style={{
-            // --- CONDITIONAL BACKGROUND COLOR HERE ---
-            backgroundColor: isAuthor ? "#e7f3ff" : "#f0f2f5", // Blue if me, Gray if others
+            backgroundColor: isHidden ? "#fff3cd" : (isAuthor ? "#e7f3ff" : "#f0f2f5"),
             borderRadius: "18px",
-            padding: "8px 12px", 
-            display: "inline-block"
+            padding: "8px 12px",
+            display: "inline-block",
+            border: isHidden ? "1px dashed #ffc107" : "none",
+            opacity: isHidden ? 0.8 : 1
           }}>
+            {isHidden && isAdmin && (
+              <div style={{ fontSize: "0.7rem", color: "#856404", marginBottom: "4px", fontWeight: "600" }}>
+                {getHiddenLabel()}
+              </div>
+            )}
             <div style={{ fontWeight: "600", fontSize: "0.8rem", color: "#050505" }}>
               {comment.authorName}
             </div>
@@ -107,16 +138,102 @@ const CommentNode = ({ comment, allComments, currentUser, onReplySubmit, onDelet
             )}
 
             {isAuthor && (
-              <span 
+              <span
                 onClick={handleDeleteClick}
                 title="Delete comment"
-                style={{ 
+                style={{
                   cursor: "pointer", color: "#dc3545", fontSize: "0.9rem",
                   marginLeft: "5px"
                 }}
               >
                 🗑️
               </span>
+            )}
+
+            {isAdmin && (
+              <div style={{ position: "relative", display: "inline-block" }}>
+                {isHidden ? (
+                  <span
+                    onClick={handleUnhide}
+                    title="Make visible to everyone"
+                    style={{ cursor: "pointer", color: "#28a745", fontSize: "0.9rem", marginLeft: "5px" }}
+                  >
+                    👁️
+                  </span>
+                ) : (
+                  <>
+                    <span
+                      onClick={() => setShowHideMenu(!showHideMenu)}
+                      title="Hide comment"
+                      style={{ cursor: "pointer", color: "#6c757d", fontSize: "0.9rem", marginLeft: "5px" }}
+                    >
+                      🙈
+                    </span>
+                    {showHideMenu && (
+                      <div style={{
+                        position: "absolute",
+                        top: "100%",
+                        right: 0,
+                        backgroundColor: "white",
+                        border: "1px solid #ddd",
+                        borderRadius: "8px",
+                        boxShadow: "0 2px 10px rgba(0,0,0,0.15)",
+                        zIndex: 100,
+                        minWidth: "160px",
+                        overflow: "hidden"
+                      }}>
+                        <div
+                          onClick={() => handleHideOption('parents')}
+                          style={{
+                            padding: "10px 14px",
+                            cursor: "pointer",
+                            fontSize: "0.85rem",
+                            borderBottom: "1px solid #eee",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px"
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = "#f5f5f5"}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = "white"}
+                        >
+                          👨‍👩‍👧 Hide from parents
+                        </div>
+                        <div
+                          onClick={() => handleHideOption('staff')}
+                          style={{
+                            padding: "10px 14px",
+                            cursor: "pointer",
+                            fontSize: "0.85rem",
+                            borderBottom: "1px solid #eee",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px"
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = "#f5f5f5"}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = "white"}
+                        >
+                          👩‍🏫 Hide from staff
+                        </div>
+                        <div
+                          onClick={() => handleHideOption('all')}
+                          style={{
+                            padding: "10px 14px",
+                            cursor: "pointer",
+                            fontSize: "0.85rem",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px"
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = "#f5f5f5"}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = "white"}
+                        >
+                          🚫 Hide from everyone
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             )}
           </div>
 
@@ -168,13 +285,14 @@ const CommentNode = ({ comment, allComments, currentUser, onReplySubmit, onDelet
       {showReplies && replies.length > 0 && (
         <div style={{ marginLeft: "40px", borderLeft: "2px solid #f0f2f5", paddingLeft: "5px" }}>
           {replies.map(reply => (
-            <CommentNode 
-              key={reply.id} 
-              comment={reply} 
-              allComments={allComments} 
+            <CommentNode
+              key={reply.id}
+              comment={reply}
+              allComments={allComments}
               currentUser={currentUser}
               onReplySubmit={onReplySubmit}
               onDelete={onDelete}
+              onToggleHide={onToggleHide}
             />
           ))}
         </div>
@@ -258,7 +376,40 @@ const handleSendComment = async (text, parentId = null) => {
     }
   };
 
-  const rootComments = comments.filter(c => !c.parentId);
+  const handleToggleHide = async (commentId, shouldHide, hiddenFrom = 'all') => {
+    try {
+      if (shouldHide) {
+        await activityService.hideComment(contextId, collectionName, commentId, currentUser.uid, hiddenFrom);
+        const label = hiddenFrom === 'parents' ? 'parents' : hiddenFrom === 'staff' ? 'staff' : 'staff and parents';
+        toast.success(`Comment hidden from ${label}`);
+      } else {
+        await activityService.unhideComment(contextId, collectionName, commentId);
+        toast.success("Comment is now visible to everyone");
+      }
+      loadComments();
+    } catch (error) {
+      toast.error("Failed to update comment visibility: " + error.message);
+    }
+  };
+
+  // Filter comments based on user role and hiddenFrom field
+  const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'super_admin');
+  const isStaff = currentUser && (currentUser.role === 'teacher' || currentUser.role === 'therapist');
+  const isParent = currentUser && currentUser.role === 'parent';
+
+  const visibleComments = comments.filter(c => {
+    if (!c.hidden) return true; // Not hidden, everyone can see
+    if (isAdmin) return true; // Admins see all
+
+    // Check hiddenFrom field
+    if (c.hiddenFrom === 'parents' && isParent) return false;
+    if (c.hiddenFrom === 'staff' && isStaff) return false;
+    if (c.hiddenFrom === 'all') return false; // Hidden from everyone except admin
+
+    return true; // Visible to this user
+  });
+
+  const rootComments = visibleComments.filter(c => !c.parentId);
 
   return (
     <div style={{ marginTop: "15px", borderTop: "1px solid #eef0f2", paddingTop: "10px" }}>
@@ -285,13 +436,14 @@ const handleSendComment = async (text, parentId = null) => {
               </p>
             ) : (
               rootComments.map((comment) => (
-                <CommentNode 
+                <CommentNode
                   key={comment.id}
                   comment={comment}
-                  allComments={comments}
+                  allComments={visibleComments}
                   currentUser={currentUser}
                   onReplySubmit={handleSendComment}
                   onDelete={handleDeleteComment}
+                  onToggleHide={handleToggleHide}
                 />
               ))
             )}
@@ -378,6 +530,30 @@ const ActivityCalendar = ({ activities, teachers, selectedServiceName }) => {
     return map[mood] || "•";
   };
 
+  // Helper to format activity time - handles both date-only and full ISO formats
+  const formatActivityTime = (record) => {
+    // Check if date string contains time info (ISO format with 'T')
+    const dateStr = record.date;
+    if (dateStr && dateStr.includes('T')) {
+      // Full ISO string - show actual time
+      return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Date-only string - try createdAt as fallback
+    if (record.createdAt) {
+      const createdAt = typeof record.createdAt === 'string'
+        ? record.createdAt
+        : record.createdAt?.toDate?.()?.toISOString?.();
+
+      if (createdAt && createdAt.includes('T')) {
+        return new Date(createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+    }
+
+    // No time available
+    return null;
+  };
+
   const getCollectionName = (rec) => {
     if (rec.type === 'therapy_session' || rec._collection === 'therapy_sessions') {
       return 'therapy_sessions';
@@ -410,13 +586,17 @@ const ActivityCalendar = ({ activities, teachers, selectedServiceName }) => {
               const isTherapy = rec.type === "therapy_session" || rec._collection === "therapy_sessions";
               const targetCollection = getCollectionName(rec);
 
+              const activityTime = formatActivityTime(rec);
+
               return (
                 <div key={i} className="record-card">
                   <div className="record-header">
                     <span className="record-type">{rec.serviceName || rec.serviceType || "Activity"}</span>
-                    <span style={{ fontSize: "0.8rem", color: "#666", float: "right" }}>
-                      {new Date(rec.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
+                    {activityTime && (
+                      <span style={{ fontSize: "0.8rem", color: "#666", float: "right" }}>
+                        {activityTime}
+                      </span>
+                    )}
                   </div>
 
                   <p>
