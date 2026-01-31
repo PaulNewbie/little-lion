@@ -1,69 +1,68 @@
 import { useState, useEffect, useCallback } from 'react';
 import concernService from '../services/concernService';
-import childService from '../services/childService';
+import { useChildrenByParent } from './useCachedData';
 
 /**
  * Custom hook for managing parent concerns
- * ✅ UPDATED: Added client-side sorting by lastUpdated
+ * ✅ UPDATED: Uses cached children data to prevent re-fetching
  */
 const useParentConcerns = (userId) => {
   // =======================
-  // STATE (UNCHANGED)
+  // STATE
   // =======================
   const [concerns, setConcerns] = useState([]);
-  const [children, setChildren] = useState([]);
   const [selectedConcern, setSelectedConcern] = useState(null);
   const [messages, setMessages] = useState([]);
 
-  const [loading, setLoading] = useState(true);
+  const [concernsLoading, setConcernsLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
 
   // =======================
-  // FETCH CHILDREN (UNCHANGED)
+  // CACHED CHILDREN DATA (✅ No re-fetch on navigation!)
   // =======================
-  const fetchChildren = useCallback(async () => {
-    if (!userId) return;
-    try {
-      const childData = await childService.getChildrenByParentId(userId);
-      setChildren(childData);
-    } catch (err) {
+  const {
+    data: children = [],
+    isLoading: childrenLoading,
+    error: childrenError
+  } = useChildrenByParent(userId);
+
+  // Combined loading state
+  const loading = concernsLoading || childrenLoading;
+
+  // Set error if children fetch fails
+  useEffect(() => {
+    if (childrenError) {
       setError("Failed to load children. Please try again.");
     }
-  }, [userId]);
-
-  useEffect(() => {
-    fetchChildren();
-  }, [fetchChildren]);
+  }, [childrenError]);
 
   // =======================
-  // LISTEN TO CONCERNS (✅ UPDATED WITH CLIENT-SIDE SORTING)
+  // LISTEN TO CONCERNS (Real-time with client-side sorting)
   // =======================
   useEffect(() => {
     if (!userId) {
-      setLoading(false);
+      setConcernsLoading(false);
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    setConcernsLoading(true);
 
     const unsubscribe = concernService.listenToConcernsByParent(
       userId,
       (concernsData) => {
-        // ✅ Sort client-side by lastUpdated (most recent first)
+        // Sort client-side by lastUpdated (most recent first)
         const sortedConcerns = concernsData.sort((a, b) => {
           const aTime = a.lastUpdated?.toMillis?.() || a.lastUpdated || 0;
           const bTime = b.lastUpdated?.toMillis?.() || b.lastUpdated || 0;
-          return bTime - aTime; // Descending order (most recent first)
+          return bTime - aTime;
         });
-        
+
         setConcerns(sortedConcerns);
-        setLoading(false);
+        setConcernsLoading(false);
       }
     );
 
-    // Cleanup on unmount
     return () => unsubscribe();
   }, [userId]);
 
