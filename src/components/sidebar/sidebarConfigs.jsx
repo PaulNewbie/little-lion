@@ -104,6 +104,8 @@ export const getAdminConfig = (isSuperAdmin = false) => ({
     {
       title: "MANAGEMENT",
       items: [
+        // Concerns - standalone for easy visibility
+        { path: "/admin/concerns", icon: MailIcon, label: "CONCERNS" },
         // User Management Dropdown
         {
           icon: UsersIcon,
@@ -122,7 +124,6 @@ export const getAdminConfig = (isSuperAdmin = false) => ({
           label: "ACCESS CONTROL",
           isDropdown: true,
           subItems: [
-            { path: "/admin/concerns", icon: MailIcon, label: "CONCERNS" },
             { path: "/admin/pending-accounts", icon: ClockIcon, label: "PENDING ACCOUNTS" },
             { path: "/admin/user-access", icon: ShieldIcon, label: "USER ACCESS" },
           ]
