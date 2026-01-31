@@ -228,16 +228,43 @@
 }
 
 /* ================================================================
-   CARDS / GRID - Exact copy of PlayGroup.css pg-services-grid
+   SERVICE LIST VIEW
 ================================================================ */
-.ooo-content .ooo-grid {
+.ooo-service-list-view {
+  animation: oooFadeInUp 0.4s ease-out;
+}
+
+.ooo-students-view {
+  animation: oooFadeInUp 0.4s ease-out;
+}
+
+@keyframes oooFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ooo-content-area {
+  padding: 0 4px;
+}
+
+/* ================================================================
+   CARDS / GRID - Matching PlayGroup.css
+================================================================ */
+.ooo-services-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1rem;
   justify-content: center;
+  margin-bottom: 40px;
 }
 
-.ooo-content .ooo-card {
+.ooo-service-card {
   background-color: #fff;
   border-radius: 8px;
   padding: 1rem;
@@ -249,14 +276,14 @@
   position: relative;
 }
 
-.ooo-content .ooo-card:hover {
+.ooo-service-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   border: 2px solid #FFCB10;
 }
 
 /* Card image box for service */
-.ooo-content .ooo-card-image-box {
+.ooo-card-image-box {
   width: 100%;
   height: 160px;
   margin-bottom: 15px;
@@ -272,12 +299,12 @@
   transition: transform 0.3s;
 }
 
-.ooo-content .ooo-card:hover .ooo-card-image {
+.ooo-service-card:hover .ooo-card-image {
   transform: none;
 }
 
 /* Fallback Icon Area */
-.ooo-content .ooo-card-icon {
+.ooo-card-icon {
   font-size: 40px;
   margin-bottom: 15px;
   width: 100%;
@@ -290,7 +317,7 @@
   color: #4ECDC4;
 }
 
-.ooo-content .ooo-card h3 {
+.ooo-service-card h3 {
   margin: 0;
   color: #333333;
   font-size: clamp(12px, 3.5vw, 15px);
@@ -304,19 +331,26 @@
   box-sizing: border-box;
 }
 
-.ooo-content .ooo-card p {
-  color: #333;
-  font-size: 14px;
-  flex: 1;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  margin-bottom: 10px;
+.ooo-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 80px 20px;
+  color: #64748b;
+  font-size: 16px;
+  background: white;
+  border-radius: 16px;
+  border: 2px dashed #cbd5e1;
 }
 
-.ooo-content .ooo-card-info {
-  text-align: center;
-  width: 100%;
+/* Edit mode card styles */
+.ooo-service-card.edit-mode {
+  border: 2px dashed #FFCB10;
+  position: relative;
+}
+
+.ooo-service-card.edit-mode:hover {
+  border: 2px solid #FFCB10;
+  background: #fffef5;
 }
 
 /* See more / see less link */
@@ -359,17 +393,6 @@
 .ooo-header-edit-btn svg {
   flex-shrink: 0;
   stroke-width: 2.5;
-}
-
-/* Edit mode card styles */
-.ooo-content .ooo-card.edit-mode {
-  border: 2px dashed #FFCB10;
-  position: relative;
-}
-
-.ooo-content .ooo-card.edit-mode:hover {
-  border: 2px solid #FFCB10;
-  background: #fffef5;
 }
 
 .ooo-edit-indicator {
@@ -479,9 +502,9 @@
   color: #fff;
 }
 /* ================================================================
-   FLOATING BUTTON
+   FLOATING ACTION BUTTON (FAB)
 ================================================================ */
-.floating-add-btn {
+.ooo-fab {
   align-items: center;
   background-color: #FFCB10;
   border: none;
@@ -497,13 +520,55 @@
   font-weight: 700;
   gap: 12px;
   padding: 12px 28px;
-  transition: transform .2s, background-color .2s, box-shadow .2s;
+  transition: none;
+  animation: none !important;
   z-index: 999;
 }
 
-.floating-add-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(0,0,0,0);
+.ooo-fab-icon {
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 300;
+}
+
+.ooo-fab-text {
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  letter-spacing: 0.8px;
+}
+
+.ooo-fab:hover {
+  opacity: 0.9;
+}
+
+/* Responsive FAB */
+@media (max-width: 900px) {
+  .ooo-fab {
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+    bottom: 24px;
+    right: 24px;
+  }
+
+  .ooo-fab-text {
+    display: none;
+  }
+
+  .ooo-fab-icon {
+    margin: 0;
+  }
+
+  .ooo-services-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .ooo-services-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
 }
 
 /* ================================================================

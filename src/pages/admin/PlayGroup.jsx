@@ -263,12 +263,15 @@ const PlayGroup = () => {
                   )}
                 </div>
              </div>
-
-             <button className="pg-fab" onClick={() => setShowAddModal(true)}>
-               <span className="pg-fab-icon">+</span>
-               <span className="pg-fab-text">PLAY GROUP CLASS</span>
-             </button>
           </div>
+        )}
+
+        {/* FAB Button - Outside animated containers */}
+        {currentView === 'service-list' && (
+          <button className="pg-fab" onClick={() => setShowAddModal(true)}>
+            <span className="pg-fab-icon">+</span>
+            <span className="pg-fab-text">PLAY GROUP CLASS</span>
+          </button>
         )}
 
         {/* === VIEW 2: SERVICE DASHBOARD (REFACTORED) === */}
@@ -310,33 +313,82 @@ const PlayGroup = () => {
                   {/* 1. ACTIVITY LIST (Title, Description, Photos) */}
                   <div className="pg-activities-container">
                     {getDailyActivities().length > 0 ? (
-                      getDailyActivities().map((activity, index) => (
-                        <div key={index} className="pg-activity-block">
-                           <div className="pg-activity-text">
-                              <h3 className="pg-activity-title">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '8px' }}>
-                                  <circle cx="12" cy="12" r="10"/>
-                                  <polyline points="12 6 12 12 16 14"/>
-                                </svg>
-                                {activity.title || activity.activityName || "Activity"}
-                              </h3>
-                              <p className="pg-activity-desc">{activity.description || activity.notes}</p>
-                           </div>
+                      getDailyActivities().map((activity, index) => {
+                        // Get participating students for this activity
+                        const activityStudents = Array.isArray(allChildren) && activity.participatingStudentIds
+                          ? allChildren.filter(c => activity.participatingStudentIds.includes(c.id))
+                          : [];
 
-                           {/* Photos for this specific activity */}
-                           {activity.photoUrls && activity.photoUrls.length > 0 ? (
-                             <div className="pg-photo-grid">
-                               {activity.photoUrls.map((url, i) => (
-                                 <div key={i} className="pg-photo-card" onClick={() => window.open(url, '_blank')}>
+                        return (
+                          <div key={index} className="pg-activity-block">
+                            {/* Header: Title & Teacher Badge */}
+                            <div className="pg-activity-header">
+                              <div className="pg-activity-text">
+                                <h3 className="pg-activity-title">
+                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12 6 12 12 16 14"/>
+                                  </svg>
+                                  {activity.title || activity.activityName || "Activity"}
+                                </h3>
+                                {(activity.description || activity.notes) && (
+                                  <p className="pg-activity-desc">{activity.description || activity.notes}</p>
+                                )}
+                              </div>
+
+                              {/* Teacher Badge */}
+                              {activity.teacherName && (
+                                <div className="pg-teacher-badge">
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                  </svg>
+                                  <span>{activity.teacherName}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Photos for this specific activity */}
+                            {activity.photoUrls && activity.photoUrls.length > 0 ? (
+                              <div className="pg-photo-grid">
+                                {activity.photoUrls.map((url, i) => (
+                                  <div key={i} className="pg-photo-card" onClick={() => window.open(url, '_blank')}>
                                     <img src={url} alt="Activity" />
-                                 </div>
-                               ))}
-                             </div>
-                           ) : (
-                             <div className="pg-no-photos-msg">No photos uploaded for this activity.</div>
-                           )}
-                        </div>
-                      ))
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="pg-no-photos-msg">No photos uploaded for this activity.</div>
+                            )}
+
+                            {/* Participating Students */}
+                            {activityStudents.length > 0 && (
+                              <div className="pg-activity-students">
+                                <div className="pg-activity-students-header">
+                                  <span className="pg-activity-students-label">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                      <circle cx="9" cy="7" r="4"/>
+                                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                    </svg>
+                                    Students Present
+                                  </span>
+                                  <span className="pg-activity-students-count">{activityStudents.length}</span>
+                                </div>
+                                <div className="pg-activity-students-list">
+                                  {activityStudents.map(child => (
+                                    <div key={child.id} className="pg-activity-student-chip">
+                                      <img src={child.photoUrl || "https://via.placeholder.com/24"} alt={child.firstName} />
+                                      <span>{child.firstName} {child.lastName?.charAt(0)}.</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
                     ) : (
                       <div className="pg-no-data">
                          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5">
@@ -363,7 +415,7 @@ const PlayGroup = () => {
                               <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
                               <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                             </svg>
-                            Students Present
+                            Overall Students Present
                           </h3>
                           <span className="pg-attendance-count">{getPresentChildren().length}</span>
                         </div>

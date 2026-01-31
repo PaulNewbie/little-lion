@@ -185,7 +185,7 @@ const OneOnOne = () => {
         <div className="ooo-page">
           <div className="ooo-content">
             {level === "services" && (
-              <>
+              <div className="ooo-service-list-view">
                 <div className="ll-header">
                   <div className="ll-header-content">
                     <div className="header-title">
@@ -205,48 +205,57 @@ const OneOnOne = () => {
                   </div>
                 </div>
 
-                <button className="floating-add-btn" onClick={() => setShowAddServiceModal(true)}>
-                  + ONE-ON-ONE SERVICE
-                </button>
-
-                <div className="ooo-grid">
-                  {services.map(service => (
-                    <div
-                      key={service.id}
-                      className={`ooo-card ${editMode ? 'edit-mode' : ''}`}
-                      onClick={() => {
-                        if (editMode) {
-                          setEditServiceData({
-                            id: service.id,
-                            name: service.name,
-                            description: service.description || "",
-                            type: service.type,
-                            imageUrl: service.imageUrl || ""
-                          });
-                          setEditServiceImage(null);
-                          setShowEditModal(true);
-                        } else {
-                          handleSelectService(service);
-                        }
-                      }}
-                    >
-                      {service.imageUrl ? (
-                        <div className="ooo-card-image-box">
-                          <img src={service.imageUrl} alt={service.name} className="ooo-card-image" />
-                        </div>
-                      ) : (
-                        <div className="ooo-card-icon">🎨</div>
-                      )}
-                      <h3>{service.name}</h3>
-                      {editMode && <span className="ooo-edit-indicator">✎</span>}
-                    </div>
-                  ))}
+                <div className="ooo-content-area">
+                  <div className="ooo-services-grid">
+                    {services.map(service => (
+                      <div
+                        key={service.id}
+                        className={`ooo-service-card ${editMode ? 'edit-mode' : ''}`}
+                        onClick={() => {
+                          if (editMode) {
+                            setEditServiceData({
+                              id: service.id,
+                              name: service.name,
+                              description: service.description || "",
+                              type: service.type,
+                              imageUrl: service.imageUrl || ""
+                            });
+                            setEditServiceImage(null);
+                            setShowEditModal(true);
+                          } else {
+                            handleSelectService(service);
+                          }
+                        }}
+                      >
+                        {service.imageUrl ? (
+                          <div className="ooo-card-image-box">
+                            <img src={service.imageUrl} alt={service.name} className="ooo-card-image" />
+                          </div>
+                        ) : (
+                          <div className="ooo-card-icon">🎨</div>
+                        )}
+                        <h3>{service.name}</h3>
+                        {editMode && <span className="ooo-edit-indicator">✎</span>}
+                      </div>
+                    ))}
+                    {services.length === 0 && (
+                      <p className="ooo-empty">No One-on-One services found. Add one to get started!</p>
+                    )}
+                  </div>
                 </div>
-              </>
+              </div>
+            )}
+
+            {/* FAB Button - Outside animated containers */}
+            {level === "services" && (
+              <button className="ooo-fab" onClick={() => setShowAddServiceModal(true)}>
+                <span className="ooo-fab-icon">+</span>
+                <span className="ooo-fab-text">ONE-ON-ONE SERVICE</span>
+              </button>
             )}
 
             {level === "students" && selectedService && (
-              <>
+              <div className="ooo-students-view">
                 {/* --- HEADER --- */}
                 <div className="ll-header">
                   <span className="back-arrow" onClick={goBack}>
@@ -321,7 +330,7 @@ const OneOnOne = () => {
                       )}
                   </div>
                 </div>
-              </>
+              </div>
             )}
 
             {/* ADD SERVICE MODAL */}
