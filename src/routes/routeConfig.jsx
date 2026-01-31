@@ -260,7 +260,7 @@ export const AppRoutes = () => {
       <Route path={ROUTES.ADMIN.MANAGE_TEACHERS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><ManageTeachers /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.MANAGE_THERAPISTS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><ManageTherapists /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.ENROLLMENT} element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.TEACHER, ROLES.THERAPIST]}><EnrollStudent /></ProtectedRoute>} />
-      <Route path={ROUTES.ADMIN.CONCERNS} element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><Concerns /></ProtectedRoute>} />
+      <Route path={ROUTES.ADMIN.CONCERNS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><Concerns /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.MANAGE_ADMINS} element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><ManageAdmins /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.PENDING_ACCOUNTS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><PendingAccounts /></ProtectedRoute>} />
       <Route path={ROUTES.ADMIN.USER_ACCESS} element={<ProtectedRoute allowedRoles={ROLE_GROUPS.ADMINS}><UserAccessManagement /></ProtectedRoute>} />

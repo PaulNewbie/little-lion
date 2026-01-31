@@ -133,11 +133,15 @@ const useParentConcerns = (userId) => {
   }, []);
 
   // =======================
-  // SELECT CONCERN (UNCHANGED)
+  // SELECT CONCERN (UPDATED: Mark as read)
   // =======================
   const selectConcern = useCallback((concern) => {
     setSelectedConcern(concern);
-  }, []);
+    // Mark concern as read for this user
+    if (concern?.id && userId) {
+      concernService.markConcernAsRead(concern.id, userId);
+    }
+  }, [userId]);
 
 
   //UI HELPERS

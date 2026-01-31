@@ -34,6 +34,30 @@ const ConcernsPage = ({
   const [showNewModal, setShowNewModal] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [parentFilter, setParentFilter] = useState('all');
+
+  // Extract unique parents from concerns for admin filter
+  const uniqueParents = React.useMemo(() => {
+    const parentMap = new Map();
+    concerns.forEach(c => {
+      if (c.createdByUserId && c.createdByUserName) {
+        if (!parentMap.has(c.createdByUserId)) {
+          parentMap.set(c.createdByUserId, {
+            id: c.createdByUserId,
+            name: c.createdByUserName,
+            count: 1
+          });
+        } else {
+          parentMap.get(c.createdByUserId).count++;
+        }
+      }
+    });
+    return Array.from(parentMap.values()).sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+  }, [concerns]);
+
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
 
   // Handle concern creation with toast feedback
   const handleCreateConcern = async (data) => {
@@ -56,10 +80,21 @@ const ConcernsPage = ({
     }
   };
 
-  const filteredConcerns =
-    statusFilter === 'all'
-      ? concerns
-      : concerns.filter(c => c.status === statusFilter);
+  const filteredConcerns = React.useMemo(() => {
+    let filtered = concerns;
+
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(c => c.status === statusFilter);
+    }
+
+    // Apply parent filter (admin only)
+    if (isAdmin && parentFilter !== 'all') {
+      filtered = filtered.filter(c => c.createdByUserId === parentFilter);
+    }
+
+    return filtered;
+  }, [concerns, statusFilter, parentFilter, isAdmin]);
 
   const handleSelectConcern = (concern) => {
     selectConcern(concern);
@@ -121,9 +156,13 @@ const ConcernsPage = ({
           onNewConcern={() => setShowNewModal(true)}
           isHidden={mobileView === 'detail'}
           userRole={currentUser?.role}
+          currentUserId={currentUser?.uid}
           updateStatus={handleStatusUpdate}
           statusFilter={statusFilter}
           onFilterStatusChange={setStatusFilter}
+          parentFilter={parentFilter}
+          onFilterParentChange={setParentFilter}
+          uniqueParents={uniqueParents}
         />
 
         <section className={`pc-detail-column ${selectedConcern ? 'visible' : ''}`}>

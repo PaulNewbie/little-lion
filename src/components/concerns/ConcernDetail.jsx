@@ -103,17 +103,15 @@ const ConcernHeader = ({ concern, statusClass, updateStatus, userRole }) => {
     <div className="pc-message-header">
       <div className="pc-header-top">
         <h2>{concern.subject || 'No Subject'}</h2>
-        {(concern.status === 'pending') ? (
-          <span className={`pc-card-status ${statusClass}`}>
-            {concern.status.replace(/_/g, ' ')}
-          </span>
-        ) : (userRole === 'admin' || userRole === 'super_admin') ? (
+        {(userRole === 'admin' || userRole === 'super_admin') ? (
           <select
             className={`pc-card-status ${statusClass}`}
             value={concern.status}
             onChange={handleStatusChange}
           >
+            <option value="pending">Pending</option>
             <option value="ongoing">Ongoing</option>
+            <option value="waiting_for_parent">Waiting for Parent</option>
             <option value="solved">Solved</option>
           </select>
         ) : (

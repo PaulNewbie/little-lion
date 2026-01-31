@@ -1,48 +1,69 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import './RaiseConcernModal.css';
 
 /**
- * Modal component for raising a new concern
- * 
- * CHANGE: Removed "Select Child" dropdown
- * 
- * Rationale:
- * 1. Most parents have 1-2 children, making selection unnecessary friction
- * 2. For single-child parents, it's redundant
- * 3. For multi-child parents, we auto-select the first child (they can change via 
- *    child profile context or we can add it back later as a less prominent option)
- * 4. Reduces form fields on mobile, giving more space to the actual concern
- * 5. Simplifies the user flow - focus on what matters: describing the concern
- * 
- * The childId is now auto-selected from the first child in the list.
- * If contextual child selection is needed (e.g., parent came from a specific 
- * child's profile), that can be passed as a prop.
+ * Predefined subject suggestions for common concern types
  */
-const RaiseConcernModal = ({ 
-  isOpen, 
-  onClose, 
-  onSubmit, 
-  children, 
+const SUBJECT_SUGGESTIONS = [
+  { id: 'schedule', label: 'Schedule Question', icon: '📅' },
+  { id: 'health', label: 'Health Update', icon: '🏥' },
+  { id: 'behavior', label: 'Behavior Concern', icon: '💭' },
+  { id: 'progress', label: 'Progress Inquiry', icon: '📈' },
+  { id: 'therapy', label: 'Therapy Session', icon: '🎯' },
+  { id: 'general', label: 'General Question', icon: '❓' },
+];
+
+/**
+ * Modal component for raising a new concern with improved UX
+ */
+const RaiseConcernModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  children,
   isSubmitting,
-  preselectedChildId = null // Optional: if parent navigated from a child's page
+  preselectedChildId = null
 }) => {
   const [formData, setFormData] = useState({
     childId: '',
     subject: '',
     message: ''
   });
+  const [selectedSuggestion, setSelectedSuggestion] = useState(null);
 
   // Auto-select child when modal opens
   useEffect(() => {
     if (isOpen && children.length > 0) {
-      // Use preselected child if provided, otherwise default to first child
       const defaultChildId = preselectedChildId || children[0]?.id || '';
       setFormData(prev => ({ ...prev, childId: defaultChildId }));
     }
   }, [isOpen, children, preselectedChildId]);
 
+  // Reset suggestion when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedSuggestion(null);
+    }
+  }, [isOpen]);
+
   const handleChange = (field) => (e) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
+    // Clear suggestion if user edits subject manually
+    if (field === 'subject') {
+      setSelectedSuggestion(null);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    if (selectedSuggestion === suggestion.id) {
+      // Deselect if clicking the same suggestion
+      setSelectedSuggestion(null);
+      setFormData(prev => ({ ...prev, subject: '' }));
+    } else {
+      setSelectedSuggestion(suggestion.id);
+      setFormData(prev => ({ ...prev, subject: suggestion.label }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -55,6 +76,7 @@ const RaiseConcernModal = ({
 
   const resetForm = () => {
     setFormData({ childId: '', subject: '', message: '' });
+    setSelectedSuggestion(null);
   };
 
   const handleClose = () => {
@@ -66,32 +88,50 @@ const RaiseConcernModal = ({
 
   // Get the selected child's name for display
   const selectedChild = children.find(c => c.id === formData.childId);
-  const childDisplayName = selectedChild 
-    ? `${selectedChild.firstName} ${selectedChild.lastName}` 
+  const childDisplayName = selectedChild
+    ? `${selectedChild.firstName} ${selectedChild.lastName}`
     : '';
 
   return (
-    <div className="pc-modal-overlay" onClick={handleClose}>
-      <div className="pc-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="pc-modal-header">
-          <h3>Raise a Concern</h3>
-          <button 
-            className="pc-modal-close" 
+    <div className="rcm-overlay" onClick={handleClose}>
+      <div className="rcm-modal" onClick={(e) => e.stopPropagation()}>
+        {/* Enhanced Header */}
+        <div className="rcm-header">
+          <div className="rcm-header-content">
+            <div className="rcm-header-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="rcm-title">Raise a Concern</h3>
+              <p className="rcm-subtitle">We're here to help with any questions or concerns</p>
+            </div>
+          </div>
+          <button
+            className="rcm-close"
             onClick={handleClose}
             aria-label="Close modal"
           >
-            ✕
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
-        {/* Show which child this concern is for */}
+        {/* Child Context Badge */}
         {childDisplayName && (
-          <div className="pc-child-context">
-            <span className="pc-child-label">For:</span>
-            <span className="pc-child-name">{childDisplayName}</span>
+          <div className="rcm-child-badge">
+            <div className="rcm-child-avatar">
+              {selectedChild?.firstName?.[0] || 'C'}
+            </div>
+            <div className="rcm-child-info">
+              <span className="rcm-child-label">Regarding</span>
+              <span className="rcm-child-name">{childDisplayName}</span>
+            </div>
             {children.length > 1 && (
               <select
-                className="pc-child-switcher"
+                className="rcm-child-switcher"
                 value={formData.childId}
                 onChange={handleChange('childId')}
                 aria-label="Switch child"
@@ -106,43 +146,80 @@ const RaiseConcernModal = ({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="pc-form">
-          <div className="pc-form-group">
-            <label className="pc-label">Subject (Optional)</label>
+        <form onSubmit={handleSubmit} className="rcm-form">
+          {/* Subject Suggestions */}
+          <div className="rcm-form-section">
+            <label className="rcm-label">
+              What's this about?
+              <span className="rcm-optional">Optional</span>
+            </label>
+            <div className="rcm-suggestions">
+              {SUBJECT_SUGGESTIONS.map(suggestion => (
+                <button
+                  key={suggestion.id}
+                  type="button"
+                  className={`rcm-suggestion-chip ${selectedSuggestion === suggestion.id ? 'active' : ''}`}
+                  onClick={() => handleSuggestionClick(suggestion)}
+                >
+                  <span className="rcm-chip-icon">{suggestion.icon}</span>
+                  <span className="rcm-chip-label">{suggestion.label}</span>
+                </button>
+              ))}
+            </div>
             <input
-              className="pc-input"
-              placeholder="Brief summary of your concern..."
+              className="rcm-input"
+              placeholder="Or type your own subject..."
               value={formData.subject}
               onChange={handleChange('subject')}
-              autoFocus
             />
           </div>
 
-          <div className="pc-form-group">
-            <label className="pc-label">Concern Details *</label>
+          {/* Message Section */}
+          <div className="rcm-form-section">
+            <label className="rcm-label">
+              Tell us more
+              <span className="rcm-required">*</span>
+            </label>
             <textarea
               required
-              className="pc-textarea"
-              placeholder="Please describe your concern in detail..."
+              className="rcm-textarea"
+              placeholder="Please describe your concern in detail. Include any relevant dates, times, or specifics that would help us assist you better..."
               value={formData.message}
               onChange={handleChange('message')}
+              autoFocus
             />
+            <span className="rcm-hint">
+              Your message will be sent to our team who will respond as soon as possible.
+            </span>
           </div>
 
-          <div className="pc-form-actions">
-            <button 
-              type="submit" 
-              disabled={isSubmitting || !formData.message.trim()} 
-              className="pc-send-btn"
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit Concern'}
-            </button>
+          {/* Actions */}
+          <div className="rcm-actions">
             <button
               type="button"
-              className="pc-cancel-btn"
+              className="rcm-btn-cancel"
               onClick={handleClose}
             >
               Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting || !formData.message.trim()}
+              className="rcm-btn-submit"
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="rcm-spinner"></span>
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+                  </svg>
+                  Submit Concern
+                </>
+              )}
             </button>
           </div>
         </form>

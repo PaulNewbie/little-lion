@@ -5,7 +5,7 @@ import concernService from '../services/concernService';
  * Custom hook for managing ADMIN concerns
  * MINIMAL CHANGE VERSION - Just converted to snapshots
  */
-const useAdminConcerns = () => {
+const useAdminConcerns = (userId) => {
   // =======================
   // STATE (UNCHANGED)
   // =======================
@@ -92,11 +92,15 @@ const useAdminConcerns = () => {
 
 
   // =======================
-  // UI HELPERS (UNCHANGED)
+  // UI HELPERS (UPDATED: Mark as read)
   // =======================
   const selectConcern = useCallback((concern) => {
     setSelectedConcern(concern);
-  }, []);
+    // Mark concern as read for this admin
+    if (concern?.id && userId) {
+      concernService.markConcernAsRead(concern.id, userId);
+    }
+  }, [userId]);
 
   const clearSelection = useCallback(() => {
     setSelectedConcern(null);

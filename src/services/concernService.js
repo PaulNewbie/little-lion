@@ -16,20 +16,55 @@ import { db } from '../config/firebase';
 class ConcernService {
 
   /* ----------------------------------------------------
+     HELPER: Generate subject from message content
+     ---------------------------------------------------- */
+  _generateSubjectFromMessage(message, maxLength = 50) {
+    if (!message) return 'New Concern';
+
+    // Take first line or first maxLength characters
+    const firstLine = message.split('\n')[0].trim();
+    if (firstLine.length <= maxLength) return firstLine;
+
+    // Truncate at word boundary if possible
+    const truncated = firstLine.substring(0, maxLength);
+    const lastSpace = truncated.lastIndexOf(' ');
+
+    if (lastSpace > maxLength * 0.6) {
+      return truncated.substring(0, lastSpace) + '...';
+    }
+    return truncated + '...';
+  }
+
+  /* ----------------------------------------------------
      1. CREATE CONCERN (Parent starts the thread)
      ---------------------------------------------------- */
   async createConcern(concernData) {
     try {
+      // Auto-generate subject from message if not provided
+      const subject = concernData.subject?.trim()
+        ? concernData.subject.trim()
+        : this._generateSubjectFromMessage(concernData.message);
+
+      // Create message preview for lastMessage
+      const messagePreview = concernData.message.length > 80
+        ? concernData.message.substring(0, 80) + '...'
+        : concernData.message;
+
       // 1️⃣ Create concern document (NO messages array)
       const concernRef = await addDoc(collection(db, 'concerns'), {
         createdByUserId: concernData.createdByUserId,
         createdByUserName: concernData.createdByUserName,
         childId: concernData.childId,
         childName: concernData.childName,
-        subject: concernData.subject,
+        subject,
         status: 'pending',
         createdAt: serverTimestamp(),
-        lastUpdated: serverTimestamp()
+        lastUpdated: serverTimestamp(),
+        lastMessage: {
+          text: messagePreview,
+          senderName: concernData.createdByUserName,
+          role: 'parent'
+        }
       });
 
       // 2️⃣ Create first message in subcollection
@@ -55,31 +90,37 @@ class ConcernService {
      ---------------------------------------------------- */
   async addMessageToConcern(concernId, text, senderInfo, role) {
     try {
+      const senderName = role === 'admin' || role === 'super_admin'
+        ? 'Admin'
+        : senderInfo.name;
+
       // 1️⃣ Add message to subcollection
       await addDoc(
         collection(db, 'concerns', concernId, 'messages'),
         {
           senderId: senderInfo.id,
-          senderName:
-            role === 'admin' || role === 'super_admin'
-              ? 'Admin'
-              : senderInfo.name,
+          senderName,
           role, // 'parent' | 'super_admin' | 'admin'
           text,
           createdAt: serverTimestamp()
         }
       );
 
-      // 2️⃣ Update concern metadata with lastUpdated timestamp
+      // 2️⃣ Update concern metadata with lastUpdated, lastMessage preview
       // If admin replies, set to 'ongoing'. If parent replies, keep current status
       const updateData = {
-        lastUpdated: serverTimestamp()
+        lastUpdated: serverTimestamp(),
+        lastMessage: {
+          text: text.length > 80 ? text.substring(0, 80) + '...' : text,
+          senderName,
+          role
+        }
       };
-      
+
       if (role === 'admin' || role === 'super_admin') {
         updateData.status = 'ongoing';
       }
-      
+
       await updateDoc(doc(db, 'concerns', concernId), updateData);
 
     } catch (error) {
@@ -123,7 +164,21 @@ class ConcernService {
   }
 
   /* ----------------------------------------------------
-     5. CLOSE CONCERN (Admin only)
+     5. MARK CONCERN AS READ (Update lastReadBy map)
+     ---------------------------------------------------- */
+  async markConcernAsRead(concernId, userId) {
+    try {
+      await updateDoc(doc(db, 'concerns', concernId), {
+        [`lastReadBy.${userId}`]: serverTimestamp()
+      });
+    } catch (error) {
+      // Silently fail - this is not critical
+      console.error('Failed to mark concern as read:', error);
+    }
+  }
+
+  /* ----------------------------------------------------
+     6. CLOSE CONCERN (Admin only)
      ---------------------------------------------------- */
   async closeConcern(concernId, closedByName) {
     try {
