@@ -19,10 +19,8 @@ const ConcernDetail = ({
   userRole 
 }) => {
   if (!concern) {
-    return <DetailEmptyState onNewConcern={onNewConcern} />;
+    return <DetailEmptyState onNewConcern={onNewConcern} userRole={userRole} />;
   }
-
-  console.log('ConcernDetail userRole:', userRole);
 
 
   const getStatusClass = (status) => {
@@ -87,32 +85,38 @@ const ConcernDetail = ({
  * Header section showing concern metadata
  */
 const ConcernHeader = ({ concern, statusClass, updateStatus, userRole }) => {
-  console.log('userRole:', userRole);
+  const handleStatusChange = (e) => {
+    const newStatus = e.target.value;
+    if (newStatus === 'solved') {
+      const confirmed = window.confirm(
+        'Are you sure you want to mark this concern as solved?\n\nThis will close the conversation and the parent will no longer be able to reply.'
+      );
+      if (!confirmed) {
+        e.target.value = concern.status;
+        return;
+      }
+    }
+    updateStatus(concern.id, newStatus);
+  };
 
-  const getStatusBadgeClass = (status) => status.replace(/_/g, '_');
- 
   return (
     <div className="pc-message-header">
       <div className="pc-header-top">
-        <h2>{concern.subject}</h2>
-        {/* <span className={`pc-status-badge ${getStatusBadgeClass(concern.status)}`}>
-          {concern.status.replace(/_/g, ' ').toUpperCase()}
-        </span>    */}
-         { (concern.status === 'pending') ? (
+        <h2>{concern.subject || 'No Subject'}</h2>
+        {(concern.status === 'pending') ? (
           <span className={`pc-card-status ${statusClass}`}>
             {concern.status.replace(/_/g, ' ')}
           </span>
-         )
-         : (userRole === 'admin' || userRole === 'super_admin') ? (
+        ) : (userRole === 'admin' || userRole === 'super_admin') ? (
           <select
             className={`pc-card-status ${statusClass}`}
             value={concern.status}
-            onChange={(e) => updateStatus(concern.id, e.target.value)}
+            onChange={handleStatusChange}
           >
             <option value="ongoing">Ongoing</option>
             <option value="solved">Solved</option>
           </select>
-        ) : (  
+        ) : (
           <span className={`pc-card-status ${statusClass}`}>
             {concern.status.replace(/_/g, ' ')}
           </span>
@@ -208,15 +212,21 @@ const LimitNotice = ({ status }) => (
 /**
  * Empty state when no concern selected
  */
-const DetailEmptyState = ({ onNewConcern }) => (
-  <div className="pc-empty-state">
-    <div className="pc-empty-icon">📋</div>
-    <p>Select a concern to view details</p>
-    <button onClick={onNewConcern} className="pc-secondary-btn">
-      Raise a New Concern
-    </button>
-  </div>
-);
+const DetailEmptyState = ({ onNewConcern, userRole }) => {
+  const isAdmin = userRole === 'admin' || userRole === 'super_admin';
+
+  return (
+    <div className="pc-empty-state">
+      <div className="pc-empty-icon">{isAdmin ? '📬' : '📋'}</div>
+      <p>Select a concern to view details</p>
+      {!isAdmin && (
+        <button onClick={onNewConcern} className="pc-secondary-btn">
+          Raise a New Concern
+        </button>
+      )}
+    </div>
+  );
+};
 
 /**
  * Back button for mobile view
@@ -298,7 +308,3 @@ BackButton.propTypes = {
 };
 
 export default ConcernDetail;
-
-
-
-// to continue here: ConcernDetail.jsx:82 userRole: undefined

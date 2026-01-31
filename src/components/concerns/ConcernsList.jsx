@@ -45,30 +45,29 @@ const ConcernsList = ({
               className="pc-filter-dropdown"
               value={statusFilter}
               onChange={(e) => onFilterStatusChange(e.target.value)}
-              onClick={() => {concerns = !concerns;
-                console.log("lin 49 : " + concerns);
-              }}
             >
               <option value="all">All</option>
               <option value="pending">Pending</option>
               <option value="ongoing">Ongoing</option>
               <option value="solved">Solved</option>
             </select>
-           <button 
-              onClick={onNewConcern} 
-              className="pc-compose-btn" 
-              title="New Concern"
-              aria-label="Compose new concern"
-            >
-              +
-            </button>
+            {userRole !== 'admin' && userRole !== 'super_admin' && (
+              <button
+                onClick={onNewConcern}
+                className="pc-compose-btn"
+                title="New Concern"
+                aria-label="Compose new concern"
+              >
+                +
+              </button>
+            )}
         </div>
        
       </header>
 
       <div className="pc-scroll-area">
         {concerns.length === 0 ? (
-          <EmptyState onNewConcern={onNewConcern} />
+          <EmptyState onNewConcern={onNewConcern} userRole={userRole} />
         ) : (
           concerns.map(concern => (
             <ConcernCard
@@ -84,14 +83,16 @@ const ConcernsList = ({
         )}
       </div>
 
-      <button 
-          onClick={onNewConcern} 
-          className="pc-fab-compose-btn" 
+      {userRole !== 'admin' && userRole !== 'super_admin' && (
+        <button
+          onClick={onNewConcern}
+          className="pc-fab-compose-btn"
           title="New Concern"
           aria-label="Compose new concern"
         >
           +
-      </button>
+        </button>
+      )}
     </section>
   );
 };
@@ -107,18 +108,21 @@ const ConcernCard = ({ concern, isActive, statusClass, onSelect, onStatusChange,
     }
   };
 
- // Format createdAt with full month, day, year, and time
+  // Format timestamp for display
   const formatDateTime = (ts) => {
     if (!ts) return '';
     const dateObj = ts.toDate ? ts.toDate() : new Date(ts);
     const date = dateObj.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric'
-    }); // e.g., January 12, 2026
-    const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // e.g., 7:21 PM
-    return `${date} | ${time}`;
+    });
+    const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return `${date}, ${time}`;
   };
+
+  // Use lastUpdated if available, otherwise createdAt
+  const displayTime = concern.lastUpdated || concern.createdAt;
+  const isUpdated = concern.lastUpdated && concern.lastUpdated !== concern.createdAt;
 
   return (
     <div
@@ -129,19 +133,18 @@ const ConcernCard = ({ concern, isActive, statusClass, onSelect, onStatusChange,
       onKeyDown={handleKeyDown}
     >
       <div className="pc-card-header">
-        <span className="pc-card-subject">{concern.subject}</span>
-          <span className={`pc-card-status ${statusClass}`}>
-            {concern.status.replace(/_/g, ' ')}
-          </span>
+        <span className="pc-card-subject">{concern.subject || 'No Subject'}</span>
+        <span className={`pc-card-status ${statusClass}`}>
+          {concern.status.replace(/_/g, ' ')}
+        </span>
       </div>
 
       <div className="pc-card-meta">
-        <span className='pc-card-createdBy'>Created by: {concern.createdByUserName || "N/A"}</span>
-      </div>
-
-      <div className="pc-card-meta">
-        <span className="pc-card-child">Child: {concern.childName}</span>
-        <span>{formatDateTime(concern.createdAt)}</span>
+        <span className="pc-card-child">{concern.childName}</span>
+        <span className="pc-card-time">
+          {isUpdated && <span className="pc-updated-label">Updated </span>}
+          {formatDateTime(displayTime)}
+        </span>
       </div>
     </div>
   );
@@ -152,15 +155,23 @@ const ConcernCard = ({ concern, isActive, statusClass, onSelect, onStatusChange,
 /**
  * Empty state when no concerns exist
  */
-const EmptyState = ({ onNewConcern }) => (
-  <div className="pc-empty-state">
-    <div className="pc-empty-icon">📭</div>
-    <p>No concerns yet</p>
-    <button onClick={onNewConcern} className="pc-secondary-btn">
-      Raise a Concern
-    </button>
-  </div>
-);
+const EmptyState = ({ onNewConcern, userRole }) => {
+  const isAdmin = userRole === 'admin' || userRole === 'super_admin';
+
+  return (
+    <div className="pc-empty-state">
+      <div className="pc-empty-icon">{isAdmin ? '✅' : '📭'}</div>
+      <p>{isAdmin ? 'No concerns to review' : 'No concerns yet'}</p>
+      {isAdmin ? (
+        <span className="pc-empty-subtitle">All caught up!</span>
+      ) : (
+        <button onClick={onNewConcern} className="pc-secondary-btn">
+          Raise a Concern
+        </button>
+      )}
+    </div>
+  );
+};
 
 ConcernsList.propTypes = {
   concerns: PropTypes.array.isRequired,
@@ -188,8 +199,3 @@ EmptyState.propTypes = {
 };
 
 export default ConcernsList;
-
-
-
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// ADD FLOATING BUTTON FOR RAISE CONCERN HERE

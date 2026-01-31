@@ -237,9 +237,20 @@
   flex-wrap: wrap;
 }
 
-.pc-card-createdBy {
+.pc-card-child {
   font-weight: 500;
   color: var(--pc-gray-600);
+}
+
+.pc-card-time {
+  font-size: 0.7rem;
+  color: var(--pc-gray-500);
+  text-align: right;
+}
+
+.pc-updated-label {
+  color: var(--pc-primary);
+  font-weight: 500;
 }
 
 /* =============================================
@@ -263,6 +274,12 @@
 .pc-empty-state p {
   margin: 0 0 12px;
   font-size: 0.9rem;
+}
+
+.pc-empty-subtitle {
+  font-size: 0.85rem;
+  color: var(--pc-gray-500);
+  font-style: italic;
 }
 
 .pc-secondary-btn {

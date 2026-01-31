@@ -6,6 +6,7 @@ import {
   BackButton
 } from './index';
 import Loading from '../common/Loading';
+import { useToast } from '../../context/ToastContext';
 
 import './ConcernsPage.css';
 
@@ -14,6 +15,7 @@ const ConcernsPage = ({
   useConcernsHook,
   currentUser
 }) => {
+  const toast = useToast();
   const {
     concerns,
     children,
@@ -33,6 +35,27 @@ const ConcernsPage = ({
   const [replyText, setReplyText] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
+  // Handle concern creation with toast feedback
+  const handleCreateConcern = async (data) => {
+    try {
+      await createConcern(data, currentUser);
+      toast.success('Concern submitted successfully!');
+      setShowNewModal(false);
+    } catch (error) {
+      toast.error('Failed to submit concern. Please try again.');
+    }
+  };
+
+  // Handle status update with toast feedback
+  const handleStatusUpdate = async (concernId, newStatus) => {
+    try {
+      await updateStatus(concernId, newStatus);
+      toast.success(`Concern marked as ${newStatus.replace(/_/g, ' ')}`);
+    } catch (error) {
+      toast.error('Failed to update status. Please try again.');
+    }
+  };
+
   const filteredConcerns =
     statusFilter === 'all'
       ? concerns
@@ -51,16 +74,20 @@ const ConcernsPage = ({
   const handleSendReply = async () => {
     if (!replyText.trim()) return;
 
-    await sendReply(
-      selectedConcern.id,
-      replyText,
-      {
-        id: currentUser.uid,
-        name: `${currentUser.firstName} ${currentUser.lastName}`
-      }
-    );
-
-    setReplyText('');
+    try {
+      await sendReply(
+        selectedConcern.id,
+        replyText,
+        {
+          id: currentUser.uid,
+          name: `${currentUser.firstName} ${currentUser.lastName}`
+        }
+      );
+      setReplyText('');
+      toast.success('Reply sent successfully!');
+    } catch (error) {
+      toast.error('Failed to send reply. Please try again.');
+    }
   };
 
   if (loading) {
@@ -82,7 +109,7 @@ const ConcernsPage = ({
         <RaiseConcernModal
           isOpen={showNewModal}
           onClose={() => setShowNewModal(false)}
-          onSubmit={(data) => createConcern(data, currentUser)}
+          onSubmit={handleCreateConcern}
           children={children}
           isSubmitting={sending}
         />
@@ -94,7 +121,7 @@ const ConcernsPage = ({
           onNewConcern={() => setShowNewModal(true)}
           isHidden={mobileView === 'detail'}
           userRole={currentUser?.role}
-          updateStatus={updateStatus}
+          updateStatus={handleStatusUpdate}
           statusFilter={statusFilter}
           onFilterStatusChange={setStatusFilter}
         />
@@ -103,7 +130,6 @@ const ConcernsPage = ({
           <BackButton onClick={handleBackToList} />
 
           <ConcernDetail
-            // concern={selectedConcern}
             concern={activeConcern}
             messages={messages}
             currentUserId={currentUser?.uid}
@@ -111,8 +137,8 @@ const ConcernsPage = ({
             onReplyChange={setReplyText}
             onSendReply={handleSendReply}
             isSending={sending}
-            userRole={currentUser?.role} 
-            updateStatus={updateStatus}
+            userRole={currentUser?.role}
+            updateStatus={handleStatusUpdate}
             onNewConcern={() => setShowNewModal(true)}
           />
         </section>

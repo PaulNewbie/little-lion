@@ -48,9 +48,8 @@ const RaiseConcernModal = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.childId || !formData.message.trim()) return;
-    
+
     await onSubmit(formData);
-    handleClose();
     resetForm();
   };
 
