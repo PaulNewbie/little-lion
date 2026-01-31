@@ -107,7 +107,9 @@ class ConcernService {
       );
 
       // 2️⃣ Update concern metadata with lastUpdated, lastMessage preview
-      // If admin replies, set to 'ongoing'. If parent replies, keep current status
+      // Smart status flow:
+      // - Admin replies → waiting_for_parent
+      // - Parent replies → ongoing (conversation is active)
       const updateData = {
         lastUpdated: serverTimestamp(),
         lastMessage: {
@@ -118,6 +120,8 @@ class ConcernService {
       };
 
       if (role === 'admin' || role === 'super_admin') {
+        updateData.status = 'waiting_for_parent';
+      } else if (role === 'parent') {
         updateData.status = 'ongoing';
       }
 

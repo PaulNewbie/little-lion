@@ -1,41 +1,63 @@
 import { useState, useEffect, useCallback } from 'react';
 import concernService from '../services/concernService';
-import { useChildrenByParent } from './useCachedData';
+import childService from '../services/childService';
 
 /**
  * Custom hook for managing parent concerns
- * ✅ UPDATED: Uses cached children data to prevent re-fetching
+ * Fetches children directly to avoid caching issues on navigation
  */
 const useParentConcerns = (userId) => {
   // =======================
   // STATE
   // =======================
   const [concerns, setConcerns] = useState([]);
+  const [children, setChildren] = useState([]);
   const [selectedConcern, setSelectedConcern] = useState(null);
   const [messages, setMessages] = useState([]);
 
   const [concernsLoading, setConcernsLoading] = useState(true);
+  const [childrenLoading, setChildrenLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
-
-  // =======================
-  // CACHED CHILDREN DATA (✅ No re-fetch on navigation!)
-  // =======================
-  const {
-    data: children = [],
-    isLoading: childrenLoading,
-    error: childrenError
-  } = useChildrenByParent(userId);
 
   // Combined loading state
   const loading = concernsLoading || childrenLoading;
 
-  // Set error if children fetch fails
+  // =======================
+  // FETCH CHILDREN DIRECTLY (avoids cache issues)
+  // =======================
   useEffect(() => {
-    if (childrenError) {
-      setError("Failed to load children. Please try again.");
+    if (!userId) {
+      setChildrenLoading(false);
+      return;
     }
-  }, [childrenError]);
+
+    let cancelled = false;
+    setChildrenLoading(true);
+
+    const fetchChildren = async () => {
+      try {
+        const data = await childService.getChildrenByParentId(userId);
+        if (cancelled) return;
+
+        // Deduplicate children by ID
+        const uniqueChildren = data?.length > 0
+          ? [...new Map(data.map(child => [child.id, child])).values()]
+          : [];
+        setChildren(uniqueChildren);
+      } catch (err) {
+        if (!cancelled) {
+          setError("Failed to load children. Please try again.");
+          setChildren([]);
+        }
+      } finally {
+        if (!cancelled) setChildrenLoading(false);
+      }
+    };
+
+    fetchChildren();
+    return () => { cancelled = true; };
+  }, [userId]);
 
   // =======================
   // LISTEN TO CONCERNS (Real-time with client-side sorting)

@@ -199,6 +199,28 @@
   margin-left: auto;
 }
 
+/* Unread badge with count */
+.sidebar__badge {
+  background-color: #ef4444;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.sidebar__menu-item.active .sidebar__badge {
+  background-color: #ffffff;
+  color: #ef4444;
+}
+
 /* ===========================================
    DROPDOWN MENU STYLES - Blue Header Design
    =========================================== */

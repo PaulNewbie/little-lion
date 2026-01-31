@@ -9,6 +9,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './config/queryClient';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { UnreadConcernsProvider } from './context/UnreadConcernsContext';
 import AppRoutes from './routes/routeConfig';
 
 // Read counter imports
@@ -29,7 +30,9 @@ function App() {
         
         <AuthProvider>
           <ToastProvider>
-            <AppRoutes />
+            <UnreadConcernsProvider>
+              <AppRoutes />
+            </UnreadConcernsProvider>
           </ToastProvider>
         </AuthProvider>
         

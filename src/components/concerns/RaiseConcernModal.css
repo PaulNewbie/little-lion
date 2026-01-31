@@ -173,6 +173,25 @@
   box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
 }
 
+/* Child Select - inline with label */
+.rcm-child-select {
+  padding: 6px 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.rcm-child-select:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
 /* Form */
 .rcm-form {
   display: flex;

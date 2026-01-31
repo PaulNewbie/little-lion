@@ -18,7 +18,8 @@ const ConcernsList = ({
   onFilterStatusChange,
   parentFilter,
   onFilterParentChange,
-  uniqueParents = []
+  uniqueParents = [],
+  locallyReadIds = new Set()
 }) => {
   const isAdmin = userRole === 'admin' || userRole === 'super_admin';
 
@@ -149,6 +150,7 @@ const ConcernsList = ({
               onStatusChange={updateStatus}
               userRole={userRole}
               currentUserId={currentUserId}
+              isLocallyRead={locallyReadIds?.has?.(concern.id) || false}
             />
           ))
         )}
@@ -171,7 +173,7 @@ const ConcernsList = ({
 /**
  * Individual concern card in the list
  */
-const ConcernCard = ({ concern, isActive, statusClass, onSelect, onStatusChange, userRole, currentUserId }) => {
+const ConcernCard = ({ concern, isActive, statusClass, onSelect, onStatusChange, userRole, currentUserId, isLocallyRead }) => {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -198,8 +200,15 @@ const ConcernCard = ({ concern, isActive, statusClass, onSelect, onStatusChange,
     const lastReadAt = concern.lastReadBy?.[currentUserId];
     if (!lastReadAt) return true; // Never read = unread
 
-    const lastReadTime = lastReadAt?.toMillis?.() || lastReadAt || 0;
-    const lastUpdatedTime = concern.lastUpdated?.toMillis?.() || concern.lastUpdated || 0;
+    // Handle pending serverTimestamp (Firestore sentinel value)
+    // When a write is pending, lastReadAt might not have toMillis yet
+    if (typeof lastReadAt?.toMillis !== 'function') {
+      // Pending timestamp - assume it's being read now, so not unread
+      return false;
+    }
+
+    const lastReadTime = lastReadAt.toMillis();
+    const lastUpdatedTime = concern.lastUpdated?.toMillis?.() || 0;
 
     return lastUpdatedTime > lastReadTime;
   };
@@ -207,7 +216,10 @@ const ConcernCard = ({ concern, isActive, statusClass, onSelect, onStatusChange,
   // Use lastUpdated if available, otherwise createdAt
   const displayTime = concern.lastUpdated || concern.createdAt;
   const isUpdated = concern.lastUpdated && concern.lastUpdated !== concern.createdAt;
-  const isUnread = checkUnread();
+  // Don't show unread indicator if:
+  // - This concern is currently selected (being read)
+  // - This concern was locally marked as read (clicked on)
+  const isUnread = !isActive && !isLocallyRead && checkUnread();
 
   return (
     <div
@@ -249,6 +261,26 @@ const ConcernCard = ({ concern, isActive, statusClass, onSelect, onStatusChange,
 
 
 /**
+ * Checkmark icon for admin empty state
+ */
+const CheckCircleIcon = () => (
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+  </svg>
+);
+
+/**
+ * Mailbox icon for parent empty state
+ */
+const MailboxIcon = () => (
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+    <polyline points="22,6 12,13 2,6"></polyline>
+  </svg>
+);
+
+/**
  * Empty state when no concerns exist
  */
 const EmptyState = ({ onNewConcern, userRole }) => {
@@ -256,7 +288,9 @@ const EmptyState = ({ onNewConcern, userRole }) => {
 
   return (
     <div className="pc-empty-state">
-      <div className="pc-empty-icon">{isAdmin ? '✅' : '📭'}</div>
+      <div className="pc-empty-icon">
+        {isAdmin ? <CheckCircleIcon /> : <MailboxIcon />}
+      </div>
       <p>{isAdmin ? 'No concerns to review' : 'No concerns yet'}</p>
       {isAdmin ? (
         <span className="pc-empty-subtitle">All caught up!</span>

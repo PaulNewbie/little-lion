@@ -1,31 +1,61 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import concernService from '../services/concernService';
 
 /**
  * Custom hook for managing ADMIN concerns
- * MINIMAL CHANGE VERSION - Just converted to snapshots
+ * Includes real-time notifications for new concerns
  */
 const useAdminConcerns = (userId) => {
   // =======================
-  // STATE (UNCHANGED)
+  // STATE
   // =======================
   const [concerns, setConcerns] = useState([]);
   const [selectedConcern, setSelectedConcern] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [newConcernAlert, setNewConcernAlert] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
 
+  // Track known concern IDs to detect new ones
+  const knownConcernIds = useRef(new Set());
+  const isInitialLoad = useRef(true);
+
+  // Track locally read concerns to prevent flicker
+  const [locallyReadIds, setLocallyReadIds] = useState(new Set());
+
   // =======================
-  // LISTEN TO ALL CONCERNS (CHANGED FROM fetchConcerns TO SNAPSHOT)
+  // LISTEN TO ALL CONCERNS WITH NEW CONCERN DETECTION
   // =======================
   useEffect(() => {
     setLoading(true);
     setError(null);
 
-    // Changed from getDocs to onSnapshot
     const unsubscribe = concernService.listenToAllConcerns((concernsData) => {
+      // Detect new concerns (only after initial load)
+      if (!isInitialLoad.current) {
+        const newConcerns = concernsData.filter(
+          c => !knownConcernIds.current.has(c.id)
+        );
+
+        if (newConcerns.length > 0) {
+          // Get the most recent new concern for the alert
+          const latestNew = newConcerns[0];
+          setNewConcernAlert({
+            id: latestNew.id,
+            parentName: latestNew.createdByUserName,
+            childName: latestNew.childName,
+            subject: latestNew.subject,
+            count: newConcerns.length
+          });
+        }
+      }
+
+      // Update known IDs
+      knownConcernIds.current = new Set(concernsData.map(c => c.id));
+      isInitialLoad.current = false;
+
       setConcerns(concernsData);
       setLoading(false);
     });
@@ -96,7 +126,11 @@ const useAdminConcerns = (userId) => {
   // =======================
   const selectConcern = useCallback((concern) => {
     setSelectedConcern(concern);
-    // Mark concern as read for this admin
+    // Mark as locally read immediately to prevent flicker
+    if (concern?.id) {
+      setLocallyReadIds(prev => new Set([...prev, concern.id]));
+    }
+    // Mark concern as read in Firestore
     if (concern?.id && userId) {
       concernService.markConcernAsRead(concern.id, userId);
     }
@@ -112,14 +146,21 @@ const useAdminConcerns = (userId) => {
     // But kept for API compatibility
   }, []);
 
+  // Clear the new concern alert after it's been shown
+  const clearNewConcernAlert = useCallback(() => {
+    setNewConcernAlert(null);
+  }, []);
+
   // =======================
-  // RETURN API (UNCHANGED)
+  // RETURN API
   // =======================
   return {
     concerns,
     children: [], // admin doesn't need children, but keeps API consistent
     selectedConcern,
     messages,
+    newConcernAlert,
+    locallyReadIds,
 
     loading,
     sending,
@@ -130,7 +171,8 @@ const useAdminConcerns = (userId) => {
     selectConcern,
     clearSelection,
     refresh,
-    updateStatus
+    updateStatus,
+    clearNewConcernAlert
   };
 };
 

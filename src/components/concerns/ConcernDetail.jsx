@@ -85,40 +85,49 @@ const ConcernDetail = ({
  * Header section showing concern metadata
  */
 const ConcernHeader = ({ concern, statusClass, updateStatus, userRole }) => {
-  const handleStatusChange = (e) => {
-    const newStatus = e.target.value;
-    if (newStatus === 'solved') {
-      const confirmed = window.confirm(
-        'Are you sure you want to mark this concern as solved?\n\nThis will close the conversation and the parent will no longer be able to reply.'
-      );
-      if (!confirmed) {
-        e.target.value = concern.status;
-        return;
-      }
+  const isAdmin = userRole === 'admin' || userRole === 'super_admin';
+  const canMarkSolved = isAdmin && concern.status !== 'solved';
+
+  const handleMarkSolved = () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to mark this concern as solved?\n\nThis will close the conversation and the parent will no longer be able to reply.'
+    );
+    if (confirmed) {
+      updateStatus(concern.id, 'solved');
     }
-    updateStatus(concern.id, newStatus);
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'pending': return 'Pending';
+      case 'ongoing': return 'Ongoing';
+      case 'waiting_for_parent': return 'Waiting for Parent';
+      case 'solved': return 'Solved';
+      default: return status;
+    }
   };
 
   return (
     <div className="pc-message-header">
       <div className="pc-header-top">
         <h2>{concern.subject || 'No Subject'}</h2>
-        {(userRole === 'admin' || userRole === 'super_admin') ? (
-          <select
-            className={`pc-card-status ${statusClass}`}
-            value={concern.status}
-            onChange={handleStatusChange}
-          >
-            <option value="pending">Pending</option>
-            <option value="ongoing">Ongoing</option>
-            <option value="waiting_for_parent">Waiting for Parent</option>
-            <option value="solved">Solved</option>
-          </select>
-        ) : (
+        <div className="pc-header-actions">
           <span className={`pc-card-status ${statusClass}`}>
-            {concern.status.replace(/_/g, ' ')}
+            {getStatusLabel(concern.status)}
           </span>
-        )}
+          {canMarkSolved && (
+            <button
+              className="pc-solve-btn"
+              onClick={handleMarkSolved}
+              title="Mark this concern as solved"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Mark Solved
+            </button>
+          )}
+        </div>
       </div>
       <div className="pc-header-meta">
         <span><strong>Created by: </strong> {concern.createdByUserName}</span>
@@ -197,14 +206,46 @@ const ReplySection = ({
 );
 
 /**
+ * Lock icon SVG
+ */
+const LockIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+  </svg>
+);
+
+/**
  * Notice when reply limit reached or concern closed
  */
 const LimitNotice = ({ status }) => (
   <div className="pc-limit-notice">
-    {status === 'solved' 
-      ? "🔒 This concern has been solved." 
-      : "⚠️ NONE "}
+    {status === 'solved' && (
+      <>
+        <LockIcon />
+        <span>This concern has been solved.</span>
+      </>
+    )}
   </div>
+);
+
+/**
+ * Inbox icon for empty state
+ */
+const InboxIcon = () => (
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
+    <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
+  </svg>
+);
+
+/**
+ * Clipboard icon for empty state
+ */
+const ClipboardIcon = () => (
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+  </svg>
 );
 
 /**
@@ -215,7 +256,9 @@ const DetailEmptyState = ({ onNewConcern, userRole }) => {
 
   return (
     <div className="pc-empty-state">
-      <div className="pc-empty-icon">{isAdmin ? '📬' : '📋'}</div>
+      <div className="pc-empty-icon">
+        {isAdmin ? <InboxIcon /> : <ClipboardIcon />}
+      </div>
       <p>Select a concern to view details</p>
       {!isAdmin && (
         <button onClick={onNewConcern} className="pc-secondary-btn">

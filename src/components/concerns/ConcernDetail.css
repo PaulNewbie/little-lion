@@ -352,13 +352,59 @@
 
 /* NOTICE MESSAGE */
 .pc-limit-notice {
-  padding: 12px;
+  padding: 16px;
   border-top: 1px solid var(--pc-gray-200);
-  background-color: var(--pc-gray-50);
+  background-color: var(--pc-gray-100);
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--pc-gray-600);
   border-radius: 0 0 8px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pc-limit-notice svg {
+  color: var(--pc-gray-500);
+}
+
+/* Header actions container */
+.pc-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Mark as Solved button */
+.pc-solve-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.pc-solve-btn:hover {
+  background-color: #059669;
+  transform: translateY(-1px);
+}
+
+.pc-solve-btn:active {
+  transform: translateY(0);
+}
+
+.pc-solve-btn svg {
+  flex-shrink: 0;
 }
 
 .pc-card-status{

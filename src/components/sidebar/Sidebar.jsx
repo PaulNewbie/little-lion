@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../context/ToastContext";
+import { useUnreadConcerns } from "../../context/UnreadConcernsContext";
 import { hasPermission } from "../../utils/permissions";
 import "./Sidebar.css";
 
@@ -46,6 +47,7 @@ const Sidebar = ({
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
+  const { unreadCount } = useUnreadConcerns();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
@@ -141,7 +143,11 @@ const Sidebar = ({
    */
   const renderMenuItem = (item, itemIndex, isSubItem = false) => {
     const restricted = isItemRestricted(item);
-    
+
+    // Check if this is the Concerns menu item and has unread count
+    const isConcernsItem = item.path === '/admin/concerns';
+    const showBadge = isConcernsItem && unreadCount > 0 && !restricted;
+
     return (
       <div
         key={itemIndex}
@@ -160,7 +166,7 @@ const Sidebar = ({
           )
         )}
         <span className="sidebar__menu-label">{item.label}</span>
-        
+
         {/* Show lock icon for restricted items */}
         {restricted && (
           <span
@@ -178,9 +184,16 @@ const Sidebar = ({
             </svg>
           </span>
         )}
-        
-        {/* Show notification dot (only if not restricted) */}
-        {!restricted && item.showNotification && (
+
+        {/* Show unread badge for Concerns */}
+        {showBadge && (
+          <span className="sidebar__badge">
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
+        )}
+
+        {/* Show notification dot (only if not restricted and no badge) */}
+        {!restricted && !showBadge && item.showNotification && (
           <span className="sidebar__notification-dot"></span>
         )}
       </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   RaiseConcernModal,
   ConcernsList,
@@ -27,8 +27,25 @@ const ConcernsPage = ({
     sendReply,
     selectConcern,
     clearSelection,
-    updateStatus
+    updateStatus,
+    newConcernAlert,
+    clearNewConcernAlert,
+    locallyReadIds
   } = useConcernsHook(currentUser?.uid);
+
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+
+  // Show toast notification when new concern arrives (admin only)
+  useEffect(() => {
+    if (newConcernAlert && isAdmin) {
+      const message = newConcernAlert.count > 1
+        ? `${newConcernAlert.count} new concerns received`
+        : `New concern from ${newConcernAlert.parentName}: "${newConcernAlert.subject}"`;
+
+      toast.info(message, 5000);
+      clearNewConcernAlert?.();
+    }
+  }, [newConcernAlert, isAdmin, toast, clearNewConcernAlert]);
 
   const [mobileView, setMobileView] = useState('list');
   const [showNewModal, setShowNewModal] = useState(false);
@@ -56,8 +73,6 @@ const ConcernsPage = ({
       a.name.localeCompare(b.name)
     );
   }, [concerns]);
-
-  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
 
   // Handle concern creation with toast feedback
   const handleCreateConcern = async (data) => {
@@ -145,7 +160,7 @@ const ConcernsPage = ({
           isOpen={showNewModal}
           onClose={() => setShowNewModal(false)}
           onSubmit={handleCreateConcern}
-          children={children}
+          studentChildren={children}
           isSubmitting={sending}
         />
 
@@ -163,6 +178,7 @@ const ConcernsPage = ({
           parentFilter={parentFilter}
           onFilterParentChange={setParentFilter}
           uniqueParents={uniqueParents}
+          locallyReadIds={locallyReadIds}
         />
 
         <section className={`pc-detail-column ${selectedConcern ? 'visible' : ''}`}>
