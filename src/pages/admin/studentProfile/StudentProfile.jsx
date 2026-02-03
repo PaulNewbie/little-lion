@@ -26,6 +26,9 @@ import {
   AddServiceModal
 } from "./components";
 
+// NEW: Parent-specific components
+import ParentChildListView from "../../parent/components/ParentChildListView";
+
 import "./StudentProfile.css";
 import "../../../components/common/Header.css";
 
@@ -34,6 +37,9 @@ const StudentProfile = ({
   childIdFromRoute = null,
   hideSidebar = false,
   noContainer = false,
+  initialStudent = null, // NEW: Allow passing student data directly for embedded views
+  onBack = null, // NEW: Custom back handler for embedded views
+  hideFooter = false, // NEW: Hide footer when embedded
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -42,17 +48,22 @@ const StudentProfile = ({
   const toast = useToast();
   const calendarRef = useRef(null);
 
-  // Navigation state
-  const studentIdFromEnrollment = location.state?.studentId;
+  // Navigation state - support both location.state and direct props
+  const studentIdFromEnrollment = initialStudent?.id || location.state?.studentId;
   const fromEnrollment = location.state?.fromEnrollment;
   const parentFromEnrollment = location.state?.parent;
   const isStaffViewFromNav = location.state?.isStaffView;
-  const studentFromNav = location.state?.student;
+  const studentFromNav = initialStudent || location.state?.student;
 
   // Determine view type
   const isStaffRole = currentUser?.role === 'therapist' || currentUser?.role === 'teacher';
   const isStaffView = isStaffViewFromNav || (isStaffRole && !isParentView);
   const singleStudentMode = !!(studentFromNav && isStaffView);
+
+  // Build effective location state - use initialStudent if provided
+  const effectiveLocationState = initialStudent
+    ? { student: initialStudent, studentId: initialStudent.id }
+    : location.state;
 
   // Data hook
   const {
@@ -73,12 +84,12 @@ const StudentProfile = ({
     handleLoadMore,
     isLoadingMore,
     isSearching
-  } = useStudentProfileData(location.state, {
+  } = useStudentProfileData(effectiveLocationState, {
     isParentView,
     parentId: isParentView ? currentUser?.uid : null,
     isStaffView: isStaffView && !singleStudentMode,
     staffId: isStaffView ? currentUser?.uid : null,
-    singleStudentMode
+    singleStudentMode: singleStudentMode || !!initialStudent
   });
 
   // UI State
@@ -127,7 +138,7 @@ const StudentProfile = ({
       };
       loadChildForParent();
     }
-  }, [isParentView, childIdFromRoute, selectedStudent, currentUser, navigate, setSelectedStudent, ignoreRouteChild]);
+  }, [isParentView, childIdFromRoute, selectedStudent, currentUser, navigate, setSelectedStudent, ignoreRouteChild, toast]);
 
   useEffect(() => {
     if (studentIdFromEnrollment && selectedStudent) {
@@ -156,6 +167,11 @@ const StudentProfile = ({
   };
 
   const handleBack = () => {
+    // Use custom back handler if provided (for embedded views)
+    if (onBack) {
+      onBack();
+      return;
+    }
     if (isParentView) {
       setIgnoreRouteChild(true);
       setSelectedStudent(null);
@@ -234,7 +250,7 @@ const StudentProfile = ({
     try {
       // 1. Fetch fresh student data to get current enrollments
       const freshStudent = await childService.getChildById(selectedStudent.id);
-      
+
       // 2. Fetch all services of this type
       const services = await offeringsService.getServicesByType(type);
 
@@ -388,19 +404,30 @@ const StudentProfile = ({
       <div className="sp-page">
           {/* LIST VIEW */}
           {viewMode === "list" && (
-            <StudentListView
-              isParentView={isParentView}
-              students={effectiveFilteredStudents}
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              filterType={filterType}
-              onFilterChange={setFilterType}
-              onSelectStudent={handleSelectStudent}
-              hasMore={hasMore}
-              onLoadMore={handleLoadMore}
-              isLoadingMore={isLoadingMore}
-              isSearching={isSearching}
-            />
+            <>
+              {/* NEW: Use ParentChildListView for parent views */}
+              {isParentView ? (
+                <ParentChildListView
+                  children={effectiveFilteredStudents}
+                  onSelectChild={handleSelectStudent}
+                  parentName={currentUser?.firstName}
+                />
+              ) : (
+                <StudentListView
+                  isParentView={isParentView}
+                  students={effectiveFilteredStudents}
+                  searchTerm={searchTerm}
+                  onSearchChange={setSearchTerm}
+                  filterType={filterType}
+                  onFilterChange={setFilterType}
+                  onSelectStudent={handleSelectStudent}
+                  hasMore={hasMore}
+                  onLoadMore={handleLoadMore}
+                  isLoadingMore={isLoadingMore}
+                  isSearching={isSearching}
+                />
+              )}
+            </>
           )}
 
           {/* PROFILE VIEW */}
@@ -451,7 +478,7 @@ const StudentProfile = ({
             </div>
           )}
 
-        <GeneralFooter pageLabel={isParentView ? "Child Profile" : "Student Profile"} />
+        {!hideFooter && <GeneralFooter pageLabel={isParentView ? "Child Profile" : "Student Profile"} />}
       </div>
 
       {/* Assessment History Modal */}
