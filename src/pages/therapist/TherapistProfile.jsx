@@ -58,11 +58,6 @@ const TherapistProfile = () => {
 
   const fullName = `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim();
 
-  const primaryLicense = formData.licenses?.[0];
-  const licenseStatus = primaryLicense?.licenseExpirationDate
-    ? getExpirationStatus(primaryLicense.licenseExpirationDate)
-    : null;
-
   // Calculate profile completion status (only essential items required)
   const getProfileCompletion = () => {
     const requirements = [
@@ -273,19 +268,8 @@ const TherapistProfile = () => {
                     {formData.yearsExperience || 0} Years Experience
                   </span>
 
-                  {licenseStatus && (
-                    <span className={`tp-badge ${
-                      licenseStatus === 'Active' ? 'tp-badge--success' :
-                      licenseStatus === 'Expiring Soon' ? 'tp-badge--warning' :
-                      'tp-badge--danger'
-                    }`}>
-                      <span className="tp-badge-dot"></span>
-                      {licenseStatus}
-                    </span>
-                  )}
-
                   <span className="tp-badge tp-badge--info">
-                    {formData.licenses?.length || 0} License(s)
+                    {formData.specializations?.length || 0} Specializations
                   </span>
                 </div>
               </div>
