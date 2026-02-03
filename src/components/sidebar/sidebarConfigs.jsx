@@ -145,6 +145,7 @@ export const getParentConfig = () => ({
     {
       title: "MAIN",
       items: [
+        { path: "/parent/digest", icon: HomeIcon, label: "DAILY DIGEST" },
         { path: "/parent/dashboard", icon: parent_Icon, label: "MY CHILDREN" },
         { path: "/parent/summary", icon: CalendarIcon, label: "MONTHLY SUMMARY" },
         { path: "/parent/concerns", icon: MailIcon, label: "CONCERNS" },

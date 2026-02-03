@@ -9,6 +9,7 @@ import Sidebar from '../../components/sidebar/Sidebar';
 import { getParentConfig } from '../../components/sidebar/sidebarConfigs';
 import GeneralFooter from '../../components/footer/generalfooter';
 import summaryService from '../../services/summaryService';
+import ChildSelector from '../../components/common/ChildSelector';
 
 const styles = {
   layout: {
@@ -528,196 +529,6 @@ const PrintIcon = () => (
   </svg>
 );
 
-// Child Selector Component - Visual card-based selector
-const ChildSelector = ({ children, selectedChild, onSelect, isLoading }) => {
-  if (isLoading) {
-    return (
-      <div style={childSelectorStyles.container}>
-        <div style={childSelectorStyles.loadingCard}>
-          <div style={childSelectorStyles.loadingSpinner}></div>
-          <span style={{ color: '#64748b', fontSize: '14px' }}>Loading children...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (children.length === 0) {
-    return (
-      <div style={childSelectorStyles.container}>
-        <div style={childSelectorStyles.emptyCard}>
-          <span style={{ fontSize: '24px', marginBottom: '8px' }}>👶</span>
-          <span style={{ color: '#64748b', fontSize: '14px' }}>No children found</span>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div style={childSelectorStyles.container}>
-      <label style={childSelectorStyles.label}>Select Child</label>
-      <div style={childSelectorStyles.grid}>
-        {children.map((child) => {
-          const isSelected = selectedChild === child.id;
-          return (
-            <div
-              key={child.id}
-              onClick={() => onSelect(child.id)}
-              style={{
-                ...childSelectorStyles.card,
-                ...(isSelected ? childSelectorStyles.cardSelected : {}),
-              }}
-            >
-              {/* Checkmark for selected */}
-              {isSelected && (
-                <div style={childSelectorStyles.checkmark}>✓</div>
-              )}
-
-              {/* Avatar */}
-              <div style={{
-                ...childSelectorStyles.avatar,
-                ...(isSelected ? childSelectorStyles.avatarSelected : {}),
-              }}>
-                {child.photoUrl ? (
-                  <img
-                    src={child.photoUrl}
-                    alt={child.firstName}
-                    style={childSelectorStyles.avatarImg}
-                  />
-                ) : (
-                  <span style={childSelectorStyles.avatarPlaceholder}>
-                    {child.firstName?.charAt(0)?.toUpperCase() || '?'}
-                  </span>
-                )}
-              </div>
-
-              {/* Name */}
-              <div style={childSelectorStyles.name}>
-                {child.firstName} {child.lastName?.charAt(0)}.
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-const childSelectorStyles = {
-  container: {
-    marginBottom: '20px',
-  },
-  label: {
-    display: 'block',
-    fontSize: '14px',
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: '10px',
-  },
-  grid: {
-    display: 'flex',
-    gap: '12px',
-    flexWrap: 'wrap',
-  },
-  card: {
-    position: 'relative',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    padding: '16px 20px',
-    backgroundColor: 'white',
-    borderRadius: '12px',
-    border: '2px solid #e2e8f0',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    minWidth: '100px',
-  },
-  cardSelected: {
-    backgroundColor: '#eff6ff',
-    borderColor: '#0052A1',
-    boxShadow: '0 4px 12px rgba(0, 82, 161, 0.15)',
-  },
-  checkmark: {
-    position: 'absolute',
-    top: '8px',
-    right: '8px',
-    width: '20px',
-    height: '20px',
-    backgroundColor: '#0052A1',
-    color: 'white',
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '12px',
-    fontWeight: 'bold',
-  },
-  avatar: {
-    width: '56px',
-    height: '56px',
-    borderRadius: '50%',
-    backgroundColor: '#f1f5f9',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: '8px',
-    border: '3px solid #e2e8f0',
-    overflow: 'hidden',
-    transition: 'border-color 0.2s ease',
-  },
-  avatarSelected: {
-    borderColor: '#0052A1',
-  },
-  avatarImg: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-  },
-  avatarPlaceholder: {
-    fontSize: '20px',
-    fontWeight: '700',
-    color: '#64748b',
-  },
-  name: {
-    fontSize: '14px',
-    fontWeight: '600',
-    color: '#1e293b',
-    textAlign: 'center',
-  },
-  loadingCard: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '16px 24px',
-    backgroundColor: '#f8fafc',
-    borderRadius: '12px',
-    border: '2px dashed #e2e8f0',
-  },
-  loadingSpinner: {
-    width: '20px',
-    height: '20px',
-    border: '3px solid #e2e8f0',
-    borderTopColor: '#0052A1',
-    borderRadius: '50%',
-    animation: 'spin 0.8s linear infinite',
-  },
-  emptyCard: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    padding: '24px',
-    backgroundColor: '#f8fafc',
-    borderRadius: '12px',
-    border: '2px dashed #e2e8f0',
-  },
-};
-
-// Add keyframe animation for spinner
-const spinnerKeyframes = `
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-`;
-
 export default function MonthlySummary() {
   const { currentUser } = useAuth();
   const toast = useToast();
@@ -980,8 +791,6 @@ export default function MonthlySummary() {
 
   return (
     <div style={styles.layout}>
-      {/* Inject keyframes for spinner animation */}
-      <style>{spinnerKeyframes}</style>
       <Sidebar {...getParentConfig()} forceActive="/parent/summary" />
 
       <div style={styles.mainWrapper}>

@@ -40,6 +40,7 @@ import ParentDashboard from "../pages/parent/ParentChildProfile";
 import ChildActivities from "../pages/parent/ChildActivities";
 import ParentConcerns from "../pages/parent/parentConcernsPages/ParentConcerns";
 import MonthlySummary from "../pages/parent/MonthlySummary";
+import DailyDigest from "../pages/parent/DailyDigest";
 
 // Common Components
 import Loading from "../components/common/Loading";
@@ -98,6 +99,7 @@ export const ROUTES = {
     CHILD: "/parent/child/:childId",
     CONCERNS: "/parent/concerns",
     SUMMARY: "/parent/summary",
+    DIGEST: "/parent/digest",
   },
 
 };
@@ -285,6 +287,7 @@ export const AppRoutes = () => {
       <Route path={ROUTES.PARENT.CHILD} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><ChildActivities /></ProtectedRoute>} />
       <Route path={ROUTES.PARENT.CONCERNS} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><ParentConcerns /></ProtectedRoute>} />
       <Route path={ROUTES.PARENT.SUMMARY} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><MonthlySummary /></ProtectedRoute>} />
+      <Route path={ROUTES.PARENT.DIGEST} element={<ProtectedRoute allowedRoles={[ROLES.PARENT]}><DailyDigest /></ProtectedRoute>} />
 
       {/* ERROR ROUTES */}
       <Route path={ROUTES.UNAUTHORIZED} element={<UnauthorizedPage />} />
