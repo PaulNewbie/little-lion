@@ -184,19 +184,43 @@ export default function EnrollStudent() {
     setSelectedParent(null);
   };
 
-  // Handle viewing a child from the modal - navigate to Student Profile page
-  const handleViewChildFromModal = (child) => {
-    setShowChildrenModal(false);
-    setSelectedParent(null);
-    // Navigate to Student Profile tab with student data
-    navigate('/admin/StudentProfile', {
-      state: {
-        student: child,
-        studentId: child.id,
-        fromEnrollment: true,
-        parentData: selectedParent
+  // Handle viewing a child from the modal - route based on status
+  const handleViewChildFromModal = async (child) => {
+    if (child.status === "ASSESSING") {
+      // For ASSESSING students, open the enrollment form to continue assessment
+      try {
+        // Fetch the full assessment data
+        const assessmentData = await assessmentService.getAssessment(
+          child.assessmentId
+        );
+
+        // Combine child data with assessment data
+        const fullStudentData = {
+          ...child,
+          ...assessmentData,
+        };
+
+        setShowChildrenModal(false);
+        setEditingStudent(fullStudentData);
+        setShowEnrollForm(true);
+      } catch (error) {
+        console.error("Failed to load assessment data:", error);
+        showToast("Failed to load student assessment data. Please try again.", "error");
       }
-    });
+    } else {
+      // For ENROLLED students, navigate to Student Profile page
+      const parentData = selectedParent;
+      setShowChildrenModal(false);
+      setSelectedParent(null);
+      navigate('/admin/StudentProfile', {
+        state: {
+          student: child,
+          studentId: child.id,
+          fromEnrollment: true,
+          parentData: parentData
+        }
+      });
+    }
   };
 
   // Calculate profile completion for a child
