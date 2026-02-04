@@ -10,7 +10,7 @@ import activityService from '../../services/activityService';
 import cloudinaryService from '../../services/cloudinaryService';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getTeacherConfig } from '../../components/sidebar/sidebarConfigs';
-import logo from '../../images/logo.png';
+import { Upload, X } from 'lucide-react';
 import './css/PlayGroupActivity.css';
 
 const PlayGroupActivity = () => {
@@ -56,9 +56,10 @@ const PlayGroupActivity = () => {
   };
 
   // Selection Data
-  const [selectedImages, setSelectedImages] = useState([]);
-  const [previews, setPreviews] = useState([]);
+  const [selectedImages, setSelectedImages] = useState([]); // File objects for new uploads
+  const [previews, setPreviews] = useState([]); // Preview URLs for display
   const [taggedStudentIds, setTaggedStudentIds] = useState([]);
+
 
   // --- 1. FETCH STUDENTS ---
   useEffect(() => {
@@ -88,6 +89,7 @@ const PlayGroupActivity = () => {
     };
     fetchStudents();
   }, [currentUser, preSelectedStudents]);
+
 
   // --- 2. IMAGE HANDLING ---
   const handleImageSelect = (e) => {
@@ -123,6 +125,7 @@ const PlayGroupActivity = () => {
     setSelectedImages(prev => prev.filter((_, i) => i !== index));
     setPreviews(prev => prev.filter((_, i) => i !== index));
   };
+
 
   // --- 3. TAGGING LOGIC (IMPROVED) ---
   const toggleStudent = (studentId) => {
@@ -207,7 +210,7 @@ const PlayGroupActivity = () => {
       const dateString = getDateString(date);
       const folderPath = `little-lions/group-images/${dateString}`;
 
-      // Use improved upload with compression and progress tracking
+      // Upload photos
       const { urls: uploadedUrls, errors } = await cloudinaryService.uploadMultipleImages(
         selectedImages,
         folderPath,
@@ -222,8 +225,7 @@ const PlayGroupActivity = () => {
           setUploading(false);
           return;
         }
-        // Some succeeded, some failed - warn but continue
-        toast.warning(`${errors.length} photo${errors.length !== 1 ? 's' : ''} failed to upload. Activity saved with ${uploadedUrls.length} photo${uploadedUrls.length !== 1 ? 's' : ''}.`);
+        toast.warning(`${errors.length} photo${errors.length !== 1 ? 's' : ''} failed to upload.`);
       }
 
       const activityData = {
@@ -359,38 +361,51 @@ const PlayGroupActivity = () => {
                   </span>
                 </h3>
 
-                <div className="play-group__photo-upload">
+                {/* Photo Upload */}
+                <label className="play-group__upload-area">
                   <input
                     type="file"
                     multiple
                     accept="image/*"
                     onChange={handleImageSelect}
-                    className="play-group__file-input"
+                    style={{ display: 'none' }}
                     disabled={selectedImages.length >= MAX_IMAGES}
                   />
-                  {selectedImages.length >= MAX_IMAGES && (
-                    <p className="play-group__photo-limit-message">
-                      Maximum {MAX_IMAGES} photos reached. Remove some to add more.
-                    </p>
-                  )}
-                  <div className="play-group__previews">
-                    {previews.map((src, idx) => (
-                      <div key={idx} className="play-group__preview-item">
-                        <img src={src} alt="Preview" className="play-group__preview-img" />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(idx)}
-                          className="play-group__remove-btn"
-                        >
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                            <line x1="18" y1="6" x2="6" y2="18"/>
-                            <line x1="6" y1="6" x2="18" y2="18"/>
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
+                  <div className="play-group__upload-content">
+                    <Upload size={32} />
+                    <span className="play-group__upload-title">Click to upload photos</span>
+                    <span className="play-group__upload-desc">or drag and drop (max {MAX_IMAGES} photos)</span>
                   </div>
-                </div>
+                </label>
+
+                {selectedImages.length >= MAX_IMAGES && (
+                  <p className="play-group__photo-limit-message">
+                    Maximum {MAX_IMAGES} photos reached. Remove some to add more.
+                  </p>
+                )}
+
+                {/* Selected Photos Preview */}
+                {previews.length > 0 && (
+                  <div className="play-group__selected-photos">
+                    <h4 className="play-group__selected-photos-title">
+                      Selected Photos ({selectedImages.length})
+                    </h4>
+                    <div className="play-group__previews">
+                      {previews.map((src, idx) => (
+                        <div key={`upload-${idx}`} className="play-group__preview-item">
+                          <img src={src} alt="" className="play-group__preview-img" />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(idx)}
+                            className="play-group__remove-btn"
+                          >
+                            <X size={12} strokeWidth={3} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Section 3: Student Selection (IMPROVED) */}
@@ -537,6 +552,7 @@ const PlayGroupActivity = () => {
             </form>
           </div>
         </div>
+
       </div>
     </div>
   );

@@ -945,3 +945,60 @@
     animation: none;
   }
 }
+
+/* ============================================================
+   PHOTO UPLOAD AREA - Simple drag & drop style
+   ============================================================ */
+.play-group__upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 1rem;
+}
+
+.play-group__upload-area:hover {
+  border-color: #fbbf24;
+  background: #fefce8;
+}
+
+.play-group__upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+}
+
+.play-group__upload-content svg {
+  color: #fbbf24;
+}
+
+.play-group__upload-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.play-group__upload-desc {
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+/* Selected Photos Section */
+.play-group__selected-photos {
+  margin-top: 1.5rem;
+}
+
+.play-group__selected-photos-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #475569;
+  margin: 0 0 1rem 0;
+}

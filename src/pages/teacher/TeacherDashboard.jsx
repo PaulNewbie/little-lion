@@ -9,11 +9,14 @@ import Sidebar from '../../components/sidebar/Sidebar';
 import { getTeacherConfig } from '../../components/sidebar/sidebarConfigs';
 import QuickSelectTags from '../../components/common/form-elements/QuickSelectTags';
 import VoiceInput from '../../components/common/form-elements/VoiceInput';
-import { Mail, Phone } from 'lucide-react';
+import { Mail, Phone, Camera, FileEdit, BarChart3, X } from 'lucide-react';
 import { useTeacherDashboardData } from '../../hooks/useCachedData';
 import logo from '../../images/logo.png';
 import './css/TeacherDashboard.css';
 import WelcomeModal from '../../components/common/WelcomeModal';
+
+// Storage key for last selected class
+const LAST_CLASS_KEY = 'teacher_lastSelectedClass';
 
 // --- PAGINATION CONFIG ---
 const PAGE_SIZE = 10;
@@ -42,6 +45,9 @@ const TeacherDashboard = () => {
   const [showObsModal, setShowObsModal] = useState(false);
   const [obsStudent, setObsStudent] = useState(null);
   const [submittingObs, setSubmittingObs] = useState(false);
+
+  // Class Picker Modal State (for quick action when no class selected)
+  const [showClassPicker, setShowClassPicker] = useState(false);
 
   // Form Data
   const [topic, setTopic] = useState('');
@@ -158,10 +164,41 @@ const TeacherDashboard = () => {
   };
 
   // Handlers
-  const handlePostGroupActivity = () => {
+  const handlePostGroupActivity = (classToUse = selectedClass) => {
+    if (!classToUse) {
+      // No class selected - show class picker modal
+      setShowClassPicker(true);
+      return;
+    }
+    // Save last selected class
+    localStorage.setItem(LAST_CLASS_KEY, classToUse.name);
     navigate('/teacher/play-group-upload', {
-      state: { preSelectedClassName: selectedClass.name, preSelectedStudents: selectedClass.students }
+      state: { preSelectedClassName: classToUse.name, preSelectedStudents: classToUse.students }
     });
+  };
+
+  // Quick action: Post Activity (from Quick Actions section)
+  const handleQuickPostActivity = () => {
+    // Auto-select only if there's exactly one class
+    if (myClasses.length === 1) {
+      handlePostGroupActivity(myClasses[0]);
+      return;
+    }
+
+    // Multiple classes - always show class picker to let user choose
+    if (myClasses.length > 1) {
+      setShowClassPicker(true);
+      return;
+    }
+
+    // No classes - show error
+    toast.warning("No classes assigned. Please contact admin.");
+  };
+
+  // Handle class selection from picker modal
+  const handleClassPickerSelect = (cls) => {
+    setShowClassPicker(false);
+    handlePostGroupActivity(cls);
   };
 
   const openObservationModal = (student) => {
@@ -280,6 +317,35 @@ const TeacherDashboard = () => {
               </div>
             )}
 
+            {/* Quick Actions Section - Always visible on desktop */}
+            <div className="teacher-dashboard__quick-actions">
+              <button
+                onClick={handleQuickPostActivity}
+                className="teacher-dashboard__quick-action teacher-dashboard__quick-action--primary"
+              >
+                <div className="teacher-dashboard__quick-action-icon">
+                  <Camera size={32} strokeWidth={2} />
+                </div>
+                <div className="teacher-dashboard__quick-action-content">
+                  <h3>Post Group Activity</h3>
+                  <p>Share photos & updates with parents</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => navigate('/teacher/profile')}
+                className="teacher-dashboard__quick-action teacher-dashboard__quick-action--secondary"
+              >
+                <div className="teacher-dashboard__quick-action-icon">
+                  <BarChart3 size={24} strokeWidth={2} />
+                </div>
+                <div className="teacher-dashboard__quick-action-content">
+                  <h3>My Profile</h3>
+                  <p>View & edit credentials</p>
+                </div>
+              </button>
+            </div>
+
             {/* View 1: Class Selection */}
             {!selectedClass && (
               <>
@@ -331,20 +397,6 @@ const TeacherDashboard = () => {
                   Back to Classes
                 </button>
 
-                <div className="teacher-dashboard__roster-header">
-                  <button
-                    onClick={handlePostGroupActivity}
-                    className="teacher-dashboard__action-button"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                      <circle cx="8.5" cy="8.5" r="1.5"/>
-                      <polyline points="21 15 16 10 5 21"/>
-                    </svg>
-                    Post Group Activity
-                  </button>
-                </div>
-
                 {filteredStudents.length === 0 ? (
                   <div className="teacher-dashboard__empty-state">
                     <h3 className="teacher-dashboard__empty-state-title">No students found</h3>
@@ -356,37 +408,43 @@ const TeacherDashboard = () => {
                         <div
                           key={student.id}
                           className="teacher-dashboard__student-card"
-                          onClick={() => navigate('/admin/StudentProfile', { state: { studentId: student.id, student, isStaffView: true } })}
-                          style={{ cursor: 'pointer' }}
                         >
-                          <div className="teacher-dashboard__student-card-header">
-                            <div className="teacher-dashboard__student-info">
-                              <div className="teacher-dashboard__student-avatar">
-                                {student.photoUrl ? <img src={student.photoUrl} alt="" /> : '👤'}
+                          {/* Image area - clickable to view profile */}
+                          <div
+                            className="teacher-dashboard__student-image-box"
+                            onClick={() => navigate('/admin/StudentProfile', { state: { studentId: student.id, student, isStaffView: true } })}
+                          >
+                            {student.photoUrl ? (
+                              <img
+                                src={student.photoUrl}
+                                alt={`${student.firstName} ${student.lastName}`}
+                                className="teacher-dashboard__student-photo"
+                              />
+                            ) : (
+                              <div className="teacher-dashboard__student-photo-placeholder">
+                                {student.firstName?.[0] || '?'}
                               </div>
-                              <div>
-                                <h3 className="teacher-dashboard__student-name">
-                                  {student.firstName} {student.lastName}
-                                </h3>
-                                <p className="teacher-dashboard__student-dob">
-                                  DOB: {student.dateOfBirth}
-                                </p>
-                              </div>
-                            </div>
+                            )}
                           </div>
-                          <div className="teacher-dashboard__student-card-footer">
+
+                          {/* Card body with name and action */}
+                          <div className="teacher-dashboard__student-card-body">
+                            <h3
+                              className="teacher-dashboard__student-name"
+                              onClick={() => navigate('/admin/StudentProfile', { state: { studentId: student.id, student, isStaffView: true } })}
+                            >
+                              {student.firstName} {student.lastName}
+                            </h3>
                             <button
                               onClick={(e) => {
-                                  e.stopPropagation();
-                                  openObservationModal(student)
+                                e.stopPropagation();
+                                openObservationModal(student);
                               }}
-                              className="teacher-dashboard__observation-button"
+                              className="teacher-dashboard__observation-btn-new"
+                              aria-label={`Write observation for ${student.firstName}`}
                             >
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                              </svg>
-                              Write Observation
+                              <FileEdit size={14} strokeWidth={2.5} />
+                              <span>Observation</span>
                             </button>
                           </div>
                         </div>
@@ -490,6 +548,57 @@ const TeacherDashboard = () => {
               </div>
             </div>
           )}
+
+          {/* Class Picker Modal */}
+          {showClassPicker && (
+            <div className="teacher-dashboard__modal-overlay" onClick={() => setShowClassPicker(false)}>
+              <div className="teacher-dashboard__class-picker-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="teacher-dashboard__class-picker-header">
+                  <h3>Select a Class</h3>
+                  <button onClick={() => setShowClassPicker(false)} className="teacher-dashboard__modal-close">
+                    <X size={20} />
+                  </button>
+                </div>
+                <p className="teacher-dashboard__class-picker-subtitle">
+                  Choose which class to post an activity for
+                </p>
+                <div className="teacher-dashboard__class-picker-list">
+                  {myClasses.map((cls, idx) => (
+                    <button
+                      key={idx}
+                      className="teacher-dashboard__class-picker-item"
+                      onClick={() => handleClassPickerSelect(cls)}
+                    >
+                      <div className="teacher-dashboard__class-picker-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 3L1 9l11 6l9-4.91V17h2V9M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+                        </svg>
+                      </div>
+                      <div className="teacher-dashboard__class-picker-info">
+                        <span className="teacher-dashboard__class-picker-name">{cls.name}</span>
+                        <span className="teacher-dashboard__class-picker-count">
+                          {cls.students.length} student{cls.students.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 18l6-6-6-6"/>
+                      </svg>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Mobile FAB - Floating Action Button */}
+          <button
+            className="teacher-dashboard__fab"
+            onClick={handleQuickPostActivity}
+            aria-label="Post Group Activity"
+          >
+            <Camera size={24} strokeWidth={2.5} />
+            <span>POST</span>
+          </button>
         </div>
 
         {/* Footer */}

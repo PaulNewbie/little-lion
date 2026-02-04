@@ -82,6 +82,7 @@ const CalendarIcon = (
   </svg>
 );
 
+
 /**
  * Get admin sidebar configuration
  * @param {boolean} isSuperAdmin - Whether current user is super admin
