@@ -21,6 +21,7 @@ import assessmentService from "../../../services/assessmentService";
 
 import { useParents, useChildrenByParent, useCacheInvalidation } from "../../../hooks/useCachedData";
 
+
 // REMOVED: generatePassword function - no longer needed!
 
 export default function EnrollStudent() {
@@ -53,6 +54,10 @@ export default function EnrollStudent() {
 
   // NEW: State for editing existing student
   const [editingStudent, setEditingStudent] = useState(null);
+
+
+  // NEW: State for children summary modal
+  const [showChildrenModal, setShowChildrenModal] = useState(false);
 
   // NEW: Activation Modal State
   const [showActivationModal, setShowActivationModal] = useState(false);
@@ -140,7 +145,7 @@ export default function EnrollStudent() {
 
 
 
-  // Handle student click - if ASSESSING, load and edit
+  // Handle student click - if ASSESSING, load and edit; if ENROLLED, show profile inline
   const handleStudentClick = async (student) => {
     if (student.status === "ASSESSING") {
       try {
@@ -162,15 +167,62 @@ export default function EnrollStudent() {
         showToast("Failed to load student assessment data. Please try again.", "error");
       }
     } else if (student.status === "ENROLLED") {
-      // Go to student profile page
-      navigate("/admin/StudentProfile", {
-        state: {
-          studentId: student.id,
-          fromEnrollment: true,
-          parent: selectedParent,
-        },
-      });
+      // Show student profile inline instead of navigating
+      setViewingChildProfile(student);
     }
+  };
+
+  // Handle guardian card click - show children modal
+  const handleGuardianClick = (parent) => {
+    setSelectedParent(parent);
+    setShowChildrenModal(true);
+  };
+
+  // Handle closing children modal
+  const handleCloseChildrenModal = () => {
+    setShowChildrenModal(false);
+    setSelectedParent(null);
+  };
+
+  // Handle viewing a child from the modal - navigate to Student Profile page
+  const handleViewChildFromModal = (child) => {
+    setShowChildrenModal(false);
+    setSelectedParent(null);
+    // Navigate to Student Profile tab with student data
+    navigate('/admin/StudentProfile', {
+      state: {
+        student: child,
+        studentId: child.id,
+        fromEnrollment: true,
+        parentData: selectedParent
+      }
+    });
+  };
+
+  // Calculate profile completion for a child
+  const calculateProfileCompletion = (child) => {
+    const steps = [
+      { check: () => child.firstName && child.lastName && child.gender && child.dateOfBirth },
+      { check: () => child.reasonForReferral },
+      { check: () => child.purposeOfAssessment?.length > 0 },
+      { check: () => child.backgroundHistory?.familyBackground },
+      { check: () => child.backgroundHistory?.dailyLifeActivities || child.backgroundHistory?.medicalHistory },
+      { check: () => child.backgroundHistory?.schoolHistory },
+      { check: () => child.backgroundHistory?.clinicalDiagnosis },
+      { check: () => child.backgroundHistory?.strengthsAndInterests },
+      { check: () => child.behaviorDuringAssessment },
+      { check: () => child.assessmentTools?.some(t => t.tool) },
+      { check: () => child.assessmentTools?.some(t => t.result) },
+      { check: () => child.assessmentSummary },
+      { check: () => child.serviceEnrollments?.length > 0 },
+    ];
+
+    const completedSteps = steps.filter(step => step.check()).length;
+    return {
+      completed: completedSteps,
+      total: steps.length,
+      percentage: Math.round((completedSteps / steps.length) * 100)
+    };
   };
 
   const handleEnrollmentSave = (savedChild) => {
@@ -205,35 +257,37 @@ export default function EnrollStudent() {
               <div className="ll-header-content">
                 <div className="header-title">
                   <h1>STUDENT ENROLLMENT</h1>
+                  <p className="header-subtitle">
+                    Select a guardian to view their children
+                  </p>
                 </div>
-                {!selectedParent && (
-                  <div className="search-wrapper">
-                    <span className="search-icon">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <circle cx="11" cy="11" r="8"/>
-                        <path d="M21 21l-4.35-4.35"/>
-                      </svg>
-                    </span>
-                    <input
-                      className="ll-search"
-                      placeholder="Search guardian name..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                )}
+                <div className="search-wrapper">
+                  <span className="search-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <circle cx="11" cy="11" r="8"/>
+                      <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                  </span>
+                  <input
+                    className="ll-search"
+                    placeholder="Search guardian name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
               </div>
             </div>
 
-            {/* PARENT GRID VIEW */}
+            {/* CONTENT AREA */}
             <div className="ooo-content-area">
-          {!selectedParent ? (
+          {/* PARENT GRID VIEW - Show when no parent selected */}
+          {!selectedParent || showChildrenModal ? (
             <div className="mt-grid">
               {filteredParents.map((p) => (
                 <div
                   key={p.uid}
                   className={`mt-card ${p.accountStatus !== "pending_setup" ? 'is-clickable' : 'is-clickable'}`}
-                  onClick={() => setSelectedParent(p)}
+                  onClick={() => handleGuardianClick(p)}
                 >
                   {/* Colored Banner with Status Badge */}
                   <div className="mt-card-banner">
@@ -270,82 +324,16 @@ export default function EnrollStudent() {
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="profile-wrapper">
-              <div className="profile-top">
-                <span className="back-arrow" onClick={() => setSelectedParent(null)}>
-                  <svg width="20" height="20" viewBox="0 0 32 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      fillRule="evenodd"
-                      clipRule="evenodd"
-                      d="M11.6255 22.8691C9.89159 24.4549 9.89159 27.1866 11.6255 28.7724L30.3211 45.8712C31.7604 47.1876 31.7604 49.455 30.3211 50.7714C29.0525 51.9316 27.1081 51.9316 25.8395 50.7714L1.01868 28.0705C0.366419 27.4738 0 26.6645 0 25.8208C0 24.977 0.366419 24.1678 1.01868 23.571L25.8395 0.87018C27.1081 -0.290054 29.0525 -0.290057 30.3211 0.870177C31.7604 2.1865 31.7604 4.45398 30.3211 5.7703L11.6255 22.8691Z"
-                      fill="#636363"
-                    />
-                  </svg>
-                </span>
-                <h2>{selectedParent.lastName.toUpperCase()} FAMILY</h2>
-              </div>
-              <div className="profile-info">
-                <h3 className="services-header">Family Children</h3>
-                <div className="services-list">
-                  {isLoadingChildren ? (
-                    <p style={{ textAlign: "center", padding: "20px" }}>
-                      Loading children...
-                    </p>
-                  ) : !Array.isArray(allStudents) || allStudents.length === 0 ? ( // Updated check
-                    <p style={{ textAlign: "center", padding: "20px" }}>
-                      No children enrolled yet
-                    </p>
-                  ) : ( 
-                    allStudents.map((s) => (
-                      <div
-                        key={s.id}
-                        className="service-row"
-                        onClick={() => handleStudentClick(s)}
-                        style={{
-                          cursor: "pointer",
-                          transition: "background-color 0.2s",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor =
-                            "rgba(0, 123, 255, 0.05)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "transparent";
-                        }}
-                      >
-                        <div className="service-left">
-                          👶 {s.lastName}, {s.firstName}{" "}
-                          {s.nickname ? `"${s.nickname}"` : ""}
-                        </div>
-                        <div
-                          className={`status-badge ${
-                            s.status?.toLowerCase() || "enrolled"
-                          }`}
-                        >
-                          {s.status || "ENROLLED"}
-                          {s.status === "ASSESSING" && "✏️"}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+          ) : null}
         </div>
 
-        {/* FLOATING ACTION BUTTON */}
-        {!selectedParent ? (
+        {/* FLOATING ACTION BUTTON - Hidden when modal is open */}
+        {!showChildrenModal && (
           <button
             className="add-fab secondary-fab"
             onClick={() => setShowParentForm(true)}
           >
             + Guardian Account
-          </button>
-        ) : (
-          <button className="add-fab" onClick={() => setShowEnrollForm(true)}>
-            + Enroll Student
           </button>
         )}
 
@@ -567,6 +555,144 @@ export default function EnrollStudent() {
           userData={newUserData}
           onEmailSent={() => console.log("Activation email sent")}
         />
+
+        {/* CHILDREN SUMMARY MODAL */}
+        {showChildrenModal && selectedParent && (
+          <div className="modal-overlay children-modal-overlay" onClick={handleCloseChildrenModal}>
+            <div className="children-summary-modal" onClick={(e) => e.stopPropagation()}>
+              {/* Modal Header */}
+              <div className="csm-header">
+                <div className="csm-header-left">
+                  <div className="csm-parent-avatar">
+                    {selectedParent.profilePhoto ? (
+                      <img src={selectedParent.profilePhoto} alt="" />
+                    ) : (
+                      <span>{selectedParent.firstName[0]}{selectedParent.lastName[0]}</span>
+                    )}
+                  </div>
+                  <div className="csm-header-info">
+                    <h2>{selectedParent.firstName} {selectedParent.lastName}</h2>
+                    <span className="csm-subtitle">Guardian</span>
+                  </div>
+                </div>
+                <button className="csm-close-btn" onClick={handleCloseChildrenModal}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="csm-content">
+                {isLoadingChildren ? (
+                  <div className="csm-loading">
+                    <div className="csm-spinner"></div>
+                    <p>Loading children...</p>
+                  </div>
+                ) : allStudents.length === 0 ? (
+                  <div className="csm-empty">
+                    <div className="csm-empty-icon">🦁</div>
+                    <h3>No Children Enrolled</h3>
+                    <p>This guardian doesn't have any children enrolled yet.</p>
+                    <button className="csm-enroll-btn" onClick={() => {
+                      setShowChildrenModal(false);
+                      setShowEnrollForm(true);
+                    }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 5v14M5 12h14"/>
+                      </svg>
+                      Enroll a Child
+                    </button>
+                  </div>
+                ) : (
+                  <div className="csm-children-list">
+                    {allStudents.map((child) => {
+                      const completion = calculateProfileCompletion(child);
+                      const isEnrolled = child.status === "ENROLLED";
+
+                      return (
+                        <div
+                          key={child.id}
+                          className={`csm-child-card ${isEnrolled ? 'enrolled' : 'assessing'}`}
+                          onClick={() => handleViewChildFromModal(child)}
+                        >
+                          {/* Child Photo */}
+                          <div className="csm-child-photo">
+                            {child.profilePhoto ? (
+                              <img src={child.profilePhoto} alt="" />
+                            ) : (
+                              <div className="csm-photo-placeholder">
+                                <span>{child.firstName[0]}</span>
+                              </div>
+                            )}
+                            <div className={`csm-status-badge ${isEnrolled ? 'enrolled' : 'assessing'}`}>
+                              {isEnrolled ? (
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                                </svg>
+                              ) : (
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+                                </svg>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Child Info */}
+                          <div className="csm-child-info">
+                            <h3 className="csm-child-name">{child.firstName} {child.lastName}</h3>
+                            <div className="csm-child-meta">
+                              <span className={`csm-status-tag ${isEnrolled ? 'enrolled' : 'assessing'}`}>
+                                {isEnrolled ? 'Enrolled' : 'Assessing'}
+                              </span>
+                              {child.dateOfBirth && (
+                                <span className="csm-age">
+                                  {Math.floor((new Date() - new Date(child.dateOfBirth)) / 31557600000)} yrs old
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Profile Completion */}
+                          <div className="csm-completion">
+                            {isEnrolled ? (
+                              <div className="csm-complete-badge">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                  <path d="M20 6L9 17l-5-5"/>
+                                </svg>
+                                <span>Complete</span>
+                              </div>
+                            ) : (
+                              <div className="csm-progress-wrapper">
+                                <div className="csm-progress-bar">
+                                  <div
+                                    className="csm-progress-fill"
+                                    style={{ width: `${completion.percentage}%` }}
+                                  />
+                                </div>
+                                <span className="csm-progress-text">
+                                  {completion.completed}/{completion.total} steps
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Arrow */}
+                          <div className="csm-child-arrow">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M9 18l6-6-6-6"/>
+                            </svg>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+            </div>
+          </div>
+        )}
 
         {/* Toast Notification */}
         <Toast
