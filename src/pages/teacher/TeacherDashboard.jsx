@@ -19,6 +19,7 @@ import WelcomeModal from '../../components/common/WelcomeModal';
 
 // Storage key for last selected class
 const LAST_CLASS_KEY = 'teacher_lastSelectedClass';
+const SELECTED_CLASS_VIEW_KEY = 'teacher_selectedClassView';
 
 // --- PAGINATION CONFIG ---
 const PAGE_SIZE = 10;
@@ -128,6 +129,19 @@ const TeacherDashboard = () => {
     }
   }, [students, currentUser]);
 
+  // Restore selected class from sessionStorage when myClasses is loaded
+  useEffect(() => {
+    if (myClasses.length > 0 && !selectedClass) {
+      const savedClassName = sessionStorage.getItem(SELECTED_CLASS_VIEW_KEY);
+      if (savedClassName) {
+        const foundClass = myClasses.find(cls => cls.name === savedClassName);
+        if (foundClass) {
+          setSelectedClass(foundClass);
+        }
+      }
+    }
+  }, [myClasses]);
+
   // Profile Completion Check - show welcome for new users with empty profile
   useEffect(() => {
     if (currentUser) {
@@ -199,13 +213,19 @@ const TeacherDashboard = () => {
 
   // Quick action: Post Activity (from Quick Actions section)
   const handleQuickPostActivity = () => {
+    // If a class is already selected, go directly to post activity for that class
+    if (selectedClass) {
+      handlePostGroupActivity(selectedClass);
+      return;
+    }
+
     // Auto-select only if there's exactly one class
     if (myClasses.length === 1) {
       handlePostGroupActivity(myClasses[0]);
       return;
     }
 
-    // Multiple classes - always show class picker to let user choose
+    // Multiple classes - show class picker to let user choose
     if (myClasses.length > 1) {
       setShowClassPicker(true);
       return;
@@ -285,7 +305,12 @@ const TeacherDashboard = () => {
                 {/* Back Arrow - only shows when viewing a class */}
                 {selectedClass && (
                   <button
-                    onClick={() => { setSelectedClass(null); setSearchTerm(''); setDisplayCount(PAGE_SIZE); }}
+                    onClick={() => {
+                      setSelectedClass(null);
+                      setSearchTerm('');
+                      setDisplayCount(PAGE_SIZE);
+                      sessionStorage.removeItem(SELECTED_CLASS_VIEW_KEY);
+                    }}
                     className="teacher-dashboard__header-back-arrow"
                     aria-label="Back to Classes"
                   >
@@ -379,7 +404,12 @@ const TeacherDashboard = () => {
                         <div
                           key={idx}
                           className="teacher-dashboard__class-card"
-                          onClick={() => { setSelectedClass(cls); setSearchTerm(''); setDisplayCount(PAGE_SIZE); }}
+                          onClick={() => {
+                            setSelectedClass(cls);
+                            setSearchTerm('');
+                            setDisplayCount(PAGE_SIZE);
+                            sessionStorage.setItem(SELECTED_CLASS_VIEW_KEY, cls.name);
+                          }}
                         >
                           {serviceImage ? (
                             <div className="teacher-dashboard__class-image-box">

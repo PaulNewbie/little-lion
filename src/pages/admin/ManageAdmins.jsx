@@ -1,4 +1,6 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import useManageAdmins from '../../hooks/useManageAdmins';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
@@ -6,6 +8,7 @@ import Loading from '../../components/common/Loading';
 import './css/ManageAdmins.css';
 
 const ManageAdmins = () => {
+  const navigate = useNavigate();
   const {
     admins,
     loading,
@@ -23,7 +26,16 @@ const ManageAdmins = () => {
         <Loading role="admin" message="Loading admins" variant="content" />
       ) : (
       <div style={{ padding: 'var(--main-content-padding, 32px)', width: '100%', backgroundColor: '#f8f9fa' }}>
-        <h1 style={{ color: '#2c3e50' }}>Manage Administrators</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+          <button
+            onClick={() => navigate(-1)}
+            className="manage-admins__back-btn"
+            aria-label="Go back"
+          >
+            <ArrowLeft size={24} strokeWidth={2.5} />
+          </button>
+          <h1 style={{ color: '#2c3e50', margin: 0 }}>Manage Administrators</h1>
+        </div>
         {error && <div style={{ color: 'red', marginBottom: '10px' }}>Error: {error}</div>}
 
         {/* Creation Form */}

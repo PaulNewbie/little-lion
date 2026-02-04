@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import Loading from '../../components/common/Loading';
 import Sidebar from '../../components/sidebar/Sidebar';
@@ -733,6 +734,13 @@ const TeacherProfile = () => {
             <section className="tp-profile-header-section">
               {/* Header Bar */}
               <div className="tp-profile-header-bar">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="tp-back-btn"
+                  aria-label="Go back"
+                >
+                  <ArrowLeft size={24} strokeWidth={2.5} />
+                </button>
                 <div className="tp-header-text">
                   <h1 className="tp-header-title-text">MY PROFILE</h1>
                   <p className="tp-header-subtitle-text">View and manage your professional information</p>

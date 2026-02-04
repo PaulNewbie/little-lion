@@ -6,6 +6,45 @@
    ================================================================= */
 
 /* ============================================================
+   BACK BUTTON - Cloned from Teacher Dashboard
+============================================================ */
+.manage-admins__back-btn {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%);
+  border: none;
+  border-radius: 12px;
+  padding: 0;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 82, 161, 0.25);
+}
+
+.manage-admins__back-btn:hover {
+  background: linear-gradient(135deg, #003d7a 0%, #002855 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 82, 161, 0.35);
+}
+
+.manage-admins__back-btn:focus {
+  outline: 3px solid rgba(0, 82, 161, 0.4);
+  outline-offset: 2px;
+}
+
+.manage-admins__back-btn:active {
+  transform: translateY(0);
+}
+
+.manage-admins__back-btn svg {
+  color: #ffffff;
+  stroke: #ffffff;
+}
+
+/* ============================================================
    PAGE TITLE - h1 element in the content area
 ============================================================ */
 /* Target the main h1 that comes after the sidebar */

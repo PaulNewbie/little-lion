@@ -10,7 +10,7 @@ import activityService from '../../services/activityService';
 import cloudinaryService from '../../services/cloudinaryService';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getTeacherConfig } from '../../components/sidebar/sidebarConfigs';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, ArrowLeft } from 'lucide-react';
 import './css/PlayGroupActivity.css';
 
 const PlayGroupActivity = () => {
@@ -265,16 +265,17 @@ const PlayGroupActivity = () => {
             {/* Header Banner - Matches Dashboard Pattern */}
             <div className="play-group__header-banner">
               <div className="play-group__header-content">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="play-group__header-back-btn"
+                  aria-label="Go back"
+                >
+                  <ArrowLeft size={24} strokeWidth={2.5} />
+                </button>
                 <div className="play-group__header-text">
                   <h1 className="play-group__title">NEW GROUP ACTIVITY</h1>
                   <p className="play-group__subtitle">Upload photos and tag participating students</p>
                 </div>
-                <button onClick={() => navigate(-1)} className="play-group__header-back-btn">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                  </svg>
-                  Back to Dashboard
-                </button>
               </div>
             </div>
 
@@ -372,9 +373,8 @@ const PlayGroupActivity = () => {
                     disabled={selectedImages.length >= MAX_IMAGES}
                   />
                   <div className="play-group__upload-content">
-                    <Upload size={32} />
+                    <Upload size={24} />
                     <span className="play-group__upload-title">Click to upload photos</span>
-                    <span className="play-group__upload-desc">or drag and drop (max {MAX_IMAGES} photos)</span>
                   </div>
                 </label>
 
@@ -549,6 +549,11 @@ const PlayGroupActivity = () => {
                   )}
                 </div>
               )}
+
+              {/* Note below submit button */}
+              <p className="play-group__bottom-note">
+                You can upload up to {MAX_IMAGES} photos per activity. Photos will be shared with parents of participating students.
+              </p>
             </form>
           </div>
         </div>

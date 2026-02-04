@@ -33,6 +33,10 @@ import ParentChildListView from "../../parent/components/ParentChildListView";
 import "./StudentProfile.css";
 import "../../../components/common/Header.css";
 
+// Storage keys for view state persistence
+const SELECTED_STUDENT_KEY = 'admin_selectedStudentId';
+const VIEW_MODE_KEY = 'admin_viewMode';
+
 const StudentProfile = ({
   isParentView = false,
   childIdFromRoute = null,
@@ -170,6 +174,21 @@ const StudentProfile = ({
     }
   }, [selectedStudent]);
 
+  // Restore selected student from sessionStorage (for admin/super admin only)
+  useEffect(() => {
+    if (!isParentView && !isStaffView && !loading && filteredStudents.length > 0 && !selectedStudent && !studentIdFromEnrollment) {
+      const savedStudentId = sessionStorage.getItem(SELECTED_STUDENT_KEY);
+      const savedViewMode = sessionStorage.getItem(VIEW_MODE_KEY);
+      if (savedStudentId && savedViewMode === 'profile') {
+        const foundStudent = filteredStudents.find(s => s.id === savedStudentId);
+        if (foundStudent) {
+          setSelectedStudent(foundStudent);
+          setViewMode('profile');
+        }
+      }
+    }
+  }, [loading, filteredStudents, isParentView, isStaffView, selectedStudent, studentIdFromEnrollment]);
+
   // === Handlers ===
 
   const handleSelectStudent = (student) => {
@@ -177,6 +196,11 @@ const StudentProfile = ({
     setViewMode("profile");
     setShowAssessment(false);
     setSelectedService("");
+    // Save to sessionStorage for admin/super admin
+    if (!isParentView && !isStaffView) {
+      sessionStorage.setItem(SELECTED_STUDENT_KEY, student.id);
+      sessionStorage.setItem(VIEW_MODE_KEY, 'profile');
+    }
   };
 
   const handleBack = () => {
@@ -189,6 +213,8 @@ const StudentProfile = ({
       setIgnoreRouteChild(true);
       setSelectedStudent(null);
       setViewMode("list");
+      sessionStorage.removeItem(SELECTED_STUDENT_KEY);
+      sessionStorage.removeItem(VIEW_MODE_KEY);
       return;
     }
     if (location.state?.fromOneOnOne) {
@@ -206,6 +232,8 @@ const StudentProfile = ({
     } else {
       setSelectedStudent(null);
       setViewMode("list");
+      sessionStorage.removeItem(SELECTED_STUDENT_KEY);
+      sessionStorage.removeItem(VIEW_MODE_KEY);
     }
   };
 

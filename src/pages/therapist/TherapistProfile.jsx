@@ -713,6 +713,13 @@ const TherapistProfile = () => {
             <section className="tp-profile-header-section">
               {/* Header Bar */}
               <div className="tp-profile-header-bar">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="tp-back-btn"
+                  aria-label="Go back"
+                >
+                  <BackArrowIcon />
+                </button>
                 <div className="tp-header-text">
                   <h1 className="tp-header-title-text">MY PROFILE</h1>
                   <p className="tp-header-subtitle-text">View and manage your professional information</p>
