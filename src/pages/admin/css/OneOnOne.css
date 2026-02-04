@@ -596,6 +596,64 @@
   }
 }
 
+@media (max-width: 480px) {
+  .ooo-main {
+    padding: 8px;
+  }
+
+  .ooo-header {
+    padding: 1.25rem 0.75rem;
+  }
+
+  .ooo-header .header-title h1,
+  .ooo-title h1,
+  .ooo-header .service-name {
+    font-size: 1.25rem;
+  }
+
+  .ooo-header-edit-btn {
+    padding: 8px 14px;
+    font-size: 11px;
+    min-height: 44px;
+  }
+
+  .ooo-services-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  .ooo-fab {
+    bottom: 16px;
+    right: 16px;
+    padding: 12px 16px;
+    font-size: 13px;
+    min-height: 44px;
+  }
+
+  .ooo-fab-icon {
+    font-size: 20px;
+  }
+
+  /* iOS zoom prevention on modal inputs */
+  .modal-form input,
+  .modal-form textarea,
+  .modal-form select {
+    font-size: 16px !important;
+  }
+
+  .modal-actions button {
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  .modal-box {
+    padding: 20px 16px;
+    margin: 12px;
+    width: calc(100% - 24px);
+    max-width: none;
+  }
+}
+
 /* ================================================================
    FOOTER LAYOUT
 ================================================================ */

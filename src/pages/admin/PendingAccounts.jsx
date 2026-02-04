@@ -7,6 +7,7 @@ import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import ActivationModal from '../../components/admin/ActivationModal';
 import activationService from '../../services/activationService';
+import './css/PendingAccounts.css';
 
 const styles = {
   layout: {
@@ -238,20 +239,20 @@ export default function PendingAccounts() {
     : users.filter(u => u.role === roleFilter);
 
   return (
-    <div style={styles.layout}>
+    <div className="pa-layout" style={styles.layout}>
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       <Sidebar {...getAdminConfig(isSuperAdmin)} />
-      
-      <main style={styles.main}>
+
+      <main className="pa-main" style={styles.main}>
         <div style={styles.header}>
-          <h1 style={styles.title}>Pending Account Activations</h1>
-          <p style={styles.subtitle}>
+          <h1 className="pa-title" style={styles.title}>Pending Account Activations</h1>
+          <p className="pa-subtitle" style={styles.subtitle}>
             {users.length} account{users.length !== 1 ? 's' : ''} waiting for activation
           </p>
         </div>
 
-        <div style={styles.filterRow}>
-          <select 
+        <div className="pa-filter-row" style={styles.filterRow}>
+          <select
             style={styles.select}
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
@@ -262,9 +263,9 @@ export default function PendingAccounts() {
             <option value="therapist">Therapists</option>
             <option value="admin">Admins</option>
           </select>
-          
-          <div style={styles.refreshGroup}>
-            <span style={styles.refreshHint}>Not seeing updates? Click refresh</span>
+
+          <div className="pa-refresh-group" style={styles.refreshGroup}>
+            <span className="pa-refresh-hint" style={styles.refreshHint}>Not seeing updates? Click refresh</span>
             <button
               style={{
                 ...styles.refreshBtn,
@@ -294,7 +295,7 @@ export default function PendingAccounts() {
           </div>
         </div>
 
-        <div style={styles.card}>
+        <div className="pa-card" style={styles.card}>
           {loading ? (
             <div style={styles.loading}>Loading...</div>
           ) : filteredUsers.length === 0 ? (
@@ -303,7 +304,7 @@ export default function PendingAccounts() {
               <p>No pending activations</p>
             </div>
           ) : (
-            <table style={styles.table}>
+            <table className="pa-table" style={styles.table}>
               <thead>
                 <tr>
                   <th style={styles.th}>User</th>

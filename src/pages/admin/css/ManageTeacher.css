@@ -403,4 +403,163 @@
     max-width: unset;
     width: 100%;
   }
+
+  /* Force 2-column grid on mobile */
+  .mt-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .mt-card {
+    height: 210px;
+    border-radius: 12px;
+  }
+
+  .mt-card-banner {
+    height: 55px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .mt-card .mt-avatar-container {
+    width: 80px !important;
+    height: 80px !important;
+    min-width: 80px !important;
+    min-height: 80px !important;
+    border-width: 4px !important;
+    top: -35px;
+    font-size: 32px;
+  }
+
+  .mt-card .mt-card-content {
+    padding: 0 8px 10px;
+    padding-top: 55px;
+  }
+
+  .mt-teacher-name {
+    font-size: 13px;
+    margin: 0 0 4px;
+  }
+
+  .mt-tags-wrapper {
+    max-height: 22px;
+    margin-top: 4px;
+    gap: 3px;
+  }
+
+  .mt-tag {
+    font-size: 8px;
+    padding: 2px 5px;
+    max-width: 80px;
+  }
+
+  .mt-badge {
+    font-size: 7px;
+    padding: 2px 6px;
+    top: 5px;
+    right: 5px;
+  }
+
+  .mt-status-dot {
+    width: 12px;
+    height: 12px;
+    bottom: 2px;
+    right: 2px;
+  }
+}
+
+/* Detail view mobile overrides */
+@media (max-width: 768px) {
+  .mt-detail-view {
+    padding-bottom: 60px !important;
+  }
+
+  .mt-student-search-input {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .mt-student-filter {
+    width: 100% !important;
+    min-height: 40px;
+  }
+
+  .mt-fab {
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 18px;
+    font-size: 13px;
+  }
+
+  .mt-form-container {
+    max-width: none;
+    margin: 12px;
+    padding: 20px !important;
+  }
+
+  .mt-form-row {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .mt-grid {
+    gap: 8px;
+  }
+
+  .mt-card {
+    height: 190px;
+  }
+
+  .mt-card-banner {
+    height: 45px;
+  }
+
+  .mt-card .mt-avatar-container {
+    width: 70px !important;
+    height: 70px !important;
+    min-width: 70px !important;
+    min-height: 70px !important;
+    top: -30px;
+    font-size: 28px;
+  }
+
+  .mt-card .mt-card-content {
+    padding-top: 48px;
+  }
+
+  .mt-teacher-name {
+    font-size: 12px;
+  }
+
+  .mt-search-container input {
+    font-size: 16px;
+  }
+
+  /* iOS zoom prevention on form inputs */
+  .mt-input,
+  .mt-input-full {
+    font-size: 16px !important;
+  }
+
+  .mt-student-search-input {
+    font-size: 16px !important;
+  }
+
+  .mt-student-filter {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+
+  .mt-fab {
+    bottom: 16px;
+    right: 16px;
+    padding: 12px 16px;
+    font-size: 12px;
+    min-height: 44px;
+  }
+
+  .mt-btn-cancel,
+  .mt-btn-submit {
+    min-height: 44px;
+  }
 }

@@ -1087,3 +1087,81 @@
     gap: 12px;
   }
 }
+
+@media (max-width: 480px) {
+  .pg-main {
+    padding: 6px;
+  }
+
+  .pg-header {
+    padding: 1rem 0.75rem;
+    border-radius: 10px;
+  }
+
+  .pg-header .header-title h1 {
+    font-size: 1.2rem;
+  }
+
+  .pg-header-edit-btn {
+    padding: 8px 14px;
+    font-size: 11px;
+    min-height: 44px;
+  }
+
+  .pg-header-content {
+    gap: 1rem;
+  }
+
+  .pg-services-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 8px;
+  }
+
+  .pg-activity-block {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .pg-activity-title {
+    font-size: 15px;
+  }
+
+  .pg-inner-scroll {
+    padding: 12px;
+    gap: 16px;
+  }
+
+  .pg-panel-header {
+    padding: 12px 14px;
+    min-height: 56px;
+  }
+
+  .pg-panel-header h2 {
+    font-size: 14px;
+  }
+
+  .pg-attendance-section {
+    padding: 16px;
+  }
+
+  .pg-calendar-wrapper {
+    padding: 16px;
+  }
+
+  .pg-fab {
+    bottom: 16px;
+    right: 16px;
+    padding: 12px 16px;
+    font-size: 13px;
+    min-height: 44px;
+  }
+
+  .pg-fab-icon {
+    font-size: 20px;
+  }
+
+  .pg-photo-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 6px;
+  }
+}

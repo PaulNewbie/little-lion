@@ -1,0 +1,197 @@
+/* src/pages/admin/css/PendingAccounts.css */
+/* Mobile responsive overrides for PendingAccounts (uses inline styles for desktop) */
+
+/* ===========================================
+   RESPONSIVE - TABLET & MOBILE
+   =========================================== */
+@media (max-width: 767px) {
+  .pa-main {
+    padding: 16px !important;
+  }
+
+  .pa-title {
+    font-size: 20px !important;
+  }
+
+  .pa-subtitle {
+    font-size: 13px !important;
+  }
+
+  /* Filter row stacks vertically */
+  .pa-filter-row {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .pa-filter-row select {
+    width: 100% !important;
+  }
+
+  .pa-refresh-group {
+    width: 100%;
+    justify-content: flex-end !important;
+  }
+
+  .pa-refresh-hint {
+    display: none !important;
+  }
+
+  /* ========== TABLE → CARD LAYOUT ========== */
+  .pa-table {
+    display: block !important;
+    border-collapse: separate !important;
+  }
+
+  .pa-table thead {
+    display: none !important;
+  }
+
+  .pa-table tbody {
+    display: flex !important;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .pa-table tbody tr {
+    display: grid !important;
+    grid-template-columns: 1fr auto;
+    gap: 6px 10px;
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    padding: 14px !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  }
+
+  .pa-table td {
+    padding: 0 !important;
+    border-bottom: none !important;
+    font-size: 14px !important;
+  }
+
+  /* Row 1: User name/email | Role badge */
+  .pa-table td:nth-child(1) {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .pa-table td:nth-child(1) div:first-child strong {
+    font-size: 15px;
+  }
+
+  .pa-table td:nth-child(2) {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex !important;
+    align-items: flex-start;
+    justify-content: flex-end;
+  }
+
+  /* Row 2: Code (full width) */
+  .pa-table td:nth-child(3) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    padding-top: 8px !important;
+    margin-top: 6px;
+    border-top: 1px solid #f0f0f0 !important;
+  }
+
+  .pa-table td:nth-child(3)::before {
+    content: 'Activation Code: ';
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .pa-table td:nth-child(3) code {
+    font-size: 14px !important;
+    font-weight: 600;
+    color: #0052A1;
+  }
+
+  /* Row 3: Created | Expires */
+  .pa-table td:nth-child(4) {
+    grid-column: 1;
+    grid-row: 3;
+    font-size: 12px !important;
+    color: #6b7280;
+  }
+
+  .pa-table td:nth-child(4)::before {
+    content: 'Created: ';
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .pa-table td:nth-child(5) {
+    grid-column: 2;
+    grid-row: 3;
+    font-size: 12px !important;
+    text-align: right;
+  }
+
+  .pa-table td:nth-child(5)::before {
+    content: 'Expires: ';
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  /* Row 4: Actions (full width) */
+  .pa-table td:nth-child(6) {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    padding-top: 10px !important;
+    margin-top: 6px;
+    border-top: 1px solid #f0f0f0 !important;
+    display: flex;
+    gap: 8px;
+  }
+
+  .pa-table td:nth-child(6) button {
+    flex: 1;
+    min-height: 40px !important;
+    font-size: 13px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .pa-main {
+    padding: 12px !important;
+  }
+
+  .pa-title {
+    font-size: 18px !important;
+  }
+
+  /* iOS zoom prevention */
+  .pa-filter-row select {
+    font-size: 16px !important;
+  }
+
+  .pa-table tbody tr {
+    padding: 12px !important;
+    border-radius: 10px !important;
+  }
+
+  .pa-table td:nth-child(1) div:first-child strong {
+    font-size: 14px;
+  }
+
+  .pa-table td:nth-child(1) div:last-child {
+    font-size: 11px !important;
+  }
+
+  .pa-table td:nth-child(6) button {
+    min-height: 44px !important;
+    font-size: 12px !important;
+  }
+}

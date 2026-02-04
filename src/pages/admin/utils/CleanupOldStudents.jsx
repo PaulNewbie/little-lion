@@ -262,27 +262,29 @@ const styles = {
   container: {
     minHeight: '100vh',
     background: '#f5f5f5',
-    padding: 'var(--main-content-padding, 32px)',
+    padding: 'clamp(12px, 4vw, 32px)',
     display: 'flex',
     justifyContent: 'center',
   },
   card: {
     background: 'white',
     borderRadius: '12px',
-    padding: '32px',
+    padding: 'clamp(16px, 4vw, 32px)',
     maxWidth: '800px',
     width: '100%',
     boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+    boxSizing: 'border-box',
   },
   title: {
     margin: '0 0 16px',
     color: '#1a1a2e',
-    fontSize: '24px',
+    fontSize: 'clamp(18px, 4vw, 24px)',
   },
   description: {
     color: '#666',
     marginBottom: '24px',
     lineHeight: '1.6',
+    fontSize: '14px',
   },
   actions: {
     display: 'flex',
@@ -299,6 +301,8 @@ const styles = {
     cursor: 'pointer',
     fontSize: '14px',
     fontWeight: '600',
+    minHeight: '44px',
+    flex: '1 1 auto',
   },
   btnDanger: {
     background: '#dc3545',
@@ -309,6 +313,8 @@ const styles = {
     cursor: 'pointer',
     fontSize: '14px',
     fontWeight: '600',
+    minHeight: '44px',
+    flex: '1 1 auto',
   },
   btnSecondary: {
     background: '#6c757d',
@@ -319,14 +325,19 @@ const styles = {
     cursor: 'pointer',
     fontSize: '14px',
     fontWeight: '600',
+    minHeight: '44px',
+    flex: '1 1 auto',
   },
   studentList: {
     marginTop: '24px',
+    overflowX: 'auto',
+    WebkitOverflowScrolling: 'touch',
   },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
     marginTop: '12px',
+    minWidth: '500px',
   },
   th: {
     textAlign: 'left',
@@ -336,6 +347,7 @@ const styles = {
     fontSize: '12px',
     textTransform: 'uppercase',
     color: '#666',
+    whiteSpace: 'nowrap',
   },
   td: {
     padding: '12px',
@@ -355,6 +367,7 @@ const styles = {
     maxHeight: '300px',
     overflow: 'auto',
     whiteSpace: 'pre-wrap',
+    wordBreak: 'break-all',
   },
   success: {
     background: '#d4edda',

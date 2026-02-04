@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "../StudentProfile.css";
+import { Smile, Focus, Zap, Moon, Frown, HandMetal, Trash2, Eye, Dumbbell, TrendingDown, Home, MessageCircle, Users, UserX, EyeOff } from "lucide-react";
 import { AuthContext } from "../../../../context/AuthContext";
 import { useToast } from "../../../../context/ToastContext";
 import activityService from "./activityService";
@@ -147,7 +148,7 @@ const CommentNode = ({ comment, allComments, currentUser, onReplySubmit, onDelet
                   marginLeft: "5px"
                 }}
               >
-                🗑️
+                <Trash2 size={14} />
               </span>
             )}
 
@@ -159,7 +160,7 @@ const CommentNode = ({ comment, allComments, currentUser, onReplySubmit, onDelet
                     title="Make visible to everyone"
                     style={{ cursor: "pointer", color: "#28a745", fontSize: "0.9rem", marginLeft: "5px" }}
                   >
-                    👁️
+                    <Eye size={14} />
                   </span>
                 ) : (
                   <>
@@ -197,7 +198,7 @@ const CommentNode = ({ comment, allComments, currentUser, onReplySubmit, onDelet
                           onMouseEnter={(e) => e.target.style.backgroundColor = "#f5f5f5"}
                           onMouseLeave={(e) => e.target.style.backgroundColor = "white"}
                         >
-                          👨‍👩‍👧 Hide from parents
+                          <Users size={14} /> Hide from parents
                         </div>
                         <div
                           onClick={() => handleHideOption('staff')}
@@ -213,7 +214,7 @@ const CommentNode = ({ comment, allComments, currentUser, onReplySubmit, onDelet
                           onMouseEnter={(e) => e.target.style.backgroundColor = "#f5f5f5"}
                           onMouseLeave={(e) => e.target.style.backgroundColor = "white"}
                         >
-                          👩‍🏫 Hide from staff
+                          <UserX size={14} /> Hide from staff
                         </div>
                         <div
                           onClick={() => handleHideOption('all')}
@@ -228,7 +229,7 @@ const CommentNode = ({ comment, allComments, currentUser, onReplySubmit, onDelet
                           onMouseEnter={(e) => e.target.style.backgroundColor = "#f5f5f5"}
                           onMouseLeave={(e) => e.target.style.backgroundColor = "white"}
                         >
-                          🚫 Hide from everyone
+                          <EyeOff size={14} /> Hide from everyone
                         </div>
                       </div>
                     )}
@@ -422,7 +423,7 @@ const handleSendComment = async (text, parentId = null) => {
           gap: "5px", fontWeight: "600", padding: "5px 0"
         }}
       >
-        💬 {showComments ? "Hide Comments" : "Comment"}
+        <MessageCircle size={16} /> {showComments ? "Hide Comments" : "Comment"}
       </button>
 
       {showComments && (
@@ -535,12 +536,13 @@ const ActivityCalendar = ({ activities, teachers, selectedServiceName, onRefresh
     return staff ? `${staff.firstName} ${staff.lastName}` : "—";
   };
 
-  const getEmojiForMood = (mood) => {
-    const map = {
-      Happy: "😊", Focused: "🧐", Active: "⚡",
-      Tired: "🥱", Upset: "😢", Social: "👋",
-    };
-    return map[mood] || "•";
+  const moodIconMap = {
+    Happy: Smile, Focused: Focus, Active: Zap,
+    Tired: Moon, Upset: Frown, Social: HandMetal,
+  };
+  const getMoodIcon = (mood) => {
+    const IconComponent = moodIconMap[mood];
+    return IconComponent ? <IconComponent size={14} /> : null;
   };
 
   // Helper to format activity time - handles both date-only and full ISO formats
@@ -650,7 +652,7 @@ const ActivityCalendar = ({ activities, teachers, selectedServiceName, onRefresh
                     <div style={{ margin: "8px 0" }}>
                       {rec.studentReaction.map((m, idx) => (
                         <span key={idx} className="reaction-tag">
-                          {getEmojiForMood(m)} {m}
+                          {getMoodIcon(m)} {m}
                         </span>
                       ))}
                     </div>
@@ -664,18 +666,18 @@ const ActivityCalendar = ({ activities, teachers, selectedServiceName, onRefresh
                       <div style={{ display: 'grid', gap: '8px', marginTop: '8px' }}>
                         {rec.strengths && (
                           <div className="therapy-strength">
-                             <strong>💪 Strengths:</strong> {rec.strengths}
+                             <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}><Dumbbell size={13} /> Strengths:</strong> {rec.strengths}
                           </div>
                         )}
                         {rec.weaknesses && (
                           <div className="therapy-weakness">
-                            <strong>🔻 Improvements:</strong> {rec.weaknesses}
+                            <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}><TrendingDown size={13} /> Improvements:</strong> {rec.weaknesses}
                           </div>
                         )}
                       </div>
                       {rec.homeActivities && (
                         <div style={{ marginTop: '8px' }}>
-                           <span className="label">🏠 Home Plan:</span> {rec.homeActivities}
+                           <span className="label" style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}><Home size={13} /> Home Plan:</span> {rec.homeActivities}
                         </div>
                       )}
                     </>

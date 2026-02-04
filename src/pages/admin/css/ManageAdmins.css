@@ -287,17 +287,123 @@
     margin-bottom: 20px;
   }
 
+  /* Header row: back button + title */
+  .sidebar-page__content.sidebar-page__body > div:first-child {
+    gap: 12px !important;
+  }
+
+  /* Form card */
   .sidebar-page__content.sidebar-page__body > div[style*="border"][style*="padding: 25px"] {
     padding: 20px !important;
   }
 
-  .sidebar-page__content.sidebar-page__body thead th {
-    padding: 12px 14px !important;
+  /* Form grid: stack on mobile */
+  .sidebar-page__content.sidebar-page__body form > div[style*="grid"] {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Form bottom row: stack button and password info */
+  .sidebar-page__content.sidebar-page__body form > div[style*="space-between"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  /* ========== TABLE → CARD LAYOUT ========== */
+  .sidebar-page__content.sidebar-page__body table {
+    display: block !important;
+  }
+
+  .sidebar-page__content.sidebar-page__body thead {
+    display: none !important;
+  }
+
+  .sidebar-page__content.sidebar-page__body tbody {
+    display: flex !important;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .sidebar-page__content.sidebar-page__body tbody tr {
+    display: grid !important;
+    grid-template-columns: 1fr auto;
+    gap: 4px 10px;
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    padding: 14px !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   }
 
   .sidebar-page__content.sidebar-page__body tbody td {
-    padding: 12px 14px !important;
-    font-size: 0.875rem;
+    padding: 0 !important;
+    border-bottom: none !important;
+  }
+
+  /* Row 1: Name (col 1) | Delete button (col 2) */
+  .sidebar-page__content.sidebar-page__body tbody td:nth-child(1) {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 15px !important;
+  }
+
+  .sidebar-page__content.sidebar-page__body tbody td:nth-child(4) {
+    grid-column: 2;
+    grid-row: 1;
+    text-align: right !important;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .sidebar-page__content.sidebar-page__body tbody td:nth-child(4) button {
+    min-height: 38px !important;
+    min-width: 70px !important;
+    border-radius: 8px !important;
+  }
+
+  /* Row 2: Email (full width) */
+  .sidebar-page__content.sidebar-page__body tbody td:nth-child(2) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    padding-top: 4px !important;
+    font-size: 13px !important;
+  }
+
+  .sidebar-page__content.sidebar-page__body tbody td:nth-child(2)::before {
+    content: 'Email: ';
+    font-weight: 600;
+    color: #9ca3af;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  /* Row 3: Phone (full width) */
+  .sidebar-page__content.sidebar-page__body tbody td:nth-child(3) {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    font-size: 13px !important;
+  }
+
+  .sidebar-page__content.sidebar-page__body tbody td:nth-child(3)::before {
+    content: 'Phone: ';
+    font-weight: 600;
+    color: #9ca3af;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  /* Empty state - colspan cell */
+  .sidebar-page__content.sidebar-page__body tbody td[colspan="4"] {
+    grid-column: 1 / -1 !important;
+    text-align: center !important;
+  }
+
+  .sidebar-page__content.sidebar-page__body tbody td[colspan="4"]::before {
+    content: none;
   }
 }
 
@@ -311,9 +417,30 @@
     border-radius: 12px !important;
   }
 
+  /* iOS zoom prevention on form inputs */
+  .sidebar-page__content.sidebar-page__body form input {
+    font-size: 16px !important;
+  }
+
   /* Stack button and password hint on mobile */
   .admin-create-btn {
     width: 100%;
     min-width: unset !important;
+    min-height: 44px;
+  }
+
+  /* Card layout refinements */
+  .sidebar-page__content.sidebar-page__body tbody tr {
+    padding: 12px !important;
+    border-radius: 10px !important;
+  }
+
+  .sidebar-page__content.sidebar-page__body tbody td:nth-child(1) {
+    font-size: 14px !important;
+  }
+
+  .sidebar-page__content.sidebar-page__body tbody td:nth-child(4) button {
+    min-height: 40px !important;
+    font-size: 12px !important;
   }
 }

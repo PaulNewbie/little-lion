@@ -1,4 +1,5 @@
 import React from "react";
+import './StaffProfileCard.css';
 
 const TherapistCard = ({ therapist, serviceName, isSuperAdmin, onManageSpecs, onSpecializationClick, activeFilter }) => {
   if (!therapist) return null;
@@ -27,11 +28,11 @@ const TherapistCard = ({ therapist, serviceName, isSuperAdmin, onManageSpecs, on
   };
 
   return (
-    <div style={styles.container}>
+    <div className="staff-profile-card" style={styles.container}>
       {/* ================= TOP SECTION: Photo + Info + Specs ================= */}
-      <div style={styles.topSection}>
+      <div className="staff-profile-top" style={styles.topSection}>
         {/* LEFT: Profile Photo */}
-        <div style={styles.imageCard}>
+        <div className="staff-profile-photo" style={styles.imageCard}>
           {therapist.profilePhoto ? (
             <img
               src={therapist.profilePhoto}
@@ -47,16 +48,16 @@ const TherapistCard = ({ therapist, serviceName, isSuperAdmin, onManageSpecs, on
         </div>
 
         {/* RIGHT: Staff Info + Specializations */}
-        <div style={styles.infoCard}>
+        <div className="staff-profile-info" style={styles.infoCard}>
           {/* Profile Info Section */}
-          <div style={styles.profileSection}>
+          <div className="staff-profile-section" style={styles.profileSection}>
             {/* Name - Large and prominent */}
-            <h2 style={styles.profileName}>{formatFullName()}</h2>
+            <h2 className="staff-profile-name" style={styles.profileName}>{formatFullName()}</h2>
 
             <div style={styles.nameDivider} />
 
             {/* Profile info in 2-column grid */}
-            <div style={styles.profileGrid}>
+            <div className="staff-profile-grid" style={styles.profileGrid}>
               <div style={styles.infoItem}>
                 <div style={styles.infoLabel}>GENDER</div>
                 <div style={styles.infoValue}>
@@ -101,16 +102,17 @@ const TherapistCard = ({ therapist, serviceName, isSuperAdmin, onManageSpecs, on
             )}
           </div>
 
-          <div style={styles.divider} />
+          <div className="staff-profile-divider" style={styles.divider} />
 
           {/* Specializations */}
-          <div style={styles.specsSection}>
+          <div className="staff-profile-specs" style={styles.specsSection}>
             <div style={styles.specsHeader}>
               <div style={styles.sectionHeader}>SPECIALIZATIONS</div>
 
               {isSuperAdmin && onManageSpecs && (
                 <button
                   onClick={() => onManageSpecs(therapist)}
+                  className="staff-profile-manage-btn"
                   style={styles.manageBtn}
                   title="Update services for this therapist"
                 >
@@ -127,6 +129,7 @@ const TherapistCard = ({ therapist, serviceName, isSuperAdmin, onManageSpecs, on
                 therapist.specializations.map((spec, idx) => (
                   <div
                     key={idx}
+                    className="staff-profile-spec-card"
                     style={{
                       ...styles.specCard,
                       ...(activeFilter === spec ? styles.specCardActive : {}),
@@ -157,38 +160,38 @@ const TherapistCard = ({ therapist, serviceName, isSuperAdmin, onManageSpecs, on
 
       {/* Professional Licenses Section - Only show if data exists */}
       {((therapist.licenses && therapist.licenses.length > 0) || therapist.prcIdNumber) && (
-        <div style={styles.credentialCard}>
+        <div className="staff-profile-credential" style={styles.credentialCard}>
           <div style={styles.sectionHeader}>PROFESSIONAL LICENSES</div>
 
           {therapist.licenses && therapist.licenses.length > 0 ? (
-            <div style={{
+            <div className="staff-profile-licenses-grid" style={{
               ...styles.licensesGrid,
               gridTemplateColumns: therapist.licenses.length === 1 ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))'
             }}>
               {therapist.licenses.map((license, idx) => (
-                <div key={idx} style={styles.licenseCard}>
+                <div key={idx} className="staff-profile-license-card" style={styles.licenseCard}>
                   <div style={styles.licenseHeader}>
                     <span style={styles.licenseType}>{license.licenseType}</span>
                   </div>
                   <div style={styles.licenseBody}>
-                    <div style={styles.licenseRow}>
+                    <div className="staff-profile-license-row" style={styles.licenseRow}>
                       <span style={styles.licenseLabel}>License #:</span>
                       <span style={styles.licenseValue}>{license.licenseNumber}</span>
                     </div>
                     {license.licenseState && (
-                      <div style={styles.licenseRow}>
+                      <div className="staff-profile-license-row" style={styles.licenseRow}>
                         <span style={styles.licenseLabel}>State/Region:</span>
                         <span style={styles.licenseValue}>{license.licenseState}</span>
                       </div>
                     )}
                     {license.licenseIssueDate && (
-                      <div style={styles.licenseRow}>
+                      <div className="staff-profile-license-row" style={styles.licenseRow}>
                         <span style={styles.licenseLabel}>Issued:</span>
                         <span style={styles.licenseValue}>{license.licenseIssueDate}</span>
                       </div>
                     )}
                     {license.licenseExpirationDate && (
-                      <div style={styles.licenseRow}>
+                      <div className="staff-profile-license-row" style={styles.licenseRow}>
                         <span style={styles.licenseLabel}>Expires:</span>
                         <span style={styles.licenseValue}>{license.licenseExpirationDate}</span>
                       </div>
@@ -215,18 +218,19 @@ const TherapistCard = ({ therapist, serviceName, isSuperAdmin, onManageSpecs, on
 
       {/* Education History Section - Only show if data exists */}
       {((therapist.educationHistory && therapist.educationHistory.length > 0) || therapist.diplomaUrl) && (
-        <div style={styles.credentialCard}>
+        <div className="staff-profile-credential" style={styles.credentialCard}>
           <div style={styles.sectionHeader}>EDUCATION HISTORY</div>
 
           {therapist.educationHistory && therapist.educationHistory.length > 0 ? (
-            <div style={{
+            <div className="staff-profile-education-grid" style={{
               ...styles.educationGrid,
               gridTemplateColumns: therapist.educationHistory.length === 1 ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))'
             }}>
               {therapist.educationHistory.map((edu, idx) => (
-                <div key={idx} style={styles.educationCard}>
+                <div key={idx} className="staff-profile-education-card" style={styles.educationCard}>
                   {edu.certificateURL && (
                     <div
+                      className="staff-profile-education-image"
                       style={styles.educationImage}
                       onClick={() => window.open(edu.certificateURL, '_blank')}
                     >
@@ -260,17 +264,18 @@ const TherapistCard = ({ therapist, serviceName, isSuperAdmin, onManageSpecs, on
 
       {/* Certifications Section - Only show if data exists */}
       {therapist.certifications && therapist.certifications.length > 0 && (
-        <div style={styles.credentialCard}>
+        <div className="staff-profile-credential" style={styles.credentialCard}>
           <div style={styles.sectionHeader}>CERTIFICATIONS</div>
 
-          <div style={{
+          <div className="staff-profile-certifications-grid" style={{
             ...styles.certificationsGrid,
             gridTemplateColumns: therapist.certifications.length === 1 ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))'
           }}>
             {therapist.certifications.map((cert, idx) => (
-              <div key={idx} style={styles.certificationCard}>
+              <div key={idx} className="staff-profile-certification-card" style={styles.certificationCard}>
                 {cert.certificateURL && (
                   <div
+                    className="staff-profile-certification-image"
                     style={styles.certificationImage}
                     onClick={() => window.open(cert.certificateURL, '_blank')}
                   >

@@ -263,8 +263,8 @@ const ManageTherapists = () => {
         <div className="ooo-content-area">
           
           {selectedTherapistId ? (
-              <div style={{ paddingBottom: '120px', width: '100%' }}>
-    
+              <div className="mt-detail-view" style={{ paddingBottom: '120px', width: '100%' }}>
+
                 <TherapistCard
                   therapist={selectedTherapist}
                   serviceName="Therapist Profile"
@@ -296,6 +296,7 @@ const ManageTherapists = () => {
                         placeholder="Patient name..."
                         value={patientSearch}
                         onChange={(e) => setPatientSearch(e.target.value)}
+                        className="mt-student-search-input"
                         style={{
                           border: 'none',
                           outline: 'none',
@@ -326,6 +327,7 @@ const ManageTherapists = () => {
                     <select
                       value={patientSpecFilter || ''}
                       onChange={(e) => setPatientSpecFilter(e.target.value || null)}
+                      className="mt-student-filter"
                       style={{
                         padding: '8px 12px',
                         border: '1px solid #e2e8f0',

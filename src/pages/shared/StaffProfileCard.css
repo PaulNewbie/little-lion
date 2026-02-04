@@ -1,0 +1,162 @@
+/* =================================================================
+   STAFF PROFILE CARD - Responsive Overrides
+   Shared by TeacherCard.jsx and TherapistCard.jsx
+   Desktop styles remain as inline JS; CSS only handles responsive
+   ================================================================= */
+
+/* ============================================================
+   TABLET - Stack photo above info
+============================================================ */
+@media (max-width: 768px) {
+  .staff-profile-card {
+    gap: 1rem !important;
+  }
+
+  /* Stack photo and info vertically */
+  .staff-profile-top {
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+
+  /* Photo card: centered square box */
+  .staff-profile-photo {
+    width: 200px !important;
+    height: 200px !important;
+    flex-shrink: 0 !important;
+    align-self: center !important;
+  }
+
+  /* Info card fills width */
+  .staff-profile-info {
+    width: 100% !important;
+  }
+
+  /* Slightly smaller name */
+  .staff-profile-name {
+    font-size: 1.5rem !important;
+  }
+
+  /* Profile info section: reduce padding */
+  .staff-profile-section {
+    padding: 1.25rem !important;
+  }
+
+  /* Specs section: reduce padding */
+  .staff-profile-specs {
+    padding: 1.25rem !important;
+  }
+
+  /* Credential cards: reduce padding */
+  .staff-profile-credential {
+    padding: 1.25rem !important;
+  }
+
+  /* License/education/cert grids: single column */
+  .staff-profile-licenses-grid,
+  .staff-profile-education-grid,
+  .staff-profile-certifications-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Remove maxWidth on inner cards so they fill container */
+  .staff-profile-license-card,
+  .staff-profile-education-card,
+  .staff-profile-certification-card {
+    max-width: none !important;
+  }
+
+  /* Manage button: touch-friendly */
+  .staff-profile-manage-btn {
+    min-height: 36px;
+    padding: 6px 16px !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* Specialization cards: slightly smaller */
+  .staff-profile-spec-card {
+    padding: 0.625rem 1rem !important;
+  }
+}
+
+/* ============================================================
+   MOBILE - Further compaction
+============================================================ */
+@media (max-width: 480px) {
+  .staff-profile-card {
+    gap: 0.75rem !important;
+  }
+
+  /* Photo card: smaller square on small phones */
+  .staff-profile-photo {
+    width: 160px !important;
+    height: 160px !important;
+    padding: 0.5rem !important;
+    border-radius: 10px !important;
+  }
+
+  /* Name */
+  .staff-profile-name {
+    font-size: 1.25rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* Profile section padding */
+  .staff-profile-section {
+    padding: 1rem !important;
+  }
+
+  /* Profile grid: single column on small phones */
+  .staff-profile-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.625rem !important;
+  }
+
+  /* Specs section: tighter */
+  .staff-profile-specs {
+    padding: 1rem !important;
+  }
+
+  /* Specialization cards: compact */
+  .staff-profile-spec-card {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.85rem;
+  }
+
+  .staff-profile-spec-card span:last-child {
+    font-size: 0.85rem !important;
+  }
+
+  /* Credential cards */
+  .staff-profile-credential {
+    padding: 1rem !important;
+    border-radius: 10px !important;
+  }
+
+  /* License rows: stack label and value on very narrow screens */
+  .staff-profile-license-row {
+    flex-direction: column !important;
+    gap: 2px !important;
+    align-items: flex-start !important;
+  }
+
+  /* Education card image */
+  .staff-profile-education-image {
+    height: 120px !important;
+  }
+
+  /* Certification image */
+  .staff-profile-certification-image {
+    height: 100px !important;
+  }
+
+  /* Manage button: full touch target */
+  .staff-profile-manage-btn {
+    min-height: 44px;
+    padding: 8px 18px !important;
+  }
+
+  /* Divider between info sections */
+  .staff-profile-divider {
+    margin: 0 1rem !important;
+  }
+}
