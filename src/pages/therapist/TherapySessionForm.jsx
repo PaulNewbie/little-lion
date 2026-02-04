@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { saveSessionActivity } from '../../services/activityService';
+import { useQueryClient } from '@tanstack/react-query';
+import { invalidateRelatedCaches } from '../../config/queryClient';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../context/ToastContext';
 import Loading from '../../components/common/Loading';
@@ -52,6 +54,7 @@ const MOODS = ["Happy 😊", "Focused 🧐", "Active ⚡", "Tired 🥱", "Upset 
 const TherapySessionForm = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { currentUser } = useAuth();
   const toast = useToast();
   const { child, service } = location.state || {};
@@ -170,6 +173,9 @@ const TherapySessionForm = () => {
 
     try {
       await saveSessionActivity(sessionData);
+      // Invalidate activity caches so parent/admin dashboards show new data
+      await invalidateRelatedCaches('activity', child?.id);
+      queryClient.invalidateQueries({ queryKey: ['dailyDigest'] });
       toast.success('Session saved successfully!');
       navigate('/therapist/dashboard');
     } catch (error) {

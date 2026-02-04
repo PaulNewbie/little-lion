@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { BarChart3, Smile, Stethoscope, Palette, Camera } from 'lucide-react';
-import { getEmojiForMood } from '../../../components/activities/ActivityCards';
+import { getMoodIcon } from '../../../components/activities/ActivityCards';
 import '../css/DigestComponents.css';
 
 /**
@@ -34,7 +34,7 @@ const DigestSummaryCard = ({ stats }) => {
         {/* Mood */}
         <div className="digest-stat-item digest-stat-item--mood">
           <span className="digest-stat-icon">
-            {dominantMood ? getEmojiForMood(dominantMood) : <Smile size={28} color="#92400e" />}
+            {dominantMood ? getMoodIcon(dominantMood, 28) : <Smile size={28} color="#92400e" />}
           </span>
           {dominantMood ? (
             <span className="digest-mood-label">{dominantMood}</span>

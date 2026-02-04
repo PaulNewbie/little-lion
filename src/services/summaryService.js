@@ -325,15 +325,15 @@ class SummaryService {
     const moodCounts = {};
     const moodTimeline = [];
 
-    // Define mood categories with emojis
+    // Define mood categories with icon names (rendered by MonthlySummary)
     const moodCategories = {
-      'Happy': { emoji: '😊', category: 'positive' },
-      'Focused': { emoji: '🧐', category: 'positive' },
-      'Active': { emoji: '⚡', category: 'positive' },
-      'Social': { emoji: '👋', category: 'positive' },
-      'Tired': { emoji: '🥱', category: 'neutral' },
-      'Upset': { emoji: '😢', category: 'concern' },
-      'Anxious': { emoji: '😰', category: 'concern' }
+      'Happy': { icon: 'Smile', category: 'positive' },
+      'Focused': { icon: 'Focus', category: 'positive' },
+      'Active': { icon: 'Zap', category: 'positive' },
+      'Social': { icon: 'HandMetal', category: 'positive' },
+      'Tired': { icon: 'Moon', category: 'neutral' },
+      'Upset': { icon: 'Frown', category: 'concern' },
+      'Anxious': { icon: 'ShieldAlert', category: 'concern' }
     };
 
     therapySessions.forEach(session => {
@@ -366,7 +366,7 @@ class SummaryService {
         mood,
         count,
         percentage: totalReactions > 0 ? Math.round((count / totalReactions) * 100) : 0,
-        emoji: moodCategories[mood]?.emoji || '',
+        icon: moodCategories[mood]?.icon || '',
         category: moodCategories[mood]?.category || 'neutral'
       }))
       .sort((a, b) => b.count - a.count);
@@ -414,7 +414,7 @@ class SummaryService {
       recommendations.push({
         type: 'therapy',
         priority: 'high',
-        icon: '📅',
+        icon: 'CalendarX',
         title: 'No Therapy Sessions',
         text: 'No therapy sessions were recorded this month. Regular therapy sessions are important for continued progress.'
       });
@@ -422,7 +422,7 @@ class SummaryService {
       recommendations.push({
         type: 'therapy',
         priority: 'medium',
-        icon: '📊',
+        icon: 'BarChart3',
         title: 'Low Session Count',
         text: `Only ${totalTherapySessions} therapy session(s) this month. Consider scheduling more sessions for optimal progress.`
       });
@@ -430,7 +430,7 @@ class SummaryService {
       recommendations.push({
         type: 'therapy',
         priority: 'positive',
-        icon: '⭐',
+        icon: 'Star',
         title: 'Great Attendance',
         text: `Excellent! ${totalTherapySessions} therapy sessions completed this month. Keep up the great work!`
       });
@@ -441,7 +441,7 @@ class SummaryService {
       recommendations.push({
         type: 'social',
         priority: 'medium',
-        icon: '👥',
+        icon: 'Users',
         title: 'No Group Activities',
         text: 'Consider enrolling in group classes for social skill development and peer interaction.'
       });
@@ -449,7 +449,7 @@ class SummaryService {
       recommendations.push({
         type: 'social',
         priority: 'positive',
-        icon: '🎉',
+        icon: 'PartyPopper',
         title: 'Active Participation',
         text: `Great social engagement with ${totalGroupActivities} group activities this month!`
       });
@@ -461,7 +461,7 @@ class SummaryService {
       recommendations.push({
         type: 'variety',
         priority: 'low',
-        icon: '💡',
+        icon: 'Lightbulb',
         title: 'Service Variety',
         text: 'Consider exploring additional therapy services for comprehensive development.'
       });
@@ -473,7 +473,7 @@ class SummaryService {
         recommendations.push({
           type: 'mood',
           priority: 'positive',
-          icon: '😊',
+          icon: 'Smile',
           title: 'Positive Mood Trend',
           text: `${moodData.dominantMood?.mood || 'Happy'} was the most common reaction this month. Your child shows great emotional engagement!`
         });
@@ -481,7 +481,7 @@ class SummaryService {
         recommendations.push({
           type: 'mood',
           priority: 'medium',
-          icon: '💭',
+          icon: 'MessageCircle',
           title: 'Mood Check-In',
           text: 'Some sessions showed signs of anxiety or distress. Consider discussing with therapists about strategies to help your child feel more comfortable.'
         });
@@ -492,7 +492,7 @@ class SummaryService {
         recommendations.push({
           type: 'mood',
           priority: 'info',
-          icon: '🌈',
+          icon: 'Rainbow',
           title: 'Emotional Range',
           text: 'Your child shows a healthy range of emotions across sessions, which is a positive sign of emotional development.'
         });
@@ -504,7 +504,7 @@ class SummaryService {
       recommendations.push({
         type: 'encouragement',
         priority: 'positive',
-        icon: '💪',
+        icon: 'Dumbbell',
         title: 'Keep Going',
         text: 'Every session contributes to growth. Thank you for your commitment to your child\'s development!'
       });

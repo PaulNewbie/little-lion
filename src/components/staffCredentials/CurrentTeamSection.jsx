@@ -127,6 +127,7 @@ const CurrentTeamSection = ({ student }) => {
         {staffMembers.map((staff) => {
           const primaryLicense = getPrimaryLicenseType(staff);
           const roleDisplay = staff.role === 'therapist' ? 'Therapist' : 'Teacher';
+          const initials = `${staff.firstName?.[0] || ''}${staff.lastName?.[0] || ''}`.toUpperCase();
 
           return (
             <button
@@ -135,18 +136,22 @@ const CurrentTeamSection = ({ student }) => {
               onClick={() => handleStaffClick(staff)}
               aria-label={`View credentials for ${staff.firstName} ${staff.lastName}`}
             >
-              <div className="cts-card-photo-container">
-                {staff.profilePhoto ? (
-                  <img
-                    src={staff.profilePhoto}
-                    alt={`${staff.firstName} ${staff.lastName}`}
-                    className="cts-card-photo"
-                  />
-                ) : (
-                  <div className="cts-card-photo-placeholder">
-                    {staff.firstName?.[0]}{staff.lastName?.[0]}
-                  </div>
-                )}
+              {/* Colored banner */}
+              <div className={`cts-card-banner ${staff.role === 'therapist' ? 'cts-card-banner--therapist' : 'cts-card-banner--teacher'}`} />
+
+              <div className="cts-card-avatar-area">
+                {/* Avatar overlapping the banner */}
+                <div className={`cts-card-avatar ${staff.role === 'therapist' ? 'cts-card-avatar--therapist' : 'cts-card-avatar--teacher'}`}>
+                  {staff.profilePhoto ? (
+                    <img
+                      src={staff.profilePhoto}
+                      alt={`${staff.firstName} ${staff.lastName}`}
+                      className="cts-card-avatar-img"
+                    />
+                  ) : (
+                    <span className="cts-card-avatar-initials">{initials}</span>
+                  )}
+                </div>
               </div>
 
               <div className="cts-card-content">

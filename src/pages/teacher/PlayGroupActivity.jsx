@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { invalidateRelatedCaches } from '../../config/queryClient';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../context/ToastContext';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -247,8 +248,10 @@ const PlayGroupActivity = () => {
 
       await activityService.createGroupActivity(activityData);
 
-      // Invalidate the playgroup activities cache so admin dashboard shows updated data
+      // Invalidate all activity-related caches so all dashboards show new data
       await queryClient.invalidateQueries({ queryKey: ['activities', 'playgroup'] });
+      await invalidateRelatedCaches('activity');
+      queryClient.invalidateQueries({ queryKey: ['dailyDigest'] });
 
       toast.success('Activity uploaded successfully!');
       navigate(-1);

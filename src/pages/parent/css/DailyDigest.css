@@ -10,10 +10,11 @@
 
 .digest-main-wrapper {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  overflow: auto;
+  overflow-x: hidden;
 }
 
 .digest-main {
@@ -22,20 +23,9 @@
   background-color: #f5f5f5;
 }
 
-.digest-header {
-  margin-bottom: 24px;
-}
-
-.digest-title {
-  font-size: 24px;
-  font-weight: 600;
-  margin-bottom: 4px;
-  color: #1a1a1a;
-}
-
-.digest-subtitle {
-  color: #666;
-  font-size: 14px;
+/* Override sp-header margin for digest page context */
+.digest-main .sp-header {
+  margin-bottom: 20px;
 }
 
 .digest-loading {
@@ -114,11 +104,7 @@
     padding: 16px;
   }
 
-  .digest-title {
-    font-size: 20px;
-  }
-
-  .digest-header {
+  .digest-main .sp-header {
     margin-bottom: 16px;
   }
 }
@@ -131,12 +117,8 @@
     padding: 12px;
   }
 
-  .digest-title {
-    font-size: 18px;
-  }
-
-  .digest-subtitle {
-    font-size: 13px;
+  .digest-main .sp-header {
+    margin-bottom: 12px;
   }
 
   .digest-loading {

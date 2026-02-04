@@ -5,7 +5,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Smile, AlertCircle, MinusCircle, Camera, BarChart3,
   ClipboardList, BookOpen, Stethoscope, Users, TrendingUp,
-  Star, FileText, Lightbulb
+  Star, FileText, Lightbulb, Focus, Zap, Moon, Frown,
+  HandMetal, ShieldAlert, CalendarX, PartyPopper,
+  MessageCircle, Rainbow, Dumbbell
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../context/ToastContext';
@@ -13,11 +15,25 @@ import childService from '../../services/childService';
 import Sidebar from '../../components/sidebar/Sidebar';
 import ImageLightbox from '../../components/common/ImageLightbox';
 import { getParentConfig } from '../../components/sidebar/sidebarConfigs';
+import ParentProfileUploader from './components/ParentProfileUploader';
 import GeneralFooter from '../../components/footer/generalfooter';
 import summaryService from '../../services/summaryService';
 import ChildSelector from '../../components/common/ChildSelector';
 
 import './css/MonthlySummary.css';
+
+// Map icon name strings (from summaryService) to Lucide components
+const iconMap = {
+  Smile, Focus, Zap, Moon, Frown, HandMetal, ShieldAlert,
+  CalendarX, BarChart3, Star, Users, PartyPopper, Lightbulb,
+  MessageCircle, Rainbow, Dumbbell
+};
+
+const renderIcon = (iconName, size = 20, color) => {
+  const IconComponent = iconMap[iconName];
+  if (!IconComponent) return null;
+  return <IconComponent size={size} color={color} />;
+};
 
 const StatCard = ({ icon, value, label, color = '#10b981', showProgress, progressValue }) => (
   <div className="monthly-stat-card">
@@ -107,7 +123,7 @@ const MoodCard = ({ moodData }) => {
             key={mood.mood}
             className={`monthly-mood-item ${getMoodItemClass(mood.category)}`}
           >
-            <div className="monthly-mood-emoji">{mood.emoji}</div>
+            <div className="monthly-mood-emoji">{renderIcon(mood.icon, 24)}</div>
             <div className="monthly-mood-count">{mood.count}</div>
             <div className="monthly-mood-label">{mood.mood}</div>
             <div className="monthly-mood-percentage">{mood.percentage}%</div>
@@ -269,149 +285,371 @@ export default function MonthlySummary() {
     }
   }, [children, selectedChild]);
 
+  // Build formal document-style print report
+  const buildPrintDocument = () => {
+    if (!summary) return '';
+    const e = (str) => String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const genDate = new Date(summary.generatedAt).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+    let sectionNum = 0;
+    const sec = (title) => `<h2>${++sectionNum}. ${title}</h2>`;
+
+    // 1. Overview table
+    const overviewHTML = `
+      ${sec('Activity Overview')}
+      <table>
+        <thead><tr><th>Metric</th><th>Count</th></tr></thead>
+        <tbody>
+          <tr><td>Total Activities</td><td class="num">${summary.stats.totalActivities}</td></tr>
+          <tr><td>Therapy Sessions</td><td class="num">${summary.stats.totalTherapySessions}</td></tr>
+          <tr><td>Group Activities</td><td class="num">${summary.stats.totalGroupActivities}</td></tr>
+          <tr><td>Engagement Rate</td><td class="num">${summary.stats.attendanceRate}%</td></tr>
+        </tbody>
+      </table>`;
+
+    // 2. Service breakdown table
+    const services = Object.entries(summary.therapyByService || {});
+    const breakdownHTML = services.length > 0 ? `
+      ${sec('Therapy Breakdown by Service')}
+      <table>
+        <thead><tr><th>Service</th><th>Sessions</th></tr></thead>
+        <tbody>
+          ${services.map(([svc, count]) => `<tr><td>${e(svc)}</td><td class="num">${count}</td></tr>`).join('')}
+        </tbody>
+      </table>` : '';
+
+    // 3. Student reactions
+    let moodHTML = '';
+    if (summary.moodData && summary.moodData.totalReactions > 0) {
+      const trendText = summary.moodData.overallTrend === 'positive' ? 'Positive Overall'
+        : summary.moodData.overallTrend === 'needs_attention' ? 'Needs Attention' : 'Balanced';
+      moodHTML = `
+        ${sec('Student Reactions')}
+        <p class="trend">Overall Trend: <strong>${trendText}</strong>
+          &nbsp;&mdash;&nbsp; ${summary.moodData.positiveCount} Positive,
+          ${summary.moodData.concernCount} Concern,
+          ${summary.moodData.totalReactions} Total Reactions
+        </p>
+        <table>
+          <thead><tr><th>Reaction</th><th>Count</th><th>Percentage</th></tr></thead>
+          <tbody>
+            ${summary.moodData.moodStats.map(m =>
+              `<tr><td>${e(m.mood)}</td><td class="num">${m.count}</td><td class="num">${m.percentage}%</td></tr>`
+            ).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    // 4. Photos
+    const photos = summary.activityPhotos || [];
+    const photosHTML = photos.length > 0 ? `
+      ${sec('Activity Photos')}
+      <p class="sub">${photos.length} photo(s) captured this month.</p>
+      <div class="photo-grid">
+        ${photos.map(p => `<div class="photo-cell"><img src="${p.url}" alt="${e(p.title)}" /></div>`).join('')}
+      </div>` : '';
+
+    // 5. Highlights
+    const highlights = summary.highlights || [];
+    const highlightsHTML = highlights.length > 0 ? `
+      ${sec('Highlights')}
+      <ul>
+        ${highlights.map(h => `<li>${e(h.text || `${h.keyword} in ${h.serviceName}`)}</li>`).join('')}
+      </ul>` : '';
+
+    // 6. Progress notes
+    const notes = summary.progressNotes || [];
+    const notesHTML = notes.length > 0 ? `
+      ${sec('Progress Notes')}
+      <table class="notes-table">
+        <thead><tr><th>Date</th><th>Service</th><th>Therapist</th><th>Notes</th></tr></thead>
+        <tbody>
+          ${notes.map(n => `
+            <tr>
+              <td class="nowrap">${formatDate(n.date)}</td>
+              <td class="nowrap">${e(n.serviceName)}</td>
+              <td class="nowrap">${e(n.therapistName)}</td>
+              <td>${e(n.note.length > 400 ? n.note.substring(0, 400) + '...' : n.note)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>` : '';
+
+    // 7. Recommendations
+    const recs = summary.recommendations || [];
+    const recsHTML = recs.length > 0 ? `
+      ${sec('Recommendations')}
+      ${recs.map((r, i) => `
+        <div class="rec-block">
+          <div class="rec-num">${i + 1}.</div>
+          <div>
+            <strong>${e(r.title)}</strong>
+            <p>${e(r.text)}</p>
+          </div>
+        </div>
+      `).join('')}` : '';
+
+    return { overviewHTML, breakdownHTML, moodHTML, photosHTML, highlightsHTML, notesHTML, recsHTML, genDate, e };
+  };
+
   // Print/Export handler
   const handlePrint = () => {
-    const printContent = printRef.current;
-    if (!printContent) return;
+    if (!summary) return;
 
-    // Create print window
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       toast.warning('Please allow popups to print the report');
       return;
     }
 
-    // Build print document with styles
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>${summary.childName} - Monthly Summary ${summary.period.monthName} ${summary.period.year}</title>
-        <style>
-          * { box-sizing: border-box; margin: 0; padding: 0; }
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            padding: 20px;
-            color: #1a1a1a;
-            line-height: 1.5;
-          }
-          .report-header {
-            text-align: center;
-            padding: 20px;
-            background: #0052A1;
-            color: white;
-            border-radius: 8px;
-            margin-bottom: 20px;
-          }
-          .report-header h1 { font-size: 24px; margin-bottom: 4px; }
-          .report-header p { opacity: 0.9; }
-          .card {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 16px;
-            page-break-inside: avoid;
-          }
-          .card-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 12px;
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 8px;
-          }
-          .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-          }
-          .stat-item {
-            text-align: center;
-            padding: 12px;
-            background: #f8fafc;
-            border-radius: 8px;
-          }
-          .stat-value { font-size: 24px; font-weight: 700; }
-          .stat-label { font-size: 11px; color: #64748b; }
-          .mood-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-            gap: 8px;
-          }
-          .mood-item {
-            text-align: center;
-            padding: 8px;
-            background: #f8fafc;
-            border-radius: 6px;
-          }
-          .photo-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-          }
-          .photo-item {
-            aspect-ratio: 1;
-            border-radius: 6px;
-            overflow: hidden;
-          }
-          .photo-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-          }
-          .note-card {
-            background: #f8fafc;
-            border-left: 3px solid #10b981;
-            padding: 10px;
-            margin-bottom: 8px;
-            border-radius: 0 6px 6px 0;
-          }
-          .note-header { font-size: 11px; color: #64748b; margin-bottom: 4px; }
-          .note-text { font-size: 13px; }
-          .recommendation {
-            display: flex;
-            gap: 10px;
-            padding: 10px;
-            background: #fffbeb;
-            border-radius: 6px;
-            margin-bottom: 8px;
-          }
-          .recommendation.positive { background: #ecfdf5; }
-          .rec-icon { font-size: 20px; }
-          .rec-title { font-weight: 600; font-size: 13px; }
-          .rec-text { font-size: 12px; color: #6b7280; }
-          .footer {
-            text-align: center;
-            color: #9ca3af;
-            font-size: 11px;
-            margin-top: 20px;
-            padding-top: 10px;
-            border-top: 1px solid #e5e7eb;
-          }
-          @media print {
-            body { padding: 0; }
-            .card { break-inside: avoid; }
-          }
-        </style>
-      </head>
-      <body>
-        ${printContent.innerHTML}
-        <div class="footer">
-          Report generated on ${new Date().toLocaleString()} | Little Lions SPED School
-        </div>
-      </body>
-      </html>
-    `);
+    const { overviewHTML, breakdownHTML, moodHTML, photosHTML, highlightsHTML, notesHTML, recsHTML, genDate, e } = buildPrintDocument();
+
+    printWindow.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <title>${summary.childName} - Monthly Summary ${summary.period.monthName} ${summary.period.year}</title>
+  <style>
+    @page { margin: 20mm 18mm; size: A4; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-size: 12px;
+      color: #1f2937;
+      line-height: 1.6;
+      background: #fff;
+    }
+
+    /* ===== LETTERHEAD ===== */
+    .letterhead {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding-bottom: 14px;
+      border-bottom: 3px solid #0052A1;
+      margin-bottom: 20px;
+    }
+    .letterhead-left h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0052A1;
+      margin: 0;
+      letter-spacing: -0.3px;
+    }
+    .letterhead-left .school-sub {
+      font-size: 10px;
+      color: #64748b;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    .letterhead-right {
+      text-align: right;
+      font-size: 11px;
+      color: #64748b;
+    }
+    .letterhead-right strong { color: #1f2937; }
+
+    /* ===== TITLE BLOCK ===== */
+    .title-block {
+      text-align: center;
+      margin: 18px 0 24px;
+      padding: 16px 0;
+      border-top: 1px solid #e5e7eb;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .title-block h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1f2937;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .title-block .title-sub {
+      font-size: 13px;
+      color: #475569;
+      margin-top: 4px;
+    }
+
+    /* ===== STUDENT INFO ===== */
+    .info-row {
+      display: flex;
+      gap: 32px;
+      margin-bottom: 20px;
+      font-size: 12px;
+    }
+    .info-item { display: flex; gap: 6px; }
+    .info-label { color: #64748b; }
+    .info-value { font-weight: 600; color: #1f2937; }
+
+    /* ===== SECTION HEADERS ===== */
+    h2 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0052A1;
+      margin: 22px 0 10px;
+      padding-bottom: 5px;
+      border-bottom: 2px solid #FFCB10;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      page-break-after: avoid;
+    }
+
+    /* ===== TABLES ===== */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+      font-size: 12px;
+    }
+    th {
+      background: #f1f5f9;
+      color: #334155;
+      font-weight: 600;
+      text-align: left;
+      padding: 8px 12px;
+      border: 1px solid #e2e8f0;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    td {
+      padding: 7px 12px;
+      border: 1px solid #e2e8f0;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #fafbfc; }
+    .num { text-align: center; font-weight: 600; }
+    .nowrap { white-space: nowrap; }
+
+    /* ===== TREND ===== */
+    .trend {
+      font-size: 12px;
+      color: #475569;
+      margin-bottom: 10px;
+    }
+    .sub {
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 10px;
+    }
+
+    /* ===== LISTS ===== */
+    ul {
+      margin: 0 0 16px 20px;
+      font-size: 12px;
+    }
+    li {
+      margin-bottom: 4px;
+      line-height: 1.5;
+    }
+
+    /* ===== RECOMMENDATIONS ===== */
+    .rec-block {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+      padding: 10px 12px;
+      background: #fafbfc;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      page-break-inside: avoid;
+    }
+    .rec-num {
+      font-weight: 700;
+      color: #0052A1;
+      min-width: 18px;
+    }
+    .rec-block strong { font-size: 12px; color: #1f2937; }
+    .rec-block p { font-size: 11px; color: #6b7280; margin-top: 2px; line-height: 1.5; }
+
+    /* ===== PHOTOS ===== */
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .photo-cell {
+      aspect-ratio: 1;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+    }
+    .photo-cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    /* ===== NOTES TABLE ===== */
+    .notes-table td:last-child { font-size: 11px; line-height: 1.5; }
+
+    /* ===== FOOTER ===== */
+    .doc-footer {
+      margin-top: 28px;
+      padding-top: 12px;
+      border-top: 2px solid #0052A1;
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #94a3b8;
+    }
+
+    /* ===== PRINT ===== */
+    @media print {
+      body { font-size: 11px; }
+      h2 { margin-top: 16px; }
+      th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      tr:nth-child(even) td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .rec-block { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .photo-grid { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Letterhead -->
+  <div class="letterhead">
+    <div class="letterhead-left">
+      <h1>Little Lions</h1>
+      <div class="school-sub">Special Education School</div>
+    </div>
+    <div class="letterhead-right">
+      <div><strong>Date Issued:</strong> ${genDate}</div>
+      <div><strong>Report Period:</strong> ${e(summary.period.monthName)} ${summary.period.year}</div>
+    </div>
+  </div>
+
+  <!-- Title -->
+  <div class="title-block">
+    <h2 style="border:none;margin:0;padding:0;text-align:center;color:#1f2937">Monthly Progress Report</h2>
+    <div class="title-sub">${e(summary.childName)}</div>
+  </div>
+
+  <!-- Student Info -->
+  <div class="info-row">
+    <div class="info-item"><span class="info-label">Student:</span> <span class="info-value">${e(summary.childName)}</span></div>
+    <div class="info-item"><span class="info-label">Period:</span> <span class="info-value">${e(summary.period.monthName)} ${summary.period.year}</span></div>
+  </div>
+
+  <!-- Report Body -->
+  ${overviewHTML}
+  ${breakdownHTML}
+  ${moodHTML}
+  ${highlightsHTML}
+  ${notesHTML}
+  ${recsHTML}
+  ${photosHTML}
+
+  <!-- Footer -->
+  <div class="doc-footer">
+    <div>Little Lions SPED School &mdash; Confidential Student Report</div>
+    <div>Generated: ${new Date().toLocaleString()}</div>
+  </div>
+
+</body>
+</html>`);
 
     printWindow.document.close();
 
-    // Wait for images to load, then print
     printWindow.onload = () => {
-      setTimeout(() => {
-        printWindow.print();
-      }, 500);
+      setTimeout(() => { printWindow.print(); }, 500);
     };
   };
 
@@ -466,15 +704,17 @@ export default function MonthlySummary() {
 
   return (
     <div className="monthly-layout">
-      <Sidebar {...getParentConfig()} forceActive="/parent/summary" />
+      <Sidebar {...getParentConfig()} forceActive="/parent/summary" renderExtraProfile={() => <ParentProfileUploader />} />
 
       <div className="monthly-main-wrapper">
         <main className="monthly-main">
         <div className="monthly-header">
-          <h1 className="monthly-title">Monthly Summary Report</h1>
-          <p className="monthly-subtitle">
-            View your child's progress and activity summary
-          </p>
+          <div className="monthly-header-content">
+            <h1 className="monthly-title">Monthly Summary Report</h1>
+            <p className="monthly-subtitle">
+              View your child's progress and activity summary
+            </p>
+          </div>
         </div>
 
         {/* Child Selector - Visual card-based */}
@@ -679,7 +919,7 @@ export default function MonthlySummary() {
                     key={index}
                     className={`monthly-recommendation${rec.priority === 'positive' ? ' monthly-recommendation--positive' : ''}`}
                   >
-                    <div className="monthly-recommendation-icon">{rec.icon}</div>
+                    <div className="monthly-recommendation-icon">{renderIcon(rec.icon, 20)}</div>
                     <div className="monthly-recommendation-content">
                       <div className="monthly-recommendation-title">{rec.title}</div>
                       <div className="monthly-recommendation-text">{rec.text}</div>

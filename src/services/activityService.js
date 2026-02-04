@@ -127,7 +127,60 @@ class ActivityService {
     }
   }
 
-  // 5. Real-time listener for Play Group Activities (Admin Dashboard)
+  // 5a. Real-time listener for a child's activities (Parent/Admin view)
+  // Merges activities + therapy_sessions via onSnapshot for live updates
+  // Returns unsubscribe function for cleanup
+  listenToChildActivities(childId, callback) {
+    const activitiesRef = collection(db, 'activities');
+    const sessionsRef = collection(db, 'therapy_sessions');
+
+    // Three queries matching getActivitiesByChild
+    const q1 = query(activitiesRef, where('studentId', '==', childId), limit(50));
+    const q2 = query(activitiesRef, where('participatingStudentIds', 'array-contains', childId), limit(50));
+    const q3 = query(sessionsRef, where('childId', '==', childId), limit(50));
+
+    // Track data from each listener independently
+    let data1 = [], data2 = [], data3 = [];
+    const merge = () => {
+      const seenIds = new Set();
+      const results = [];
+      const addResult = (item) => {
+        if (!seenIds.has(item.id)) {
+          seenIds.add(item.id);
+          results.push(item);
+        }
+      };
+      data1.forEach(addResult);
+      data2.forEach(addResult);
+      data3.forEach(addResult);
+      results.sort((a, b) => new Date(b.date) - new Date(a.date));
+      callback(results);
+    };
+
+    const unsub1 = onSnapshot(q1, (snap) => {
+      data1 = snap.docs.map(doc => ({ id: doc.id, ...doc.data(), _collection: 'activities' }));
+      merge();
+    }, (err) => { console.error('Activity listener q1 error:', err); });
+
+    const unsub2 = onSnapshot(q2, (snap) => {
+      data2 = snap.docs.map(doc => ({ id: doc.id, ...doc.data(), _collection: 'activities' }));
+      merge();
+    }, (err) => { console.error('Activity listener q2 error:', err); });
+
+    const unsub3 = onSnapshot(q3, (snap) => {
+      data3 = snap.docs.map(doc => ({
+        id: doc.id, ...doc.data(),
+        type: 'therapy_session',
+        _collection: 'therapy_sessions'
+      }));
+      merge();
+    }, (err) => { console.error('Activity listener q3 error:', err); });
+
+    // Return combined unsubscribe
+    return () => { unsub1(); unsub2(); unsub3(); };
+  }
+
+  // 5b. Real-time listener for Play Group Activities (Admin Dashboard)
   // Returns unsubscribe function for cleanup
   listenToPlayGroupActivities(callback, maxResults = 50) {
     const q = query(

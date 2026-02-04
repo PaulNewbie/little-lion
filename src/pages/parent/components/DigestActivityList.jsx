@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { ClipboardList, Stethoscope, Palette } from 'lucide-react';
-import { TherapyCard, GroupCard, getEmojiForMood } from '../../../components/activities/ActivityCards';
+import { TherapyCard, GroupCard, getMoodIcon } from '../../../components/activities/ActivityCards';
 import '../css/DigestComponents.css';
 
 // Chevron icon
@@ -56,7 +56,7 @@ const ActivityRow = ({ activity, isExpanded, onToggle }) => {
   return (
     <div>
       <div
-        className={`digest-activity-row${isExpanded ? ' digest-activity-row--expanded' : ''}`}
+        className={`digest-activity-row ${isTherapy ? 'digest-activity-row--therapy' : 'digest-activity-row--group'}${isExpanded ? ' digest-activity-row--expanded' : ''}`}
         onClick={onToggle}
         role="button"
         tabIndex={0}
@@ -74,7 +74,7 @@ const ActivityRow = ({ activity, isExpanded, onToggle }) => {
             {time && <span>{time}</span>}
             {mood && (
               <span className="digest-mood-badge">
-                {getEmojiForMood(mood)} {mood}
+                {getMoodIcon(mood, 14)} {mood}
               </span>
             )}
           </div>

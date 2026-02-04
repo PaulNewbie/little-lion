@@ -10,35 +10,19 @@ import ParentChildCard from './ParentChildCard';
 import './ParentChildListView.css';
 
 const ParentChildListView = ({ children, onSelectChild, parentName }) => {
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 18) return 'Good Afternoon';
-    return 'Good Evening';
-  };
-
   return (
     <div className="parent-list-container">
-      {/* Warm, personalized header */}
-      <header className="parent-list-header">
-        <div className="parent-header-content">
-          <div className="parent-header-title-section">
-            <h1 className="parent-header-title">
-              {getGreeting()}{parentName ? `, ${parentName}` : ''}
-            </h1>
-            <p className="parent-header-subtitle">
-              Welcome to your family dashboard. Select a child to view their progress and activities.
+      {/* Standard header matching other roles */}
+      <div className="sp-header">
+        <div className="sp-header-content">
+          <div className="header-title">
+            <h1>MY CHILDREN</h1>
+            <p className="header-subtitle">
+              View your children's profiles and activities
             </p>
           </div>
-
-          {/* Little Lions mascot decoration */}
-          <div className="parent-header-decoration">
-            <span className="mascot-emoji" role="img" aria-label="lion mascot">
-              🦁
-            </span>
-          </div>
         </div>
-      </header>
+      </div>
 
       {/* Children grid or empty state */}
       <main className="parent-list-content">

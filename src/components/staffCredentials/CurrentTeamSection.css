@@ -1,5 +1,6 @@
 /* src/components/staffCredentials/CurrentTeamSection.css */
 /* Current Team Section - Staff cards for parent view */
+/* Avatar design cloned from se-panel (ServiceEnrollmentsPanel) */
 
 /* ============================================
    CONTAINER
@@ -72,33 +73,35 @@
    STAFF GRID
    ============================================ */
 .cts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 20px;
 }
 
 /* ============================================
-   STAFF CARD
+   STAFF CARD - Banner + Overlapping Avatar
    ============================================ */
 .cts-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: #f9fafb;
-  border: 2px solid #e5e7eb;
+  background: white;
+  border: none;
   border-radius: 12px;
-  padding: 24px 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   text-align: center;
-  width: 100%;
+  width: 180px;
+  height: 250px;
+  position: relative;
+  overflow: visible;
+  padding: 0;
 }
 
 .cts-card:hover {
-  border-color: #0052A1;
-  background: white;
-  box-shadow: 0 4px 16px rgba(0, 82, 161, 0.15);
   transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
 .cts-card:active {
@@ -106,40 +109,68 @@
 }
 
 /* ============================================
-   PHOTO
+   COLORED BANNER (top of card)
    ============================================ */
-.cts-card-photo-container {
-  width: 80px;
-  height: 80px;
+.cts-card-banner {
+  width: 100%;
+  height: 45px;
+  border-radius: 12px 12px 0 0;
+  position: relative;
+}
+
+.cts-card-banner--therapist {
+  background: #0052A1;
+}
+
+.cts-card-banner--teacher {
+  background: #FFCB10;
+}
+
+/* ============================================
+   AVATAR AREA (overlaps the banner)
+   ============================================ */
+.cts-card-avatar-area {
+  position: relative;
+  width: 100%;
+  height: 45px;
+}
+
+.cts-card-avatar {
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
-  overflow: hidden;
-  border: 3px solid #FFCB10;
-  margin-bottom: 16px;
+  border: 4px solid white;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.cts-card:hover .cts-card-photo-container {
-  border-color: #0052A1;
-  transform: scale(1.05);
+.cts-card-avatar--therapist {
+  background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%);
 }
 
-.cts-card-photo {
+.cts-card-avatar--teacher {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.cts-card-avatar-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.cts-card-photo-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
-  color: #6b7280;
-  font-size: 28px;
+.cts-card-avatar-initials {
+  color: white;
   font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.5px;
 }
 
 /* ============================================
@@ -147,10 +178,16 @@
    ============================================ */
 .cts-card-content {
   width: 100%;
+  padding: 0 12px 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow: hidden;
 }
 
 .cts-card-name {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
   color: #1a1a2e;
   margin: 0 0 4px 0;
@@ -158,7 +195,7 @@
 }
 
 .cts-card-role {
-  font-size: 13px;
+  font-size: 11px;
   color: #6b7280;
   margin: 0 0 8px 0;
   text-transform: uppercase;
@@ -167,13 +204,13 @@
 }
 
 .cts-card-license {
-  font-size: 12px;
+  font-size: 10px;
   color: #0052A1;
   background: #e6f0fa;
-  padding: 4px 12px;
+  padding: 3px 10px;
   border-radius: 12px;
   display: inline-block;
-  margin: 0 0 12px 0;
+  margin: 0 0 8px 0;
   font-weight: 600;
 }
 
@@ -184,15 +221,15 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 6px;
-  margin: 12px 0;
+  gap: 4px;
+  margin: 8px 0;
 }
 
 .cts-service-tag {
-  font-size: 11px;
+  font-size: 8px;
   color: #374151;
-  background: white;
-  padding: 4px 10px;
+  background: #f9fafb;
+  padding: 2px 6px;
   border-radius: 10px;
   border: 1px solid #d1d5db;
   font-weight: 600;
@@ -212,10 +249,10 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  margin-top: 16px;
-  padding-top: 16px;
+  margin-top: auto;
+  padding-top: 10px;
   border-top: 1px solid #e5e7eb;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   color: #0052A1;
   transition: all 0.2s ease;
@@ -243,17 +280,26 @@
   }
 
   .cts-grid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 16px;
+    justify-content: center;
   }
 
   .cts-card {
-    padding: 20px 16px;
+    width: 160px;
+    height: 230px;
   }
 
-  .cts-card-photo-container {
-    width: 70px;
-    height: 70px;
+  .cts-card-avatar {
+    width: 60px;
+    height: 60px;
+  }
+
+  .cts-card-avatar-area {
+    height: 38px;
+  }
+
+  .cts-card-avatar-initials {
+    font-size: 18px;
   }
 
   .cts-title {
@@ -268,21 +314,33 @@
   }
 
   .cts-grid {
-    grid-template-columns: 1fr;
     gap: 12px;
   }
 
   .cts-card {
-    padding: 16px;
+    width: 140px;
+    height: 220px;
   }
 
-  .cts-card-photo-container {
-    width: 64px;
-    height: 64px;
+  .cts-card-banner {
+    height: 40px;
+  }
+
+  .cts-card-avatar {
+    width: 56px;
+    height: 56px;
+  }
+
+  .cts-card-avatar-area {
+    height: 34px;
+  }
+
+  .cts-card-avatar-initials {
+    font-size: 16px;
   }
 
   .cts-card-name {
-    font-size: 16px;
+    font-size: 13px;
   }
 
   .cts-title {
@@ -305,7 +363,6 @@
 /* Reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
   .cts-card,
-  .cts-card-photo-container,
   .cts-card-action,
   .cts-spinner {
     animation: none;
@@ -313,10 +370,6 @@
   }
 
   .cts-card:hover {
-    transform: none;
-  }
-
-  .cts-card:hover .cts-card-photo-container {
     transform: none;
   }
 

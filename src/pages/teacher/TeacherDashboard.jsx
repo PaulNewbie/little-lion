@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { invalidateRelatedCaches } from '../../config/queryClient';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../context/ToastContext';
 import childService from '../../services/childService';
@@ -35,6 +36,7 @@ const COMMON_NEEDS = ["Distracted", "Hit/Pushed", "Cried", "Refused to Share", "
 const TeacherDashboard = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const toast = useToast();
 
   // Data State
@@ -370,6 +372,9 @@ const TeacherDashboard = () => {
       };
 
       await saveSessionActivity(sessionData);
+      // Invalidate activity caches so parent/admin dashboards show new data
+      await invalidateRelatedCaches('activity', obsStudent?.id);
+      queryClient.invalidateQueries({ queryKey: ['dailyDigest'] });
       toast.success(`Observation saved for ${obsStudent.firstName}!`);
       setShowObsModal(false);
     } catch (err) {

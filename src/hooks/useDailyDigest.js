@@ -26,9 +26,10 @@ export function useDailyDigest(childId, date) {
     queryKey: ['dailyDigest', childId, dateKey],
     queryFn: () => getDailyDigest(childId, date),
     enabled: !!childId && !!date,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 2,  // 2 minutes
     cacheTime: 1000 * 60 * 30, // 30 minutes
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
+    refetchInterval: 1000 * 30, // Auto-refresh every 30 seconds
   });
 }
 
@@ -42,9 +43,9 @@ export function useLastActivityDate(childId) {
     queryKey: ['lastActivityDate', childId],
     queryFn: () => getLastActivityDate(childId),
     enabled: !!childId,
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 1000 * 60 * 5,  // 5 minutes
     cacheTime: 1000 * 60 * 60, // 1 hour
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
   });
 }
 

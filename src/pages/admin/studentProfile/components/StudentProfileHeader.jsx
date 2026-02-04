@@ -45,7 +45,7 @@ const StudentProfileHeader = ({
     <div className="profile-header-section">
       {/* Header Bar */}
       <div className="profile-header-bar">
-        <BackButton onClick={onBack} />
+        {!isParentView && <BackButton onClick={onBack} />}
         <div className="header-text">
           <h1 className="header-title-text">STUDENT PROFILE</h1>
           <p className="header-subtitle-text">

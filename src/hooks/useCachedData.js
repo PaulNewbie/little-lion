@@ -9,6 +9,7 @@ import userService from '../services/userService';
 import offeringsService from '../services/offeringsService';
 import activityService from '../services/activityService';
 import { QUERY_KEYS, QUERY_OPTIONS } from '../config/queryClient';
+export { useRealtimeActivities } from './useRealtimeActivities';
 
 // Stable empty array to avoid creating new references on every render
 const EMPTY_ARRAY = [];
@@ -25,16 +26,17 @@ const CACHE_CONFIG = {
     refetchOnMount: false,
   },
   standard: {
-    staleTime: 1000 * 60 * 30,      // 30 minutes - won't refetch for 30 mins!
+    staleTime: 1000 * 60 * 5,       // 5 minutes
     cacheTime: 1000 * 60 * 60 * 12, // 12 hours
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,          // KEY: Don't refetch when navigating back
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   },
   dynamic: {
-    staleTime: 1000 * 60 * 5,       // 5 minutes
+    staleTime: 1000 * 60 * 2,       // 2 minutes
     cacheTime: 1000 * 60 * 60,      // 1 hour
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
     refetchOnMount: true,
+    refetchInterval: 1000 * 30,     // Auto-refresh every 30 seconds
   },
 };
 

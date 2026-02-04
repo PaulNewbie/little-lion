@@ -3,10 +3,10 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useChild, useAllChildren } from "../../../../hooks/useCachedData"; // IMPORT CACHED HOOKS
+import { useChild, useAllChildren, useChildActivities } from "../../../../hooks/useCachedData";
 import activityService from "../../../../services/activityService";
 import userService from "../../../../services/userService";
-import assessmentService from "../../../../services/assessmentService"; // Keep direct service for non-cached items if needed, or create hooks
+import assessmentService from "../../../../services/assessmentService";
 
 export const useStudentProfileData = (locationState) => {
   const queryClient = useQueryClient();
@@ -44,18 +44,8 @@ export const useStudentProfileData = (locationState) => {
   }, [locationState?.studentId]);
 
   // ================= ACTIVITIES =================
-  // (You could move this to useCachedData too, but keeping here for now is fine)
-  // We use the same query key pattern as the rest of the app: ['activities', id]
-  const { data: studentActivities = [] } = useQueryClient().getQueryData(['activities', selectedStudentId]) 
-    ? { data: useQueryClient().getQueryData(['activities', selectedStudentId]) } // Use existing if available
-    : { data: [] }; 
-    
-  // Re-implementing the query properly:
-  // Note: We can't use useQuery directly here if we want to follow the pattern, 
-  // but let's stick to the existing logic which is fine for activities (dynamic).
-  /* NOTE: I'm leaving the original activity logic mostly alone, 
-     but added `enabled` check to ensure we have an ID 
-  */
+  // Uses centralized cached hook with auto-refresh (dynamic stale time)
+  const { data: studentActivities = [] } = useChildActivities(selectedStudentId);
 
   // ================= PARENT =================
   const { data: parentData = null } = useMemo(() => {
@@ -89,6 +79,7 @@ export const useStudentProfileData = (locationState) => {
     queryClient.invalidateQueries({ queryKey: ["students"] });
     if (selectedStudent?.id) {
        queryClient.invalidateQueries({ queryKey: ["student", selectedStudent.id] });
+       queryClient.invalidateQueries({ queryKey: ["activities", selectedStudent.id] });
     }
   };
 
@@ -102,7 +93,7 @@ export const useStudentProfileData = (locationState) => {
     filterType,
     setFilterType,
     filteredStudents,
-    studentActivities: passedActivities.length ? passedActivities : [], // Simplified for brevity
+    studentActivities: passedActivities.length ? passedActivities : studentActivities,
     parentData,
     assessmentData: null, // Simplified
     isAssessmentLoading: false,

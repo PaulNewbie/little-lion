@@ -1,6 +1,5 @@
 /* ============================================================
-   PARENT CHILD LIST VIEW - Enhanced Design
-   Warm, welcoming interface for parents
+   PARENT CHILD LIST VIEW
 ============================================================ */
 
 .parent-list-container {
@@ -8,100 +7,6 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-}
-
-/* ============================================================
-   HEADER SECTION - Personalized greeting
-============================================================ */
-
-.parent-list-header {
-  background-image: url("../../../images/little-lions-bg.jpg");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  border-radius: 24px;
-  padding: 3rem 2.5rem;
-  margin-bottom: 2.5rem;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-}
-
-/* Warm overlay gradient */
-.parent-list-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg,
-    rgba(0, 82, 161, 0.85) 0%,
-    rgba(0, 61, 122, 0.8) 50%,
-    rgba(255, 203, 16, 0.2) 100%
-  );
-}
-
-.parent-header-content {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 2rem;
-}
-
-.parent-header-title-section {
-  flex: 1;
-  min-width: 0;
-}
-
-.parent-header-title {
-  font-size: 2.25rem;
-  font-weight: 800;
-  color: #ffffff;
-  margin: 0 0 0.75rem 0;
-  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.4);
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
-
-.parent-header-subtitle {
-  font-size: 1.0625rem;
-  color: rgba(255, 255, 255, 0.95);
-  font-weight: 500;
-  margin: 0;
-  max-width: 600px;
-  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
-  line-height: 1.5;
-}
-
-/* Mascot decoration */
-.parent-header-decoration {
-  flex-shrink: 0;
-  width: 80px;
-  height: 80px;
-  background: rgba(255, 203, 16, 0.95);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 24px rgba(255, 203, 16, 0.4);
-  animation: gentle-bounce 3s ease-in-out infinite;
-}
-
-.mascot-emoji {
-  font-size: 48px;
-  line-height: 1;
-}
-
-@keyframes gentle-bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
 }
 
 /* ============================================================
@@ -145,8 +50,8 @@
 /* Children Grid */
 .parent-children-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
   animation: fade-in 0.5s ease-out;
 }
 
@@ -215,51 +120,14 @@
    RESPONSIVE DESIGN
 ============================================================ */
 
-@media (max-width: 1024px) {
-  .parent-children-grid {
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 20px;
-  }
-}
-
 @media (max-width: 768px) {
-  .parent-list-header {
-    padding: 2rem 1.5rem;
-    margin-bottom: 2rem;
-    border-radius: 16px;
-  }
-
-  .parent-header-content {
-    flex-direction: column;
-    text-align: center;
-    gap: 1.5rem;
-  }
-
-  .parent-header-title {
-    font-size: 1.75rem;
-  }
-
-  .parent-header-subtitle {
-    font-size: 0.9375rem;
-    max-width: 100%;
-  }
-
-  .parent-header-decoration {
-    width: 64px;
-    height: 64px;
-  }
-
-  .mascot-emoji {
-    font-size: 36px;
-  }
-
   .parent-list-section-title h2 {
     font-size: 1.25rem;
   }
 
   .parent-children-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
   }
 
   .parent-empty-state {
@@ -269,19 +137,6 @@
 }
 
 @media (max-width: 480px) {
-  .parent-list-header {
-    padding: 1.5rem 1rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .parent-header-title {
-    font-size: 1.5rem;
-  }
-
-  .parent-header-subtitle {
-    font-size: 0.875rem;
-  }
-
   .parent-list-content {
     padding: 0 0 1.5rem;
   }
@@ -303,24 +158,14 @@
    ACCESSIBILITY
 ============================================================ */
 
-/* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   .parent-children-grid,
   .parent-empty-state {
     animation: none;
   }
-
-  .parent-header-decoration {
-    animation: none;
-  }
 }
 
-/* High contrast mode */
 @media (prefers-contrast: high) {
-  .parent-list-header {
-    border: 3px solid #000;
-  }
-
   .child-count-badge {
     border: 2px solid #78350f;
   }
@@ -330,22 +175,11 @@
   }
 }
 
-/* Focus visible styles */
 .parent-children-grid:focus-within {
   outline: none;
 }
 
-/* Print styles */
 @media print {
-  .parent-list-header {
-    background: #0052A1;
-    box-shadow: none;
-  }
-
-  .parent-header-decoration {
-    display: none;
-  }
-
   .parent-children-grid {
     grid-template-columns: repeat(2, 1fr);
   }

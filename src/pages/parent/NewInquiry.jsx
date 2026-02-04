@@ -8,6 +8,7 @@ import inquiryService from '../../services/inquiryService';
 import BackButton from '../../components/common/BackButton';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getParentConfig } from '../../components/sidebar/sidebarConfigs';
+import ParentProfileUploader from './components/ParentProfileUploader';
 import GeneralFooter from '../../components/footer/generalfooter';
 
 import './css/NewInquiry.css';
@@ -133,7 +134,7 @@ const NewInquiry = () => {
 
   return (
     <div className="inquiry-layout">
-      <Sidebar {...getParentConfig()} forceActive="/parent/concerns" />
+      <Sidebar {...getParentConfig()} forceActive="/parent/concerns" renderExtraProfile={() => <ParentProfileUploader />} />
 
       <div className="inquiry-main-wrapper">
         <div className="inquiry-container">

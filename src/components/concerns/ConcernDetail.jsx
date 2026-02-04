@@ -178,28 +178,35 @@ const MessageBubble = ({ message, isSent }) => (
 /**
  * Reply input section
  */
-const ReplySection = ({ 
-  replyText, 
-  onReplyChange, 
-  onSendReply, 
+const ReplySection = ({
+  replyText,
+  onReplyChange,
+  onSendReply,
   isSending,
 }) => (
   <div className="pc-reply-section">
-    <textarea 
-      value={replyText} 
-      onChange={(e) => onReplyChange(e.target.value)} 
+    <textarea
+      value={replyText}
+      onChange={(e) => onReplyChange(e.target.value)}
       placeholder="Type your response..."
       className="pc-reply-input"
+      rows={1}
     />
     <div className="pc-reply-footer">
-      <small className="pc-reply-count">
-      </small>
-      <button 
-        onClick={onSendReply} 
-        disabled={isSending || !replyText} 
+      <button
+        onClick={onSendReply}
+        disabled={isSending || !replyText}
         className="pc-send-btn"
+        aria-label="Send reply"
       >
-        {isSending ? 'Sending...' : 'Send'}
+        {isSending ? (
+          <span className="pc-send-spinner" />
+        ) : (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
+        )}
       </button>
     </div>
   </div>
@@ -273,19 +280,20 @@ const DetailEmptyState = ({ onNewConcern, userRole }) => {
  * Back button for mobile view
  */
 export const BackButton = ({ onClick }) => (
-  <button className="pc-back-btn" onClick={onClick}>
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
+  <button className="pc-back-btn" onClick={onClick} aria-label="Back to concerns list">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M19 12H5M12 19l-7-7 7-7"/>
+      <path d="M15 18l-6-6 6-6" />
     </svg>
-    Back
+    Back to Concerns
   </button>
 );
 

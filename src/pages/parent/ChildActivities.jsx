@@ -1,11 +1,12 @@
 import React, { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { useChildActivities } from '../../hooks/useCachedData';
+import { useRealtimeActivities } from '../../hooks/useRealtimeActivities';
 import Loading from '../../components/common/Loading';
 import BackButton from '../../components/common/BackButton';
 import { TherapyCard, GroupCard } from '../../components/activities/ActivityCards';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getParentConfig } from '../../components/sidebar/sidebarConfigs';
+import ParentProfileUploader from './components/ParentProfileUploader';
 import GeneralFooter from '../../components/footer/generalfooter';
 
 import './css/ChildActivities.css';
@@ -13,8 +14,8 @@ import './css/ChildActivities.css';
 const ChildActivities = () => {
   const { childId } = useParams();
 
-  // Use cached activities - prevents re-fetching when navigating back
-  const { data: rawActivities = [], isLoading: loading } = useChildActivities(childId);
+  // Real-time activities - auto-updates when teacher/therapist uploads new data
+  const { data: rawActivities = [], isLoading: loading } = useRealtimeActivities(childId);
 
   // PRIVACY FILTER: Memoized to prevent re-computing on every render
   const activities = useMemo(() => {
@@ -32,7 +33,7 @@ const ChildActivities = () => {
 
   return (
     <div className="activities-layout">
-      <Sidebar {...getParentConfig()} forceActive="/parent/dashboard" />
+      <Sidebar {...getParentConfig()} forceActive="/parent/dashboard" renderExtraProfile={() => <ParentProfileUploader />} />
 
       <div className="activities-main-wrapper">
         <div className="activities-container">

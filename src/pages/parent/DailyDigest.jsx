@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import childService from '../../services/childService';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getParentConfig } from '../../components/sidebar/sidebarConfigs';
+import ParentProfileUploader from './components/ParentProfileUploader';
 import GeneralFooter from '../../components/footer/generalfooter';
 import ChildSelector from '../../components/common/ChildSelector';
 import { useDailyDigest, useLastActivityDate } from '../../hooks/useDailyDigest';
@@ -18,6 +19,7 @@ import DigestPhotoStrip from './components/DigestPhotoStrip';
 import DigestEmptyState from './components/DigestEmptyState';
 
 import './css/DailyDigest.css';
+import '../admin/studentProfile/StudentProfile.css';
 
 // Storage key for persisting selected child
 const SELECTED_CHILD_KEY = 'dailyDigest_selectedChild';
@@ -129,16 +131,20 @@ export default function DailyDigest() {
 
   return (
     <div className="digest-layout">
-      <Sidebar {...getParentConfig()} forceActive="/parent/digest" />
+      <Sidebar {...getParentConfig()} forceActive="/parent/digest" renderExtraProfile={() => <ParentProfileUploader />} />
 
       <div className="digest-main-wrapper">
         <main className="digest-main">
-          {/* Header */}
-          <div className="digest-header">
-            <h1 className="digest-title">Daily Digest</h1>
-            <p className="digest-subtitle">
-              Quick snapshot of your child's activities for the day
-            </p>
+          {/* Branded Header */}
+          <div className="sp-header">
+            <div className="sp-header-content">
+              <div className="header-title">
+                <h1>DAILY DIGEST</h1>
+                <p className="header-subtitle">
+                  Quick snapshot of your child's activities for the day
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Child Selector (for multi-child families) */}

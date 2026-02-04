@@ -2,18 +2,34 @@
 // Shared activity card components for parent views
 
 import React, { useState } from 'react';
+import {
+  Smile, Focus, Zap, Moon, Frown, HandMetal,
+  Stethoscope, Target, ClipboardList, Dumbbell,
+  TrendingDown, StickyNote, Home, AlertTriangle, Palette
+} from 'lucide-react';
 import ImageLightbox from '../common/ImageLightbox';
 
 /**
- * Get emoji for mood/reaction
+ * Mood icon mapping - returns Lucide icon for mood/reaction
  */
-export const getEmojiForMood = (mood) => {
-  const map = {
-    'Happy': '😊', 'Focused': '🧐', 'Active': '⚡',
-    'Tired': '🥱', 'Upset': '😢', 'Social': '👋'
-  };
-  return map[mood] || '•';
+const moodIconMap = {
+  'Happy': { icon: Smile, color: '#92400e' },
+  'Focused': { icon: Focus, color: '#92400e' },
+  'Active': { icon: Zap, color: '#92400e' },
+  'Tired': { icon: Moon, color: '#92400e' },
+  'Upset': { icon: Frown, color: '#92400e' },
+  'Social': { icon: HandMetal, color: '#92400e' }
 };
+
+export const getMoodIcon = (mood, size = 16) => {
+  const entry = moodIconMap[mood];
+  if (!entry) return null;
+  const IconComponent = entry.icon;
+  return <IconComponent size={size} color={entry.color} />;
+};
+
+// Legacy alias for backward compat - returns icon instead of emoji
+export const getEmojiForMood = (mood) => getMoodIcon(mood, 16);
 
 /**
  * Shared styles for activity cards
@@ -72,8 +88,8 @@ export const TherapyCard = ({ activity }) => {
       {/* Header */}
       <div style={cardStyles.cardHeader}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ ...cardStyles.badge, backgroundColor: '#e3f2fd', color: '#0d47a1' }}>
-            🩺 {activity.serviceName || 'Therapy Session'}
+          <span style={{ ...cardStyles.badge, backgroundColor: '#e3f2fd', color: '#0d47a1', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <Stethoscope size={14} /> {activity.serviceName || 'Therapy Session'}
           </span>
           <span style={cardStyles.date}>{dateStr}</span>
         </div>
@@ -100,7 +116,7 @@ export const TherapyCard = ({ activity }) => {
         {/* Activity Purpose */}
         {activity.activityPurpose && (
           <div style={cardStyles.section}>
-            <strong style={{ color: '#1e293b' }}>🎯 Purpose of Session:</strong>
+            <strong style={{ color: '#1e293b', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Target size={14} /> Purpose of Session:</strong>
             <p style={cardStyles.text}>{activity.activityPurpose}</p>
           </div>
         )}
@@ -108,7 +124,7 @@ export const TherapyCard = ({ activity }) => {
         {/* Specific Activities Performed (If OT/ST) */}
         {activity.data?.activities && activity.data.activities.length > 0 && (
           <div style={{ ...cardStyles.section, backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #f1f5f9' }}>
-            <strong style={{ display: 'block', marginBottom: '8px', color: '#334155' }}>📋 Activities Performed:</strong>
+            <strong style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px', color: '#334155' }}><ClipboardList size={14} /> Activities Performed:</strong>
             <ul style={{ margin: 0, paddingLeft: '20px' }}>
               {activity.data.activities.map((act, i) => (
                 <li key={i} style={{ marginBottom: '4px', fontSize: '14px', color: '#475569' }}>
@@ -130,7 +146,7 @@ export const TherapyCard = ({ activity }) => {
           {/* Strengths */}
           {activity.strengths && (
             <div style={{ padding: '12px', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
-              <strong style={{ color: '#166534', fontSize: '14px' }}>💪 Strengths</strong>
+              <strong style={{ color: '#166534', fontSize: '14px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Dumbbell size={14} /> Strengths</strong>
               <p style={{ ...cardStyles.text, marginTop: '5px', fontSize: '14px' }}>{activity.strengths}</p>
             </div>
           )}
@@ -138,7 +154,7 @@ export const TherapyCard = ({ activity }) => {
           {/* Weaknesses / Improvements */}
           {activity.weaknesses && (
             <div style={{ padding: '12px', backgroundColor: '#fef2f2', borderRadius: '8px', border: '1px solid #fecaca' }}>
-              <strong style={{ color: '#991b1b', fontSize: '14px' }}>🔻 Areas for Improvement</strong>
+              <strong style={{ color: '#991b1b', fontSize: '14px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><TrendingDown size={14} /> Areas for Improvement</strong>
               <p style={{ ...cardStyles.text, marginTop: '5px', fontSize: '14px' }}>{activity.weaknesses}</p>
             </div>
           )}
@@ -147,7 +163,7 @@ export const TherapyCard = ({ activity }) => {
         {/* General Notes */}
         {activity.sessionNotes && (
           <div style={{ marginTop: '15px' }}>
-            <strong style={{ color: '#1e293b' }}>📝 Session Notes:</strong>
+            <strong style={{ color: '#1e293b', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><StickyNote size={14} /> Session Notes:</strong>
             <p style={cardStyles.text}>{activity.sessionNotes}</p>
           </div>
         )}
@@ -155,7 +171,7 @@ export const TherapyCard = ({ activity }) => {
         {/* Home Activities / Recommendations */}
         {(activity.homeActivities || activity.recommendations) && (
           <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px dashed #e2e8f0' }}>
-            <strong style={{ color: '#7c3aed' }}>🏠 Home Plan & Recommendations:</strong>
+            <strong style={{ color: '#7c3aed', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Home size={14} /> Home Plan & Recommendations:</strong>
             {activity.homeActivities && <p style={cardStyles.text}>{activity.homeActivities}</p>}
             {activity.recommendations && <p style={{...cardStyles.text, fontStyle: 'italic', color: '#64748b'}}>{activity.recommendations}</p>}
           </div>
@@ -164,7 +180,7 @@ export const TherapyCard = ({ activity }) => {
         {/* Concerns (Optional Display) */}
         {activity.concerns && (
           <div style={{ marginTop: '10px' }}>
-            <span style={{ fontSize: '12px', fontWeight: '700', color: '#f59e0b' }}>⚠️ NOTE: </span>
+            <span style={{ fontSize: '12px', fontWeight: '700', color: '#f59e0b', display: 'inline-flex', alignItems: 'center', gap: '3px' }}><AlertTriangle size={12} /> NOTE: </span>
             <span style={{ fontSize: '13px', color: '#64748b' }}>{activity.concerns}</span>
           </div>
         )}
@@ -186,8 +202,8 @@ export const GroupCard = ({ activity }) => {
     <div style={{ ...cardStyles.card, borderLeft: '5px solid #2ecc71' }}>
       <div style={cardStyles.cardHeader}>
         <div>
-          <span style={{ ...cardStyles.badge, backgroundColor: '#e8f5e9', color: '#1b5e20' }}>
-            🎨 Group Class
+          <span style={{ ...cardStyles.badge, backgroundColor: '#e8f5e9', color: '#1b5e20', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <Palette size={14} /> Group Class
           </span>
           <span style={cardStyles.date}>{dateStr}</span>
         </div>
@@ -229,4 +245,4 @@ export const GroupCard = ({ activity }) => {
   );
 };
 
-export default { TherapyCard, GroupCard, getEmojiForMood, cardStyles };
+export default { TherapyCard, GroupCard, getEmojiForMood, getMoodIcon, cardStyles };

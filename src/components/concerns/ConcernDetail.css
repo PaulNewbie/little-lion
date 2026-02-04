@@ -10,14 +10,12 @@
   flex-direction: column;
   background-color: #fff;
   width: 100%;
-  height: 100vh;
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 100;
-  justify-content: center;
 }
 
 .pc-detail-column.visible {
@@ -27,31 +25,38 @@
 .pc-back-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 12px;
+  gap: 8px;
+  padding: 12px 14px;
   border: none;
-  border-bottom: 1px solid var(--pc-gray-200);
-  background: transparent;
-  color: var(--pc-primary);
+  border-bottom: none;
+  background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%);
+  color: white;
   cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 0.9rem;
+  font-weight: 600;
   transition: var(--pc-transition);
+  letter-spacing: 0.2px;
 }
 
 .pc-back-btn:hover {
-  background-color: var(--pc-gray-50);
+  background: linear-gradient(135deg, #003d7a 0%, #002d5e 100%);
+}
+
+.pc-back-btn:active {
+  opacity: 0.9;
 }
 
 .pc-back-btn svg {
   width: 18px;
   height: 18px;
+  flex-shrink: 0;
 }
 
 .pc-view-container {
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
   overflow: hidden;
   background-color: #fff;
   padding: 0;
@@ -155,6 +160,15 @@
 .pc-send-btn {
   background-color: var(--pc-primary);
   color: white;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0;
 }
 
 .pc-send-btn:hover:not(:disabled) {
@@ -246,7 +260,9 @@
 /* CHAT WINDOW */
 .pc-chat-window {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 12px;
   display: flex;
   flex-direction: column;
@@ -310,25 +326,29 @@
   line-height: 1.4;
 }
 
-/* REPLY SECTION */
+/* REPLY SECTION - chat-app style inline bar */
 .pc-reply-section {
-  padding: 12px;
+  padding: 8px 10px;
   border-top: 1px solid var(--pc-gray-200);
   background-color: #fff;
   display: flex;
-  /* flex-direction: column; */
-  gap: 10px;
+  align-items: flex-end;
+  gap: 8px;
 }
 
 .pc-reply-input {
-  padding: 10px;
-  width: 100%;
+  padding: 8px 10px;
+  flex: 1;
+  min-width: 0;
   border: 1px solid var(--pc-gray-300);
-  border-radius: 6px;
+  border-radius: 20px;
   font-size: 16px;
   font-family: inherit;
-  min-height: 10px;
-  resize: vertical;
+  min-height: 38px;
+  max-height: 100px;
+  resize: none;
+  line-height: 1.4;
+  box-sizing: border-box;
 }
 
 .pc-reply-input:focus {
@@ -339,15 +359,12 @@
 
 .pc-reply-footer {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .pc-reply-count {
-  font-size: 0.75rem;
-  color: var(--pc-gray-500);
+  display: none;
 }
 
 /* NOTICE MESSAGE */
@@ -451,7 +468,7 @@
   }
 
   .pc-reply-section {
-    padding: 18px;
+    padding: 12px 18px;
   }
 
   /* Modal becomes centered on tablet */
@@ -553,23 +570,20 @@
   }
 
   .pc-reply-section {
-    padding: 24px;
+    padding: 16px 24px;
   }
 
   .pc-reply-input {
-    padding: 12px 14px;
+    padding: 10px 16px;
     font-size: 1rem;
-    min-height: 100px;
+    min-height: 42px;
+    border-radius: 22px;
   }
 
-  .pc-reply-footer {
-    gap: 16px;
-  }
-
-  .pc-send-btn,
-  .pc-cancel-btn {
-    padding: 12px 24px;
-    font-size: 1rem;
+  .pc-send-btn {
+    width: 42px;
+    height: 42px;
+    font-size: 0;
   }
 }
 
@@ -586,7 +600,7 @@
   }
 
   .pc-reply-section {
-    padding: 28px;
+    padding: 16px 28px;
   }
 
   .pc-bubble {
@@ -595,6 +609,20 @@
 }
 
 /* Loading and accessibility helpers moved to `ParentConcerns.css` */
+
+/* Send spinner */
+.pc-send-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: pc-spin 0.6s linear infinite;
+}
+
+@keyframes pc-spin {
+  to { transform: rotate(360deg); }
+}
 
 /* Focus visible for keyboard navigation (detail controls) */
 .pc-send-btn:focus-visible,

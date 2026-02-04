@@ -29,17 +29,17 @@ const CACHE_TIMES = {
   },
   // Data that changes occasionally
   SEMI_STATIC: {
-    staleTime: 1000 * 60 * 30,      // 30 minutes - staff, students
+    staleTime: 1000 * 60 * 5,       // 5 minutes - staff, students
     cacheTime: 1000 * 60 * 60 * 12, // 12 hours
   },
   // Data that changes frequently
   DYNAMIC: {
-    staleTime: 1000 * 60 * 5,       // 5 minutes - sessions, activities
+    staleTime: 1000 * 60 * 2,       // 2 minutes - sessions, activities
     cacheTime: 1000 * 60 * 60,      // 1 hour
   },
   // Real-time data (still cache briefly to prevent duplicate calls)
   REALTIME: {
-    staleTime: 1000 * 30,           // 30 seconds
+    staleTime: 1000 * 15,           // 15 seconds
     cacheTime: 1000 * 60 * 5,       // 5 minutes
   },
 };
@@ -99,27 +99,28 @@ export const QUERY_OPTIONS = {
     refetchOnReconnect: false,
     retry: 1,
   },
-  
+
   // For staff, students list - change occasionally
   semiStatic: {
     staleTime: CACHE_TIMES.SEMI_STATIC.staleTime,
     cacheTime: CACHE_TIMES.SEMI_STATIC.cacheTime,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
     retry: 1,
   },
-  
+
   // For sessions, activities - change more frequently
   dynamic: {
     staleTime: CACHE_TIMES.DYNAMIC.staleTime,
     cacheTime: CACHE_TIMES.DYNAMIC.cacheTime,
-    refetchOnWindowFocus: false,
-    refetchOnMount: true, // Allow refetch on mount for fresh data
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
     refetchOnReconnect: true,
+    refetchInterval: 1000 * 30, // Auto-poll every 30 seconds
     retry: 2,
   },
-  
+
   // For real-time needs (dashboards showing "live" data)
   realtime: {
     staleTime: CACHE_TIMES.REALTIME.staleTime,
@@ -127,6 +128,7 @@ export const QUERY_OPTIONS = {
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,
+    refetchInterval: 1000 * 15, // Auto-poll every 15 seconds
     retry: 2,
   },
 };
@@ -140,23 +142,23 @@ export const queryClient = new QueryClient({
       // Default to semi-static settings (safe middle ground)
       staleTime: CACHE_TIMES.SEMI_STATIC.staleTime,
       cacheTime: CACHE_TIMES.SEMI_STATIC.cacheTime,
-      
-      // Disable automatic refetching
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
-      
+
+      // Enable automatic refetching for fresh data
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
+
       // Retry once on failure
       retry: 1,
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-      
+
       // Network mode - useful for offline support
       networkMode: 'offlineFirst',
     },
     mutations: {
       // Retry mutations once
       retry: 1,
-      
+
       // Network mode for mutations
       networkMode: 'offlineFirst',
     },
