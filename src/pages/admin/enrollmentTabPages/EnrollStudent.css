@@ -1880,6 +1880,27 @@
   color: #92400e;
 }
 
+.csm-enroll-another-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #FFCB10 0%, #f59e0b 100%);
+  border: none;
+  border-radius: 12px;
+  color: #78350f;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+}
+
+.csm-enroll-another-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(251, 191, 36, 0.4);
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .children-summary-modal {

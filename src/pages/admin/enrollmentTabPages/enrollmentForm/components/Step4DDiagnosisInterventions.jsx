@@ -1,5 +1,16 @@
 import React, { useEffect, useState } from "react";
 import offeringsService from "../../../../../services/offeringsService";
+import SpeechToTextTextarea from "./SpeechToTextTextarea";
+
+// Frequency unit options
+const FREQUENCY_UNITS = [
+  { value: "", label: "Select..." },
+  { value: "daily", label: "per day" },
+  { value: "weekly", label: "per week" },
+  { value: "biweekly", label: "every 2 weeks" },
+  { value: "monthly", label: "per month" },
+  { value: "asNeeded", label: "as needed" },
+];
 
 export default function Step4DDiagnosisInterventions({ data, onChange, errors = {} }) {
   const [serviceOptions, setServiceOptions] = useState([]);
@@ -12,11 +23,45 @@ export default function Step4DDiagnosisInterventions({ data, onChange, errors = 
     loadServices();
   }, []);
 
+  // Parse existing frequency string into count and unit
+  const parseFrequency = (frequencyStr) => {
+    if (!frequencyStr) return { count: "", unit: "" };
+
+    // Try to parse structured format "2|weekly"
+    if (frequencyStr.includes("|")) {
+      const [count, unit] = frequencyStr.split("|");
+      return { count, unit };
+    }
+
+    // Legacy format - try to extract number and unit
+    const match = frequencyStr.match(/(\d+)\s*x?\s*(daily|weekly|biweekly|monthly|per\s*day|per\s*week|per\s*month)?/i);
+    if (match) {
+      const count = match[1];
+      let unit = "";
+      if (match[2]) {
+        const unitText = match[2].toLowerCase();
+        if (unitText.includes("day")) unit = "daily";
+        else if (unitText.includes("week")) unit = "weekly";
+        else if (unitText.includes("month")) unit = "monthly";
+      }
+      return { count, unit };
+    }
+
+    return { count: "", unit: "" };
+  };
+
+  // Format frequency for display (legacy text format)
+  const formatFrequencyDisplay = (count, unit) => {
+    if (!count || !unit) return "";
+    const unitLabel = FREQUENCY_UNITS.find(u => u.value === unit)?.label || unit;
+    return `${count}x ${unitLabel}`;
+  };
+
   // --- Intervention Handlers ---
   const handleAddInterventionType = (type) => {
     const newInts = [
       ...data.backgroundHistory.interventions,
-      { serviceType: type, serviceId: "", name: "", frequency: "" },
+      { serviceType: type, serviceId: "", name: "", frequency: "", frequencyCount: "", frequencyUnit: "" },
     ];
     onChange("backgroundHistory", "interventions", newInts);
   };
@@ -31,6 +76,27 @@ export default function Step4DDiagnosisInterventions({ data, onChange, errors = 
   const handleInterventionChange = (index, field, value) => {
     const newInts = [...data.backgroundHistory.interventions];
     newInts[index] = { ...newInts[index], [field]: value };
+    onChange("backgroundHistory", "interventions", newInts);
+  };
+
+  // Handle frequency change (structured)
+  const handleFrequencyChange = (index, field, value) => {
+    const newInts = [...data.backgroundHistory.interventions];
+    const current = newInts[index];
+
+    // Update the specific field
+    const updatedInt = { ...current, [field]: value };
+
+    // Get the count and unit (use new value if it's the field being changed)
+    const count = field === "frequencyCount" ? value : (current.frequencyCount || parseFrequency(current.frequency).count);
+    const unit = field === "frequencyUnit" ? value : (current.frequencyUnit || parseFrequency(current.frequency).unit);
+
+    // Generate both structured and display formats
+    updatedInt.frequencyCount = count;
+    updatedInt.frequencyUnit = unit;
+    updatedInt.frequency = formatFrequencyDisplay(count, unit);
+
+    newInts[index] = updatedInt;
     onChange("backgroundHistory", "interventions", newInts);
   };
 
@@ -69,75 +135,84 @@ export default function Step4DDiagnosisInterventions({ data, onChange, errors = 
   // --- Helper to render intervention entries by type ---
   const renderInterventionsByType = (type, label) => {
     return (
-      <div style={{ marginBottom: "20px" }}>
-        <h4 style={{ fontSize: "0.95rem", marginBottom: "10px", color: "#374151" }}>{label}</h4>
+      <div className="intervention-type-section">
+        <h4 className="intervention-type-label">{label}</h4>
         {data.backgroundHistory.interventions
           .map((int, idx) => ({ ...int, originalIndex: idx }))
           .filter((int) => int.serviceType === type)
-          .map((int) => (
-            <div
-              key={int.originalIndex}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "15px",
-                marginBottom: "10px",
-              }}
-            >
-              {/* Service Dropdown */}
-              <div style={{ flex: 2 }}>
-                <select
-                  style={{ width: "100%" }}
-                  value={int.serviceId}
-                  onChange={(e) =>
-                    handleServiceSelect(int.originalIndex, e.target.value)
-                  }
-                >
-                  <option value="" disabled>
-                    Select {label}
-                  </option>
-                  {serviceOptions
-                    .filter((service) => {
-                      if (service.type !== type) return false;
-                      const usedServiceIds = getUsedServiceIdsByType(type);
-                      if (service.id === int.serviceId) return true;
-                      return !usedServiceIds.includes(service.id);
-                    })
-                    .map((service) => (
-                      <option key={service.id} value={service.id}>
-                        {service.name}
+          .map((int) => {
+            // Get current frequency values (from structured or parse legacy)
+            const freqCount = int.frequencyCount || parseFrequency(int.frequency).count;
+            const freqUnit = int.frequencyUnit || parseFrequency(int.frequency).unit;
+
+            return (
+              <div key={int.originalIndex} className="intervention-entry">
+                {/* Service Dropdown */}
+                <div className="intervention-service">
+                  <select
+                    value={int.serviceId}
+                    onChange={(e) =>
+                      handleServiceSelect(int.originalIndex, e.target.value)
+                    }
+                  >
+                    <option value="" disabled>
+                      Select {label}
+                    </option>
+                    {serviceOptions
+                      .filter((service) => {
+                        if (service.type !== type) return false;
+                        const usedServiceIds = getUsedServiceIdsByType(type);
+                        if (service.id === int.serviceId) return true;
+                        return !usedServiceIds.includes(service.id);
+                      })
+                      .map((service) => (
+                        <option key={service.id} value={service.id}>
+                          {service.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                {/* Frequency - Structured Input */}
+                <div className="intervention-frequency">
+                  <input
+                    type="number"
+                    min="1"
+                    max="30"
+                    placeholder="#"
+                    value={freqCount}
+                    onChange={(e) =>
+                      handleFrequencyChange(int.originalIndex, "frequencyCount", e.target.value)
+                    }
+                    className="frequency-count"
+                  />
+                  <span className="frequency-separator">×</span>
+                  <select
+                    value={freqUnit}
+                    onChange={(e) =>
+                      handleFrequencyChange(int.originalIndex, "frequencyUnit", e.target.value)
+                    }
+                    className="frequency-unit"
+                  >
+                    {FREQUENCY_UNITS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
                       </option>
                     ))}
-                </select>
-              </div>
+                  </select>
+                </div>
 
-              {/* Frequency Input */}
-              <div style={{ flex: 1 }}>
-                <input
-                  type="text"
-                  placeholder="e.g. 2x weekly"
-                  value={int.frequency}
-                  onChange={(e) =>
-                    handleInterventionChange(
-                      int.originalIndex,
-                      "frequency",
-                      e.target.value
-                    )
-                  }
-                  required
-                />
+                {/* Remove Button */}
+                <button
+                  type="button"
+                  className="remove-entry-btn"
+                  onClick={() => handleRemoveInterventionType(int.originalIndex)}
+                >
+                  ✕
+                </button>
               </div>
-
-              {/* Remove Button */}
-              <button
-                type="button"
-                className="remove-entry-btn"
-                onClick={() => handleRemoveInterventionType(int.originalIndex)}
-              >
-                ✕
-              </button>
-            </div>
-          ))}
+            );
+          })}
 
         {/* Add Button */}
         <button
@@ -169,16 +244,17 @@ export default function Step4DDiagnosisInterventions({ data, onChange, errors = 
       <div className={`input-group highlight-box ${errors.clinicalDiagnosis ? 'has-error' : ''}`}>
         <label>Clinical Diagnosis *</label>
         <p className="field-hint">
-          Include the formal diagnosis and support requirements.
+          Include the formal diagnosis and support requirements. Click 🎤 to dictate.
         </p>
-        <textarea
-          rows="4"
+        <SpeechToTextTextarea
+          rows={4}
           value={data.backgroundHistory.clinicalDiagnosis}
           onChange={(e) =>
             onChange("backgroundHistory", "clinicalDiagnosis", e.target.value)
           }
           placeholder="Example: Autism Spectrum Disorder (ASD) - Level 2, requiring substantial support. Diagnosed by Dr. Santos at Philippine Children's Medical Center on January 2024..."
           required
+          hasError={!!errors.clinicalDiagnosis}
         />
         {errors.clinicalDiagnosis && (
           <div className="field-error-message">{errors.clinicalDiagnosis}</div>

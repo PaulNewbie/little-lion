@@ -35,7 +35,7 @@ const STEP_CONFIG = {
   3: { required: true, label: "Purpose of Assessment" },
   4: { required: true, label: "Family Information" },
   5: { required: true, label: "Daily Life & Medical" },
-  6: { required: true, label: "Development & Education" },
+  6: { required: false, label: "Development & Education" }, // Optional - may not have detailed dev history
   7: { required: false, label: "Diagnosis & Interventions" }, // Optional - some students may not have interventions
   8: { required: true, label: "Personal Profile" },
   9: { required: false, label: "Behavior During Assessment" }, // Optional
@@ -69,18 +69,60 @@ const INITIAL_STUDENT_STATE = {
   backgroundHistory: {
     familyBackground: "",
     familyRelationships: "",
+    // New structured family info
+    familyInfo: {
+      father: { name: "", age: "", occupation: "" },
+      mother: { name: "", age: "", occupation: "" },
+      maritalStatus: "",
+      livingWith: "",
+      primaryCaregiver: "",
+      siblings: [],
+      additionalNotes: "",
+    },
     dailyLifeActivities: "",
     medicalHistory: "",
+    // New structured daily life info
+    dailyLifeInfo: {
+      activities: {},
+      preferredActivities: "",
+      sleepPattern: "",
+      dietaryNotes: "",
+    },
+    // New structured medical info
+    medicalInfo: {
+      hasAllergies: false,
+      allergies: [],
+      hasMedications: false,
+      medications: [],
+      hasHospitalizations: false,
+      hospitalizations: [],
+      regularCheckups: "",
+      otherConditions: "",
+    },
     developmentalBackground: [{ devBgTitle: "", devBgInfo: "" }],
     schoolHistory: "",
     clinicalDiagnosis: "",
     interventions: [],
     strengthsAndInterests: "",
     socialSkills: "",
+    // New structured personal profile
+    personalProfile: {
+      strengths: {},
+      strengthNotes: "",
+      interests: {},
+      interestNotes: "",
+      socialInteraction: "",
+      communicationStyle: "",
+      eyeContact: "",
+      behaviorRegulation: "",
+      socialNotes: "",
+    },
   },
   behaviorDuringAssessment: "",
   assessmentTools: [{ tool: "", details: "", result: "", recommendation: "" }],
   assessmentSummary: "",
+  // Multiple recommendations
+  recommendations: [],
   // Track skipped steps and no-service enrollment
   skippedSteps: [],
   noServicesRequired: false,
@@ -92,6 +134,7 @@ export default function EnrollStudentFormModal({
   onSave,
   selectedParent,
   editingStudent,
+  currentUser,
 }) {
   const [formStep, setFormStep] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
@@ -275,11 +318,12 @@ export default function EnrollStudentFormModal({
         if (!data.assessmentSummary?.trim()) {
           errors.assessmentSummary = "Assessment summary is required";
         }
-        const missingRecommendations = data.assessmentTools?.some(
-          (tool) => !tool.recommendation?.trim()
+        // Check if at least one recommendation is provided
+        const hasRecommendations = data.recommendations?.some(
+          (rec) => rec?.trim()
         );
-        if (missingRecommendations) {
-          errors.recommendations = "All assessment tools must have recommendations";
+        if (!hasRecommendations) {
+          errors.recommendations = "At least one recommendation is required";
         }
         break;
 
@@ -898,6 +942,7 @@ export default function EnrollStudentFormModal({
               data={studentInput}
               onChange={handleInputChange}
               errors={validationErrors}
+              currentUser={currentUser}
             />
           )}
 
@@ -1020,6 +1065,9 @@ export default function EnrollStudentFormModal({
             >
               Cancel
             </button>
+          </div>
+          <div className="footer-note">
+            <span>Not all fields are required. Fill in what's available and skip what's not applicable.</span>
           </div>
           <div className="right-actions">
             {formStep > 1 && (
