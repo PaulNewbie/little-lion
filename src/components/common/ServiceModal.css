@@ -355,6 +355,7 @@
   .service-btn {
     width: 100%;
     justify-content: center;
+    min-height: 44px;
   }
 
   .service-btn-cancel {
@@ -363,5 +364,11 @@
 
   .service-btn-submit {
     order: 0;
+  }
+
+  .service-form-input,
+  .service-form-textarea {
+    font-size: 16px; /* Prevent iOS zoom */
+    padding: 12px 14px;
   }
 }

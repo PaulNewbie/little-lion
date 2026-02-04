@@ -210,7 +210,7 @@ const TherapistDashboard = () => {
                 Complete Your Profile
               </h3>
               <p className="therapist-dashboard__profile-banner-text">
-                Help parents know you better by adding your credentials, bio, and certifications.
+                Please add your profile photo and contact information to help parents and staff identify you.
               </p>
             </div>
             <button
@@ -218,6 +218,27 @@ const TherapistDashboard = () => {
               onClick={() => navigate('/therapist/profile')}
             >
               Complete Profile
+            </button>
+          </div>
+        )}
+
+        {/* Credentials Completion Banner - shows when profile is done but credentials aren't */}
+        {currentUser?.profilePhoto && currentUser?.phone && currentUser?.gender && (!currentUser?.licenses || currentUser?.licenses?.length === 0) && (
+          <div className="therapist-dashboard__profile-banner therapist-dashboard__profile-banner--credentials">
+            <div>
+              <h3 className="therapist-dashboard__profile-banner-title">
+                <ClipboardList size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+                Add Your Professional Credentials
+              </h3>
+              <p className="therapist-dashboard__profile-banner-text">
+                You haven't added any professional licenses yet. Please add at least one license to keep your profile complete.
+              </p>
+            </div>
+            <button
+              className="therapist-dashboard__profile-banner-button"
+              onClick={() => navigate('/therapist/profile')}
+            >
+              Add Credentials
             </button>
           </div>
         )}

@@ -121,6 +121,65 @@
   line-height: 1.5;
 }
 
+/* Credentials Notice */
+.tp-notice--credentials {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #93c5fd;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+}
+
+.tp-notice-icon--credentials {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+}
+
+.tp-notice--credentials .tp-notice-content strong {
+  color: #1e40af;
+}
+
+.tp-notice--credentials .tp-notice-content p {
+  color: #1d4ed8;
+}
+
+.tp-notice-action {
+  flex-shrink: 0;
+  align-self: center;
+  padding: 8px 18px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tp-notice-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Tab Badge - Incomplete indicator dot */
+.tp-tab-badge {
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: tab-badge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes tab-badge-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.85); }
+}
+
+.tp-tab-btn--active .tp-tab-badge {
+  background: white;
+}
+
 /* ===========================================
    PROFILE HEADER SECTION - Student Profile Style
    =========================================== */
@@ -507,6 +566,73 @@
   color: #1f2937;
 }
 
+/* Credential Status Indicator - inside profile info section */
+.tp-credential-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--tp-radius-md);
+  margin-top: 4px;
+}
+
+.tp-credential-status--incomplete {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #f59e0b;
+}
+
+.tp-credential-status-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f59e0b;
+  color: white;
+}
+
+.tp-credential-status-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tp-credential-status-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #92400e;
+}
+
+.tp-credential-status-text {
+  font-size: 11.5px;
+  color: #a16207;
+  line-height: 1.4;
+}
+
+.tp-credential-status-btn {
+  flex-shrink: 0;
+  padding: 6px 16px;
+  background: #f59e0b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tp-credential-status-btn:hover {
+  background: #d97706;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
 /* Licenses Card - Similar to Guardian Card */
 .tp-licenses-card {
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
@@ -680,7 +806,7 @@
   border-radius: var(--tp-radius-sm);
   font-size: 13px;
   font-weight: 600;
-  color: var(--tp-gray-600);
+  color: #000000;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -695,7 +821,7 @@
 
 .tp-tab-btn--active {
   background: var(--tp-yellow-500);
-  color: white;
+  color: #000000;
   box-shadow: var(--tp-shadow-md);
   font-weight: 700;
 }
@@ -710,6 +836,15 @@
   height: 3px;
   background: linear-gradient(90deg, var(--tp-yellow-500) 0%, var(--tp-yellow-400) 100%);
   border-radius: 3px;
+}
+
+.tp-tab-btn--attention {
+  color: #dc2626;
+}
+
+.tp-tab-btn--attention svg {
+  color: #dc2626;
+  opacity: 1;
 }
 
 .tp-tab-btn:disabled {
@@ -1606,6 +1741,29 @@
   .tp-edit-card {
     padding: 14px;
   }
+
+  .tp-credential-status {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .tp-credential-status-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .tp-credential-status-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .tp-credential-status-label {
+    font-size: 12px;
+  }
+
+  .tp-credential-status-text {
+    font-size: 11px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1655,6 +1813,19 @@
   .tp-credential-card,
   .tp-education-card {
     padding: 12px;
+  }
+
+  .tp-credential-status {
+    flex-wrap: wrap;
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .tp-credential-status-btn {
+    width: 100%;
+    text-align: center;
+    padding: 8px;
+    min-height: 44px;
   }
 }
 

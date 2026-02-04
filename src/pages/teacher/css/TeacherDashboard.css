@@ -237,6 +237,29 @@
   background-color: #f59e0b;
 }
 
+/* Credentials Banner Variant */
+.teacher-dashboard__profile-banner--credentials {
+  background-color: #dbeafe;
+  border-color: #60a5fa;
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1);
+}
+
+.teacher-dashboard__profile-banner--credentials .teacher-dashboard__profile-banner-title {
+  color: #1e40af;
+}
+
+.teacher-dashboard__profile-banner--credentials .teacher-dashboard__profile-banner-text {
+  color: #1d4ed8;
+}
+
+.teacher-dashboard__profile-banner--credentials .teacher-dashboard__profile-banner-button {
+  background-color: #3b82f6;
+}
+
+.teacher-dashboard__profile-banner--credentials .teacher-dashboard__profile-banner-button:hover {
+  background-color: #2563eb;
+}
+
 /* Old Back Button - REMOVED, now using header back arrow */
 
 /* Empty State */
