@@ -11,6 +11,40 @@ const SECTION_LABELS = [
   { id: "tools", label: "Tools & Summary" }
 ];
 
+// Strength category labels for display
+const STRENGTH_LABELS = {
+  visual: "Visual-Spatial Skills",
+  memory: "Memory",
+  motor: "Motor Skills",
+  music: "Musical Ability",
+  numbers: "Numbers/Math",
+  language: "Language",
+  focus: "Focus/Attention",
+  creativity: "Creativity",
+};
+
+// Interest category labels for display
+const INTEREST_LABELS = {
+  tv: "TV/Videos",
+  toys: "Toys/Objects",
+  outdoors: "Outdoor Activities",
+  art: "Art/Creative",
+  music: "Music/Sounds",
+  books: "Books/Reading",
+  physical: "Physical Play",
+  technology: "Technology",
+};
+
+// Daily activity labels
+const ACTIVITY_LABELS = {
+  bathing: "Bathing/Showering",
+  dressing: "Dressing",
+  feeding: "Eating/Feeding",
+  toileting: "Toileting",
+  brushingTeeth: "Brushing Teeth",
+  sleeping: "Sleeping/Bedtime",
+};
+
 const AssessmentHistory = ({ childData, assessmentData }) => {
   const [activeSection, setActiveSection] = useState("overview");
   const scrollContainerRef = useRef(null);
@@ -34,6 +68,7 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
     behaviorDuringAssessment,
     assessmentTools,
     assessmentSummary,
+    recommendations,
     examiner,
     assessmentDates,
     ageAtAssessment,
@@ -45,6 +80,12 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
 
   const bg = backgroundHistory || {};
 
+  // Get structured data with fallbacks
+  const familyInfo = bg.familyInfo || {};
+  const dailyLifeInfo = bg.dailyLifeInfo || {};
+  const medicalInfo = bg.medicalInfo || {};
+  const personalProfile = bg.personalProfile || {};
+
   // Background History Card Component for better organization
   const BackgroundHistoryCard = ({ title, children, fullWidth = false }) => (
     <div className={`bg-history-card ${fullWidth ? 'full-width' : ''}`}>
@@ -52,6 +93,325 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
       {children}
     </div>
   );
+
+  // Render Family Info (structured or legacy)
+  const renderFamilyInfo = () => {
+    // Check if we have structured family info
+    const hasStructuredData = familyInfo.father?.name || familyInfo.mother?.name || familyInfo.siblings?.length > 0;
+
+    if (hasStructuredData) {
+      return (
+        <div className="structured-info">
+          {/* Parents */}
+          {(familyInfo.father?.name || familyInfo.mother?.name) && (
+            <div className="info-group">
+              <strong>Parents:</strong>
+              <ul className="info-list">
+                {familyInfo.father?.name && (
+                  <li>
+                    Father: {familyInfo.father.name}
+                    {familyInfo.father.age && ` (${familyInfo.father.age} yrs)`}
+                    {familyInfo.father.occupation && ` - ${familyInfo.father.occupation}`}
+                  </li>
+                )}
+                {familyInfo.mother?.name && (
+                  <li>
+                    Mother: {familyInfo.mother.name}
+                    {familyInfo.mother.age && ` (${familyInfo.mother.age} yrs)`}
+                    {familyInfo.mother.occupation && ` - ${familyInfo.mother.occupation}`}
+                  </li>
+                )}
+              </ul>
+            </div>
+          )}
+
+          {/* Marital Status & Living Situation */}
+          {(familyInfo.maritalStatus || familyInfo.livingWith) && (
+            <div className="info-row">
+              {familyInfo.maritalStatus && (
+                <span><strong>Marital Status:</strong> {familyInfo.maritalStatus}</span>
+              )}
+              {familyInfo.livingWith && (
+                <span><strong>Lives With:</strong> {familyInfo.livingWith}</span>
+              )}
+            </div>
+          )}
+
+          {/* Primary Caregiver */}
+          {familyInfo.primaryCaregiver && (
+            <p><strong>Primary Caregiver:</strong> {familyInfo.primaryCaregiver}</p>
+          )}
+
+          {/* Siblings */}
+          {familyInfo.siblings?.length > 0 && (
+            <div className="info-group">
+              <strong>Siblings:</strong>
+              <ul className="info-list">
+                {familyInfo.siblings.map((sibling, i) => (
+                  <li key={i}>
+                    {sibling.name}
+                    {sibling.age && ` (${sibling.age} yrs)`}
+                    {sibling.relationship && ` - ${sibling.relationship}`}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Additional Notes */}
+          {familyInfo.additionalNotes && (
+            <p className="additional-notes">{familyInfo.additionalNotes}</p>
+          )}
+        </div>
+      );
+    }
+
+    // Fallback to legacy text
+    return <p className="report-text">{bg.familyBackground || "N/A"}</p>;
+  };
+
+  // Render Daily Life Info (structured or legacy)
+  const renderDailyLifeInfo = () => {
+    const hasStructuredData = dailyLifeInfo.activities && Object.keys(dailyLifeInfo.activities).length > 0;
+
+    if (hasStructuredData) {
+      return (
+        <div className="structured-info">
+          {/* Independence Levels */}
+          <div className="info-group">
+            <strong>Independence Levels:</strong>
+            <div className="independence-display">
+              {Object.entries(dailyLifeInfo.activities).map(([key, level]) => (
+                level && (
+                  <div key={key} className="independence-item">
+                    <span className="activity-name">{ACTIVITY_LABELS[key] || key}:</span>
+                    <span className={`independence-level level-${level.toLowerCase().replace(/\s+/g, '-')}`}>
+                      {level}
+                    </span>
+                  </div>
+                )
+              ))}
+            </div>
+          </div>
+
+          {/* Other daily life info */}
+          {dailyLifeInfo.preferredActivities && (
+            <p><strong>Preferred Activities:</strong> {dailyLifeInfo.preferredActivities}</p>
+          )}
+          {dailyLifeInfo.sleepPattern && (
+            <p><strong>Sleep Pattern:</strong> {dailyLifeInfo.sleepPattern}</p>
+          )}
+          {dailyLifeInfo.dietaryNotes && (
+            <p><strong>Dietary Notes:</strong> {dailyLifeInfo.dietaryNotes}</p>
+          )}
+        </div>
+      );
+    }
+
+    return <p className="report-text">{bg.dailyLifeActivities || "N/A"}</p>;
+  };
+
+  // Render Medical Info (structured or legacy)
+  const renderMedicalInfo = () => {
+    const hasStructuredData = medicalInfo.hasAllergies !== undefined ||
+                              medicalInfo.hasMedications !== undefined ||
+                              medicalInfo.hasHospitalizations !== undefined;
+
+    if (hasStructuredData) {
+      return (
+        <div className="structured-info">
+          {/* Allergies */}
+          <div className="medical-section">
+            <strong>Allergies:</strong>
+            {medicalInfo.hasAllergies && medicalInfo.allergies?.length > 0 ? (
+              <ul className="info-list">
+                {medicalInfo.allergies.map((allergy, i) => (
+                  <li key={i}>
+                    {allergy.type && <span className="tag">{allergy.type}</span>}
+                    {allergy.description}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <span className="no-items"> No known allergies</span>
+            )}
+          </div>
+
+          {/* Medications */}
+          <div className="medical-section">
+            <strong>Current Medications:</strong>
+            {medicalInfo.hasMedications && medicalInfo.medications?.length > 0 ? (
+              <ul className="info-list">
+                {medicalInfo.medications.map((med, i) => (
+                  <li key={i}>
+                    {med.name}
+                    {med.dosage && ` (${med.dosage})`}
+                    {med.frequency && ` - ${med.frequency}`}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <span className="no-items"> None</span>
+            )}
+          </div>
+
+          {/* Hospitalizations */}
+          <div className="medical-section">
+            <strong>Previous Hospitalizations:</strong>
+            {medicalInfo.hasHospitalizations && medicalInfo.hospitalizations?.length > 0 ? (
+              <ul className="info-list">
+                {medicalInfo.hospitalizations.map((hosp, i) => (
+                  <li key={i}>
+                    {hosp.reason}
+                    {hosp.year && ` (${hosp.year})`}
+                    {hosp.notes && ` - ${hosp.notes}`}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <span className="no-items"> None</span>
+            )}
+          </div>
+
+          {/* Other medical info */}
+          {medicalInfo.regularCheckups && (
+            <p><strong>Regular Check-ups:</strong> {medicalInfo.regularCheckups}</p>
+          )}
+          {medicalInfo.otherConditions && (
+            <p><strong>Other Conditions:</strong> {medicalInfo.otherConditions}</p>
+          )}
+        </div>
+      );
+    }
+
+    return <p className="report-text">{bg.medicalHistory || "N/A"}</p>;
+  };
+
+  // Render Strengths & Interests (structured or legacy)
+  const renderStrengthsAndInterests = () => {
+    const hasStructuredData = (personalProfile.strengths && Object.keys(personalProfile.strengths).length > 0) ||
+                              (personalProfile.interests && Object.keys(personalProfile.interests).length > 0);
+
+    if (hasStructuredData) {
+      const selectedStrengths = Object.entries(personalProfile.strengths || {})
+        .filter(([_, value]) => value)
+        .map(([key]) => STRENGTH_LABELS[key] || key);
+
+      const selectedInterests = Object.entries(personalProfile.interests || {})
+        .filter(([_, value]) => value)
+        .map(([key]) => INTEREST_LABELS[key] || key);
+
+      return (
+        <div className="structured-info">
+          {selectedStrengths.length > 0 && (
+            <div className="info-group">
+              <strong>Strengths:</strong>
+              <div className="tag-list">
+                {selectedStrengths.map((strength, i) => (
+                  <span key={i} className="tag strength-tag">{strength}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {personalProfile.strengthNotes && (
+            <p className="additional-notes">{personalProfile.strengthNotes}</p>
+          )}
+
+          {selectedInterests.length > 0 && (
+            <div className="info-group">
+              <strong>Interests:</strong>
+              <div className="tag-list">
+                {selectedInterests.map((interest, i) => (
+                  <span key={i} className="tag interest-tag">{interest}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {personalProfile.interestNotes && (
+            <p className="additional-notes">{personalProfile.interestNotes}</p>
+          )}
+        </div>
+      );
+    }
+
+    return <p className="report-text">{bg.strengthsAndInterests || "N/A"}</p>;
+  };
+
+  // Render Social Skills (structured or legacy)
+  const renderSocialSkills = () => {
+    const hasStructuredData = personalProfile.socialInteraction ||
+                              personalProfile.communicationStyle ||
+                              personalProfile.eyeContact;
+
+    if (hasStructuredData) {
+      return (
+        <div className="structured-info">
+          <div className="social-skills-grid">
+            {personalProfile.socialInteraction && (
+              <div className="social-item">
+                <strong>Peer Interaction:</strong>
+                <span className="social-value">{personalProfile.socialInteraction}</span>
+              </div>
+            )}
+            {personalProfile.communicationStyle && (
+              <div className="social-item">
+                <strong>Communication:</strong>
+                <span className="social-value">{personalProfile.communicationStyle}</span>
+              </div>
+            )}
+            {personalProfile.eyeContact && (
+              <div className="social-item">
+                <strong>Eye Contact:</strong>
+                <span className="social-value">{personalProfile.eyeContact}</span>
+              </div>
+            )}
+            {personalProfile.behaviorRegulation && (
+              <div className="social-item">
+                <strong>Behavior Regulation:</strong>
+                <span className="social-value">{personalProfile.behaviorRegulation}</span>
+              </div>
+            )}
+          </div>
+
+          {personalProfile.socialNotes && (
+            <p className="additional-notes">{personalProfile.socialNotes}</p>
+          )}
+        </div>
+      );
+    }
+
+    return <p className="report-text">{bg.socialSkills || "N/A"}</p>;
+  };
+
+  // Render Recommendations (new array or legacy)
+  const renderRecommendations = () => {
+    // Check for new recommendations array
+    if (recommendations && recommendations.length > 0) {
+      const validRecs = recommendations.filter(rec => rec && rec.trim());
+      if (validRecs.length > 0) {
+        return (
+          <div className="recommendations-section">
+            <h4 className="summary-title">Recommendations</h4>
+            <ol className="report-list recommendations-list">
+              {validRecs.map((rec, i) => (
+                <li key={i}>{rec}</li>
+              ))}
+            </ol>
+          </div>
+        );
+      }
+    }
+
+    // Fallback: Check assessment tools for recommendations
+    const toolRecommendations = assessmentTools?.filter(tool => tool.recommendation?.trim());
+    if (toolRecommendations?.length > 0) {
+      return null; // Will be displayed within each tool card
+    }
+
+    return null;
+  };
 
   // Scroll to section when badge is clicked
   const scrollToSection = useCallback((sectionId) => {
@@ -61,7 +421,7 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
     if (sectionElement && container) {
       const containerTop = container.getBoundingClientRect().top;
       const sectionTop = sectionElement.getBoundingClientRect().top;
-      const offset = sectionTop - containerTop - 80; // 80px offset for sticky nav
+      const offset = sectionTop - containerTop - 80;
 
       container.scrollTo({
         top: container.scrollTop + offset,
@@ -77,10 +437,8 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
 
     const handleScroll = () => {
       const containerRect = container.getBoundingClientRect();
-      const scrollTop = container.scrollTop;
-      const navHeight = 80; // Height of sticky nav
+      const navHeight = 80;
 
-      // Find which section is currently most visible
       let currentSection = "overview";
       let minDistance = Infinity;
 
@@ -105,7 +463,6 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
     return () => container.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Register section ref
   const setSectionRef = (id) => (el) => {
     sectionRefs.current[id] = el;
   };
@@ -255,7 +612,7 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
             <div className="section-content">
               {purposeOfAssessment && purposeOfAssessment.length > 0 ? (
                 <ol className="report-list">
-                  {purposeOfAssessment.map((purpose, i) => (
+                  {purposeOfAssessment.filter(p => p?.trim()).map((purpose, i) => (
                     <li key={i}>{purpose}</li>
                   ))}
                 </ol>
@@ -277,7 +634,7 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
             <div className="section-content background-history-content">
               <div className="bg-history-grid">
                 <BackgroundHistoryCard title="Family Background">
-                  <p className="report-text">{bg.familyBackground || "N/A"}</p>
+                  {renderFamilyInfo()}
                 </BackgroundHistoryCard>
 
                 <BackgroundHistoryCard title="Family Relationships">
@@ -285,20 +642,22 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
                 </BackgroundHistoryCard>
 
                 <BackgroundHistoryCard title="Daily Life & Activities">
-                  <p className="report-text">{bg.dailyLifeActivities || "N/A"}</p>
+                  {renderDailyLifeInfo()}
                 </BackgroundHistoryCard>
 
                 <BackgroundHistoryCard title="Medical History">
-                  <p className="report-text">{bg.medicalHistory || "N/A"}</p>
+                  {renderMedicalInfo()}
                 </BackgroundHistoryCard>
 
                 <BackgroundHistoryCard title="Developmental Background" fullWidth>
                   {bg.developmentalBackground && bg.developmentalBackground.length > 0 ? (
                     <ul className="report-list bulleted">
                       {bg.developmentalBackground.map((item, i) => (
-                        <li key={i}>
-                          <strong>{item.devBgTitle}:</strong> {item.devBgInfo}
-                        </li>
+                        item.devBgTitle && (
+                          <li key={i}>
+                            <strong>{item.devBgTitle}:</strong> {item.devBgInfo}
+                          </li>
+                        )
                       ))}
                     </ul>
                   ) : (
@@ -318,9 +677,7 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
                   {bg.interventions && bg.interventions.length > 0 ? (
                     <ul className="report-list bulleted">
                       {bg.interventions.map((item, i) => {
-                        if (!item) return (
-                          <li key={i} className="report-text">N/A</li>
-                        );
+                        if (!item) return null;
                         if (typeof item === "string") return <li key={i}>{item}</li>;
 
                         const name = item.name || item.serviceName || item.serviceId || "Unnamed intervention";
@@ -339,11 +696,11 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
                 </BackgroundHistoryCard>
 
                 <BackgroundHistoryCard title="Strengths & Interests">
-                  <p className="report-text">{bg.strengthsAndInterests || "N/A"}</p>
+                  {renderStrengthsAndInterests()}
                 </BackgroundHistoryCard>
 
                 <BackgroundHistoryCard title="Social Skills">
-                  <p className="report-text">{bg.socialSkills || "N/A"}</p>
+                  {renderSocialSkills()}
                 </BackgroundHistoryCard>
               </div>
             </div>
@@ -375,33 +732,40 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
               <h3 className="section-title">VI, VII, VIII. Assessment Tools & Summary</h3>
             </div>
             <div className="section-content">
-              {assessmentTools && assessmentTools.length > 0 ? (
+              {assessmentTools && assessmentTools.length > 0 && assessmentTools[0].tool ? (
                 <div className="tools-list">
                   {assessmentTools.map((item, index) => (
-                    <div key={index} className="tool-card">
-                      <div className="tool-header">
-                        <span className="tool-index">{String.fromCharCode(65 + index)}.</span>
-                        <h4>{item.tool}</h4>
-                      </div>
-                      <div className="tool-body">
-                        <p><strong>Measure:</strong> {item.details}</p>
-                        <div className="result-box">
-                          <strong>Results</strong>
-                          <p>{item.result || "No results recorded."}</p>
+                    item.tool && (
+                      <div key={index} className="tool-card">
+                        <div className="tool-header">
+                          <span className="tool-index">{String.fromCharCode(65 + index)}.</span>
+                          <h4>{item.tool}</h4>
                         </div>
-                        {item.recommendation && (
-                          <div className="recommendation-box">
-                            <strong>Specific Recommendation</strong>
-                            <p>{item.recommendation}</p>
-                          </div>
-                        )}
+                        <div className="tool-body">
+                          {item.details && <p><strong>Measure:</strong> {item.details}</p>}
+                          {item.result && (
+                            <div className="result-box">
+                              <strong>Results</strong>
+                              <p>{item.result}</p>
+                            </div>
+                          )}
+                          {item.recommendation && (
+                            <div className="recommendation-box">
+                              <strong>Specific Recommendation</strong>
+                              <p>{item.recommendation}</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )
                   ))}
                 </div>
               ) : (
                 <p className="report-text">No assessment tools recorded.</p>
               )}
+
+              {/* New Recommendations Section */}
+              {renderRecommendations()}
 
               <div className="summary-final-section">
                 <h4 className="summary-title">Summary</h4>
