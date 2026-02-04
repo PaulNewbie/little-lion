@@ -37,7 +37,9 @@ const useManageAdmins = () => {
     e.preventDefault();
     setError(null);
     try {
-      await authService.createAdminAccount(newAdmin.email, newAdmin.password, newAdmin);
+      // Extract only the fields we want to save (exclude password from UI state)
+      const { password, ...adminData } = newAdmin;
+      await authService.createAdminAccount(newAdmin.email, adminData);
       
       // 2. INVALIDATE CACHE
       // This forces the list to refresh automatically without a manual fetch

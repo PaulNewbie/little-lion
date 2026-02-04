@@ -2,15 +2,16 @@
 // FIXED VERSION - Removed orderBy to avoid index requirements
 // Sorting is done client-side instead
 
-import { 
-  collection, 
-  doc, 
-  getDoc, 
-  getDocs, 
-  setDoc, 
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
   updateDoc,
-  query, 
-  where, 
+  deleteDoc,
+  query,
+  where,
   orderBy,
   arrayUnion,
   writeBatch,
@@ -489,6 +490,22 @@ class UserService {
       return user?.permissionsHistory || [];
     } catch (error) {
       console.error('Error fetching permission history:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a user document from Firestore
+   * Note: This only deletes the Firestore document, not the Firebase Auth account
+   * @param {string} userId - User ID to delete
+   */
+  async deleteUser(userId) {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, userId);
+      await deleteDoc(docRef);
+      return true;
+    } catch (error) {
+      console.error('Error deleting user:', error);
       throw error;
     }
   }

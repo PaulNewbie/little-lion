@@ -3,6 +3,7 @@ import useManageAdmins from '../../hooks/useManageAdmins';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import Loading from '../../components/common/Loading';
+import './css/ManageAdmins.css';
 
 const ManageAdmins = () => {
   const {
@@ -30,63 +31,79 @@ const ManageAdmins = () => {
           <h3 style={{ marginTop: 0, color: '#444' }}>Add New Admin</h3>
           <form onSubmit={createAdmin}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', alignItems: 'end' }}>
-              
+
               <div>
                 <label style={{display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '600'}}>First Name</label>
-                <input 
-                  name="firstName" 
-                  placeholder="First Name" 
-                  value={newAdmin.firstName} 
-                  onChange={handleInputChange} 
-                  required 
+                <input
+                  name="firstName"
+                  placeholder="First Name"
+                  value={newAdmin.firstName}
+                  onChange={handleInputChange}
+                  required
                   style={{ padding: '10px', width: '100%', border: '1px solid #ccc', borderRadius: '6px' }}
                 />
               </div>
 
               <div>
                 <label style={{display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '600'}}>Last Name</label>
-                <input 
-                  name="lastName" 
-                  placeholder="Last Name" 
-                  value={newAdmin.lastName} 
-                  onChange={handleInputChange} 
-                  required 
+                <input
+                  name="lastName"
+                  placeholder="Last Name"
+                  value={newAdmin.lastName}
+                  onChange={handleInputChange}
+                  required
                   style={{ padding: '10px', width: '100%', border: '1px solid #ccc', borderRadius: '6px' }}
                 />
               </div>
 
               <div>
                 <label style={{display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '600'}}>Email</label>
-                <input 
-                  name="email" 
-                  type="email" 
-                  placeholder="Email" 
-                  value={newAdmin.email} 
-                  onChange={handleInputChange} 
-                  required 
+                <input
+                  name="email"
+                  type="email"
+                  placeholder="Email"
+                  value={newAdmin.email}
+                  onChange={handleInputChange}
+                  required
                   style={{ padding: '10px', width: '100%', border: '1px solid #ccc', borderRadius: '6px' }}
                 />
               </div>
 
               <div>
                 <label style={{display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '600'}}>Phone</label>
-                <input 
-                  name="phone" 
-                  placeholder="Phone" 
-                  value={newAdmin.phone} 
-                  onChange={handleInputChange} 
+                <input
+                  name="phone"
+                  placeholder="Phone"
+                  value={newAdmin.phone}
+                  onChange={handleInputChange}
                   style={{ padding: '10px', width: '100%', border: '1px solid #ccc', borderRadius: '6px' }}
                 />
               </div>
-
-              <div>
-                <button type="submit" style={{ padding: '12px', backgroundColor: '#2ecc71', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 'bold', borderRadius: '6px', width: '100%' }}>
-                  + Create Admin
-                </button>
-              </div>
             </div>
-            <div style={{ fontSize: '13px', color: '#666', marginTop: '10px' }}>
-              Default Password: <strong>{newAdmin.password}</strong>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '20px', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ fontSize: '13px', color: '#666' }}>
+                Default Password: <strong>{newAdmin.password}</strong>
+              </div>
+              <button
+                type="submit"
+                className="admin-create-btn"
+                style={{
+                  padding: '12px 28px',
+                  backgroundColor: '#fbbf24',
+                  color: 'white',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: '700',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  minWidth: '180px'
+                }}
+              >
+                + Create Admin
+              </button>
             </div>
           </form>
         </div>
@@ -109,9 +126,13 @@ const ManageAdmins = () => {
               )}
               {admins.map(admin => (
                 <tr key={admin.uid} style={{ borderBottom: '1px solid #eee' }}>
-                  <td>{admin.firstName} {admin.lastName}</td>
+                  <td>
+                    {admin.firstName || admin.lastName
+                      ? `${admin.firstName || ''} ${admin.lastName || ''}`.trim()
+                      : admin.name || admin.displayName || admin.email?.split('@')[0] || 'Unknown'}
+                  </td>
                   <td>{admin.email}</td>
-                  <td>{admin.phone || 'N/A'}</td>
+                  <td>{admin.phone || admin.phoneNumber || admin.contactNumber || 'N/A'}</td>
                   <td style={{ textAlign: 'center' }}>
                     <button 
                       onClick={() => deleteAdmin(admin.uid)}
