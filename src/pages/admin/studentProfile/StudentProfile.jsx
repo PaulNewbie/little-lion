@@ -254,17 +254,7 @@ const StudentProfile = ({
       // 2. Fetch all services of this type
       const services = await offeringsService.getServicesByType(type);
 
-      // 3. Get intervention service IDs from assessment (Background History)
-      const interventions = assessmentData?.backgroundHistory?.interventions || [];
-      const savedServiceIds = [
-        ...new Set(
-          interventions
-            .filter((i) => i.serviceType === type && i.serviceId)
-            .map((i) => i.serviceId)
-        ),
-      ];
-
-      // 4. Get ALL currently enrolled service IDs for this student (from fresh data)
+      // 3. Get ALL currently enrolled service IDs for this student (from fresh data)
       const enrolledServiceIds = new Set();
 
       // Legacy: oneOnOneServices
@@ -289,9 +279,10 @@ const StudentProfile = ({
         }
       });
 
-      // 5. Filter: must be in interventions AND not already enrolled
+      // 4. Filter: show all services that are not already actively enrolled
+      // (No longer requires interventions - allows adding any service)
       const filtered = services.filter(
-        (s) => savedServiceIds.includes(s.id) && !enrolledServiceIds.has(s.id)
+        (s) => !enrolledServiceIds.has(s.id)
       );
 
       setAvailableServices(filtered);

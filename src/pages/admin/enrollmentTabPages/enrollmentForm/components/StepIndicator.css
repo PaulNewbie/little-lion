@@ -114,6 +114,24 @@
   box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.4);
 }
 
+/* Skipped step styling - amber/yellow color */
+.step-mini-dot.skipped {
+  background: #f59e0b;
+  position: relative;
+}
+
+.step-mini-dot.skipped::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 1.5px;
+  background: white;
+  border-radius: 1px;
+}
+
 /* Estimated time */
 .step-group-time {
   font-size: 10px;

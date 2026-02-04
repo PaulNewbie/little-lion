@@ -28,12 +28,9 @@ export default function Step9Enrollment({ data, onChange, currentUserId, errors 
   });
 
   // --- Derived Data (Filters instantly without useEffect) ---
-  // Filter services to only show the ones selected in Step 4
+  // Show ALL available services from database (no longer limited to interventions)
   const interventions = data.backgroundHistory?.interventions || [];
-  const services = allDbServices.filter((service) => {
-    const savedServiceIds = interventions.map((i) => i.serviceId);
-    return savedServiceIds.includes(service.id);
-  });
+  const services = allDbServices; // All services available for enrollment
 
   const teachers = allStaff.filter((u) => u.role === "teacher");
   const therapists = allStaff.filter((u) => u.role === "therapist");
@@ -335,7 +332,7 @@ export default function Step9Enrollment({ data, onChange, currentUserId, errors 
         student.
       </p>
 
-      {/* Info about where options come from */}
+      {/* Info about service enrollment */}
       <div
         style={{
           background: "#f0f9ff",
@@ -351,87 +348,148 @@ export default function Step9Enrollment({ data, onChange, currentUserId, errors 
         }}
       >
         <span>
-          The service options below are based on the <strong>interventions</strong> you selected in Step 7 (Diagnosis & Interventions).
-          {services.length === 0 && (
+          Assign <strong>therapy sessions</strong> (1-on-1) or <strong>group classes</strong> to this student.
+          {services.length === 0 && !data.noServicesRequired && (
             <span style={{ color: "#dc2626", marginLeft: "5px" }}>
-              No interventions found. Please go back to Step 7 and add interventions first.
+              No services available in the system.
             </span>
           )}
         </span>
       </div>
 
-      {errors.serviceEnrollments && (
+      {/* No services required checkbox */}
+      <div
+        style={{
+          background: data.noServicesRequired ? "#fef3c7" : "#f8fafc",
+          padding: "16px",
+          marginBottom: "20px",
+          borderRadius: "8px",
+          border: data.noServicesRequired ? "2px solid #f59e0b" : "1px solid #e2e8f0",
+        }}
+      >
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            cursor: "pointer",
+            fontSize: "0.95rem",
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={data.noServicesRequired || false}
+            onChange={(e) => onChange("noServicesRequired", e.target.checked)}
+            style={{
+              width: "20px",
+              height: "20px",
+              cursor: "pointer",
+              accentColor: "#f59e0b",
+            }}
+          />
+          <span>
+            <strong>No services required</strong>
+            <span style={{ display: "block", fontSize: "0.85rem", color: "#64748b", marginTop: "4px" }}>
+              Check this if this student doesn't need any therapy sessions or group classes at this time.
+            </span>
+          </span>
+        </label>
+      </div>
+
+      {errors.serviceEnrollments && !data.noServicesRequired && (
         <div className="field-error-message" style={{ marginBottom: '20px' }}>
           {errors.serviceEnrollments}
         </div>
       )}
 
-      <div style={{ marginBottom: "30px" }}>
-        <h4
-          style={{ fontSize: "1rem", color: "#334155", marginBottom: "15px" }}
-        >
-          1 ON 1 SERVICE
-        </h4>
-        {renderRows(therapyEnrollments, "Therapy")}
-        <button
-          type="button"
-          className="add-point-btn"
-          onClick={() => handleAddService("Therapy")}
-          disabled={!canAddTherapy}
-          style={!canAddTherapy ? { opacity: 0.5, cursor: "not-allowed" } : {}}
-        >
-          + Add 1 on 1 Service
-          {availableTherapyServices.length > 0 && (
-            <span style={{ marginLeft: "8px", fontSize: "0.8rem", opacity: 0.7 }}>
-              ({therapyEnrollments.length}/{availableTherapyServices.length})
-            </span>
-          )}
-        </button>
+      {/* Service sections - disabled when noServicesRequired is checked */}
+      <div style={{ opacity: data.noServicesRequired ? 0.5 : 1, pointerEvents: data.noServicesRequired ? "none" : "auto" }}>
+        <div style={{ marginBottom: "30px" }}>
+          <h4
+            style={{ fontSize: "1rem", color: "#334155", marginBottom: "15px" }}
+          >
+            1 ON 1 SERVICE
+          </h4>
+          {renderRows(therapyEnrollments, "Therapy")}
+          <button
+            type="button"
+            className="add-point-btn"
+            onClick={() => handleAddService("Therapy")}
+            disabled={!canAddTherapy || data.noServicesRequired}
+            style={(!canAddTherapy || data.noServicesRequired) ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+          >
+            + Add 1 on 1 Service
+            {availableTherapyServices.length > 0 && (
+              <span style={{ marginLeft: "8px", fontSize: "0.8rem", opacity: 0.7 }}>
+                ({therapyEnrollments.length}/{availableTherapyServices.length})
+              </span>
+            )}
+          </button>
+        </div>
+
+        <hr
+          style={{
+            border: "0",
+            borderTop: "1px solid #e2e8f0",
+            margin: "30px 0",
+          }}
+        />
+
+        <div style={{ marginBottom: "30px" }}>
+          <h4
+            style={{ fontSize: "1rem", color: "#334155", marginBottom: "15px" }}
+          >
+            GROUP CLASS
+          </h4>
+          {renderRows(classEnrollments, "Class")}
+          <button
+            type="button"
+            className="add-point-btn"
+            onClick={() => handleAddService("Class")}
+            disabled={!canAddClass || data.noServicesRequired}
+            style={(!canAddClass || data.noServicesRequired) ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+          >
+            + Add Group Class
+            {availableClassServices.length > 0 && (
+              <span style={{ marginLeft: "8px", fontSize: "0.8rem", opacity: 0.7 }}>
+                ({classEnrollments.length}/{availableClassServices.length})
+              </span>
+            )}
+          </button>
+        </div>
+
+        {therapyEnrollments.length === 0 && classEnrollments.length === 0 && !data.noServicesRequired && (
+          <div
+            style={{
+              padding: "40px 30px",
+              textAlign: "center",
+              color: "#94a3b8",
+              backgroundColor: "#f8fafc",
+              borderRadius: "8px",
+              border: "2px dashed #e2e8f0",
+            }}
+          >
+            <div>No services assigned yet.</div>
+          </div>
+        )}
       </div>
 
-      <hr
-        style={{
-          border: "0",
-          borderTop: "1px solid #e2e8f0",
-          margin: "30px 0",
-        }}
-      />
-
-      <div style={{ marginBottom: "30px" }}>
-        <h4
-          style={{ fontSize: "1rem", color: "#334155", marginBottom: "15px" }}
-        >
-          GROUP CLASS
-        </h4>
-        {renderRows(classEnrollments, "Class")}
-        <button
-          type="button"
-          className="add-point-btn"
-          onClick={() => handleAddService("Class")}
-          disabled={!canAddClass}
-          style={!canAddClass ? { opacity: 0.5, cursor: "not-allowed" } : {}}
-        >
-          + Add Group Class
-          {availableClassServices.length > 0 && (
-            <span style={{ marginLeft: "8px", fontSize: "0.8rem", opacity: 0.7 }}>
-              ({classEnrollments.length}/{availableClassServices.length})
-            </span>
-          )}
-        </button>
-      </div>
-
-      {therapyEnrollments.length === 0 && classEnrollments.length === 0 && (
+      {data.noServicesRequired && (
         <div
           style={{
-            padding: "40px 30px",
+            padding: "30px",
             textAlign: "center",
-            color: "#94a3b8",
-            backgroundColor: "#f8fafc",
+            color: "#92400e",
+            backgroundColor: "#fffbeb",
             borderRadius: "8px",
-            border: "2px dashed #e2e8f0",
+            border: "2px solid #fcd34d",
           }}
         >
-          <div>No services assigned yet.</div>
+          <div style={{ fontSize: "1.5rem", marginBottom: "8px" }}>📋</div>
+          <div style={{ fontWeight: "600" }}>No services will be assigned</div>
+          <div style={{ fontSize: "0.875rem", marginTop: "4px", color: "#a16207" }}>
+            This student will be enrolled without therapy sessions or group classes.
+          </div>
         </div>
       )}
     </div>

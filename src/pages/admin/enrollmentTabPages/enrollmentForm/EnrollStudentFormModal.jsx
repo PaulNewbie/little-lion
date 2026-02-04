@@ -27,6 +27,24 @@ const AUTO_SAVE_INTERVAL = 30000;
 // Total number of steps in the form
 const TOTAL_STEPS = 13;
 
+// Step configuration - defines which steps are optional
+// Optional steps can be skipped if the assessment doesn't include them
+const STEP_CONFIG = {
+  1: { required: true, label: "Identifying Data" },
+  2: { required: true, label: "Reason for Referral" },
+  3: { required: true, label: "Purpose of Assessment" },
+  4: { required: true, label: "Family Information" },
+  5: { required: true, label: "Daily Life & Medical" },
+  6: { required: true, label: "Development & Education" },
+  7: { required: false, label: "Diagnosis & Interventions" }, // Optional - some students may not have interventions
+  8: { required: true, label: "Personal Profile" },
+  9: { required: false, label: "Behavior During Assessment" }, // Optional
+  10: { required: false, label: "Assessment Tools" }, // Optional - varies by assessment
+  11: { required: false, label: "Assessment Results" }, // Optional - depends on step 10
+  12: { required: false, label: "Summary & Recommendations" }, // Optional
+  13: { required: false, label: "Service Enrollment" }, // Optional - can enroll without services
+};
+
 // Define the clean slate outside the component
 const INITIAL_STUDENT_STATE = {
   firstName: "",
@@ -63,6 +81,9 @@ const INITIAL_STUDENT_STATE = {
   behaviorDuringAssessment: "",
   assessmentTools: [{ tool: "", details: "", result: "", recommendation: "" }],
   assessmentSummary: "",
+  // Track skipped steps and no-service enrollment
+  skippedSteps: [],
+  noServicesRequired: false,
 };
 
 export default function EnrollStudentFormModal({
@@ -84,6 +105,9 @@ export default function EnrollStudentFormModal({
   // NEW: Track completed steps for navigation
   const [completedSteps, setCompletedSteps] = useState([]);
 
+  // NEW: Track skipped steps (for optional steps marked as N/A)
+  const [skippedSteps, setSkippedSteps] = useState([]);
+
   // NEW: Auto-save state
   const [lastSaved, setLastSaved] = useState(null);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
@@ -101,10 +125,24 @@ export default function EnrollStudentFormModal({
     setToast({ show: false, message: "", type: "success" });
   };
 
+  // Check if a step is optional
+  const isStepOptional = (step) => !STEP_CONFIG[step]?.required;
+
+  // Check if a step is skipped
+  const isStepSkipped = (step, data = studentInput) => {
+    return data.skippedSteps?.includes(step) || skippedSteps.includes(step);
+  };
+
   // NEW: Get detailed validation errors for current step
   // Updated for 13-step form (Step 4 split into 4A-4E)
+  // Now respects optional/skipped steps
   const getValidationErrors = (step = formStep, data = studentInput) => {
     const errors = {};
+
+    // If step is optional AND skipped, no validation needed
+    if (isStepOptional(step) && isStepSkipped(step, data)) {
+      return errors;
+    }
 
     switch (step) {
       // Step 1: Identifying Data
@@ -177,13 +215,13 @@ export default function EnrollStudentFormModal({
         break;
 
       // Step 7: Diagnosis & Interventions (was part of old Step 4)
+      // Now optional - some students may not have interventions
       case 7:
         if (!data.backgroundHistory?.clinicalDiagnosis?.trim()) {
           errors.clinicalDiagnosis = "Clinical diagnosis is required";
         }
-        if (!data.backgroundHistory?.interventions?.length) {
-          errors.interventions = "At least one therapy/intervention is required";
-        } else {
+        // Interventions are now optional - only validate if any are added
+        if (data.backgroundHistory?.interventions?.length > 0) {
           const invalidIntervention = data.backgroundHistory.interventions.some(
             (intervention) => !intervention.name?.trim() || !intervention.frequency?.trim()
           );
@@ -246,12 +284,17 @@ export default function EnrollStudentFormModal({
         break;
 
       // Step 13: Service Enrollment (was old Step 9)
+      // Now allows enrollment without services if noServicesRequired is checked
       case 13:
+        // If "no services required" is checked, skip service validation
+        if (data.noServicesRequired) {
+          break;
+        }
         const validEnrollments = data.serviceEnrollments?.filter(
           (enrollment) => enrollment.serviceId && enrollment.staffId
         );
         if (!validEnrollments?.length) {
-          errors.serviceEnrollments = "At least one service enrollment with both service and staff assigned is required";
+          errors.serviceEnrollments = "At least one service enrollment is required, or check 'No services required'";
         }
         break;
 
@@ -277,15 +320,19 @@ export default function EnrollStudentFormModal({
   };
 
   // Calculate which steps are completed based on data
-  const calculateCompletedSteps = useCallback((data = studentInput) => {
+  // Now includes skipped steps as "completed" for navigation purposes
+  // Note: Using a regular function instead of useCallback to avoid dependency issues
+  const calculateCompletedSteps = (data = studentInput, skipped = skippedSteps) => {
     const completed = [];
     for (let i = 1; i <= TOTAL_STEPS; i++) {
-      if (validateStep(i, data)) {
+      // A step is "completed" if it passes validation OR if it's skipped (and optional)
+      const stepSkipped = data.skippedSteps?.includes(i) || skipped.includes(i);
+      if (validateStep(i, data) || (isStepOptional(i) && stepSkipped)) {
         completed.push(i);
       }
     }
     return completed;
-  }, []);
+  };
 
   // Handle clicking on a step to navigate
   const handleStepClick = (step) => {
@@ -295,6 +342,53 @@ export default function EnrollStudentFormModal({
       setShowErrors(false);
       setValidationErrors({});
     }
+  };
+
+  // Handle skipping an optional step (mark as N/A)
+  const handleSkipStep = () => {
+    if (!isStepOptional(formStep)) return;
+
+    // Add current step to skipped steps
+    const newSkippedSteps = [...skippedSteps, formStep];
+    setSkippedSteps(newSkippedSteps);
+
+    // Also update in studentInput for persistence
+    const updatedInput = {
+      ...studentInput,
+      skippedSteps: newSkippedSteps,
+    };
+    setStudentInput(updatedInput);
+
+    // Update completed steps to include the newly skipped step
+    setCompletedSteps(calculateCompletedSteps(updatedInput, newSkippedSteps));
+
+    // Mark as having changes
+    hasUnsavedChanges.current = true;
+
+    // Clear errors and move to next step
+    setValidationErrors({});
+    setShowErrors(false);
+
+    if (formStep < TOTAL_STEPS) {
+      setFormStep(formStep + 1);
+    }
+  };
+
+  // Handle unskipping a step (remove from skipped)
+  const handleUnskipStep = (step) => {
+    const newSkippedSteps = skippedSteps.filter((s) => s !== step);
+    setSkippedSteps(newSkippedSteps);
+
+    const updatedInput = {
+      ...studentInput,
+      skippedSteps: newSkippedSteps,
+    };
+    setStudentInput(updatedInput);
+
+    // Recalculate completed steps
+    setCompletedSteps(calculateCompletedSteps(updatedInput, newSkippedSteps));
+
+    hasUnsavedChanges.current = true;
   };
 
   // Auto-save function
@@ -341,6 +435,9 @@ export default function EnrollStudentFormModal({
         examiner: studentInput.examiner,
         ageAtAssessment: studentInput.ageAtAssessment,
         serviceEnrollments: studentInput.serviceEnrollments || [],
+        // Track skipped steps and no-service enrollment
+        skippedSteps: studentInput.skippedSteps || [],
+        noServicesRequired: studentInput.noServicesRequired || false,
         status: "ASSESSING",
         assessmentId,
         childId,
@@ -453,13 +550,17 @@ export default function EnrollStudentFormModal({
         }
       }
 
+      // Load skipped steps from saved data first (needed for calculations)
+      const loadedSkippedSteps = initialData.skippedSteps || [];
+      setSkippedSteps(loadedSkippedSteps);
+
       setStudentInput(initialData);
 
       // Determine which step to open: first incomplete step, or 13 if all complete
       setFormStep(findFirstIncompleteStep(initialData));
 
-      // Calculate initially completed steps
-      setCompletedSteps(calculateCompletedSteps(initialData));
+      // Calculate initially completed steps (pass loaded skipped steps explicitly)
+      setCompletedSteps(calculateCompletedSteps(initialData, loadedSkippedSteps));
 
       setShowCloseConfirmation(false);
       // Reset error state when opening modal
@@ -470,7 +571,8 @@ export default function EnrollStudentFormModal({
       setLastSaved(null);
       hasUnsavedChanges.current = false;
     }
-  }, [show, editingStudent, calculateCompletedSteps]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [show, editingStudent]);
 
   if (!show) return null;
 
@@ -586,6 +688,9 @@ export default function EnrollStudentFormModal({
         ageAtAssessment: studentInput.ageAtAssessment,
         // New unified service model (serviceEnrollments)
         serviceEnrollments: studentInput.serviceEnrollments || [],
+        // Track skipped steps and no-service enrollment
+        skippedSteps: studentInput.skippedSteps || [],
+        noServicesRequired: studentInput.noServicesRequired || false,
         status: isFinalized ? "ENROLLED" : "ASSESSING",
         assessmentId, // Link to the assessment document
         childId, // Ensure childId is consistent
@@ -748,6 +853,7 @@ export default function EnrollStudentFormModal({
             totalSteps={TOTAL_STEPS}
             onStepClick={handleStepClick}
             completedSteps={completedSteps}
+            skippedSteps={skippedSteps}
           />
         </div>
 
@@ -763,6 +869,26 @@ export default function EnrollStudentFormModal({
                   <li key={index}>{error}</li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {/* Skipped Step Banner - shows when viewing a step that was previously skipped */}
+          {isStepSkipped(formStep) && (
+            <div className="skipped-step-banner">
+              <div className="skipped-banner-content">
+                <span className="skipped-icon">⏭️</span>
+                <div className="skipped-text">
+                  <strong>This step was marked as N/A (skipped)</strong>
+                  <span>You can fill it in now if needed, or leave it skipped.</span>
+                </div>
+                <button
+                  type="button"
+                  className="unskip-btn"
+                  onClick={() => handleUnskipStep(formStep)}
+                >
+                  Fill In This Step
+                </button>
+              </div>
             </div>
           )}
 
@@ -908,6 +1034,18 @@ export default function EnrollStudentFormModal({
                 type="button"
               >
                 Back
+              </button>
+            )}
+            {/* Skip button for optional steps */}
+            {isStepOptional(formStep) && !isStepSkipped(formStep) && formStep < TOTAL_STEPS && (
+              <button
+                className="skip-btn"
+                onClick={handleSkipStep}
+                disabled={isSaving}
+                type="button"
+                title={`Skip ${STEP_CONFIG[formStep]?.label} - Mark as N/A`}
+              >
+                Skip (N/A)
               </button>
             )}
             <button

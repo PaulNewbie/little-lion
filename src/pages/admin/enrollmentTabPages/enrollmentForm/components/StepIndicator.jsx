@@ -56,7 +56,8 @@ export default function StepIndicator({
   currentStep,
   totalSteps,
   onStepClick,
-  completedSteps = []
+  completedSteps = [],
+  skippedSteps = []
 }) {
   // Determine group status
   const getGroupStatus = (group) => {
@@ -108,18 +109,23 @@ export default function StepIndicator({
 
                 {/* Mini dots for steps within group */}
                 <div className="step-group-dots">
-                  {group.steps.map((step) => (
-                    <div
-                      key={step}
-                      className={`step-mini-dot ${
-                        step === currentStep ? "current" : ""
-                      } ${step < currentStep || completedSteps.includes(step) ? "completed" : ""} ${
-                        isStepClickable(step) ? "clickable" : ""
-                      }`}
-                      onClick={() => handleStepClick(step)}
-                      title={`${STEP_TITLES[step]}${isStepClickable(step) ? " (click to edit)" : ""}`}
-                    />
-                  ))}
+                  {group.steps.map((step) => {
+                    const isSkipped = skippedSteps.includes(step);
+                    const isCompleted = step < currentStep || completedSteps.includes(step);
+
+                    return (
+                      <div
+                        key={step}
+                        className={`step-mini-dot ${
+                          step === currentStep ? "current" : ""
+                        } ${isCompleted && !isSkipped ? "completed" : ""} ${
+                          isSkipped ? "skipped" : ""
+                        } ${isStepClickable(step) ? "clickable" : ""}`}
+                        onClick={() => handleStepClick(step)}
+                        title={`${STEP_TITLES[step]}${isSkipped ? " (Skipped - N/A)" : ""}${isStepClickable(step) ? " (click to edit)" : ""}`}
+                      />
+                    );
+                  })}
                 </div>
 
                 <div className="step-group-time">{group.estimatedTime}</div>

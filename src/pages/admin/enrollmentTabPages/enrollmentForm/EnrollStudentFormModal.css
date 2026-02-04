@@ -521,6 +521,82 @@ button {
   border-radius: 12px;
 }
 
+/* Skip button for optional steps */
+.skip-btn {
+  padding: 12px 24px;
+  font-weight: 600;
+  color: #f59e0b;
+  background: #fffbeb;
+  border: 1.5px solid #fcd34d;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.skip-btn:hover {
+  background: #fef3c7;
+  border-color: #f59e0b;
+}
+
+.skip-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Skipped step banner */
+.skipped-step-banner {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 2px solid #f59e0b;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.skipped-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.skipped-icon {
+  font-size: 1.5rem;
+}
+
+.skipped-text {
+  flex: 1;
+  min-width: 200px;
+}
+
+.skipped-text strong {
+  display: block;
+  color: #92400e;
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+}
+
+.skipped-text span {
+  color: #a16207;
+  font-size: 0.85rem;
+}
+
+.unskip-btn {
+  padding: 10px 20px;
+  font-weight: 600;
+  color: #92400e;
+  background: #ffffff;
+  border: 2px solid #f59e0b;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.unskip-btn:hover {
+  background: #fef3c7;
+  border-color: #d97706;
+}
+
 .close-x-btn {
   width: 36px;
   height: 36px;
