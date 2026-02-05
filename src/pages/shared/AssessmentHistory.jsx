@@ -11,8 +11,7 @@ const SECTION_LABELS = [
   { id: "history", label: "Background History" },
   { id: "behavior", label: "Behavior" },
   { id: "tools", label: "Tools & Results" },
-  { id: "recommendations", label: "Summary & Recommendations" },
-  { id: "additional-reports", label: "Additional Reports" }
+  { id: "recommendations", label: "Summary & Recommendations" }
 ];
 
 // Strength category labels for display
@@ -62,6 +61,7 @@ const AssessmentHistory = ({
   const sectionRefs = useRef({});
 
   // Additional Reports state
+  const [showReportsPanel, setShowReportsPanel] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [description, setDescription] = useState('');
@@ -576,6 +576,19 @@ const AssessmentHistory = ({
       {/* Header */}
       <div className="history-top-header">
         <h2 className="report-main-title">Assessment Report</h2>
+        <button
+          className="additional-reports-header-btn"
+          onClick={() => setShowReportsPanel(!showReportsPanel)}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"/>
+            <path d="M14 2V8H20"/>
+          </svg>
+          Additional Reports
+          {additionalReports.length > 0 && (
+            <span className="reports-count-badge">{additionalReports.length}</span>
+          )}
+        </button>
       </div>
 
       {/* Scrollable Content Area */}
@@ -908,96 +921,98 @@ const AssessmentHistory = ({
             </div>
           </section>
 
-          {/* Section 8: Additional Reports */}
-          <section
-            className="assessment-section"
-            ref={setSectionRef("additional-reports")}
-            id="section-additional-reports"
-          >
-            <div className="section-header">
-              <h3 className="section-title">IX. Additional Reports</h3>
-            </div>
-            <div className="section-content">
-              <div className="additional-reports-section">
-                {/* Header with Add button */}
-                <div className="reports-section-header">
-                  <p className="reports-info-text">
-                    PDF files only, max 1MB per file
-                  </p>
-                  {isAdmin && (
-                    <label className="add-report-btn">
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".pdf"
-                        onChange={handleFileSelect}
-                        disabled={uploading}
-                        style={{ display: 'none' }}
-                      />
-                      <span>+ Add Report</span>
-                    </label>
-                  )}
-                </div>
-
-                {/* Error message */}
-                {reportError && (
-                  <div className="report-error-msg">
-                    {reportError}
-                    <button onClick={() => setReportError(null)}>×</button>
-                  </div>
-                )}
-
-                {/* Reports list */}
-                {additionalReports.length === 0 ? (
-                  <div className="no-reports-message">
-                    <p>No additional reports uploaded</p>
-                  </div>
-                ) : (
-                  <div className="reports-list-container">
-                    {additionalReports.map((report) => (
-                      <div key={report.id} className="report-item-card">
-                        <div className="report-item-icon">
-                          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2">
-                            <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"/>
-                            <path d="M14 2V8H20"/>
-                          </svg>
-                        </div>
-                        <div className="report-item-details">
-                          <h4>{report.fileName}</h4>
-                          {report.description && <p className="report-desc">{report.description}</p>}
-                          <span className="report-meta-info">
-                            {formatReportDate(report.uploadedAt)}
-                            {report.uploadedBy?.name && ` • ${report.uploadedBy.name}`}
-                          </span>
-                        </div>
-                        <div className="report-item-actions">
-                          <button
-                            className="view-report-btn"
-                            onClick={() => storageService.openPDF(report.fileUrl, report.fileName)}
-                            title="View PDF"
-                          >
-                            View
-                          </button>
-                          {isAdmin && (
-                            <button
-                              className="delete-report-btn"
-                              onClick={() => handleDeleteReport(report)}
-                              disabled={deleting === report.id}
-                              title="Delete"
-                            >
-                              {deleting === report.id ? '...' : '×'}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </section>
         </div>
       </div>
+
+      {/* Additional Reports Slide Panel */}
+      {showReportsPanel && (
+        <div className="reports-panel-overlay" onClick={() => setShowReportsPanel(false)}>
+          <div className="reports-slide-panel" onClick={(e) => e.stopPropagation()}>
+            <div className="reports-panel-header">
+              <h3>Additional Reports</h3>
+              <button className="close-panel-btn" onClick={() => setShowReportsPanel(false)}>×</button>
+            </div>
+
+            <div className="reports-panel-info">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span><strong>PDF format only</strong> &bull; Maximum 700KB per file</span>
+            </div>
+
+            {isAdmin && (
+              <label className="add-report-btn-panel">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf"
+                  onChange={handleFileSelect}
+                  disabled={uploading}
+                  style={{ display: 'none' }}
+                />
+                <span>+ Add Report</span>
+              </label>
+            )}
+
+            {reportError && (
+              <div className="report-error-msg">
+                {reportError}
+                <button onClick={() => setReportError(null)}>×</button>
+              </div>
+            )}
+
+            <div className="reports-panel-content">
+              {additionalReports.length === 0 ? (
+                <div className="no-reports-message">
+                  <p>No additional reports uploaded</p>
+                </div>
+              ) : (
+                <div className="reports-list-container">
+                  {additionalReports.map((report) => (
+                    <div key={report.id} className="report-item-card">
+                      <div className="report-item-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2">
+                          <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"/>
+                          <path d="M14 2V8H20"/>
+                        </svg>
+                      </div>
+                      <div className="report-item-details">
+                        <h4>{report.fileName}</h4>
+                        {report.description && <p className="report-desc">{report.description}</p>}
+                        <span className="report-meta-info">
+                          {formatReportDate(report.uploadedAt)}
+                          {report.uploadedBy?.name && ` • ${report.uploadedBy.name}`}
+                        </span>
+                      </div>
+                      <div className="report-item-actions">
+                        <button
+                          className="view-report-btn"
+                          onClick={() => storageService.openPDF(report.fileUrl, report.fileName)}
+                          title="View PDF"
+                        >
+                          View
+                        </button>
+                        {isAdmin && (
+                          <button
+                            className="delete-report-btn"
+                            onClick={() => handleDeleteReport(report)}
+                            disabled={deleting === report.id}
+                            title="Delete"
+                          >
+                            {deleting === report.id ? '...' : '×'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Upload Modal */}
       {showUploadModal && (
