@@ -8,7 +8,8 @@ const SECTION_LABELS = [
   { id: "purpose", label: "Purpose" },
   { id: "history", label: "Background History" },
   { id: "behavior", label: "Behavior" },
-  { id: "tools", label: "Tools & Summary" }
+  { id: "tools", label: "Tools & Results" },
+  { id: "recommendations", label: "Summary & Recommendations" }
 ];
 
 // Strength category labels for display
@@ -385,34 +386,6 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
     return <p className="report-text">{bg.socialSkills || "N/A"}</p>;
   };
 
-  // Render Recommendations (new array or legacy)
-  const renderRecommendations = () => {
-    // Check for new recommendations array
-    if (recommendations && recommendations.length > 0) {
-      const validRecs = recommendations.filter(rec => rec && rec.trim());
-      if (validRecs.length > 0) {
-        return (
-          <div className="recommendations-section">
-            <h4 className="summary-title">Recommendations</h4>
-            <ol className="report-list recommendations-list">
-              {validRecs.map((rec, i) => (
-                <li key={i}>{rec}</li>
-              ))}
-            </ol>
-          </div>
-        );
-      }
-    }
-
-    // Fallback: Check assessment tools for recommendations
-    const toolRecommendations = assessmentTools?.filter(tool => tool.recommendation?.trim());
-    if (toolRecommendations?.length > 0) {
-      return null; // Will be displayed within each tool card
-    }
-
-    return null;
-  };
-
   // Scroll to section when badge is clicked
   const scrollToSection = useCallback((sectionId) => {
     const sectionElement = sectionRefs.current[sectionId];
@@ -722,14 +695,14 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
             </div>
           </section>
 
-          {/* Section 6: Assessment Tools & Summary */}
+          {/* Section 6: Assessment Tools & Results */}
           <section
             className="assessment-section"
             ref={setSectionRef("tools")}
             id="section-tools"
           >
             <div className="section-header">
-              <h3 className="section-title">VI, VII, VIII. Assessment Tools & Summary</h3>
+              <h3 className="section-title">VI, VII. Assessment Tools & Results</h3>
             </div>
             <div className="section-content">
               {assessmentTools && assessmentTools.length > 0 && assessmentTools[0].tool ? (
@@ -763,10 +736,20 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
               ) : (
                 <p className="report-text">No assessment tools recorded.</p>
               )}
+            </div>
+          </section>
 
-              {/* New Recommendations Section */}
-              {renderRecommendations()}
-
+          {/* Section 7: Summary & Recommendations */}
+          <section
+            className="assessment-section"
+            ref={setSectionRef("recommendations")}
+            id="section-recommendations"
+          >
+            <div className="section-header">
+              <h3 className="section-title">VIII. Summary & Recommendations</h3>
+            </div>
+            <div className="section-content">
+              {/* Summary */}
               <div className="summary-final-section">
                 <h4 className="summary-title">Summary</h4>
                 <div className="summary-content-box">
@@ -774,6 +757,22 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
                     {assessmentSummary || "No overall summary provided."}
                   </p>
                 </div>
+              </div>
+
+              {/* Recommendations */}
+              <div className="recommendations-final-section">
+                <h4 className="summary-title">Recommendations</h4>
+                {recommendations && recommendations.length > 0 ? (
+                  <ol className="report-list recommendations-list">
+                    {recommendations
+                      .filter(rec => rec && rec.trim())
+                      .map((rec, i) => (
+                        <li key={i}>{rec}</li>
+                      ))}
+                  </ol>
+                ) : (
+                  <p className="report-text">No recommendations provided.</p>
+                )}
               </div>
             </div>
           </section>

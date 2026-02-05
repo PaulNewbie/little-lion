@@ -53,7 +53,7 @@ const INITIAL_STUDENT_STATE = {
   nickname: "",
   dateOfBirth: "",
   gender: "",
-  relationshipToClient: "biological child",
+  relationshipToClient: "",
   photoUrl: "",
   active: true,
   address: "",
@@ -453,6 +453,7 @@ export default function EnrollStudentFormModal({
         behaviorDuringAssessment: studentInput.behaviorDuringAssessment,
         assessmentTools: studentInput.assessmentTools,
         assessmentSummary: studentInput.assessmentSummary,
+        recommendations: studentInput.recommendations || [],
       };
 
       // 3. Save Assessment
@@ -698,6 +699,7 @@ export default function EnrollStudentFormModal({
         behaviorDuringAssessment: studentInput.behaviorDuringAssessment,
         assessmentTools: studentInput.assessmentTools,
         assessmentSummary: studentInput.assessmentSummary,
+        recommendations: studentInput.recommendations || [],
       };
 
       // 3. Save Assessment using your exact service signature

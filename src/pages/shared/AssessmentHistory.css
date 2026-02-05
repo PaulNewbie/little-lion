@@ -788,9 +788,13 @@
 }
 
 /* ============================================================
-   SUMMARY SECTION
+   SUMMARY & RECOMMENDATIONS SECTION
 ============================================================ */
 .summary-final-section {
+  margin-bottom: 28px;
+}
+
+.recommendations-final-section {
   margin-top: 28px;
   padding-top: 24px;
   border-top: 2px solid #e2e8f0;
