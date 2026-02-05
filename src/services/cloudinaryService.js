@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const CLOUDINARY_CLOUD_NAME = 'dlfjnz8xq';
 const CLOUDINARY_UPLOAD_PRESET = 'little-lions';
+const CLOUDINARY_DOCS_PRESET = 'little-lions-docs'; // For PDF/document uploads
 
 // Image compression settings
 const MAX_IMAGE_WIDTH = 1920;
@@ -136,10 +137,11 @@ class CloudinaryService {
 
   // ✅ NEW: Generic file upload (Supports PDF, Docs)
   // Uses 'raw' resource type for documents to ensure proper download/view URLs
+  // Requires 'little-lions-docs' upload preset in Cloudinary with "Auto" resource type
   async uploadFile(file, folder = 'little-lions/documents') {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    formData.append('upload_preset', CLOUDINARY_DOCS_PRESET); // Use docs preset
     formData.append('folder', folder);
 
     // Use 'raw' resource type for PDFs and documents
