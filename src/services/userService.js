@@ -13,6 +13,8 @@ import {
   query,
   where,
   orderBy,
+  limit,
+  startAfter,
   arrayUnion,
   writeBatch,
   serverTimestamp
@@ -81,6 +83,68 @@ class UserService {
       );
     } catch (error) {
       console.error(`Error fetching ${role}s:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get parents with pagination (for reducing Firestore reads)
+   * First call fetches limited set, "Load More" fetches remaining
+   * No composite index required - uses simple where clause
+   * @param {Object} options - Pagination options
+   * @returns {Promise<{parents: Array, lastDoc: null, hasMore: boolean, loadedCount: number}>}
+   */
+  async getParentsPaginated(options = {}) {
+    const {
+      limit: pageLimit = 10,
+      offset: skipCount = 0,
+      loadAll = false,
+    } = options;
+
+    try {
+      // Simple query - no orderBy to avoid index requirement
+      const q = query(
+        collection(db, COLLECTION_NAME),
+        where('role', '==', 'parent')
+      );
+
+      const snapshot = await getDocs(q);
+      trackRead(COLLECTION_NAME, snapshot.docs.length);
+
+      let parents = snapshot.docs.map(doc => ({
+        id: doc.id,
+        uid: doc.id,
+        ...doc.data()
+      }));
+
+      // Sort client-side by lastName
+      parents.sort((a, b) =>
+        (a.lastName || '').localeCompare(b.lastName || '')
+      );
+
+      const totalCount = parents.length;
+
+      // If loadAll, return everything
+      if (loadAll) {
+        return {
+          parents,
+          lastDoc: null,
+          hasMore: false,
+          totalCount,
+        };
+      }
+
+      // Otherwise, return paginated slice
+      const paginatedParents = parents.slice(skipCount, skipCount + pageLimit);
+
+      return {
+        parents: paginatedParents,
+        lastDoc: null,
+        hasMore: skipCount + pageLimit < totalCount,
+        totalCount,
+      };
+    } catch (error) {
+      console.error('Error fetching paginated parents:', error);
       throw error;
     }
   }
