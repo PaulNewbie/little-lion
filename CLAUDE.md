@@ -2,7 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-<<<<<<< HEAD
+## Project Overview
+
+Little Lions Monitoring System - A React web application for Special Education (SPED) schools with role-based access control. Built for managing students, teachers, therapists, and parent communication.
+
 ## Development Commands
 
 ```bash
@@ -60,78 +63,7 @@ The system has five roles with different access levels (defined in `src/utils/co
 - `useManageTeachers.js`, `useManageTherapists.js`, `useManageAdmins.js` - Staff management logic
 - `useActivationModal.js` - Activation code modal state
 
-### Firestore Collections
-- `users` - All user accounts with role field
-- `children` - Student records
-- `activities` - Activity logs
-
-### Environment Variables
-Firebase and Cloudinary credentials should be in `.env`:
-```
-REACT_APP_FIREBASE_API_KEY
-REACT_APP_FIREBASE_AUTH_DOMAIN
-REACT_APP_FIREBASE_PROJECT_ID
-REACT_APP_FIREBASE_STORAGE_BUCKET
-REACT_APP_FIREBASE_MESSAGING_SENDER_ID
-REACT_APP_FIREBASE_APP_ID
-REACT_APP_CLOUDINARY_CLOUD_NAME
-REACT_APP_CLOUDINARY_UPLOAD_PRESET
-```
-
-Note: Currently using Vite, so environment variables should use `VITE_` prefix, but the codebase references `REACT_APP_` (legacy from CRA migration).
-=======
-## Project Overview
-
-Little Lions Monitoring System - A React web application for Special Education (SPED) schools with role-based access control. Built for managing students, teachers, therapists, and parent communication.
-
-## Development Commands
-
-```bash
-npm start      # Start dev server on localhost:3000
-npm run build  # Production build
-npm run preview # Preview production build
-```
-
-## Architecture
-
-### Tech Stack
-- React 19 with Vite
-- Firebase (Auth, Firestore)
-- Cloudinary (Image uploads)
-- TanStack React Query (Server state)
-- React Router v7
-
-### Role-Based Access
-Five user roles with different permissions:
-- `super_admin` - Full system access, can manage admins and enrollment
-- `admin` - Manage teachers, therapists, students, view activities
-- `teacher` - View assigned students, upload play group activities
-- `therapist` - Manage therapy sessions for assigned students
-- `parent` - View own children's activities and submit inquiries
-
-### Key Directory Structure
-
-**`src/routes/routeConfig.jsx`** - Central routing configuration with:
-- Route path constants (`ROUTES`)
-- Role constants (`ROLES`, `ROLE_GROUPS`)
-- `ProtectedRoute` component for role-based access
-- React Query client configuration
-
-**`src/context/AuthContext.jsx`** - Authentication state via Firebase, provides `currentUser`, `login`, `logout`
-
-**`src/services/`** - Backend service layer (all Firestore/Firebase operations):
-- `authService.js` - Sign in/out, user data
-- `childService.js` - Student CRUD
-- `activityService.js` - Activity logging
-- `assessmentService.js` - Assessment records
-- `cloudinaryService.js` - Image uploads
-- `inquiryService.js` - Parent inquiries
-- `activationService.js` - Account activation flow
-- `userService.js` - User profile operations
-
-**`src/hooks/`** - Custom hooks for business logic (useAuth, useManageTeachers, useManageTherapists, etc.)
-
-**`src/pages/`** - Organized by role:
+**Pages** (`src/pages/`):
 - `admin/` - Student profiles, enrollment forms, staff management
 - `teacher/` - Dashboard, play group uploads
 - `therapist/` - Session forms, dashboard
@@ -139,14 +71,25 @@ Five user roles with different permissions:
 - `auth/` - Login, activation pages
 - `shared/` - Cross-role components
 
+### Firestore Collections
+- `users` - All user accounts with role field
+- `children` - Student records
+- `activities` - Activity logs
+
 ### Account Activation Flow
 New accounts use `accountStatus: 'pending_setup'` - users are redirected to `/activate` to set their password. Legacy accounts use `mustChangePassword` flag.
 
-## Environment Variables
-
-For local development, create `.env` with:
-- `VITE_FIREBASE_*` - Firebase config
-- `VITE_CLOUDINARY_*` - Cloudinary config
+### Environment Variables
+Firebase and Cloudinary credentials should be in `.env`:
+```
+VITE_FIREBASE_API_KEY
+VITE_FIREBASE_AUTH_DOMAIN
+VITE_FIREBASE_PROJECT_ID
+VITE_FIREBASE_STORAGE_BUCKET
+VITE_FIREBASE_MESSAGING_SENDER_ID
+VITE_FIREBASE_APP_ID
+VITE_CLOUDINARY_CLOUD_NAME
+VITE_CLOUDINARY_UPLOAD_PRESET
+```
 
 Note: The codebase currently has Firebase config hardcoded in `src/config/firebase.js`.
->>>>>>> 8be344ddf69e960d2c64aab47049ad04c86e9a8d
