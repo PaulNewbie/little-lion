@@ -1,12 +1,13 @@
-import React, { useState, useRef } from "react"; // 1. Added useRef
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { ROUTES } from "../../routes/routeConfig";
 import ErrorMessage from "../../components/common/ErrorMessage";
-import { ChevronDown } from 'lucide-react'; // 2. Import the arrow icon
-import { ArrowBigDown, Mail, Phone } from 'lucide-react'; // Added Mail and Phone
+import { ChevronDown, Volume2, VolumeX } from 'lucide-react';
+import { Mail, Phone } from 'lucide-react';
 import logo from '../../images/logo.png';
 import childImage from '../../images/child.png';
+import backgroundMusic from '../../audio/Little Lion Jingle.mp3';
 import "./LandingPage.css";
 
 const LandingPage = () => {
@@ -15,15 +16,79 @@ const LandingPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Audio state
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [volume, setVolume] = useState(0.5);
+  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+
   const { login } = useAuth();
   const navigate = useNavigate();
-  
-  // 3. Create a reference for the login section
-  const loginRef = useRef(null);
 
-  // 4. Smooth scroll function
+  // Refs
+  const loginRef = useRef(null);
+  const audioRef = useRef(null);
+  const volumeControlRef = useRef(null);
+
+  // Smooth scroll function
   const scrollToLogin = () => {
     loginRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Start audio on scroll (every time user scrolls, audio plays if stopped)
+  useEffect(() => {
+    const startAudioOnScroll = () => {
+      if (audioRef.current && !isPlaying) {
+        audioRef.current.volume = volume;
+        audioRef.current.play().then(() => {
+          setIsPlaying(true);
+        }).catch((err) => {
+          console.log("Audio autoplay prevented:", err);
+        });
+      }
+    };
+
+    window.addEventListener('scroll', startAudioOnScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', startAudioOnScroll);
+    };
+  }, [isPlaying, volume]);
+
+  // Handle click outside volume control to close it
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (volumeControlRef.current && !volumeControlRef.current.contains(event.target)) {
+        setShowVolumeSlider(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Toggle audio play/pause
+  const toggleAudio = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        audioRef.current.play().then(() => {
+          setIsPlaying(true);
+        }).catch((err) => {
+          console.log("Audio play prevented:", err);
+        });
+      }
+    }
+  };
+
+  // Handle volume change
+  const handleVolumeChange = (e) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume;
+    }
   };
 
   const handleLogin = async () => {
@@ -66,6 +131,37 @@ const LandingPage = () => {
 
   return (
     <div className="landing-page">
+      {/* Background Audio */}
+      <audio ref={audioRef} loop preload="auto">
+        <source src={backgroundMusic} type="audio/mpeg" />
+      </audio>
+
+      {/* Volume Control */}
+      <div className="volume-control" ref={volumeControlRef}>
+        <button
+          className={`volume-btn ${isPlaying ? 'playing' : ''}`}
+          onClick={toggleAudio}
+          onMouseEnter={() => setShowVolumeSlider(true)}
+          aria-label={isPlaying ? 'Mute audio' : 'Play audio'}
+        >
+          {isPlaying ? <Volume2 size={20} /> : <VolumeX size={20} />}
+        </button>
+
+        <div className={`volume-slider-container ${showVolumeSlider ? 'visible' : ''}`}>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={volume}
+            onChange={handleVolumeChange}
+            className="volume-slider"
+            aria-label="Volume control"
+          />
+          <div className="volume-level" style={{ width: `${volume * 100}%` }} />
+        </div>
+      </div>
+
       <header className="landing-header">
         <div className="header-content">
           <div className="logo-circle">

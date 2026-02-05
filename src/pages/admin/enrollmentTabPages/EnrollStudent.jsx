@@ -19,7 +19,7 @@ import childService from "../../../services/childService";
 import userService from "../../../services/userService";
 import assessmentService from "../../../services/assessmentService";
 
-import { useParents, useChildrenByParent, useCacheInvalidation } from "../../../hooks/useCachedData";
+import { useParents, useChildrenByParent, useChildrenByStaff, useCacheInvalidation } from "../../../hooks/useCachedData";
 
 
 // REMOVED: generatePassword function - no longer needed!
@@ -42,6 +42,21 @@ export default function EnrollStudent() {
   };
 
   const { data: allParents = [], isLoading: isLoadingParents } = useParents();
+
+  // For teachers/therapists: Get only their assigned students to filter guardians
+  const isStaffRole = currentUser?.role === 'teacher' || currentUser?.role === 'therapist';
+  const { data: assignedStudents = [] } = useChildrenByStaff(isStaffRole ? currentUser?.uid : null);
+
+  // Filter guardians based on role - teachers/therapists only see guardians of their assigned students
+  const visibleGuardians = isStaffRole
+    ? (() => {
+        // Get unique parentIds from assigned students
+        const assignedParentIds = [...new Set(assignedStudents.map(s => s.parentId).filter(Boolean))];
+        // Filter parents to only those with assigned students
+        return allParents.filter(p => assignedParentIds.includes(p.uid));
+      })()
+    : allParents;
+
   const [selectedParent, setSelectedParent] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -264,7 +279,7 @@ export default function EnrollStudent() {
     setEditingStudent(null);
   };
 
-  const filteredParents = allParents.filter((p) =>
+  const filteredParents = visibleGuardians.filter((p) =>
     `${p.firstName} ${p.middleName} ${p.lastName}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
@@ -282,7 +297,9 @@ export default function EnrollStudent() {
                 <div className="header-title">
                   <h1>STUDENT ENROLLMENT</h1>
                   <p className="header-subtitle">
-                    Select a guardian to view their children
+                    {isStaffRole
+                      ? "Guardians of your assigned students"
+                      : "Select a guardian to view their children"}
                   </p>
                 </div>
                 <div className="search-wrapper">
@@ -306,6 +323,18 @@ export default function EnrollStudent() {
             <div className="ooo-content-area">
           {/* PARENT GRID VIEW - Show when no parent selected */}
           {!selectedParent || showChildrenModal ? (
+            <>
+              {/* Empty state for staff with no assigned students */}
+              {isStaffRole && visibleGuardians.length === 0 ? (
+                <div className="csm-empty" style={{ padding: '60px 20px', textAlign: 'center' }}>
+                  <div className="csm-empty-icon">🔒</div>
+                  <h3 style={{ fontSize: '1.25rem', marginBottom: '12px' }}>No Guardians Available</h3>
+                  <p style={{ color: '#64748b', maxWidth: '400px', margin: '0 auto' }}>
+                    You can only view guardians of students assigned to you.
+                    Contact an administrator if you need to enroll a new student.
+                  </p>
+                </div>
+              ) : (
             <div className="mt-grid">
               {filteredParents.map((p) => (
                 <div
@@ -348,6 +377,8 @@ export default function EnrollStudent() {
                 </div>
               ))}
             </div>
+              )}
+            </>
           ) : null}
         </div>
 
@@ -712,6 +743,22 @@ export default function EnrollStudent() {
                     })}
                   </div>
                 )}
+
+                {/* Enroll Child Button - Always visible at bottom of modal */}
+                <div className="csm-footer">
+                  <button
+                    className="csm-enroll-btn"
+                    onClick={() => {
+                      setShowChildrenModal(false);
+                      setShowEnrollForm(true);
+                    }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Enroll a Child
+                  </button>
+                </div>
               </div>
 
             </div>

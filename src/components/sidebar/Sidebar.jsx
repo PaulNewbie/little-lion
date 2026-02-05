@@ -276,7 +276,7 @@ const Sidebar = ({
               <div className="sidebar__section-title">{section.title}</div>
             )}
             {section.items
-              .filter(item => !item.hidden)
+              .filter(item => !item.hidden && !isItemRestricted(item))
               .map((item, itemIndex) => {
                 // Check if this is a dropdown item
                 if (item.isDropdown && item.subItems) {

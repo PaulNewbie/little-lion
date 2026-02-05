@@ -11,6 +11,162 @@
   background-color: #f5f5f5;
 }
 
+/* Volume Control Styles */
+.volume-control {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-direction: row-reverse;
+}
+
+.volume-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #003d7a 0%, #0056b3 100%);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 61, 122, 0.4),
+              0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.volume-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 222, 89, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+.volume-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 61, 122, 0.5),
+              0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.volume-btn:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+.volume-btn:active {
+  transform: scale(0.95);
+}
+
+.volume-btn.playing {
+  background: linear-gradient(135deg, #FFDE59 0%, #ffc107 100%);
+  color: #003d7a;
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 4px 15px rgba(255, 222, 89, 0.4),
+                0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 4px 25px rgba(255, 222, 89, 0.6),
+                0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.volume-slider-container {
+  position: relative;
+  width: 0;
+  height: 40px;
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  opacity: 0;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  padding: 0;
+}
+
+.volume-slider-container.visible {
+  width: 120px;
+  opacity: 1;
+  padding: 0 12px;
+}
+
+.volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: linear-gradient(135deg, #003d7a 0%, #0056b3 100%);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 61, 122, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 3px 10px rgba(0, 61, 122, 0.5);
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: linear-gradient(135deg, #003d7a 0%, #0056b3 100%);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0, 61, 122, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.volume-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 3px 10px rgba(0, 61, 122, 0.5);
+}
+
+.volume-level {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 6px;
+  background: linear-gradient(90deg, #FFDE59 0%, #ffc107 100%);
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 1;
+  transition: width 0.1s ease;
+}
+
 /* Landing Header */
 .landing-header {
   width: 100%;
@@ -558,6 +714,21 @@
 
 /* Mobile devices (480px and below) */
 @media (max-width: 480px) {
+  .volume-control {
+    bottom: 16px;
+    right: 16px;
+  }
+
+  .volume-btn {
+    width: 42px;
+    height: 42px;
+  }
+
+  .volume-slider-container.visible {
+    width: 100px;
+    padding: 0 10px;
+  }
+
   .landing-header {
     padding: 10px 15px;
   }
@@ -706,6 +877,21 @@
 
 /* Extra small devices (360px and below) */
 @media (max-width: 360px) {
+  .volume-control {
+    bottom: 12px;
+    right: 12px;
+  }
+
+  .volume-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .volume-slider-container.visible {
+    width: 80px;
+    padding: 0 8px;
+  }
+
   .header-title {
     font-size: 0.85rem;
   }
