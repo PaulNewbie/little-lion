@@ -25,6 +25,7 @@ import {
   StudentProfileHeader,
   AddServiceModal
 } from "./components";
+import AdditionalReportsPanel from "./components/AdditionalReportsPanel";
 
 // NEW: Parent-specific components
 import ParentChildListView from "../../parent/components/ParentChildListView";
@@ -109,6 +110,9 @@ const StudentProfile = ({
   const [addForm, setAddForm] = useState({ serviceId: "", staffId: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Additional Reports State
+  const [additionalReports, setAdditionalReports] = useState([]);
+
   // Staff Data (lazy loaded)
   const shouldFetchStaff = !isParentView && isAddModalOpen;
   const { data: teachers, isLoading: loadingTeachers } = useTeachers({ enabled: shouldFetchStaff });
@@ -156,6 +160,15 @@ const StudentProfile = ({
       }
     }
   }, [isParentView, loading, filteredStudents, currentUser, selectedStudent, childIdFromRoute, ignoreRouteChild, setSelectedStudent]);
+
+  // Sync additional reports when selected student changes
+  useEffect(() => {
+    if (selectedStudent?.additionalReports) {
+      setAdditionalReports(selectedStudent.additionalReports);
+    } else {
+      setAdditionalReports([]);
+    }
+  }, [selectedStudent]);
 
   // === Handlers ===
 
@@ -459,6 +472,15 @@ const StudentProfile = ({
                       />
                     </div>
                   )}
+
+                  {/* Additional Reports - Admin can upload, all can view */}
+                  <AdditionalReportsPanel
+                    childId={selectedStudent.id}
+                    reports={additionalReports}
+                    isAdmin={!isParentView && !isStaffView && (currentUser?.role === 'admin' || currentUser?.role === 'super_admin')}
+                    currentUser={currentUser}
+                    onReportsChange={setAdditionalReports}
+                  />
 
                   {/* Care Team - Parent view only */}
                   {isParentView && (

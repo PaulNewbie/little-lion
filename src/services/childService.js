@@ -513,6 +513,92 @@ class ChildService {
     }
   }
 
+  // ==========================================================================
+  // ADDITIONAL REPORTS METHODS (PDF uploads for admin use)
+  // ==========================================================================
+
+  /**
+   * Add an additional report (PDF) to a child's profile
+   * @param {string} childId - The child's document ID
+   * @param {object} reportData - Report metadata { id, fileName, fileUrl, description, uploadedBy }
+   */
+  async addAdditionalReport(childId, reportData) {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, childId);
+
+      const childDoc = await getDoc(docRef);
+      trackRead(COLLECTION_NAME, 1);
+
+      if (!childDoc.exists()) {
+        throw new Error('Child not found');
+      }
+
+      const report = {
+        ...reportData,
+        uploadedAt: new Date().toISOString(),
+      };
+
+      await updateDoc(docRef, {
+        additionalReports: arrayUnion(report),
+        updatedAt: serverTimestamp()
+      });
+
+      return report;
+    } catch (error) {
+      console.error('Error adding additional report:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Remove an additional report from a child's profile
+   * @param {string} childId - The child's document ID
+   * @param {object} reportData - The exact report object to remove
+   */
+  async removeAdditionalReport(childId, reportData) {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, childId);
+
+      const childDoc = await getDoc(docRef);
+      trackRead(COLLECTION_NAME, 1);
+
+      if (!childDoc.exists()) {
+        throw new Error('Child not found');
+      }
+
+      await updateDoc(docRef, {
+        additionalReports: arrayRemove(reportData),
+        updatedAt: serverTimestamp()
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error removing additional report:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all additional reports for a child
+   * @param {string} childId - The child's document ID
+   */
+  async getAdditionalReports(childId) {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, childId);
+      const childDoc = await getDoc(docRef);
+      trackRead(COLLECTION_NAME, 1);
+
+      if (!childDoc.exists()) {
+        throw new Error('Child not found');
+      }
+
+      return childDoc.data().additionalReports || [];
+    } catch (error) {
+      console.error('Error getting additional reports:', error);
+      throw error;
+    }
+  }
+
   extractStaffIds(childData) {
     const staffIds = new Set();
 
