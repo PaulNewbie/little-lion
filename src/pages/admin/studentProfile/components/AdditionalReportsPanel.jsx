@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import cloudinaryService from '../../../../services/cloudinaryService';
+import storageService from '../../../../services/storageService';
 import childService from '../../../../services/childService';
 
 /**
@@ -120,11 +120,8 @@ const AdditionalReportsPanel = ({
     setError(null);
 
     try {
-      // 1. Upload to Cloudinary
-      const fileUrl = await cloudinaryService.uploadFile(
-        selectedFile,
-        `little-lions/children/${childId}/reports`
-      );
+      // 1. Upload to Firebase Storage
+      const fileUrl = await storageService.uploadPDF(selectedFile, childId);
 
       // 2. Create report metadata
       const reportData = {
@@ -172,6 +169,12 @@ const AdditionalReportsPanel = ({
     setError(null);
 
     try {
+      // 1. Delete from Firebase Storage
+      if (report.fileUrl) {
+        await storageService.deletePDF(report.fileUrl);
+      }
+
+      // 2. Remove from Firestore
       await childService.removeAdditionalReport(childId, report);
 
       if (onReportsChange) {
