@@ -134,17 +134,19 @@ class CloudinaryService {
     return results;
   }
 
-  // ✅ NEW: Generic file upload (Supports PDF, Docs, Images)
+  // ✅ NEW: Generic file upload (Supports PDF, Docs)
+  // Uses 'raw' resource type for documents to ensure proper download/view URLs
   async uploadFile(file, folder = 'little-lions/documents') {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
     formData.append('folder', folder);
-    
-    // Note: We use 'auto' resource type to handle both images and PDFs
+
+    // Use 'raw' resource type for PDFs and documents
+    // This ensures the returned URL works for viewing/downloading
     try {
       const response = await axios.post(
-        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, 
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/raw/upload`,
         formData
       );
       return response.data.secure_url;
