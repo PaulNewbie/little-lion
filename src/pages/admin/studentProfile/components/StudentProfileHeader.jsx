@@ -239,7 +239,6 @@ const StudentProfileHeader = ({
               <div className="guardian-body">
                 <div className="guardian-name-row">
                   <span className="guardian-fullname">{parentData.firstName} {parentData.lastName}</span>
-                  <span className="guardian-relationship">{student.relationshipToClient || "Parent"}</span>
                 </div>
                 <div className="guardian-contact">
                   <div className="contact-item">

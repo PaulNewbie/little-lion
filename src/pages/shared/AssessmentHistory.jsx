@@ -1,5 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import "./AssessmentHistory.css";
+import storageService from "../../services/storageService";
+import childService from "../../services/childService";
 
 // Section navigation labels
 const SECTION_LABELS = [
@@ -9,7 +11,8 @@ const SECTION_LABELS = [
   { id: "history", label: "Background History" },
   { id: "behavior", label: "Behavior" },
   { id: "tools", label: "Tools & Results" },
-  { id: "recommendations", label: "Summary & Recommendations" }
+  { id: "recommendations", label: "Summary & Recommendations" },
+  { id: "additional-reports", label: "Additional Reports" }
 ];
 
 // Strength category labels for display
@@ -46,10 +49,28 @@ const ACTIVITY_LABELS = {
   sleeping: "Sleeping/Bedtime",
 };
 
-const AssessmentHistory = ({ childData, assessmentData }) => {
+const AssessmentHistory = ({
+  childData,
+  assessmentData,
+  additionalReports = [],
+  isAdmin = false,
+  currentUser = null,
+  onReportsChange = null
+}) => {
   const [activeSection, setActiveSection] = useState("overview");
   const scrollContainerRef = useRef(null);
   const sectionRefs = useRef({});
+
+  // Additional Reports state
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [description, setDescription] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(null);
+  const [reportError, setReportError] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const MAX_FILE_SIZE = 700 * 1024; // 700KB
 
   if (!childData && !assessmentData) return null;
 
@@ -384,6 +405,116 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
     }
 
     return <p className="report-text">{bg.socialSkills || "N/A"}</p>;
+  };
+
+  // === Additional Reports Handlers ===
+
+  const generateReportId = () => {
+    return `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  const formatReportDate = (dateStr) => {
+    if (!dateStr) return 'Unknown date';
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      setReportError('Only PDF files are allowed');
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setReportError('File size must be less than 700KB');
+      return;
+    }
+
+    setReportError(null);
+    setSelectedFile(file);
+    setShowUploadModal(true);
+  };
+
+  const handleUploadReport = async () => {
+    if (!selectedFile || !childData?.id) return;
+
+    setUploading(true);
+    setReportError(null);
+
+    try {
+      const fileUrl = await storageService.uploadPDF(selectedFile);
+
+      const reportData = {
+        id: generateReportId(),
+        fileName: selectedFile.name,
+        fileUrl: fileUrl,
+        description: description.trim() || null,
+        uploadedBy: {
+          uid: currentUser?.uid,
+          name: currentUser?.firstName
+            ? `${currentUser.firstName} ${currentUser.lastName || ''}`.trim()
+            : currentUser?.email || 'Admin'
+        }
+      };
+
+      await childService.addAdditionalReport(childData.id, reportData);
+
+      if (onReportsChange) {
+        onReportsChange([...additionalReports, { ...reportData, uploadedAt: new Date().toISOString() }]);
+      }
+
+      setShowUploadModal(false);
+      setSelectedFile(null);
+      setDescription('');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (err) {
+      console.error('Upload error:', err);
+      setReportError(err.message || 'Failed to upload report');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDeleteReport = async (report) => {
+    if (!window.confirm(`Delete "${report.fileName}"?`)) return;
+
+    setDeleting(report.id);
+    try {
+      await storageService.deletePDF(report.fileUrl);
+      await childService.removeAdditionalReport(childData.id, report);
+
+      if (onReportsChange) {
+        onReportsChange(additionalReports.filter(r => r.id !== report.id));
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+      setReportError('Failed to delete report');
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const handleCancelUpload = () => {
+    setShowUploadModal(false);
+    setSelectedFile(null);
+    setDescription('');
+    setReportError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   // Scroll to section when badge is clicked
@@ -776,8 +907,132 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
               </div>
             </div>
           </section>
+
+          {/* Section 8: Additional Reports */}
+          <section
+            className="assessment-section"
+            ref={setSectionRef("additional-reports")}
+            id="section-additional-reports"
+          >
+            <div className="section-header">
+              <h3 className="section-title">IX. Additional Reports</h3>
+            </div>
+            <div className="section-content">
+              <div className="additional-reports-section">
+                {/* Header with Add button */}
+                <div className="reports-section-header">
+                  <p className="reports-info-text">
+                    PDF files only, max 1MB per file
+                  </p>
+                  {isAdmin && (
+                    <label className="add-report-btn">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".pdf"
+                        onChange={handleFileSelect}
+                        disabled={uploading}
+                        style={{ display: 'none' }}
+                      />
+                      <span>+ Add Report</span>
+                    </label>
+                  )}
+                </div>
+
+                {/* Error message */}
+                {reportError && (
+                  <div className="report-error-msg">
+                    {reportError}
+                    <button onClick={() => setReportError(null)}>×</button>
+                  </div>
+                )}
+
+                {/* Reports list */}
+                {additionalReports.length === 0 ? (
+                  <div className="no-reports-message">
+                    <p>No additional reports uploaded</p>
+                  </div>
+                ) : (
+                  <div className="reports-list-container">
+                    {additionalReports.map((report) => (
+                      <div key={report.id} className="report-item-card">
+                        <div className="report-item-icon">
+                          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2">
+                            <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"/>
+                            <path d="M14 2V8H20"/>
+                          </svg>
+                        </div>
+                        <div className="report-item-details">
+                          <h4>{report.fileName}</h4>
+                          {report.description && <p className="report-desc">{report.description}</p>}
+                          <span className="report-meta-info">
+                            {formatReportDate(report.uploadedAt)}
+                            {report.uploadedBy?.name && ` • ${report.uploadedBy.name}`}
+                          </span>
+                        </div>
+                        <div className="report-item-actions">
+                          <button
+                            className="view-report-btn"
+                            onClick={() => storageService.openPDF(report.fileUrl, report.fileName)}
+                            title="View PDF"
+                          >
+                            View
+                          </button>
+                          {isAdmin && (
+                            <button
+                              className="delete-report-btn"
+                              onClick={() => handleDeleteReport(report)}
+                              disabled={deleting === report.id}
+                              title="Delete"
+                            >
+                              {deleting === report.id ? '...' : '×'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
         </div>
       </div>
+
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <div className="report-upload-overlay" onClick={handleCancelUpload}>
+          <div className="report-upload-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Upload Additional Report</h3>
+
+            <div className="upload-file-info">
+              <span className="file-icon">📄</span>
+              <span className="file-name">{selectedFile?.name}</span>
+              <span className="file-size">({(selectedFile?.size / 1024).toFixed(1)} KB)</span>
+            </div>
+
+            <div className="upload-field">
+              <label>Description (optional)</label>
+              <input
+                type="text"
+                placeholder="e.g., OT Evaluation 2024"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                maxLength={100}
+              />
+            </div>
+
+            <div className="upload-actions">
+              <button className="cancel-upload-btn" onClick={handleCancelUpload} disabled={uploading}>
+                Cancel
+              </button>
+              <button className="confirm-upload-btn" onClick={handleUploadReport} disabled={uploading}>
+                {uploading ? 'Uploading...' : 'Upload'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

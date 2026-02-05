@@ -25,7 +25,7 @@ import {
   StudentProfileHeader,
   AddServiceModal
 } from "./components";
-import AdditionalReportsPanel from "./components/AdditionalReportsPanel";
+// AdditionalReportsPanel moved inside AssessmentHistory
 
 // NEW: Parent-specific components
 import ParentChildListView from "../../parent/components/ParentChildListView";
@@ -473,15 +473,6 @@ const StudentProfile = ({
                     </div>
                   )}
 
-                  {/* Additional Reports - Admin can upload, all can view */}
-                  <AdditionalReportsPanel
-                    childId={selectedStudent.id}
-                    reports={additionalReports}
-                    isAdmin={!isParentView && !isStaffView && (currentUser?.role === 'admin' || currentUser?.role === 'super_admin')}
-                    currentUser={currentUser}
-                    onReportsChange={setAdditionalReports}
-                  />
-
                   {/* Care Team - Parent view only */}
                   {isParentView && (
                     <CurrentTeamSection student={selectedStudent} />
@@ -501,6 +492,10 @@ const StudentProfile = ({
         childData={selectedStudent}
         assessmentData={assessmentData}
         isLoading={isAssessmentLoading}
+        additionalReports={additionalReports}
+        isAdmin={!isParentView && !isStaffView && (currentUser?.role === 'admin' || currentUser?.role === 'super_admin')}
+        currentUser={currentUser}
+        onReportsChange={setAdditionalReports}
       />
 
       {/* Add Service Modal */}

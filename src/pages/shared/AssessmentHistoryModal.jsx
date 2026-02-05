@@ -11,7 +11,12 @@ const AssessmentHistoryModal = ({
   onClose,
   childData,
   assessmentData,
-  isLoading
+  isLoading,
+  // Additional Reports props
+  additionalReports = [],
+  isAdmin = false,
+  currentUser = null,
+  onReportsChange = null
 }) => {
   return (
     <Modal
@@ -37,6 +42,10 @@ const AssessmentHistoryModal = ({
         <AssessmentHistory
           childData={childData}
           assessmentData={assessmentData}
+          additionalReports={additionalReports}
+          isAdmin={isAdmin}
+          currentUser={currentUser}
+          onReportsChange={onReportsChange}
         />
       )}
     </Modal>
