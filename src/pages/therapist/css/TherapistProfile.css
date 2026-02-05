@@ -535,10 +535,6 @@
   border: 1px solid var(--tp-gray-200);
 }
 
-.tp-photo-card--compact {
-  /* Compact modifier */
-}
-
 .tp-photo-card-bg {
   position: absolute;
   top: 0;
