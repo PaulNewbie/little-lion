@@ -17,7 +17,7 @@
   overflow-x: hidden;
   position: relative;
   box-sizing: border-box;
-  padding: 20px;
+  padding: var(--main-content-padding, 32px);
   background-color: #f8f9fa;
 }
 
@@ -55,9 +55,9 @@
   background-size: cover;
   background-position: center top;
   background-repeat: no-repeat;
-  border-radius: 1rem;
-  padding: 2.5rem 2rem;
-  margin: 0 0 20px 0;
+  border-radius: var(--card-border-radius, 16px);
+  padding: var(--card-padding, 24px);
+  margin: 0 0 var(--header-spacing-bottom, 24px) 0;
   position: relative;
   overflow: hidden;
 }
@@ -208,7 +208,7 @@
 @media (max-width: 768px) {
   .ooo-header {
     padding: 1.5rem;
-    margin: 15px;
+    margin: 0 0 var(--header-spacing-bottom-mobile, 16px) 0;
   }
 
   .ooo-header .header-title h1,
@@ -259,15 +259,15 @@
 .ooo-services-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
+  gap: var(--spacing-md, 16px);
   justify-content: center;
-  margin-bottom: 40px;
+  margin-bottom: var(--spacing-2xl, 32px);
 }
 
 .ooo-service-card {
   background-color: #fff;
-  border-radius: 8px;
-  padding: 1rem;
+  border-radius: var(--card-border-radius-sm, 12px);
+  padding: var(--spacing-md, 16px);
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -334,11 +334,11 @@
 .ooo-empty {
   grid-column: 1 / -1;
   text-align: center;
-  padding: 80px 20px;
+  padding: var(--spacing-2xl, 32px) var(--spacing-lg, 20px);
   color: #64748b;
   font-size: 16px;
   background: white;
-  border-radius: 16px;
+  border-radius: var(--card-border-radius, 16px);
   border: 2px dashed #cbd5e1;
 }
 

@@ -15,7 +15,7 @@ const styles = {
   },
   main: {
     flex: 1,
-    padding: '24px',
+    padding: 'var(--main-content-padding, 32px)',
     backgroundColor: '#f5f5f5'
   },
   header: {

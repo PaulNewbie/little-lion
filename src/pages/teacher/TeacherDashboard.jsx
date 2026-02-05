@@ -9,7 +9,7 @@ import Sidebar from '../../components/sidebar/Sidebar';
 import { getTeacherConfig } from '../../components/sidebar/sidebarConfigs';
 import QuickSelectTags from '../../components/common/form-elements/QuickSelectTags';
 import VoiceInput from '../../components/common/form-elements/VoiceInput';
-import { Mail, Phone, Camera, FileEdit, BarChart3, X } from 'lucide-react';
+import { Mail, Phone, Camera, FileEdit, X, ClipboardList, Users, ChevronRight, ArrowLeft, Search } from 'lucide-react';
 import { useTeacherDashboardData } from '../../hooks/useCachedData';
 import logo from '../../images/logo.png';
 import './css/TeacherDashboard.css';
@@ -302,6 +302,7 @@ const TeacherDashboard = () => {
               <div className="teacher-dashboard__profile-banner">
                 <div>
                   <h3 className="teacher-dashboard__profile-banner-title">
+                    <ClipboardList size={20} />
                     Complete Your Profile
                   </h3>
                   <p className="teacher-dashboard__profile-banner-text">
@@ -331,19 +332,6 @@ const TeacherDashboard = () => {
                   <p>Share photos & updates with parents</p>
                 </div>
               </button>
-
-              <button
-                onClick={() => navigate('/teacher/profile')}
-                className="teacher-dashboard__quick-action teacher-dashboard__quick-action--secondary"
-              >
-                <div className="teacher-dashboard__quick-action-icon">
-                  <BarChart3 size={24} strokeWidth={2} />
-                </div>
-                <div className="teacher-dashboard__quick-action-content">
-                  <h3>My Profile</h3>
-                  <p>View & edit credentials</p>
-                </div>
-              </button>
             </div>
 
             {/* View 1: Class Selection */}
@@ -362,9 +350,7 @@ const TeacherDashboard = () => {
                         onClick={() => { setSelectedClass(cls); setSearchTerm(''); setDisplayCount(PAGE_SIZE); }}
                       >
                         <div className="teacher-dashboard__class-icon">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 3L1 9l11 6l9-4.91V17h2V9M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
-                          </svg>
+                          <Users size={28} strokeWidth={2} />
                         </div>
                         <div className="teacher-dashboard__class-info">
                           <h3 className="teacher-dashboard__class-name">{cls.name}</h3>
@@ -373,9 +359,7 @@ const TeacherDashboard = () => {
                           </p>
                         </div>
                         <div className="teacher-dashboard__class-arrow">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M9 18l6-6-6-6"/>
-                          </svg>
+                          <ChevronRight size={24} strokeWidth={2} />
                         </div>
                       </div>
                     ))}
@@ -391,9 +375,7 @@ const TeacherDashboard = () => {
                   onClick={() => { setSelectedClass(null); setSearchTerm(''); setDisplayCount(PAGE_SIZE); }}
                   className="teacher-dashboard__back-btn"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                  </svg>
+                  <ArrowLeft size={18} strokeWidth={2.5} />
                   Back to Classes
                 </button>
 
@@ -570,9 +552,7 @@ const TeacherDashboard = () => {
                       onClick={() => handleClassPickerSelect(cls)}
                     >
                       <div className="teacher-dashboard__class-picker-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 3L1 9l11 6l9-4.91V17h2V9M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
-                        </svg>
+                        <Users size={24} strokeWidth={2} />
                       </div>
                       <div className="teacher-dashboard__class-picker-info">
                         <span className="teacher-dashboard__class-picker-name">{cls.name}</span>
@@ -580,9 +560,7 @@ const TeacherDashboard = () => {
                           {cls.students.length} student{cls.students.length !== 1 ? 's' : ''}
                         </span>
                       </div>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M9 18l6-6-6-6"/>
-                      </svg>
+                      <ChevronRight size={20} strokeWidth={2} />
                     </button>
                   ))}
                 </div>

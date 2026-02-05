@@ -44,6 +44,8 @@
   flex-direction: column;
   min-height: 100vh;
   height: 100vh;
+  padding: var(--main-content-padding, 32px);
+  box-sizing: border-box;
 }
 
 .pc-content-container {

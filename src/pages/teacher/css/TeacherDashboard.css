@@ -244,9 +244,9 @@
 
 .teacher-dashboard__post-btn {
   padding: 0.75rem 1.25rem;
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  color: white;
-  border: none;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  color: #78350f;
+  border: 2px solid #fbbf24;
   border-radius: 0.75rem;
   font-weight: 700;
   cursor: pointer;
@@ -254,13 +254,15 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9375rem;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
   transition: all 0.3s ease;
 }
 
 .teacher-dashboard__post-btn:hover {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-color: #f59e0b;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 6px 16px rgba(251, 191, 36, 0.35);
 }
 
 /* Classes Grid */

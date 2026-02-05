@@ -1,121 +1,87 @@
 /* ============================================================================
-   TEACHER PROFILE - FULL-WIDTH MULTI-STEP FORM
-   Clean, professional blue & yellow color scheme (cloned from therapist)
+   TEACHER PROFILE - Cloned from Therapist Profile Design
+   Little Lions Theme - Blue (#0052A1) and Yellow (#FFCB10)
    ============================================================================ */
 
-/* Import shared profile styles from TherapistProfile */
-@import '../../../pages/therapist/css/TherapistProfile.css';
+/* Import all base styles from TherapistProfile */
+@import '../../therapist/css/TherapistProfile.css';
 
 /* ===========================================
-   TEACHER-SPECIFIC: Profile Photo Container
+   TEACHER-SPECIFIC OVERRIDES & ADDITIONS
    =========================================== */
 
-/* Wrapper container for the photo section */
-.tp-photo-section {
-  background: #fef3c7;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 2px 12px rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* Specialization Grid for Edit Mode */
+.tp-specialization-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
 
-/* Enhanced photo container */
-.tp-photo-container {
-  position: relative;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
+.tp-specialization-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
   background: white;
-  padding: 4px;
-  box-shadow: 0 4px 16px rgba(255, 203, 16, 0.3), 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Photo styling */
-.tp-photo-img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #FFCB10;
-}
-
-/* Empty photo state */
-.tp-photo-empty {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #9ca3af;
-  border: 3px dashed #FFCB10;
-}
-
-/* Edit button */
-.tp-photo-edit-btn {
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  width: 30px;
-  height: 30px;
-  background: linear-gradient(135deg, #FFCB10 0%, #ffd740 100%);
-  border: 3px solid white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border: 1.5px solid var(--tp-gray-200, #e5e7eb);
+  border-radius: var(--tp-radius-sm, 8px);
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.tp-photo-edit-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(255, 203, 16, 0.4);
+.tp-specialization-item:hover {
+  border-color: var(--tp-blue-300, #93c5fd);
+  background: var(--tp-blue-50, #f0f7ff);
 }
 
-/* Responsive adjustments */
+.tp-specialization-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--tp-blue-700, #0052A1);
+  cursor: pointer;
+}
+
+.tp-specialization-item input[type="checkbox"]:checked + .tp-specialization-label {
+  color: var(--tp-blue-700, #0052A1);
+  font-weight: 600;
+}
+
+.tp-specialization-label {
+  font-size: 13px;
+  color: var(--tp-gray-700, #374151);
+  transition: all 0.2s ease;
+}
+
+/* Checked state for specialization item */
+.tp-specialization-item:has(input:checked) {
+  border-color: var(--tp-blue-500, #1a7ae6);
+  background: linear-gradient(135deg, var(--tp-blue-50, #f0f7ff) 0%, var(--tp-blue-100, #e6f0fa) 100%);
+}
+
+/* ===========================================
+   RESPONSIVE ADJUSTMENTS FOR TEACHER PROFILE
+   =========================================== */
 @media (max-width: 768px) {
-  .tp-photo-section {
-    padding: 16px;
+  .tp-specialization-grid {
+    grid-template-columns: 1fr;
   }
 
-  .tp-photo-container {
-    width: 90px;
-    height: 90px;
+  .tp-specialization-item {
+    padding: 10px 12px;
+  }
+
+  .tp-specialization-label {
+    font-size: 12px;
   }
 }
 
 @media (max-width: 480px) {
-  .tp-photo-section {
-    padding: 14px;
+  .tp-specialization-item {
+    padding: 8px 10px;
   }
 
-  .tp-photo-container {
-    width: 80px;
-    height: 80px;
+  .tp-specialization-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
   }
-
-  .tp-photo-edit-btn {
-    width: 26px;
-    height: 26px;
-  }
-}
-
-.tp-value-missing {
-  color: #888;
-  font-style: italic;
-}
-
-.tp-profile-empty {
-  padding: 20px;
-  background-color: #f1f3f5;
-  border: 1px dashed #ced4da;
-  border-radius: 8px;
-  color: #6c757d;
-  text-align: center;
 }

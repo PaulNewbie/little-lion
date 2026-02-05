@@ -20,7 +20,7 @@
 
 .uam-page {
   flex: 1;
-  padding: 20px;
+  padding: var(--main-content-padding, 32px);
   width: 100%;
   box-sizing: border-box;
 }

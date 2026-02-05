@@ -22,7 +22,7 @@ const ManageAdmins = () => {
       {loading ? (
         <Loading role="admin" message="Loading admins" variant="content" />
       ) : (
-      <div style={{ padding: '20px', width: '100%', backgroundColor: '#f8f9fa' }}>
+      <div style={{ padding: 'var(--main-content-padding, 32px)', width: '100%', backgroundColor: '#f8f9fa' }}>
         <h1 style={{ color: '#2c3e50' }}>Manage Administrators</h1>
         {error && <div style={{ color: 'red', marginBottom: '10px' }}>Error: {error}</div>}
 

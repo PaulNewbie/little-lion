@@ -21,7 +21,7 @@
   overflow-x: hidden;
   position: relative;
   box-sizing: border-box;
-  padding: 24px;
+  padding: var(--main-content-padding, 32px);
   scrollbar-width: thin;
   scrollbar-color: #0052a1 rgba(0, 0, 0, 0.05);
 }
@@ -71,7 +71,7 @@
   background-repeat: no-repeat;
   border-radius: 20px;
   padding: 3rem 2.5rem;
-  margin-bottom: 28px;
+  margin-bottom: var(--header-spacing-bottom, 24px);
   position: relative;
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
@@ -955,12 +955,12 @@
 
 @media (max-width: 900px) {
   .pg-main {
-    padding: 16px;
+    padding: var(--main-content-padding-mobile, 16px);
   }
 
   .pg-header {
     padding: 2rem 1.5rem;
-    margin-bottom: 20px;
+    margin-bottom: var(--header-spacing-bottom-mobile, 16px);
     border-radius: 16px;
   }
 

@@ -278,10 +278,6 @@ const ManageTherapists = () => {
               <div ref={patientSectionRef} style={{ marginTop: '30px' }}>
                 {/* Header row with title */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-                  <h3 className="mt-section-title" style={{ margin: 0 }}>
-                    Assigned Patients ({filteredPatients.length}{(patientSpecFilter || patientSearch) ? ` of ${assignedStudents.length}` : ''})
-                  </h3>
-
                   {/* Search and Filter Controls */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                     {/* Search Input */}
@@ -420,10 +416,6 @@ const ManageTherapists = () => {
           ) : (
             /* ---------------- VIEW: LIST (Matches Teacher Grid) ---------------- */
             <>
-              <div className="mt-section-title-wrapper">
-                <h2 className="mt-section-title">Therapist Accounts</h2>
-              </div>
-
               {filteredTherapists.length === 0 ? (
                 <div className="mt-empty-state">
                   <p className="mt-empty-text">

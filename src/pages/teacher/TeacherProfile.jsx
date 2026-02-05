@@ -5,14 +5,6 @@ import Loading from '../../components/common/Loading';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getTeacherConfig } from '../../components/sidebar/sidebarConfigs';
 
-// Shared components
-import PersonalInfoSection from '../shared/profile/PersonalInfoSection';
-import EducationEntry from '../shared/profile/EducationEntry';
-import CertificationEntry from '../shared/profile/CertificationEntry';
-
-// Teacher-specific components
-import TeacherCredentialsSection from './components/TeacherCredentialsSection';
-
 // Custom hook
 import { useProfileForm } from '../../hooks/useProfileForm';
 
@@ -21,13 +13,17 @@ import { getExpirationStatus } from '../../utils/profileHelpers';
 
 import './css/TeacherProfile.css';
 
+const TABS = [
+  { id: 'personal', label: 'Personal Info', icon: 'user' },
+  { id: 'credentials', label: 'Teaching Credentials', icon: 'badge' },
+  { id: 'education', label: 'Education & Certifications', icon: 'graduation' }
+];
+
 const TeacherProfile = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-
-  // Modal state
-  const [showProfileModal, setShowProfileModal] = useState(false);
-  const [modalStep, setModalStep] = useState(0);
+  const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState('personal');
 
   const {
     loading,
@@ -55,571 +51,884 @@ const TeacherProfile = () => {
   const fullName = `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim();
   const licenseStatus = formData.licenseExpirationDate ? getExpirationStatus(formData.licenseExpirationDate) : null;
 
-  // Calculate profile completion status (only essential items required)
-  const getProfileCompletion = () => {
-    const requirements = [
-      { label: 'Profile photo', completed: !!formData.profilePhoto },
-      { label: 'Personal information', completed: !!(formData.firstName && formData.lastName && formData.email && formData.phone && formData.gender && formData.dateOfBirth) }
-    ];
-
-    const completedCount = requirements.filter(r => r.completed).length;
-    const percentage = Math.round((completedCount / requirements.length) * 100);
-    const missingItems = requirements.filter(r => !r.completed).map(r => r.label);
-
-    return { percentage, completedCount, total: requirements.length, missingItems, isComplete: percentage === 100 };
-  };
-
-  const profileCompletion = getProfileCompletion();
-
-  // Modal step configuration
-  const modalSteps = [
-    { id: 'personal', title: 'Personal Information', description: 'Basic details and contact info' },
-    { id: 'credentials', title: 'Teaching Credentials', description: 'License and teaching credentials' },
-    { id: 'education', title: 'Education History', description: 'Academic background' },
-    { id: 'certifications', title: 'Certifications', description: 'Professional credentials' }
-  ];
-
-  const openProfileModal = () => {
-    setModalStep(0);
-    setShowProfileModal(true);
-  };
-
-  const closeProfileModal = () => {
-    setShowProfileModal(false);
-    setModalStep(0);
-  };
-
-  const goToModalStep = (stepIndex) => {
-    if (stepIndex >= 0 && stepIndex < modalSteps.length) {
-      setModalStep(stepIndex);
-    }
-  };
-
-  const nextModalStep = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (modalStep < modalSteps.length - 1) {
-      setModalStep(modalStep + 1);
-    }
-  };
-
-  const prevModalStep = () => {
-    if (modalStep > 0) {
-      setModalStep(modalStep - 1);
-    }
-  };
-
-  const handleModalSave = async (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     await handleSaveProfile(e);
-    closeProfileModal();
+    setIsEditing(false);
   };
 
-  // Prevent Enter key from submitting the form (except on the final step)
-  const handleFormKeyDown = (e) => {
-    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
-      e.preventDefault();
-    }
+  const startEditing = () => {
+    setIsEditing(true);
   };
 
-  // Render modal step content
-  const renderModalStepContent = () => {
-    switch (modalStep) {
-      case 0:
+  const cancelEditing = () => {
+    setIsEditing(false);
+  };
+
+  // Check if profile has required fields completed
+  const isProfileComplete = formData.profilePhoto && formData.firstName && formData.lastName && formData.phone;
+
+  // Render tab icon
+  const renderTabIcon = (iconName) => {
+    switch (iconName) {
+      case 'user':
         return (
-          <PersonalInfoSection
-            formData={formData}
-            validationErrors={validationErrors}
-            onInputChange={handleInputChange}
-            onNestedChange={handleNestedChange}
-          />
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
         );
-      case 1:
+      case 'badge':
         return (
-          <TeacherCredentialsSection
-            formData={formData}
-            validationErrors={validationErrors}
-            licenseStatus={licenseStatus}
-            onInputChange={handleInputChange}
-            onSpecializationToggle={handleSpecializationToggle}
-          />
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+          </svg>
         );
-      case 2:
+      case 'graduation':
         return (
-          <>
-            {formData.educationHistory?.length > 0 && (
-              <div className="tp-entries-list">
-                {formData.educationHistory.map((edu, index) => (
-                  <EducationEntry
-                    key={edu.id || index}
-                    education={edu}
-                    index={index}
-                    onRemove={handleRemoveEducation}
-                  />
-                ))}
-              </div>
-            )}
-            <div className="tp-add-section">
-              <h4 className="tp-add-title">Add New Education</h4>
-              <EducationEntry
-                education={newEducation}
-                isNew={true}
-                onChange={handleNewEducationChange}
-                onAdd={handleAddEducation}
-                onFileUpload={handleEducationCertificateUpload}
-                uploading={uploadingFile === 'new-education-cert'}
-              />
-            </div>
-          </>
-        );
-      case 3:
-        return (
-          <>
-            {formData.certifications?.length > 0 && (
-              <div className="tp-entries-list">
-                {formData.certifications.map((cert, index) => (
-                  <CertificationEntry
-                    key={cert.id || index}
-                    certification={cert}
-                    index={index}
-                    onRemove={handleRemoveCertification}
-                  />
-                ))}
-              </div>
-            )}
-            <div className="tp-add-section">
-              <h4 className="tp-add-title">Add New Certification</h4>
-              <CertificationEntry
-                certification={newCertification}
-                isNew={true}
-                onChange={handleNewCertificationChange}
-                onAdd={handleAddCertification}
-                onFileUpload={handleCertificationCertificateUpload}
-                uploading={uploadingFile === 'new-cert-cert'}
-              />
-            </div>
-          </>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+          </svg>
         );
       default:
         return null;
     }
   };
 
+  // Teacher specializations list
+  const TEACHER_SPECIALIZATIONS = [
+    'Early Childhood Education',
+    'Special Education',
+    'Autism Spectrum Disorder',
+    'Learning Disabilities',
+    'Behavioral Management',
+    'Speech & Language Support',
+    'Occupational Therapy Support',
+    'Sensory Integration',
+    'Applied Behavior Analysis',
+    'Play-Based Learning'
+  ];
+
+  // Personal Info Section Content
+  const renderPersonalInfo = () => (
+    <div className="tp-tab-content">
+      {isEditing ? (
+        <form onSubmit={handleSave} className="tp-form">
+          {/* Basic Information Section */}
+          <div className="tp-form-section">
+            <h4 className="tp-form-section-title">Basic Information</h4>
+            <div className="tp-edit-card">
+              <div className="tp-edit-card-header">
+                <span className="tp-edit-card-label">Name (Read Only)</span>
+              </div>
+              <div className="tp-form-grid tp-form-grid--3">
+                <div className="tp-field">
+                  <label className="tp-label">First Name</label>
+                  <input type="text" className="tp-input tp-input--disabled" value={formData.firstName} disabled />
+                </div>
+                <div className="tp-field">
+                  <label className="tp-label">Middle Name</label>
+                  <input type="text" className="tp-input tp-input--disabled" value={formData.middleName} disabled />
+                </div>
+                <div className="tp-field">
+                  <label className="tp-label">Last Name</label>
+                  <input type="text" className="tp-input tp-input--disabled" value={formData.lastName} disabled />
+                </div>
+              </div>
+              <p className="tp-helper">Name is managed by your administrator</p>
+            </div>
+
+            <div className="tp-add-section">
+              <h4 className="tp-add-title">Personal Details</h4>
+              <div className="tp-form-grid">
+                <div className="tp-field">
+                  <label className="tp-label">Date of Birth <span className="tp-required">*</span></label>
+                  <input
+                    type="date"
+                    className={`tp-input ${validationErrors.dateOfBirth ? 'tp-input--error' : ''}`}
+                    value={formData.dateOfBirth}
+                    onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                  />
+                  {validationErrors.dateOfBirth && <span className="tp-error">{validationErrors.dateOfBirth}</span>}
+                </div>
+                <div className="tp-field">
+                  <label className="tp-label">Gender</label>
+                  <select className="tp-input" value={formData.gender} onChange={(e) => handleInputChange('gender', e.target.value)}>
+                    <option value="">Select gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Non-binary">Non-binary</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Information Section */}
+          <div className="tp-form-section">
+            <h4 className="tp-form-section-title">Contact Information</h4>
+            <div className="tp-edit-card">
+              <div className="tp-edit-card-header">
+                <span className="tp-edit-card-label">Email (Read Only)</span>
+              </div>
+              <div className="tp-field">
+                <label className="tp-label">Email</label>
+                <input type="email" className="tp-input tp-input--disabled" value={formData.email} disabled />
+              </div>
+            </div>
+
+            <div className="tp-add-section">
+              <h4 className="tp-add-title">Contact Details</h4>
+              <div className="tp-form-grid">
+                <div className="tp-field">
+                  <label className="tp-label">Phone <span className="tp-required">*</span></label>
+                  <input
+                    type="tel"
+                    className={`tp-input ${validationErrors.phone ? 'tp-input--error' : ''}`}
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    placeholder="123-456-7890"
+                  />
+                  {validationErrors.phone && <span className="tp-error">{validationErrors.phone}</span>}
+                </div>
+              </div>
+
+              <div className="tp-field">
+                <label className="tp-label">Street Address</label>
+                <input
+                  type="text"
+                  className="tp-input"
+                  value={formData.address?.street || ''}
+                  onChange={(e) => handleNestedChange('address', 'street', e.target.value)}
+                  placeholder="123 Main St"
+                />
+              </div>
+
+              <div className="tp-form-grid tp-form-grid--3">
+                <div className="tp-field">
+                  <label className="tp-label">City</label>
+                  <input
+                    type="text"
+                    className="tp-input"
+                    value={formData.address?.city || ''}
+                    onChange={(e) => handleNestedChange('address', 'city', e.target.value)}
+                  />
+                </div>
+                <div className="tp-field">
+                  <label className="tp-label">Province</label>
+                  <input
+                    type="text"
+                    className="tp-input"
+                    value={formData.address?.state || ''}
+                    onChange={(e) => handleNestedChange('address', 'state', e.target.value)}
+                  />
+                </div>
+                <div className="tp-field">
+                  <label className="tp-label">Postal Code</label>
+                  <input
+                    type="text"
+                    className="tp-input"
+                    value={formData.address?.zip || ''}
+                    onChange={(e) => handleNestedChange('address', 'zip', e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Emergency Contact Section */}
+          <div className="tp-form-section">
+            <h4 className="tp-form-section-title">Emergency Contact</h4>
+            <div className="tp-add-section">
+              <h4 className="tp-add-title">Emergency Contact Details</h4>
+              <div className="tp-form-grid">
+                <div className="tp-field">
+                  <label className="tp-label">Contact Name</label>
+                  <input
+                    type="text"
+                    className="tp-input"
+                    value={formData.emergencyContact?.name || ''}
+                    onChange={(e) => handleNestedChange('emergencyContact', 'name', e.target.value)}
+                  />
+                </div>
+                <div className="tp-field">
+                  <label className="tp-label">Contact Phone</label>
+                  <input
+                    type="tel"
+                    className="tp-input"
+                    value={formData.emergencyContact?.phone || ''}
+                    onChange={(e) => handleNestedChange('emergencyContact', 'phone', e.target.value)}
+                    placeholder="123-456-7890"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="tp-form-actions">
+            <button type="button" className="tp-btn tp-btn--secondary" onClick={cancelEditing}>Cancel</button>
+            <button type="submit" className="tp-btn tp-btn--primary" disabled={saving}>
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div className="tp-view-content">
+          <div className="tp-info-section">
+            <h4 className="tp-info-section-title">Basic Information</h4>
+            <div className="tp-info-grid">
+              <div className="tp-info-item">
+                <span className="tp-info-label">Date of Birth</span>
+                <span className="tp-info-value">{formData.dateOfBirth || <em className="tp-empty">Not set</em>}</span>
+              </div>
+              <div className="tp-info-item">
+                <span className="tp-info-label">Gender</span>
+                <span className="tp-info-value">{formData.gender || <em className="tp-empty">Not set</em>}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="tp-info-section">
+            <h4 className="tp-info-section-title">Contact Information</h4>
+            <div className="tp-info-grid">
+              <div className="tp-info-item">
+                <span className="tp-info-label">Phone</span>
+                <span className="tp-info-value">{formData.phone || <em className="tp-empty">Not set</em>}</span>
+              </div>
+              <div className="tp-info-item">
+                <span className="tp-info-label">Email</span>
+                <span className="tp-info-value">{formData.email}</span>
+              </div>
+              <div className="tp-info-item tp-info-item--full">
+                <span className="tp-info-label">Address</span>
+                <span className="tp-info-value">
+                  {formData.address?.street || formData.address?.city ? (
+                    <>
+                      {formData.address?.street && `${formData.address.street}, `}
+                      {formData.address?.city && `${formData.address.city}, `}
+                      {formData.address?.state && `${formData.address.state} `}
+                      {formData.address?.zip || ''}
+                    </>
+                  ) : <em className="tp-empty">Not set</em>}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="tp-info-section">
+            <h4 className="tp-info-section-title">Emergency Contact</h4>
+            <div className="tp-info-grid">
+              <div className="tp-info-item tp-info-item--full">
+                <span className="tp-info-label">Contact Details</span>
+                <span className="tp-info-value">
+                  {formData.emergencyContact?.name ? (
+                    `${formData.emergencyContact.name}${formData.emergencyContact.phone ? ` - ${formData.emergencyContact.phone}` : ''}`
+                  ) : <em className="tp-empty">Not set</em>}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // Teaching Credentials Section Content
+  const renderCredentials = () => (
+    <div className="tp-tab-content">
+      {isEditing ? (
+        <form onSubmit={handleSave} className="tp-form">
+          {/* Teaching License Section */}
+          <div className="tp-form-section">
+            <h4 className="tp-form-section-title">Teaching License</h4>
+            <div className="tp-add-section">
+              <h4 className="tp-add-title">License Information</h4>
+              <div className="tp-form-grid">
+                <div className="tp-field">
+                  <label className="tp-label">License Type</label>
+                  <select className="tp-input" value={formData.licenseType || ''} onChange={(e) => handleInputChange('licenseType', e.target.value)}>
+                    <option value="">Select type</option>
+                    <option value="LPT">Licensed Professional Teacher (LPT)</option>
+                    <option value="SPED Teacher">SPED Teacher</option>
+                    <option value="Early Childhood Educator">Early Childhood Educator</option>
+                    <option value="Paraprofessional">Paraprofessional</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="tp-field">
+                  <label className="tp-label">PRC ID Number</label>
+                  <input
+                    type="text"
+                    className="tp-input"
+                    value={formData.prcIdNumber || ''}
+                    onChange={(e) => handleInputChange('prcIdNumber', e.target.value)}
+                    placeholder="e.g., 0123456"
+                  />
+                </div>
+              </div>
+              <div className="tp-form-grid tp-form-grid--3">
+                <div className="tp-field">
+                  <label className="tp-label">License Number</label>
+                  <input
+                    type="text"
+                    className="tp-input"
+                    value={formData.teachingLicense || ''}
+                    onChange={(e) => handleInputChange('teachingLicense', e.target.value)}
+                    placeholder="License number"
+                  />
+                </div>
+                <div className="tp-field">
+                  <label className="tp-label">Issue Date</label>
+                  <input
+                    type="date"
+                    className="tp-input"
+                    value={formData.licenseIssueDate || ''}
+                    onChange={(e) => handleInputChange('licenseIssueDate', e.target.value)}
+                  />
+                </div>
+                <div className="tp-field">
+                  <label className="tp-label">Expiration Date</label>
+                  <input
+                    type="date"
+                    className="tp-input"
+                    value={formData.licenseExpirationDate || ''}
+                    onChange={(e) => handleInputChange('licenseExpirationDate', e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Experience & Status Section */}
+          <div className="tp-form-section">
+            <h4 className="tp-form-section-title">Experience & Status</h4>
+            <div className="tp-form-grid">
+              <div className="tp-field">
+                <label className="tp-label">Years of Experience</label>
+                <input
+                  type="number"
+                  className="tp-input"
+                  value={formData.yearsExperience || 0}
+                  onChange={(e) => handleInputChange('yearsExperience', parseInt(e.target.value) || 0)}
+                  min="0"
+                />
+              </div>
+              <div className="tp-field">
+                <label className="tp-label">Certification Level</label>
+                <select className="tp-input" value={formData.certificationLevel || ''} onChange={(e) => handleInputChange('certificationLevel', e.target.value)}>
+                  <option value="">Select level</option>
+                  <option value="Entry Level">Entry Level</option>
+                  <option value="Intermediate">Intermediate</option>
+                  <option value="Advanced">Advanced</option>
+                  <option value="Master Teacher">Master Teacher</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Specializations Section */}
+          <div className="tp-form-section">
+            <h4 className="tp-form-section-title">Specializations</h4>
+            <div className="tp-add-section">
+              <h4 className="tp-add-title">Select Your Specializations</h4>
+              <div className="tp-specialization-grid">
+                {TEACHER_SPECIALIZATIONS.map((spec) => (
+                  <label key={spec} className="tp-specialization-item">
+                    <input
+                      type="checkbox"
+                      checked={formData.specializations?.includes(spec) || false}
+                      onChange={() => handleSpecializationToggle(spec)}
+                    />
+                    <span className="tp-specialization-label">{spec}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="tp-form-actions">
+            <button type="button" className="tp-btn tp-btn--secondary" onClick={cancelEditing}>Cancel</button>
+            <button type="submit" className="tp-btn tp-btn--primary" disabled={saving}>
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div className="tp-view-content">
+          {/* Teaching License Display */}
+          {(formData.licenseType || formData.teachingLicense || formData.prcIdNumber) ? (
+            <div className="tp-credentials-grid">
+              <div className="tp-credential-card">
+                <div className="tp-credential-header">
+                  <strong>{formData.licenseType || 'Teaching License'}</strong>
+                  {licenseStatus && (
+                    <span className={`tp-status tp-status--${licenseStatus === 'Active' ? 'active' : licenseStatus === 'Expiring Soon' ? 'warning' : 'expired'}`}>
+                      {licenseStatus}
+                    </span>
+                  )}
+                </div>
+                <div className="tp-credential-details">
+                  {formData.teachingLicense && <p>License #: {formData.teachingLicense}</p>}
+                  {formData.prcIdNumber && <p>PRC ID: {formData.prcIdNumber}</p>}
+                  {formData.licenseIssueDate && <p className="tp-meta">Issued: {formData.licenseIssueDate}</p>}
+                  {formData.licenseExpirationDate && <p className="tp-meta">Expires: {formData.licenseExpirationDate}</p>}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="tp-empty-message">No teaching license added yet. Click Edit to add your license information.</p>
+          )}
+
+          {/* Experience & Specializations Display */}
+          {(formData.yearsExperience > 0 || formData.certificationLevel || formData.specializations?.length > 0) && (
+            <div className="tp-info-section tp-info-section--bordered">
+              <h4 className="tp-info-section-title">Experience & Specializations</h4>
+              <div className="tp-info-grid">
+                {formData.yearsExperience > 0 && (
+                  <div className="tp-info-item">
+                    <span className="tp-info-label">Years of Experience</span>
+                    <span className="tp-info-value">{formData.yearsExperience}</span>
+                  </div>
+                )}
+                {formData.certificationLevel && (
+                  <div className="tp-info-item">
+                    <span className="tp-info-label">Certification Level</span>
+                    <span className="tp-info-value">{formData.certificationLevel}</span>
+                  </div>
+                )}
+              </div>
+              {formData.specializations?.length > 0 && (
+                <div className="tp-specializations">
+                  <span className="tp-info-label">Specializations</span>
+                  <div className="tp-tags">
+                    {formData.specializations.map((spec, idx) => (
+                      <span key={idx} className="tp-tag">{spec}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
+  // Education & Certifications Section Content
+  const renderEducation = () => (
+    <div className="tp-tab-content">
+      {isEditing ? (
+        <form onSubmit={handleSave} className="tp-form">
+          {/* Education */}
+          <div className="tp-form-section">
+            <h4 className="tp-form-section-title">Education History</h4>
+            {formData.educationHistory?.length > 0 && (
+              <div className="tp-entries-list">
+                {formData.educationHistory.map((edu, index) => (
+                  <div key={edu.id || index} className="tp-entry-item">
+                    <div className="tp-entry-content">
+                      <strong>{edu.degreeType} in {edu.fieldOfStudy}</strong>
+                      <span>{edu.institution}</span>
+                      <span className="tp-meta">Graduated: {edu.graduationYear}</span>
+                    </div>
+                    <button type="button" className="tp-btn-remove" onClick={() => handleRemoveEducation(index)}>Remove</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="tp-add-section tp-add-section--compact">
+              <h4 className="tp-add-title">Add Education</h4>
+              <div className="tp-form-grid">
+                <div className="tp-field">
+                  <label className="tp-label">Degree Type</label>
+                  <select className="tp-input" value={newEducation.degreeType} onChange={(e) => handleNewEducationChange('degreeType', e.target.value)}>
+                    <option value="">Select degree</option>
+                    <option value="Bachelor's">Bachelor's</option>
+                    <option value="Master's">Master's</option>
+                    <option value="Doctorate">Doctorate</option>
+                    <option value="Associate">Associate</option>
+                    <option value="Certificate">Certificate</option>
+                  </select>
+                </div>
+                <div className="tp-field">
+                  <label className="tp-label">Field of Study</label>
+                  <input type="text" className="tp-input" value={newEducation.fieldOfStudy} onChange={(e) => handleNewEducationChange('fieldOfStudy', e.target.value)} placeholder="e.g., Special Education" />
+                </div>
+              </div>
+              <div className="tp-form-grid">
+                <div className="tp-field">
+                  <label className="tp-label">Institution</label>
+                  <input type="text" className="tp-input" value={newEducation.institution} onChange={(e) => handleNewEducationChange('institution', e.target.value)} placeholder="University name" />
+                </div>
+                <div className="tp-field">
+                  <label className="tp-label">Graduation Year</label>
+                  <input type="number" className="tp-input" value={newEducation.graduationYear} onChange={(e) => handleNewEducationChange('graduationYear', e.target.value)} placeholder="2020" />
+                </div>
+              </div>
+              <div className="tp-field">
+                <label className="tp-label">Certificate (Optional)</label>
+                <input type="file" accept="image/*,.pdf" onChange={handleEducationCertificateUpload} disabled={uploadingFile === 'new-education-cert'} />
+                {uploadingFile === 'new-education-cert' && <span className="tp-uploading">Uploading...</span>}
+              </div>
+              <button type="button" className="tp-btn tp-btn--outline" onClick={handleAddEducation}>+ Add Education</button>
+            </div>
+          </div>
+
+          {/* Certifications */}
+          <div className="tp-form-section">
+            <h4 className="tp-form-section-title">Certifications</h4>
+            {formData.certifications?.length > 0 && (
+              <div className="tp-entries-list">
+                {formData.certifications.map((cert, index) => (
+                  <div key={cert.id || index} className="tp-entry-item">
+                    <div className="tp-entry-content">
+                      <strong>{cert.name}</strong>
+                      <span>{cert.issuingOrg}</span>
+                      <span className="tp-meta">Issued: {cert.issueDate}</span>
+                    </div>
+                    <button type="button" className="tp-btn-remove" onClick={() => handleRemoveCertification(index)}>Remove</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="tp-add-section tp-add-section--compact">
+              <h4 className="tp-add-title">Add Certification</h4>
+              <div className="tp-form-grid">
+                <div className="tp-field">
+                  <label className="tp-label">Certification Name</label>
+                  <input type="text" className="tp-input" value={newCertification.name} onChange={(e) => handleNewCertificationChange('name', e.target.value)} placeholder="e.g., CPR Certification" />
+                </div>
+                <div className="tp-field">
+                  <label className="tp-label">Issuing Organization</label>
+                  <input type="text" className="tp-input" value={newCertification.issuingOrg} onChange={(e) => handleNewCertificationChange('issuingOrg', e.target.value)} placeholder="e.g., Red Cross" />
+                </div>
+              </div>
+              <div className="tp-form-grid">
+                <div className="tp-field">
+                  <label className="tp-label">Issue Date</label>
+                  <input type="date" className="tp-input" value={newCertification.issueDate} onChange={(e) => handleNewCertificationChange('issueDate', e.target.value)} />
+                </div>
+                <div className="tp-field">
+                  <label className="tp-label">Expiration Date (Optional)</label>
+                  <input type="date" className="tp-input" value={newCertification.expirationDate} onChange={(e) => handleNewCertificationChange('expirationDate', e.target.value)} />
+                </div>
+              </div>
+              <div className="tp-field">
+                <label className="tp-label">Certificate (Optional)</label>
+                <input type="file" accept="image/*,.pdf" onChange={handleCertificationCertificateUpload} disabled={uploadingFile === 'new-cert-cert'} />
+                {uploadingFile === 'new-cert-cert' && <span className="tp-uploading">Uploading...</span>}
+              </div>
+              <button type="button" className="tp-btn tp-btn--outline" onClick={handleAddCertification}>+ Add Certification</button>
+            </div>
+          </div>
+
+          <div className="tp-form-actions">
+            <button type="button" className="tp-btn tp-btn--secondary" onClick={cancelEditing}>Cancel</button>
+            <button type="submit" className="tp-btn tp-btn--primary" disabled={saving}>
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div className="tp-view-content">
+          {/* Education Display */}
+          <div className="tp-info-section">
+            <h4 className="tp-info-section-title">Education History</h4>
+            {formData.educationHistory?.length > 0 ? (
+              <div className="tp-education-grid">
+                {formData.educationHistory.map((edu, idx) => (
+                  <div key={idx} className="tp-education-card">
+                    {edu.certificateURL && (
+                      <a href={edu.certificateURL} target="_blank" rel="noopener noreferrer" className="tp-edu-image">
+                        <img src={edu.certificateURL} alt="Certificate" />
+                      </a>
+                    )}
+                    <div className="tp-edu-content">
+                      <strong>{edu.degreeType} in {edu.fieldOfStudy}</strong>
+                      <span>{edu.institution}</span>
+                      <span className="tp-meta">Graduated: {edu.graduationYear}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="tp-empty-message tp-empty-message--small">No education history added yet.</p>
+            )}
+          </div>
+
+          {/* Certifications Display */}
+          <div className="tp-info-section">
+            <h4 className="tp-info-section-title">Certifications</h4>
+            {formData.certifications?.length > 0 ? (
+              <div className="tp-education-grid">
+                {formData.certifications.map((cert, idx) => (
+                  <div key={idx} className="tp-education-card">
+                    {cert.certificateURL && (
+                      <a href={cert.certificateURL} target="_blank" rel="noopener noreferrer" className="tp-edu-image">
+                        <img src={cert.certificateURL} alt="Certificate" />
+                      </a>
+                    )}
+                    <div className="tp-edu-content">
+                      <strong>{cert.name}</strong>
+                      <span>{cert.issuingOrg}</span>
+                      <span className="tp-meta">Issued: {cert.issueDate}</span>
+                      {cert.expirationDate && <span className="tp-meta">Expires: {cert.expirationDate}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="tp-empty-message tp-empty-message--small">No certifications added yet.</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // Render the active tab content
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'personal':
+        return renderPersonalInfo();
+      case 'credentials':
+        return renderCredentials();
+      case 'education':
+        return renderEducation();
+      default:
+        return renderPersonalInfo();
+    }
+  };
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="tp-layout">
       <Sidebar {...getTeacherConfig()} forceActive="/teacher/profile" />
       {loading ? (
         <Loading role="teacher" message="Loading profile" variant="content" />
       ) : (
-      <div style={{ flex: 1, backgroundColor: '#f8f9fa' }}>
-        <div className="tp-page">
-
-          {/* Page Header */}
-          <div className="tp-page-header">
-            <h1 className="tp-page-title">MY PROFILE</h1>
-            <p className="tp-page-subtitle">Manage your professional information</p>
-          </div>
-
-          {/* Profile Photo Card - Compact */}
-          <div className="tp-photo-card tp-photo-card--compact">
-            <div className="tp-photo-card-bg"></div>
-            <div className="tp-photo-card-content">
-              {/* Photo Section */}
-              <div className="tp-photo-section">
-                <div className="tp-photo-container">
-                  {formData.profilePhoto ? (
-                    <img src={formData.profilePhoto} alt="Profile" className="tp-photo-img" />
-                  ) : (
-                    <div className="tp-photo-empty">
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                      </svg>
-                    </div>
-                  )}
-                  {uploadingFile === 'profile-photo' && (
-                    <div className="tp-photo-uploading">
-                      <div className="tp-photo-spinner"></div>
-                    </div>
-                  )}
-                  <label className="tp-photo-edit-btn">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleProfilePhotoUpload}
-                      disabled={uploadingFile === 'profile-photo'}
-                    />
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                      <circle cx="12" cy="13" r="4"/>
-                    </svg>
-                  </label>
-                </div>
-              </div>
-
-              {/* Info Section */}
-              <div className="tp-info-section">
-                <h1 className="tp-profile-name">{fullName || 'Your Name'}</h1>
-                <p className="tp-profile-role">{formData.licenseType || 'Teacher'}</p>
-
-                <div className="tp-profile-meta">
-                  {/* Years of Experience */}
-                  <span className="tp-badge tp-badge--info">
-                    {formData.yearsExperience || 0} Years Experience
-                  </span>
-
-
-                  {/* Specializations Count */}
-                  <span className="tp-badge tp-badge--info">
-                    {formData.specializations?.length || 0} Specializations
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Profile Completion Notice */}
-          {!profileCompletion.isComplete && (
-            <div className="tp-completion-notice">
-              <div className="tp-completion-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="8" x2="12" y2="12"/>
-                  <line x1="12" y1="16" x2="12.01" y2="16"/>
-                </svg>
-              </div>
-              <div className="tp-completion-content">
-                <h3 className="tp-completion-title">Complete Your Profile</h3>
-                <p className="tp-completion-text">
-                  Please complete your personal information and upload required documents. This information will be visible to parents.
-                </p>
-                <div className="tp-completion-progress">
-                  <div className="tp-progress-bar">
-                    <div
-                      className="tp-progress-fill"
-                      style={{ width: `${profileCompletion.percentage}%` }}
-                    />
-                  </div>
-                  <span className="tp-progress-text">
-                    {profileCompletion.completedCount} of {profileCompletion.total} completed ({profileCompletion.percentage}%)
-                  </span>
-                </div>
-                {profileCompletion.missingItems.length > 0 && (
-                  <div className="tp-completion-missing">
-                    <span className="tp-missing-label">Missing:</span>
-                    <span className="tp-missing-items">{profileCompletion.missingItems.join(' • ')}</span>
-                  </div>
-                )}
-                <button
-                  type="button"
-                  className="tp-completion-btn"
-                  onClick={openProfileModal}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        <main className="tp-main">
+          <div className="tp-container">
+            {/* Profile Completion Notice */}
+            {!isProfileComplete && (
+              <div className="tp-notice tp-notice--warning">
+                <div className="tp-notice-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
                   </svg>
-                  Complete Profile Now
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Profile Display Section - Always Visible */}
-          <div className="tp-profile-display">
-            {/* Edit Profile Button */}
-            <div className="tp-profile-display__header">
-              <h2 className="tp-profile-display__title">Profile Information</h2>
-              <button
-                type="button"
-                className="tp-btn tp-btn--secondary"
-                onClick={openProfileModal}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-                Edit Profile
-              </button>
-            </div>
-
-            {/* Personal Information */}
-            <div className="tp-profile-section">
-              <h3 className="tp-profile-section__title">Personal Information</h3>
-              <div className="tp-profile-grid">
-                <div className="tp-profile-field">
-                  <span className="tp-profile-field__label">Date of Birth</span>
-                  <span className={`tp-profile-field__value ${!formData.dateOfBirth ? 'tp-value-missing' : ''}`}>
-                    {formData.dateOfBirth || '—'}
-                  </span>
                 </div>
-                <div className="tp-profile-field">
-                  <span className="tp-profile-field__label">Gender</span>
-                  <span className={`tp-profile-field__value ${!formData.gender ? 'tp-value-missing' : ''}`}>
-                    {formData.gender || '—'}
-                  </span>
-                </div>
-                <div className="tp-profile-field">
-                  <span className="tp-profile-field__label">Phone</span>
-                  <span className={`tp-profile-field__value ${!formData.phone ? 'tp-value-missing' : ''}`}>
-                    {formData.phone || '—'}
-                  </span>
-                </div>
-                <div className="tp-profile-field">
-                  <span className="tp-profile-field__label">Email</span>
-                  <span className="tp-profile-field__value">{formData.email || '—'}</span>
-                </div>
-                <div className="tp-profile-field tp-profile-field--full">
-                  <span className="tp-profile-field__label">Address</span>
-                  <span className={`tp-profile-field__value ${(!formData.address?.street && !formData.address?.city) ? 'tp-value-missing' : ''}`}>
-                    {formData.address?.street || formData.address?.city ? (
-                      <>
-                        {formData.address?.street && `${formData.address.street}, `}
-                        {formData.address?.city && `${formData.address.city}, `}
-                        {formData.address?.state && `${formData.address.state} `}
-                        {formData.address?.zip || ''}
-                      </>
-                    ) : '—'}
-                  </span>
-                </div>
-                <div className="tp-profile-field">
-                  <span className="tp-profile-field__label">Emergency Contact</span>
-                  <span className={`tp-profile-field__value ${!formData.emergencyContact?.name ? 'tp-value-missing' : ''}`}>
-                    {formData.emergencyContact?.name ? (
-                      `${formData.emergencyContact.name}${formData.emergencyContact.phone ? ` (${formData.emergencyContact.phone})` : ''}`
-                    ) : '—'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Teaching Credentials - Only show if has any data */}
-            {(formData.licenseType || formData.teachingLicense || formData.prcIdNumber || formData.certificationLevel || formData.yearsExperience > 0 || formData.specializations?.length > 0) && (
-              <div className="tp-profile-section">
-                <h3 className="tp-profile-section__title">Teaching Credentials</h3>
-                <div className="tp-profile-grid">
-                  {formData.licenseType && (
-                    <div className="tp-profile-field">
-                      <span className="tp-profile-field__label">License Type</span>
-                      <span className="tp-profile-field__value">{formData.licenseType}</span>
-                    </div>
-                  )}
-                  {formData.teachingLicense && (
-                    <div className="tp-profile-field">
-                      <span className="tp-profile-field__label">Teaching License</span>
-                      <span className="tp-profile-field__value">{formData.teachingLicense}</span>
-                    </div>
-                  )}
-                  {formData.prcIdNumber && (
-                    <div className="tp-profile-field">
-                      <span className="tp-profile-field__label">PRC ID Number</span>
-                      <span className="tp-profile-field__value">{formData.prcIdNumber}</span>
-                    </div>
-                  )}
-                  {formData.certificationLevel && (
-                    <div className="tp-profile-field">
-                      <span className="tp-profile-field__label">Certification Level</span>
-                      <span className="tp-profile-field__value">{formData.certificationLevel}</span>
-                    </div>
-                  )}
-                  {formData.yearsExperience > 0 && (
-                    <div className="tp-profile-field">
-                      <span className="tp-profile-field__label">Years of Experience</span>
-                      <span className="tp-profile-field__value">{formData.yearsExperience}</span>
-                    </div>
-                  )}
-                  {formData.specializations?.length > 0 && (
-                    <div className="tp-profile-field tp-profile-field--full">
-                      <span className="tp-profile-field__label">Specializations</span>
-                      <div className="tp-profile-tags">
-                        {formData.specializations.map((spec, idx) => (
-                          <span key={idx} className="tp-profile-tag">{spec}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                <div className="tp-notice-content">
+                  <strong>Complete Your Profile</strong>
+                  <p>Please add your profile photo and contact information. This helps parents and staff identify you.</p>
                 </div>
               </div>
             )}
 
-            {/* Education History - Only show if has data */}
-            {formData.educationHistory?.length > 0 && (
-              <div className="tp-profile-section">
-                <h3 className="tp-profile-section__title">Education History</h3>
-                <div className="tp-profile-cards">
-                  {formData.educationHistory.map((edu, idx) => (
-                    <div key={idx} className="tp-profile-card tp-profile-card--with-image">
-                      {edu.certificateURL && (
-                        <a href={edu.certificateURL} target="_blank" rel="noopener noreferrer" className="tp-profile-card__image">
-                          <img src={edu.certificateURL} alt={`${edu.degreeType} - ${edu.institution}`} />
-                        </a>
-                      )}
-                      <div className="tp-profile-card__content">
-                        <div className="tp-profile-card__header">
-                          <strong>{edu.degreeType}</strong> in {edu.fieldOfStudy}
-                        </div>
-                        <div className="tp-profile-card__body">
-                          <p>{edu.institution}</p>
-                          <p className="tp-profile-card__meta">Graduated: {edu.graduationYear}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+            {/* Profile Header Section - Student Profile Style */}
+            <section className="tp-profile-header-section">
+              {/* Header Bar */}
+              <div className="tp-profile-header-bar">
+                <div className="tp-header-text">
+                  <h1 className="tp-header-title-text">MY PROFILE</h1>
+                  <p className="tp-header-subtitle-text">View and manage your professional information</p>
                 </div>
               </div>
-            )}
 
-            {/* Certifications - Only show if data exists */}
-            {formData.certifications?.length > 0 && (
-              <div className="tp-profile-section">
-                <h3 className="tp-profile-section__title">Certifications</h3>
-                <div className="tp-profile-cards">
-                  {formData.certifications.map((cert, idx) => (
-                    <div key={idx} className="tp-profile-card tp-profile-card--with-image">
-                      {cert.certificateURL && (
-                        <a href={cert.certificateURL} target="_blank" rel="noopener noreferrer" className="tp-profile-card__image">
-                          <img src={cert.certificateURL} alt={cert.name} />
-                        </a>
-                      )}
-                      <div className="tp-profile-card__content">
-                        <div className="tp-profile-card__header">
-                          <strong>{cert.name}</strong>
-                        </div>
-                        <div className="tp-profile-card__body">
-                          <p>{cert.issuingOrg}</p>
-                          <p className="tp-profile-card__meta">Issued: {cert.issueDate}</p>
-                          {cert.expirationDate && <p className="tp-profile-card__meta">Expires: {cert.expirationDate}</p>}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Profile Completion Modal */}
-          {showProfileModal && (
-            <div className="tp-modal-overlay" onClick={closeProfileModal}>
-          <div className="tp-modal-container" onClick={(e) => e.stopPropagation()}>
-            {/* Modal Header */}
-            <div className="tp-modal-header">
-              <div className="tp-modal-header-content">
-                <h2 className="tp-modal-title">Complete Your Profile</h2>
-                <p className="tp-modal-subtitle">Fill out all required information</p>
-              </div>
-              <button
-                type="button"
-                className="tp-modal-close"
-                onClick={closeProfileModal}
-                aria-label="Close modal"
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"/>
-                  <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </button>
-            </div>
-
-            {/* Modal Step Indicator */}
-            <div className="tp-modal-steps">
-              {modalSteps.map((step, index) => (
-                <button
-                  key={step.id}
-                  type="button"
-                  className={`tp-modal-step ${index === modalStep ? 'tp-modal-step--active' : ''} ${index < modalStep ? 'tp-modal-step--completed' : ''}`}
-                  onClick={() => goToModalStep(index)}
-                >
-                  <span className="tp-modal-step-number">
-                    {index < modalStep ? (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
+              {/* Profile Card Container - 2 Column Layout */}
+              <div className="tp-profile-card-container">
+                {/* Left: Photo Section */}
+                <div className="tp-profile-photo-section">
+                  <div className="tp-profile-photo-wrapper">
+                    {formData.profilePhoto ? (
+                      <img src={formData.profilePhoto} alt="Profile" className="tp-profile-photo-img" />
                     ) : (
-                      index + 1
+                      <div className="tp-profile-photo-placeholder">
+                        <span className="tp-placeholder-initial">
+                          {formData.firstName ? formData.firstName[0] : 'T'}
+                        </span>
+                      </div>
                     )}
-                  </span>
-                  <span className="tp-modal-step-title">{step.title}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Modal Body */}
-            <form onSubmit={handleModalSave} onKeyDown={handleFormKeyDown}>
-              <div className="tp-modal-body">
-                <div className="tp-modal-step-header">
-                  <h3>{modalSteps[modalStep].title}</h3>
-                  <p>{modalSteps[modalStep].description}</p>
-                </div>
-                <div className="tp-modal-step-content">
-                  {renderModalStepContent()}
-                </div>
-              </div>
-
-              {/* Modal Footer */}
-              <div className="tp-modal-footer">
-                <div className="tp-modal-footer-left">
-                  {modalStep > 0 && (
-                    <button
-                      type="button"
-                      className="tp-btn tp-btn--secondary"
-                      onClick={prevModalStep}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M19 12H5M12 19l-7-7 7-7"/>
-                      </svg>
-                      Previous
-                    </button>
-                  )}
-                </div>
-
-                <div className="tp-modal-footer-center">
-                  <span className="tp-modal-step-counter">
-                    Step {modalStep + 1} of {modalSteps.length}
-                  </span>
-                </div>
-
-                <div className="tp-modal-footer-right">
-                  <button
-                    type="submit"
-                    className="tp-btn tp-btn--save"
-                    disabled={saving}
-                  >
-                    {saving ? (
-                      <>
-                        <span className="tp-btn-spinner"></span>
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                          <polyline points="17 21 17 13 7 13 7 21"/>
-                          <polyline points="7 3 7 8 15 8"/>
+                    <label className="tp-photo-upload-btn">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfilePhotoUpload}
+                        disabled={uploadingFile === 'profile-photo'}
+                      />
+                      {uploadingFile === 'profile-photo' ? (
+                        <span className="tp-spinner-small"></span>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                          <circle cx="12" cy="13" r="4"/>
                         </svg>
-                        Save
-                      </>
+                      )}
+                    </label>
+                  </div>
+
+                  {/* Quick Info Items below photo */}
+                  <div className="tp-photo-section-info">
+                    {formData.yearsExperience > 0 && (
+                      <div className="tp-photo-info-item">
+                        <div className="tp-photo-info-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                          </svg>
+                        </div>
+                        <div className="tp-photo-info-content">
+                          <span className="tp-photo-info-label">Experience</span>
+                          <span className="tp-photo-info-value">{formData.yearsExperience} years</span>
+                        </div>
+                      </div>
                     )}
-                  </button>
-                  {modalStep < modalSteps.length - 1 && (
-                    <button
-                      type="button"
-                      className="tp-btn tp-btn--primary"
-                      onClick={(e) => nextModalStep(e)}
-                    >
-                      Next
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
-                      </svg>
-                    </button>
+                    {formData.specializations?.length > 0 && (
+                      <div className="tp-photo-info-item">
+                        <div className="tp-photo-info-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                          </svg>
+                        </div>
+                        <div className="tp-photo-info-content">
+                          <span className="tp-photo-info-label">Specializations</span>
+                          <span className="tp-photo-info-value">{formData.specializations.length}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right: Info Section */}
+                <div className="tp-profile-info-section">
+                  {/* Name Row */}
+                  <div className="tp-profile-name-row">
+                    <h1 className="tp-profile-therapist-name">{fullName || 'Your Name'}</h1>
+                    <span className="tp-profile-role-badge">
+                      {formData.licenseType || 'Teacher'}
+                    </span>
+                  </div>
+
+                  {/* Info Grid */}
+                  <div className="tp-profile-info-grid">
+                    <div className="tp-profile-info-item">
+                      <div className="tp-profile-info-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                          <polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                      </div>
+                      <div className="tp-profile-info-content">
+                        <span className="tp-profile-info-label">Email</span>
+                        <span className="tp-profile-info-value">{formData.email || 'Not set'}</span>
+                      </div>
+                    </div>
+
+                    <div className="tp-profile-info-item">
+                      <div className="tp-profile-info-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                      </div>
+                      <div className="tp-profile-info-content">
+                        <span className="tp-profile-info-label">Phone</span>
+                        <span className="tp-profile-info-value">{formData.phone || 'Not set'}</span>
+                      </div>
+                    </div>
+
+                    <div className="tp-profile-info-item tp-profile-info-item--full">
+                      <div className="tp-profile-info-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                          <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                      </div>
+                      <div className="tp-profile-info-content">
+                        <span className="tp-profile-info-label">Address</span>
+                        <span className="tp-profile-info-value">
+                          {formData.address?.street || formData.address?.city ? (
+                            <>
+                              {formData.address?.street && `${formData.address.street}, `}
+                              {formData.address?.city && `${formData.address.city}, `}
+                              {formData.address?.state && `${formData.address.state} `}
+                              {formData.address?.zip || ''}
+                            </>
+                          ) : 'Not set'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Teaching License Summary Card */}
+                  {(formData.licenseType || formData.teachingLicense) && (
+                    <div className="tp-licenses-card">
+                      <div className="tp-licenses-card-header">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                        </svg>
+                        <span>Teaching License</span>
+                      </div>
+                      <div className="tp-licenses-card-body">
+                        <div className="tp-license-summary-item">
+                          <span className="tp-license-type">{formData.licenseType || 'License'}</span>
+                          {formData.teachingLicense && <span className="tp-license-number">#{formData.teachingLicense}</span>}
+                          {licenseStatus && (
+                            <span className={`tp-license-status tp-license-status--${licenseStatus === 'Active' ? 'active' : licenseStatus === 'Expiring Soon' ? 'warning' : 'expired'}`}>
+                              {licenseStatus}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
-            </form>
+            </section>
+
+            {/* Tabbed Content Container */}
+            <section className="tp-card tp-tabs-container">
+              {/* Tab Navigation */}
+              <div className="tp-tabs-nav">
+                <div className="tp-tabs-list">
+                  {TABS.map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      className={`tp-tab-btn ${activeTab === tab.id ? 'tp-tab-btn--active' : ''}`}
+                      onClick={() => {
+                        if (!isEditing) {
+                          setActiveTab(tab.id);
+                        }
+                      }}
+                      disabled={isEditing && activeTab !== tab.id}
+                    >
+                      {renderTabIcon(tab.icon)}
+                      <span>{tab.label}</span>
+                    </button>
+                  ))}
+                </div>
+                {!isEditing && (
+                  <button type="button" className="tp-btn-edit" onClick={startEditing}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    Edit
+                  </button>
+                )}
+              </div>
+
+              {/* Tab Content */}
+              <div className="tp-tabs-content">
+                {renderTabContent()}
+              </div>
+            </section>
           </div>
-        </div>
-      )}
-        </div>
-      </div>
+        </main>
       )}
     </div>
   );
