@@ -57,12 +57,31 @@ const seedStudentCache = (queryClient, students) => {
 // =============================================================================
 
 /**
- * Get all parents - CACHED
+ * Get all parents - CACHED (use sparingly, prefer usePaginatedParents)
  */
 export function useParents() {
   return useQuery({
     queryKey: QUERY_KEYS.users('parent'),
     queryFn: () => userService.getUsersByRole('parent'),
+    ...QUERY_OPTIONS.semiStatic,
+  });
+}
+
+/**
+ * Get parents with server-side pagination - REDUCES FIRESTORE READS
+ * Only fetches PAGE_SIZE parents at a time from Firestore
+ * Uses "Load More" pattern like student profiles
+ * @param {number} pageSize - Number of parents per page (default: 10)
+ */
+export function usePaginatedParents(pageSize = 10) {
+  const queryClient = useQueryClient();
+
+  return useQuery({
+    queryKey: ['parents', 'paginated'],
+    queryFn: async () => {
+      const result = await userService.getParentsPaginated({ limit: pageSize });
+      return result;
+    },
     ...QUERY_OPTIONS.semiStatic,
   });
 }
@@ -469,7 +488,12 @@ export function useChildAllActivities(childId) {
 export function useCacheInvalidation() {
   const queryClient = useQueryClient();
   return {
-    invalidateParents: () => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.users('parent') }),
+    invalidateParents: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.users('parent') });
+      // Also invalidate paginated parent queries
+      queryClient.invalidateQueries({ queryKey: ['parents', 'paginated'] });
+      queryClient.invalidateQueries({ queryKey: ['parents', 'count'] });
+    },
     invalidateStaff: () => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.staff() }),
     invalidateAdmins: () => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.users('admin') }),
     
@@ -537,6 +561,7 @@ export {
 
 export default {
   useParents,
+  usePaginatedParents,
   useTeachers,
   useTherapists,
   useAdmins,

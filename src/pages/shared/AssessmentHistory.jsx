@@ -1,5 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import "./AssessmentHistory.css";
+import storageService from "../../services/storageService";
+import childService from "../../services/childService";
 
 // Section navigation labels
 const SECTION_LABELS = [
@@ -8,13 +10,67 @@ const SECTION_LABELS = [
   { id: "purpose", label: "Purpose" },
   { id: "history", label: "Background History" },
   { id: "behavior", label: "Behavior" },
-  { id: "tools", label: "Tools & Summary" }
+  { id: "tools", label: "Tools & Results" },
+  { id: "recommendations", label: "Summary & Recommendations" }
 ];
 
-const AssessmentHistory = ({ childData, assessmentData }) => {
+// Strength category labels for display
+const STRENGTH_LABELS = {
+  visual: "Visual-Spatial Skills",
+  memory: "Memory",
+  motor: "Motor Skills",
+  music: "Musical Ability",
+  numbers: "Numbers/Math",
+  language: "Language",
+  focus: "Focus/Attention",
+  creativity: "Creativity",
+};
+
+// Interest category labels for display
+const INTEREST_LABELS = {
+  tv: "TV/Videos",
+  toys: "Toys/Objects",
+  outdoors: "Outdoor Activities",
+  art: "Art/Creative",
+  music: "Music/Sounds",
+  books: "Books/Reading",
+  physical: "Physical Play",
+  technology: "Technology",
+};
+
+// Daily activity labels
+const ACTIVITY_LABELS = {
+  bathing: "Bathing/Showering",
+  dressing: "Dressing",
+  feeding: "Eating/Feeding",
+  toileting: "Toileting",
+  brushingTeeth: "Brushing Teeth",
+  sleeping: "Sleeping/Bedtime",
+};
+
+const AssessmentHistory = ({
+  childData,
+  assessmentData,
+  additionalReports = [],
+  isAdmin = false,
+  currentUser = null,
+  onReportsChange = null
+}) => {
   const [activeSection, setActiveSection] = useState("overview");
   const scrollContainerRef = useRef(null);
   const sectionRefs = useRef({});
+
+  // Additional Reports state
+  const [showReportsPanel, setShowReportsPanel] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [description, setDescription] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(null);
+  const [reportError, setReportError] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const MAX_FILE_SIZE = 700 * 1024; // 700KB
 
   if (!childData && !assessmentData) return null;
 
@@ -34,6 +90,7 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
     behaviorDuringAssessment,
     assessmentTools,
     assessmentSummary,
+    recommendations,
     examiner,
     assessmentDates,
     ageAtAssessment,
@@ -45,6 +102,12 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
 
   const bg = backgroundHistory || {};
 
+  // Get structured data with fallbacks
+  const familyInfo = bg.familyInfo || {};
+  const dailyLifeInfo = bg.dailyLifeInfo || {};
+  const medicalInfo = bg.medicalInfo || {};
+  const personalProfile = bg.personalProfile || {};
+
   // Background History Card Component for better organization
   const BackgroundHistoryCard = ({ title, children, fullWidth = false }) => (
     <div className={`bg-history-card ${fullWidth ? 'full-width' : ''}`}>
@@ -52,6 +115,407 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
       {children}
     </div>
   );
+
+  // Render Family Info (structured or legacy)
+  const renderFamilyInfo = () => {
+    // Check if we have structured family info
+    const hasStructuredData = familyInfo.father?.name || familyInfo.mother?.name || familyInfo.siblings?.length > 0;
+
+    if (hasStructuredData) {
+      return (
+        <div className="structured-info">
+          {/* Parents */}
+          {(familyInfo.father?.name || familyInfo.mother?.name) && (
+            <div className="info-group">
+              <strong>Parents:</strong>
+              <ul className="info-list">
+                {familyInfo.father?.name && (
+                  <li>
+                    Father: {familyInfo.father.name}
+                    {familyInfo.father.age && ` (${familyInfo.father.age} yrs)`}
+                    {familyInfo.father.occupation && ` - ${familyInfo.father.occupation}`}
+                  </li>
+                )}
+                {familyInfo.mother?.name && (
+                  <li>
+                    Mother: {familyInfo.mother.name}
+                    {familyInfo.mother.age && ` (${familyInfo.mother.age} yrs)`}
+                    {familyInfo.mother.occupation && ` - ${familyInfo.mother.occupation}`}
+                  </li>
+                )}
+              </ul>
+            </div>
+          )}
+
+          {/* Marital Status & Living Situation */}
+          {(familyInfo.maritalStatus || familyInfo.livingWith) && (
+            <div className="info-row">
+              {familyInfo.maritalStatus && (
+                <span><strong>Marital Status:</strong> {familyInfo.maritalStatus}</span>
+              )}
+              {familyInfo.livingWith && (
+                <span><strong>Lives With:</strong> {familyInfo.livingWith}</span>
+              )}
+            </div>
+          )}
+
+          {/* Primary Caregiver */}
+          {familyInfo.primaryCaregiver && (
+            <p><strong>Primary Caregiver:</strong> {familyInfo.primaryCaregiver}</p>
+          )}
+
+          {/* Siblings */}
+          {familyInfo.siblings?.length > 0 && (
+            <div className="info-group">
+              <strong>Siblings:</strong>
+              <ul className="info-list">
+                {familyInfo.siblings.map((sibling, i) => (
+                  <li key={i}>
+                    {sibling.name}
+                    {sibling.age && ` (${sibling.age} yrs)`}
+                    {sibling.relationship && ` - ${sibling.relationship}`}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Additional Notes */}
+          {familyInfo.additionalNotes && (
+            <p className="additional-notes">{familyInfo.additionalNotes}</p>
+          )}
+        </div>
+      );
+    }
+
+    // Fallback to legacy text
+    return <p className="report-text">{bg.familyBackground || "N/A"}</p>;
+  };
+
+  // Render Daily Life Info (structured or legacy)
+  const renderDailyLifeInfo = () => {
+    const hasStructuredData = dailyLifeInfo.activities && Object.keys(dailyLifeInfo.activities).length > 0;
+
+    if (hasStructuredData) {
+      return (
+        <div className="structured-info">
+          {/* Independence Levels */}
+          <div className="info-group">
+            <strong>Independence Levels:</strong>
+            <div className="independence-display">
+              {Object.entries(dailyLifeInfo.activities).map(([key, level]) => (
+                level && (
+                  <div key={key} className="independence-item">
+                    <span className="activity-name">{ACTIVITY_LABELS[key] || key}:</span>
+                    <span className={`independence-level level-${level.toLowerCase().replace(/\s+/g, '-')}`}>
+                      {level}
+                    </span>
+                  </div>
+                )
+              ))}
+            </div>
+          </div>
+
+          {/* Other daily life info */}
+          {dailyLifeInfo.preferredActivities && (
+            <p><strong>Preferred Activities:</strong> {dailyLifeInfo.preferredActivities}</p>
+          )}
+          {dailyLifeInfo.sleepPattern && (
+            <p><strong>Sleep Pattern:</strong> {dailyLifeInfo.sleepPattern}</p>
+          )}
+          {dailyLifeInfo.dietaryNotes && (
+            <p><strong>Dietary Notes:</strong> {dailyLifeInfo.dietaryNotes}</p>
+          )}
+        </div>
+      );
+    }
+
+    return <p className="report-text">{bg.dailyLifeActivities || "N/A"}</p>;
+  };
+
+  // Render Medical Info (structured or legacy)
+  const renderMedicalInfo = () => {
+    const hasStructuredData = medicalInfo.hasAllergies !== undefined ||
+                              medicalInfo.hasMedications !== undefined ||
+                              medicalInfo.hasHospitalizations !== undefined;
+
+    if (hasStructuredData) {
+      return (
+        <div className="structured-info">
+          {/* Allergies */}
+          <div className="medical-section">
+            <strong>Allergies:</strong>
+            {medicalInfo.hasAllergies && medicalInfo.allergies?.length > 0 ? (
+              <ul className="info-list">
+                {medicalInfo.allergies.map((allergy, i) => (
+                  <li key={i}>
+                    {allergy.type && <span className="tag">{allergy.type}</span>}
+                    {allergy.description}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <span className="no-items"> No known allergies</span>
+            )}
+          </div>
+
+          {/* Medications */}
+          <div className="medical-section">
+            <strong>Current Medications:</strong>
+            {medicalInfo.hasMedications && medicalInfo.medications?.length > 0 ? (
+              <ul className="info-list">
+                {medicalInfo.medications.map((med, i) => (
+                  <li key={i}>
+                    {med.name}
+                    {med.dosage && ` (${med.dosage})`}
+                    {med.frequency && ` - ${med.frequency}`}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <span className="no-items"> None</span>
+            )}
+          </div>
+
+          {/* Hospitalizations */}
+          <div className="medical-section">
+            <strong>Previous Hospitalizations:</strong>
+            {medicalInfo.hasHospitalizations && medicalInfo.hospitalizations?.length > 0 ? (
+              <ul className="info-list">
+                {medicalInfo.hospitalizations.map((hosp, i) => (
+                  <li key={i}>
+                    {hosp.reason}
+                    {hosp.year && ` (${hosp.year})`}
+                    {hosp.notes && ` - ${hosp.notes}`}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <span className="no-items"> None</span>
+            )}
+          </div>
+
+          {/* Other medical info */}
+          {medicalInfo.regularCheckups && (
+            <p><strong>Regular Check-ups:</strong> {medicalInfo.regularCheckups}</p>
+          )}
+          {medicalInfo.otherConditions && (
+            <p><strong>Other Conditions:</strong> {medicalInfo.otherConditions}</p>
+          )}
+        </div>
+      );
+    }
+
+    return <p className="report-text">{bg.medicalHistory || "N/A"}</p>;
+  };
+
+  // Render Strengths & Interests (structured or legacy)
+  const renderStrengthsAndInterests = () => {
+    const hasStructuredData = (personalProfile.strengths && Object.keys(personalProfile.strengths).length > 0) ||
+                              (personalProfile.interests && Object.keys(personalProfile.interests).length > 0);
+
+    if (hasStructuredData) {
+      const selectedStrengths = Object.entries(personalProfile.strengths || {})
+        .filter(([_, value]) => value)
+        .map(([key]) => STRENGTH_LABELS[key] || key);
+
+      const selectedInterests = Object.entries(personalProfile.interests || {})
+        .filter(([_, value]) => value)
+        .map(([key]) => INTEREST_LABELS[key] || key);
+
+      return (
+        <div className="structured-info">
+          {selectedStrengths.length > 0 && (
+            <div className="info-group">
+              <strong>Strengths:</strong>
+              <div className="tag-list">
+                {selectedStrengths.map((strength, i) => (
+                  <span key={i} className="tag strength-tag">{strength}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {personalProfile.strengthNotes && (
+            <p className="additional-notes">{personalProfile.strengthNotes}</p>
+          )}
+
+          {selectedInterests.length > 0 && (
+            <div className="info-group">
+              <strong>Interests:</strong>
+              <div className="tag-list">
+                {selectedInterests.map((interest, i) => (
+                  <span key={i} className="tag interest-tag">{interest}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {personalProfile.interestNotes && (
+            <p className="additional-notes">{personalProfile.interestNotes}</p>
+          )}
+        </div>
+      );
+    }
+
+    return <p className="report-text">{bg.strengthsAndInterests || "N/A"}</p>;
+  };
+
+  // Render Social Skills (structured or legacy)
+  const renderSocialSkills = () => {
+    const hasStructuredData = personalProfile.socialInteraction ||
+                              personalProfile.communicationStyle ||
+                              personalProfile.eyeContact;
+
+    if (hasStructuredData) {
+      return (
+        <div className="structured-info">
+          <div className="social-skills-grid">
+            {personalProfile.socialInteraction && (
+              <div className="social-item">
+                <strong>Peer Interaction:</strong>
+                <span className="social-value">{personalProfile.socialInteraction}</span>
+              </div>
+            )}
+            {personalProfile.communicationStyle && (
+              <div className="social-item">
+                <strong>Communication:</strong>
+                <span className="social-value">{personalProfile.communicationStyle}</span>
+              </div>
+            )}
+            {personalProfile.eyeContact && (
+              <div className="social-item">
+                <strong>Eye Contact:</strong>
+                <span className="social-value">{personalProfile.eyeContact}</span>
+              </div>
+            )}
+            {personalProfile.behaviorRegulation && (
+              <div className="social-item">
+                <strong>Behavior Regulation:</strong>
+                <span className="social-value">{personalProfile.behaviorRegulation}</span>
+              </div>
+            )}
+          </div>
+
+          {personalProfile.socialNotes && (
+            <p className="additional-notes">{personalProfile.socialNotes}</p>
+          )}
+        </div>
+      );
+    }
+
+    return <p className="report-text">{bg.socialSkills || "N/A"}</p>;
+  };
+
+  // === Additional Reports Handlers ===
+
+  const generateReportId = () => {
+    return `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  const formatReportDate = (dateStr) => {
+    if (!dateStr) return 'Unknown date';
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      setReportError('Only PDF files are allowed');
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setReportError('File size must be less than 700KB');
+      return;
+    }
+
+    setReportError(null);
+    setSelectedFile(file);
+    setShowUploadModal(true);
+  };
+
+  const handleUploadReport = async () => {
+    if (!selectedFile || !childData?.id) return;
+
+    setUploading(true);
+    setReportError(null);
+
+    try {
+      const fileUrl = await storageService.uploadPDF(selectedFile);
+
+      const reportData = {
+        id: generateReportId(),
+        fileName: selectedFile.name,
+        fileUrl: fileUrl,
+        description: description.trim() || null,
+        uploadedBy: {
+          uid: currentUser?.uid,
+          name: currentUser?.firstName
+            ? `${currentUser.firstName} ${currentUser.lastName || ''}`.trim()
+            : currentUser?.email || 'Admin'
+        }
+      };
+
+      await childService.addAdditionalReport(childData.id, reportData);
+
+      if (onReportsChange) {
+        onReportsChange([...additionalReports, { ...reportData, uploadedAt: new Date().toISOString() }]);
+      }
+
+      setShowUploadModal(false);
+      setSelectedFile(null);
+      setDescription('');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (err) {
+      console.error('Upload error:', err);
+      setReportError(err.message || 'Failed to upload report');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDeleteReport = async (report) => {
+    if (!window.confirm(`Delete "${report.fileName}"?`)) return;
+
+    setDeleting(report.id);
+    try {
+      await storageService.deletePDF(report.fileUrl);
+      await childService.removeAdditionalReport(childData.id, report);
+
+      if (onReportsChange) {
+        onReportsChange(additionalReports.filter(r => r.id !== report.id));
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+      setReportError('Failed to delete report');
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const handleCancelUpload = () => {
+    setShowUploadModal(false);
+    setSelectedFile(null);
+    setDescription('');
+    setReportError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   // Scroll to section when badge is clicked
   const scrollToSection = useCallback((sectionId) => {
@@ -61,7 +525,7 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
     if (sectionElement && container) {
       const containerTop = container.getBoundingClientRect().top;
       const sectionTop = sectionElement.getBoundingClientRect().top;
-      const offset = sectionTop - containerTop - 80; // 80px offset for sticky nav
+      const offset = sectionTop - containerTop - 80;
 
       container.scrollTo({
         top: container.scrollTop + offset,
@@ -77,10 +541,8 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
 
     const handleScroll = () => {
       const containerRect = container.getBoundingClientRect();
-      const scrollTop = container.scrollTop;
-      const navHeight = 80; // Height of sticky nav
+      const navHeight = 80;
 
-      // Find which section is currently most visible
       let currentSection = "overview";
       let minDistance = Infinity;
 
@@ -105,7 +567,6 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
     return () => container.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Register section ref
   const setSectionRef = (id) => (el) => {
     sectionRefs.current[id] = el;
   };
@@ -115,6 +576,19 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
       {/* Header */}
       <div className="history-top-header">
         <h2 className="report-main-title">Assessment Report</h2>
+        <button
+          className="additional-reports-header-btn"
+          onClick={() => setShowReportsPanel(!showReportsPanel)}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"/>
+            <path d="M14 2V8H20"/>
+          </svg>
+          Additional Reports
+          {additionalReports.length > 0 && (
+            <span className="reports-count-badge">{additionalReports.length}</span>
+          )}
+        </button>
       </div>
 
       {/* Scrollable Content Area */}
@@ -255,7 +729,7 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
             <div className="section-content">
               {purposeOfAssessment && purposeOfAssessment.length > 0 ? (
                 <ol className="report-list">
-                  {purposeOfAssessment.map((purpose, i) => (
+                  {purposeOfAssessment.filter(p => p?.trim()).map((purpose, i) => (
                     <li key={i}>{purpose}</li>
                   ))}
                 </ol>
@@ -277,7 +751,7 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
             <div className="section-content background-history-content">
               <div className="bg-history-grid">
                 <BackgroundHistoryCard title="Family Background">
-                  <p className="report-text">{bg.familyBackground || "N/A"}</p>
+                  {renderFamilyInfo()}
                 </BackgroundHistoryCard>
 
                 <BackgroundHistoryCard title="Family Relationships">
@@ -285,20 +759,22 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
                 </BackgroundHistoryCard>
 
                 <BackgroundHistoryCard title="Daily Life & Activities">
-                  <p className="report-text">{bg.dailyLifeActivities || "N/A"}</p>
+                  {renderDailyLifeInfo()}
                 </BackgroundHistoryCard>
 
                 <BackgroundHistoryCard title="Medical History">
-                  <p className="report-text">{bg.medicalHistory || "N/A"}</p>
+                  {renderMedicalInfo()}
                 </BackgroundHistoryCard>
 
                 <BackgroundHistoryCard title="Developmental Background" fullWidth>
                   {bg.developmentalBackground && bg.developmentalBackground.length > 0 ? (
                     <ul className="report-list bulleted">
                       {bg.developmentalBackground.map((item, i) => (
-                        <li key={i}>
-                          <strong>{item.devBgTitle}:</strong> {item.devBgInfo}
-                        </li>
+                        item.devBgTitle && (
+                          <li key={i}>
+                            <strong>{item.devBgTitle}:</strong> {item.devBgInfo}
+                          </li>
+                        )
                       ))}
                     </ul>
                   ) : (
@@ -318,9 +794,7 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
                   {bg.interventions && bg.interventions.length > 0 ? (
                     <ul className="report-list bulleted">
                       {bg.interventions.map((item, i) => {
-                        if (!item) return (
-                          <li key={i} className="report-text">N/A</li>
-                        );
+                        if (!item) return null;
                         if (typeof item === "string") return <li key={i}>{item}</li>;
 
                         const name = item.name || item.serviceName || item.serviceId || "Unnamed intervention";
@@ -339,11 +813,11 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
                 </BackgroundHistoryCard>
 
                 <BackgroundHistoryCard title="Strengths & Interests">
-                  <p className="report-text">{bg.strengthsAndInterests || "N/A"}</p>
+                  {renderStrengthsAndInterests()}
                 </BackgroundHistoryCard>
 
                 <BackgroundHistoryCard title="Social Skills">
-                  <p className="report-text">{bg.socialSkills || "N/A"}</p>
+                  {renderSocialSkills()}
                 </BackgroundHistoryCard>
               </div>
             </div>
@@ -365,44 +839,61 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
             </div>
           </section>
 
-          {/* Section 6: Assessment Tools & Summary */}
+          {/* Section 6: Assessment Tools & Results */}
           <section
             className="assessment-section"
             ref={setSectionRef("tools")}
             id="section-tools"
           >
             <div className="section-header">
-              <h3 className="section-title">VI, VII, VIII. Assessment Tools & Summary</h3>
+              <h3 className="section-title">VI, VII. Assessment Tools & Results</h3>
             </div>
             <div className="section-content">
-              {assessmentTools && assessmentTools.length > 0 ? (
+              {assessmentTools && assessmentTools.length > 0 && assessmentTools[0].tool ? (
                 <div className="tools-list">
                   {assessmentTools.map((item, index) => (
-                    <div key={index} className="tool-card">
-                      <div className="tool-header">
-                        <span className="tool-index">{String.fromCharCode(65 + index)}.</span>
-                        <h4>{item.tool}</h4>
-                      </div>
-                      <div className="tool-body">
-                        <p><strong>Measure:</strong> {item.details}</p>
-                        <div className="result-box">
-                          <strong>Results</strong>
-                          <p>{item.result || "No results recorded."}</p>
+                    item.tool && (
+                      <div key={index} className="tool-card">
+                        <div className="tool-header">
+                          <span className="tool-index">{String.fromCharCode(65 + index)}.</span>
+                          <h4>{item.tool}</h4>
                         </div>
-                        {item.recommendation && (
-                          <div className="recommendation-box">
-                            <strong>Specific Recommendation</strong>
-                            <p>{item.recommendation}</p>
-                          </div>
-                        )}
+                        <div className="tool-body">
+                          {item.details && <p><strong>Measure:</strong> {item.details}</p>}
+                          {item.result && (
+                            <div className="result-box">
+                              <strong>Results</strong>
+                              <p>{item.result}</p>
+                            </div>
+                          )}
+                          {item.recommendation && (
+                            <div className="recommendation-box">
+                              <strong>Specific Recommendation</strong>
+                              <p>{item.recommendation}</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )
                   ))}
                 </div>
               ) : (
                 <p className="report-text">No assessment tools recorded.</p>
               )}
+            </div>
+          </section>
 
+          {/* Section 7: Summary & Recommendations */}
+          <section
+            className="assessment-section"
+            ref={setSectionRef("recommendations")}
+            id="section-recommendations"
+          >
+            <div className="section-header">
+              <h3 className="section-title">VIII. Summary & Recommendations</h3>
+            </div>
+            <div className="section-content">
+              {/* Summary */}
               <div className="summary-final-section">
                 <h4 className="summary-title">Summary</h4>
                 <div className="summary-content-box">
@@ -411,10 +902,152 @@ const AssessmentHistory = ({ childData, assessmentData }) => {
                   </p>
                 </div>
               </div>
+
+              {/* Recommendations */}
+              <div className="recommendations-final-section">
+                <h4 className="summary-title">Recommendations</h4>
+                {recommendations && recommendations.length > 0 ? (
+                  <ol className="report-list recommendations-list">
+                    {recommendations
+                      .filter(rec => rec && rec.trim())
+                      .map((rec, i) => (
+                        <li key={i}>{rec}</li>
+                      ))}
+                  </ol>
+                ) : (
+                  <p className="report-text">No recommendations provided.</p>
+                )}
+              </div>
             </div>
           </section>
+
         </div>
       </div>
+
+      {/* Additional Reports Slide Panel */}
+      {showReportsPanel && (
+        <div className="reports-panel-overlay" onClick={() => setShowReportsPanel(false)}>
+          <div className="reports-slide-panel" onClick={(e) => e.stopPropagation()}>
+            <div className="reports-panel-header">
+              <h3>Additional Reports</h3>
+              <button className="close-panel-btn" onClick={() => setShowReportsPanel(false)}>×</button>
+            </div>
+
+            <div className="reports-panel-info">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span><strong>PDF format only</strong> &bull; Maximum 700KB per file</span>
+            </div>
+
+            {isAdmin && (
+              <label className="add-report-btn-panel">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf"
+                  onChange={handleFileSelect}
+                  disabled={uploading}
+                  style={{ display: 'none' }}
+                />
+                <span>+ Add Report</span>
+              </label>
+            )}
+
+            {reportError && (
+              <div className="report-error-msg">
+                {reportError}
+                <button onClick={() => setReportError(null)}>×</button>
+              </div>
+            )}
+
+            <div className="reports-panel-content">
+              {additionalReports.length === 0 ? (
+                <div className="no-reports-message">
+                  <p>No additional reports uploaded</p>
+                </div>
+              ) : (
+                <div className="reports-list-container">
+                  {additionalReports.map((report) => (
+                    <div key={report.id} className="report-item-card">
+                      <div className="report-item-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2">
+                          <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"/>
+                          <path d="M14 2V8H20"/>
+                        </svg>
+                      </div>
+                      <div className="report-item-details">
+                        <h4>{report.fileName}</h4>
+                        {report.description && <p className="report-desc">{report.description}</p>}
+                        <span className="report-meta-info">
+                          {formatReportDate(report.uploadedAt)}
+                          {report.uploadedBy?.name && ` • ${report.uploadedBy.name}`}
+                        </span>
+                      </div>
+                      <div className="report-item-actions">
+                        <button
+                          className="view-report-btn"
+                          onClick={() => storageService.openPDF(report.fileUrl, report.fileName)}
+                          title="View PDF"
+                        >
+                          View
+                        </button>
+                        {isAdmin && (
+                          <button
+                            className="delete-report-btn"
+                            onClick={() => handleDeleteReport(report)}
+                            disabled={deleting === report.id}
+                            title="Delete"
+                          >
+                            {deleting === report.id ? '...' : '×'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <div className="report-upload-overlay" onClick={handleCancelUpload}>
+          <div className="report-upload-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Upload Additional Report</h3>
+
+            <div className="upload-file-info">
+              <span className="file-icon">📄</span>
+              <span className="file-name">{selectedFile?.name}</span>
+              <span className="file-size">({(selectedFile?.size / 1024).toFixed(1)} KB)</span>
+            </div>
+
+            <div className="upload-field">
+              <label>Description (optional)</label>
+              <input
+                type="text"
+                placeholder="e.g., OT Evaluation 2024"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                maxLength={100}
+              />
+            </div>
+
+            <div className="upload-actions">
+              <button className="cancel-upload-btn" onClick={handleCancelUpload} disabled={uploading}>
+                Cancel
+              </button>
+              <button className="confirm-upload-btn" onClick={handleUploadReport} disabled={uploading}>
+                {uploading ? 'Uploading...' : 'Upload'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

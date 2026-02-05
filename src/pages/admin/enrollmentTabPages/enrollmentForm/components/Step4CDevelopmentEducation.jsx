@@ -1,4 +1,5 @@
 import React from "react";
+import SpeechToTextTextarea from "./SpeechToTextTextarea";
 
 export default function Step4CDevelopmentEducation({ data, onChange, errors = {} }) {
   // --- Developmental Background Handlers ---
@@ -33,7 +34,7 @@ export default function Step4CDevelopmentEducation({ data, onChange, errors = {}
       <div className={`form-section-group input-group ${errors.developmentalBackground ? 'has-error' : ''}`}>
         <label>Developmental Background *</label>
         <p className="field-hint">
-          Add developmental pediatric assessments or diagnoses. You can add multiple entries.
+          Add developmental pediatric assessments or diagnoses. Click 🎤 to dictate details.
         </p>
 
         {data.backgroundHistory.developmentalBackground.map((item, index) => (
@@ -68,8 +69,8 @@ export default function Step4CDevelopmentEducation({ data, onChange, errors = {}
               </div>
               <div className="input-group" style={{ marginBottom: 0 }}>
                 <label>Details</label>
-                <textarea
-                  rows="3"
+                <SpeechToTextTextarea
+                  rows={3}
                   placeholder="Enter specific details about this developmental area..."
                   value={item.devBgInfo}
                   onChange={(e) =>
@@ -94,16 +95,17 @@ export default function Step4CDevelopmentEducation({ data, onChange, errors = {}
       <div className={`input-group ${errors.schoolHistory ? 'has-error' : ''}`}>
         <label>School History *</label>
         <p className="field-hint">
-          Include current and previous school placements, academic performance, and any challenges.
+          Include current and previous school placements, academic performance, and any challenges. Click 🎤 to dictate.
         </p>
-        <textarea
-          rows="4"
+        <SpeechToTextTextarea
+          rows={4}
           value={data.backgroundHistory.schoolHistory}
           onChange={(e) =>
             onChange("backgroundHistory", "schoolHistory", e.target.value)
           }
           placeholder="Example: Juan is currently enrolled at ABC Learning Center (nursery level). He previously attended XYZ Preschool for 6 months but was asked to transfer due to behavioral challenges..."
           required
+          hasError={!!errors.schoolHistory}
         />
         {errors.schoolHistory && (
           <div className="field-error-message">{errors.schoolHistory}</div>

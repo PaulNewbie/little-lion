@@ -1,5 +1,5 @@
 // EnrollStudent.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from '../../../hooks/useAuth';
 import Sidebar from '../../../components/sidebar/Sidebar';
@@ -21,6 +21,8 @@ import assessmentService from "../../../services/assessmentService";
 
 import { useParents, useChildrenByParent, useCacheInvalidation } from "../../../hooks/useCachedData";
 
+// Pagination constants
+const PAGE_SIZE = 10;
 
 // REMOVED: generatePassword function - no longer needed!
 
@@ -41,7 +43,12 @@ export default function EnrollStudent() {
     }
   };
 
+  // Fetch all parents (cached for 30 min - subsequent visits = 0 reads)
   const { data: allParents = [], isLoading: isLoadingParents } = useParents();
+
+  // Client-side pagination state
+  const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
+
   const [selectedParent, setSelectedParent] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -264,11 +271,35 @@ export default function EnrollStudent() {
     setEditingStudent(null);
   };
 
-  const filteredParents = allParents.filter((p) =>
-    `${p.firstName} ${p.middleName} ${p.lastName}`
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  );
+  // Filter parents by search term
+  const filteredParents = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return allParents;
+    }
+    return allParents.filter((p) =>
+      `${p.firstName} ${p.middleName} ${p.lastName}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    );
+  }, [allParents, searchTerm]);
+
+  // Client-side pagination - show only displayCount items
+  const displayedParents = useMemo(() => {
+    return filteredParents.slice(0, displayCount);
+  }, [filteredParents, displayCount]);
+
+  // Check if there are more to load
+  const hasMore = displayCount < filteredParents.length;
+
+  // Load more handler
+  const handleLoadMore = () => {
+    setDisplayCount(prev => prev + PAGE_SIZE);
+  };
+
+  // Reset display count when search changes
+  useEffect(() => {
+    setDisplayCount(PAGE_SIZE);
+  }, [searchTerm]);
 
   return (
     <div className="ooo-container enrollment-page">
@@ -306,48 +337,82 @@ export default function EnrollStudent() {
             <div className="ooo-content-area">
           {/* PARENT GRID VIEW - Show when no parent selected */}
           {!selectedParent || showChildrenModal ? (
-            <div className="mt-grid">
-              {filteredParents.map((p) => (
-                <div
-                  key={p.uid}
-                  className={`mt-card ${p.accountStatus !== "pending_setup" ? 'is-clickable' : 'is-clickable'}`}
-                  onClick={() => handleGuardianClick(p)}
-                >
-                  {/* Colored Banner with Status Badge */}
-                  <div className="mt-card-banner">
-                    <div className={`mt-badge ${p.accountStatus !== "pending_setup" ? 'complete' : 'incomplete'}`}>
-                      {p.accountStatus !== "pending_setup" ? 'Active' : 'Pending Setup'}
+            <>
+              {/* Loading State */}
+              {isLoadingParents && (
+                <div className="pagination-loading">
+                  <div className="csm-spinner"></div>
+                  <p>Loading guardians...</p>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!isLoadingParents && displayedParents.length === 0 && (
+                <div className="pagination-empty">
+                  <p>{searchTerm ? 'No guardians found matching your search.' : 'No guardians found.'}</p>
+                </div>
+              )}
+
+              <div className="mt-grid">
+                {displayedParents.map((p) => (
+                  <div
+                    key={p.uid}
+                    className={`mt-card ${p.accountStatus !== "pending_setup" ? 'is-clickable' : 'is-clickable'}`}
+                    onClick={() => handleGuardianClick(p)}
+                  >
+                    {/* Colored Banner with Status Badge */}
+                    <div className="mt-card-banner">
+                      <div className={`mt-badge ${p.accountStatus !== "pending_setup" ? 'complete' : 'incomplete'}`}>
+                        {p.accountStatus !== "pending_setup" ? 'Active' : 'Pending Setup'}
+                      </div>
+                    </div>
+
+                    {/* Card Content */}
+                    <div className="mt-card-content">
+                      {/* Avatar with Status Dot */}
+                      <div className="mt-avatar-container">
+                        {p.profilePhoto ? (
+                          <img src={p.profilePhoto} alt="" className="mt-avatar-img" />
+                        ) : (
+                          <span>{p.firstName?.[0]}{p.lastName?.[0]}</span>
+                        )}
+                        <div
+                          className={`mt-status-dot ${p.accountStatus !== "pending_setup" ? 'active' : 'pending'}`}
+                          title={p.accountStatus !== "pending_setup" ? "Account Active" : "Pending Activation"}
+                        />
+                      </div>
+
+                      {/* Parent Name */}
+                      <h3 className="mt-teacher-name">
+                        {p.firstName} {p.lastName}
+                      </h3>
+
+                      {/* Role Tag */}
+                      <div className="mt-tags-wrapper">
+                        <span className="mt-tag">Guardian</span>
+                      </div>
                     </div>
                   </div>
+                ))}
+              </div>
 
-                  {/* Card Content */}
-                  <div className="mt-card-content">
-                    {/* Avatar with Status Dot */}
-                    <div className="mt-avatar-container">
-                      {p.profilePhoto ? (
-                        <img src={p.profilePhoto} alt="" className="mt-avatar-img" />
-                      ) : (
-                        <span>{p.firstName?.[0]}{p.lastName?.[0]}</span>
-                      )}
-                      <div
-                        className={`mt-status-dot ${p.accountStatus !== "pending_setup" ? 'active' : 'pending'}`}
-                        title={p.accountStatus !== "pending_setup" ? "Account Active" : "Pending Activation"}
-                      />
-                    </div>
-
-                    {/* Parent Name */}
-                    <h3 className="mt-teacher-name">
-                      {p.firstName} {p.lastName}
-                    </h3>
-
-                    {/* Role Tag */}
-                    <div className="mt-tags-wrapper">
-                      <span className="mt-tag">Guardian</span>
-                    </div>
+              {/* Load More Button */}
+              {hasMore && (
+                <div className="pagination-controls">
+                  <button
+                    className="pagination-btn load-more-btn"
+                    onClick={handleLoadMore}
+                  >
+                    Load More Guardians
+                  </button>
+                  <div className="pagination-info">
+                    <span className="pagination-text">
+                      Showing {displayedParents.length} of {filteredParents.length} guardians
+                    </span>
                   </div>
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           ) : null}
         </div>
 
@@ -569,6 +634,7 @@ export default function EnrollStudent() {
             selectedParent={selectedParent}
             onSave={handleEnrollmentSave}
             editingStudent={editingStudent}
+            currentUser={currentUser}
           />
         )}
 
@@ -712,6 +778,22 @@ export default function EnrollStudent() {
                     })}
                   </div>
                 )}
+
+                {/* Enroll Another Child Button */}
+                <div className="csm-footer">
+                  <button
+                    className="csm-enroll-another-btn"
+                    onClick={() => {
+                      setShowChildrenModal(false);
+                      setShowEnrollForm(true);
+                    }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Enroll Another Child
+                  </button>
+                </div>
               </div>
 
             </div>
