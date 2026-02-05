@@ -5,7 +5,7 @@ import { useToast } from '../../context/ToastContext';
 import Loading from '../../components/common/Loading';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getTherapistConfig } from '../../components/sidebar/sidebarConfigs';
-import { Mail, Phone, X, Play } from 'lucide-react';
+import { Mail, Phone, X, Play, MessageCircle, Hand, Activity, Brain, TrendingUp, BookOpen, Briefcase, User, ClipboardList } from 'lucide-react';
 import { useTherapistDashboardData } from '../../hooks/useCachedData';
 import logo from '../../images/logo.png';
 import './css/TherapistDashboard.css';
@@ -141,13 +141,13 @@ const TherapistDashboard = () => {
   // Helper to get service icon based on service name
   const getServiceIcon = (serviceName) => {
     const name = serviceName?.toLowerCase() || '';
-    if (name.includes('speech')) return '🗣️';
-    if (name.includes('occupational') || name.includes('ot')) return '🖐️';
-    if (name.includes('physical') || name.includes('pt')) return '🏃';
-    if (name.includes('behavior') || name.includes('aba')) return '🧠';
-    if (name.includes('developmental')) return '📈';
-    if (name.includes('sped') || name.includes('special')) return '📚';
-    return '💼';
+    if (name.includes('speech')) return <MessageCircle size={20} />;
+    if (name.includes('occupational') || name.includes('ot')) return <Hand size={20} />;
+    if (name.includes('physical') || name.includes('pt')) return <Activity size={20} />;
+    if (name.includes('behavior') || name.includes('aba')) return <Brain size={20} />;
+    if (name.includes('developmental')) return <TrendingUp size={20} />;
+    if (name.includes('sped') || name.includes('special')) return <BookOpen size={20} />;
+    return <Briefcase size={20} />;
   };
 
   // Helper to get service type badge color
@@ -206,7 +206,8 @@ const TherapistDashboard = () => {
           <div className="therapist-dashboard__profile-banner">
             <div>
               <h3 className="therapist-dashboard__profile-banner-title">
-                📋 Complete Your Profile
+                <ClipboardList size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+                Complete Your Profile
               </h3>
               <p className="therapist-dashboard__profile-banner-text">
                 Help parents know you better by adding your credentials, bio, and certifications.
@@ -237,20 +238,28 @@ const TherapistDashboard = () => {
                 const myServices = getMyServices(student);
                 return (
                   <div key={student.id} className="therapist-dashboard__student-card">
-                    <div className="therapist-dashboard__student-card-body">
-                      <div className="therapist-dashboard__student-info">
-                        <div className="therapist-dashboard__avatar-wrapper">
-                          {student.photoUrl ? <img src={student.photoUrl} alt="" /> : '👤'}
+                    {/* Clickable photo area */}
+                    <div
+                      className="therapist-dashboard__card-image-box"
+                      onClick={() => navigate('/admin/StudentProfile', { state: { studentId: student.id, student, isStaffView: true } })}
+                    >
+                      {student.photoUrl ? (
+                        <img src={student.photoUrl} className="therapist-dashboard__photo" alt="" />
+                      ) : (
+                        <div className="therapist-dashboard__photo-placeholder">
+                          {student.firstName?.[0] || '?'}
                         </div>
-                        <div>
-                          <h3 className="therapist-dashboard__student-name">
-                            {student.firstName} {student.lastName}
-                          </h3>
-                          <p className="therapist-dashboard__student-dob">
-                            DOB: {student.dateOfBirth}
-                          </p>
-                        </div>
-                      </div>
+                      )}
+                    </div>
+
+                    {/* Card body with name, services, and button - clickable to view profile */}
+                    <div
+                      className="therapist-dashboard__card-body"
+                      onClick={() => navigate('/admin/StudentProfile', { state: { studentId: student.id, student, isStaffView: true } })}
+                    >
+                      <h3 className="therapist-dashboard__student-name">
+                        {student.firstName} {student.lastName}
+                      </h3>
                       <div className="therapist-dashboard__services-list">
                         {myServices.map((svc, idx) => (
                           <div key={idx} className="therapist-dashboard__service-tag">
@@ -258,19 +267,11 @@ const TherapistDashboard = () => {
                           </div>
                         ))}
                       </div>
-                    </div>
-                    <div className="therapist-dashboard__student-card-footer">
                       <button
-                        onClick={() => navigate('/admin/StudentProfile', { state: { studentId: student.id, student, isStaffView: true } })}
-                        className="therapist-dashboard__view-profile-button"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                        </svg>
-                        View Profile
-                      </button>
-                      <button
-                        onClick={() => handleStartSessionClick(student)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStartSessionClick(student);
+                        }}
                         className="therapist-dashboard__start-session-button"
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -329,7 +330,7 @@ const TherapistDashboard = () => {
                   {selectedStudentForModal?.photoUrl ? (
                     <img src={selectedStudentForModal.photoUrl} alt="" />
                   ) : (
-                    <span>👤</span>
+                    <User size={24} />
                   )}
                 </div>
                 <div className="therapist-dashboard__modal-student-details">

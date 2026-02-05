@@ -105,7 +105,7 @@
 }
 
 .therapist-dashboard__subtitle {
-  color: rgba(255, 255, 255, 0.9);
+  color: #ffffff;
   margin: 0;
   font-size: 0.9375rem;
   font-weight: 600;
@@ -272,160 +272,189 @@
 }
 
 /* ===========================================
-   STUDENTS GRID
+   STUDENTS GRID (sp-card style)
    =========================================== */
 .therapist-dashboard__grid,
 .therapist-dashboard__students-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 24px;
 }
 
 /* ===========================================
-   STUDENT CARD
+   STUDENT CARD (sp-card style)
    =========================================== */
 .therapist-dashboard__student-card {
-  background-color: white;
-  border-radius: 1rem;
+  background: white;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f1f5f9;
-  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e5e7eb;
+  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+  cursor: pointer;
+  position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  transition: all 0.3s ease;
 }
 
 .therapist-dashboard__student-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  transform: translateY(-4px);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 82, 161, 0.2);
+  border-color: #FFCB10;
 }
 
-.therapist-dashboard__student-card-body,
-.therapist-dashboard__student-card-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
+/* Golden corner accent on hover */
+.therapist-dashboard__student-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 50px 50px 0;
+  border-color: transparent #FFCB10 transparent transparent;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 3;
 }
 
-.therapist-dashboard__student-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+.therapist-dashboard__student-card:hover::before {
+  opacity: 1;
 }
 
-.therapist-dashboard__avatar-wrapper,
-.therapist-dashboard__student-avatar {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background-color: #f3f4f6;
-  border: 3px solid #fbbf24;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  color: #6b7280;
-  overflow: hidden;
+/* Lion emoji in corner */
+.therapist-dashboard__student-card::after {
+  content: '🦁';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 4;
 }
 
-.therapist-dashboard__avatar-wrapper img,
-.therapist-dashboard__student-avatar img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.therapist-dashboard__student-name {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0;
-}
-
-.therapist-dashboard__student-dob {
-  font-size: 0.75rem;
-  color: #64748b;
-  margin: 0.25rem 0 0 0;
+.therapist-dashboard__student-card:hover::after {
+  opacity: 1;
 }
 
 /* ===========================================
-   SERVICES LIST (Tags on Card)
+   CARD IMAGE BOX (Match sp-card proportions)
+   =========================================== */
+.therapist-dashboard__card-image-box {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%);
+  overflow: hidden;
+}
+
+.therapist-dashboard__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+.therapist-dashboard__student-card:hover .therapist-dashboard__photo {
+  transform: scale(1.08);
+}
+
+/* Placeholder with Little Lions background */
+.therapist-dashboard__photo-placeholder {
+  width: 100%;
+  height: 100%;
+  background-image: url("../../../images/little-lions-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  color: #ffffff;
+  font-size: 72px;
+  font-weight: 800;
+  text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.6);
+  isolation: isolate;
+}
+
+/* Dark overlay with blur */
+.therapist-dashboard__photo-placeholder::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: -1;
+}
+
+/* ===========================================
+   CARD BODY (Name, Services, Button - compact like sp-card)
+   =========================================== */
+.therapist-dashboard__card-body {
+  padding: 10px 12px 12px;
+  background: white;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 4px solid #FFCB10;
+  cursor: pointer;
+  flex: 1;
+  min-height: 110px;
+}
+
+.therapist-dashboard__student-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+/* ===========================================
+   SERVICES LIST (Tags on Card - compact)
    =========================================== */
 .therapist-dashboard__services-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
+  gap: 3px;
   justify-content: center;
-  margin-bottom: 0.5rem;
+  align-content: flex-start;
+  flex: 1;
+  min-height: 20px;
 }
 
 .therapist-dashboard__service-tag {
-  padding: 0.25rem 0.75rem;
-  background-color: var(--tp-blue-100);
+  padding: 2px 6px;
+  background-color: #e0f2fe;
   color: #0052A1;
-  border-radius: 1rem;
-  font-size: 0.75rem;
-  font-weight: 500;
+  border-radius: 10px;
+  font-size: 9px;
+  font-weight: 600;
 }
 
 /* ===========================================
-   CARD FOOTER (Buttons)
+   START SESSION BUTTON (compact)
    =========================================== */
-.therapist-dashboard__student-card-footer {
-  padding-top: 1rem;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.therapist-dashboard__view-profile-button {
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  background: #ffffff;
-  color: #0052A1;
-  border: 2px solid #0052A1;
-  border-radius: 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.therapist-dashboard__view-profile-button:hover {
-  background: #0052A1;
-  color: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 82, 161, 0.3);
-}
-
-.therapist-dashboard__view-profile-button svg {
-  transition: all 0.3s ease;
-}
-
-.therapist-dashboard__view-profile-button:hover svg {
-  fill: #ffffff;
-}
-
 .therapist-dashboard__start-session-button {
   width: 100%;
-  padding: 0.5rem 0.75rem;
+  padding: 8px 12px;
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   color: #78350f;
   border: none;
-  border-radius: 0.5rem;
-  font-size: 0.75rem;
+  border-radius: 6px;
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
@@ -433,12 +462,56 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
+  margin-top: auto;
 }
 
 .therapist-dashboard__start-session-button:hover {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 6px 16px rgba(251, 191, 36, 0.5);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(251, 191, 36, 0.4);
+}
+
+/* ===========================================
+   RESPONSIVE - STUDENT CARDS
+   =========================================== */
+@media (max-width: 768px) {
+  .therapist-dashboard__grid,
+  .therapist-dashboard__students-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+
+  .therapist-dashboard__photo-placeholder {
+    font-size: 40px;
+  }
+
+  .therapist-dashboard__student-name {
+    font-size: 12px;
+  }
+
+  .therapist-dashboard__card-body {
+    padding: 8px 10px 10px;
+    gap: 6px;
+  }
+
+  .therapist-dashboard__service-tag {
+    font-size: 8px;
+    padding: 2px 6px;
+  }
+
+  .therapist-dashboard__start-session-button {
+    font-size: 10px;
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .therapist-dashboard__grid,
+  .therapist-dashboard__students-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
 }
 
 /* ===========================================
@@ -450,11 +523,13 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
+  z-index: 1200;
   padding: 1rem;
 }
 
