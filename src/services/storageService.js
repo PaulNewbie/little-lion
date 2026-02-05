@@ -1,98 +1,79 @@
 // src/services/storageService.js
-// Firebase Storage service for PDF reports
-
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { storage } from '../config/firebase';
+// PDF storage service using Base64 encoding in Firestore
+// Note: Limited to ~700KB files due to Firestore 1MB document limit
 
 class StorageService {
+  // Max file size: ~700KB (Base64 adds ~33% overhead, Firestore limit is 1MB)
+  MAX_FILE_SIZE = 700 * 1024;
+
   /**
-   * Upload a PDF file to Firebase Storage
-   * @param {File} file - The PDF file to upload
-   * @param {string} childId - The child's ID for folder organization
-   * @param {string} fileName - Optional custom filename
-   * @returns {Promise<string>} Download URL of the uploaded file
+   * Convert a PDF file to Base64 data URL
+   * @param {File} file - The PDF file to convert
+   * @returns {Promise<string>} Base64 data URL
    */
-  async uploadPDF(file, childId, fileName = null) {
+  async uploadPDF(file) {
     if (!file) throw new Error('No file provided');
-    if (!childId) throw new Error('Child ID is required');
 
     // Validate file type
     if (file.type !== 'application/pdf') {
       throw new Error('Only PDF files are allowed');
     }
 
-    // Validate file size (max 10MB)
-    const maxSize = 10 * 1024 * 1024;
-    if (file.size > maxSize) {
-      throw new Error('File size must be less than 10MB');
+    // Validate file size
+    if (file.size > this.MAX_FILE_SIZE) {
+      throw new Error(`File size must be less than ${Math.round(this.MAX_FILE_SIZE / 1024)}KB for direct storage`);
     }
 
-    // Create a unique filename
-    const timestamp = Date.now();
-    const safeName = (fileName || file.name).replace(/[^a-zA-Z0-9.-]/g, '_');
-    const storagePath = `children/${childId}/reports/${timestamp}_${safeName}`;
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
 
-    try {
-      // Create reference
-      const storageRef = ref(storage, storagePath);
+      reader.onload = () => {
+        // reader.result is a data URL like "data:application/pdf;base64,..."
+        console.log('PDF converted to Base64 successfully');
+        resolve(reader.result);
+      };
 
-      // Upload file
-      const snapshot = await uploadBytes(storageRef, file, {
-        contentType: 'application/pdf',
-        customMetadata: {
-          originalName: file.name,
-          uploadedAt: new Date().toISOString()
-        }
-      });
+      reader.onerror = () => {
+        reject(new Error('Failed to read file'));
+      };
 
-      // Get download URL
-      const downloadURL = await getDownloadURL(snapshot.ref);
-
-      console.log('PDF uploaded successfully:', downloadURL);
-      return downloadURL;
-    } catch (error) {
-      console.error('Firebase Storage upload error:', error);
-      throw error;
-    }
+      reader.readAsDataURL(file);
+    });
   }
 
   /**
-   * Delete a PDF file from Firebase Storage
-   * @param {string} fileUrl - The download URL of the file to delete
-   * @returns {Promise<boolean>} True if deletion was successful
+   * Delete a PDF - for Base64 storage, this is a no-op
+   * (The data is deleted when removed from Firestore)
+   * @returns {Promise<boolean>} Always returns true
    */
-  async deletePDF(fileUrl) {
-    if (!fileUrl) throw new Error('File URL is required');
+  async deletePDF() {
+    // No separate storage to delete - data is in Firestore
+    return true;
+  }
 
-    try {
-      // Extract the path from the URL
-      // Firebase Storage URLs contain the path after /o/ and before ?
-      const urlObj = new URL(fileUrl);
-      const pathMatch = urlObj.pathname.match(/\/o\/(.+)/);
+  /**
+   * Open a Base64 PDF in a new tab
+   * @param {string} dataUrl - The Base64 data URL
+   * @param {string} fileName - Optional filename for download
+   */
+  openPDF(dataUrl, fileName = 'document.pdf') {
+    // Convert data URL to blob for better browser handling
+    const byteCharacters = atob(dataUrl.split(',')[1]);
+    const byteNumbers = new Array(byteCharacters.length);
 
-      if (!pathMatch) {
-        console.warn('Could not extract path from URL, skipping deletion');
-        return true;
-      }
-
-      const encodedPath = pathMatch[1];
-      const storagePath = decodeURIComponent(encodedPath);
-
-      // Create reference and delete
-      const storageRef = ref(storage, storagePath);
-      await deleteObject(storageRef);
-
-      console.log('PDF deleted successfully:', storagePath);
-      return true;
-    } catch (error) {
-      // If file doesn't exist, consider it a success
-      if (error.code === 'storage/object-not-found') {
-        console.warn('File already deleted or not found');
-        return true;
-      }
-      console.error('Firebase Storage delete error:', error);
-      throw error;
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
     }
+
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: 'application/pdf' });
+    const blobUrl = URL.createObjectURL(blob);
+
+    // Open in new tab
+    window.open(blobUrl, '_blank');
+
+    // Clean up blob URL after a delay
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
   }
 }
 

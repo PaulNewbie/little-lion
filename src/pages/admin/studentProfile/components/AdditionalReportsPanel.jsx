@@ -89,8 +89,8 @@ const AdditionalReportsPanel = ({
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
 
-  // Max file size: 10MB
-  const MAX_FILE_SIZE = 10 * 1024 * 1024;
+  // Max file size: 700KB (Base64 adds ~33% overhead, Firestore limit is 1MB)
+  const MAX_FILE_SIZE = 700 * 1024;
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
@@ -104,7 +104,7 @@ const AdditionalReportsPanel = ({
 
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
-      setError('File size must be less than 10MB');
+      setError('File size must be less than 700KB');
       return;
     }
 
@@ -120,8 +120,8 @@ const AdditionalReportsPanel = ({
     setError(null);
 
     try {
-      // 1. Upload to Firebase Storage
-      const fileUrl = await storageService.uploadPDF(selectedFile, childId);
+      // 1. Convert PDF to Base64
+      const fileUrl = await storageService.uploadPDF(selectedFile);
 
       // 2. Create report metadata
       const reportData = {
@@ -154,7 +154,7 @@ const AdditionalReportsPanel = ({
       }
     } catch (err) {
       console.error('Upload error:', err);
-      setError('Failed to upload report. Please try again.');
+      setError(err.message || 'Failed to upload report. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -231,7 +231,7 @@ const AdditionalReportsPanel = ({
         <div className="reports-empty">
           <PdfIcon />
           <p>No additional reports uploaded yet</p>
-          {isAdmin && <span>Click "Upload PDF" to add assessment reports</span>}
+          {isAdmin && <span>Click "Upload PDF" to add reports (max 700KB per file)</span>}
         </div>
       ) : (
         <div className="reports-grid">
@@ -255,15 +255,13 @@ const AdditionalReportsPanel = ({
                 </div>
               </div>
               <div className="report-actions">
-                <a
-                  href={report.fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => storageService.openPDF(report.fileUrl, report.fileName)}
                   className="report-action-btn view-btn"
                   title="View PDF"
                 >
                   <DownloadIcon />
-                </a>
+                </button>
                 {isAdmin && (
                   <button
                     onClick={() => handleDelete(report)}
