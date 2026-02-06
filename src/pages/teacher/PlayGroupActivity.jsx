@@ -35,6 +35,10 @@ const PlayGroupActivity = () => {
   const [date, setDate] = useState(new Date());
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
 
+  // Confirmation Modal State
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmData, setConfirmData] = useState(null);
+
   // Constants
   const MAX_IMAGES = 10;
 
@@ -188,21 +192,21 @@ const PlayGroupActivity = () => {
       })
       .filter(Boolean);
 
-    // Confirmation dialog
-    const confirmMessage =
-      `Post Group Activity?\n\n` +
-      `Activity: "${title || 'Untitled'}"\n` +
-      `Class: ${className || 'Not specified'}\n` +
-      `Date: ${formatDate(date)}\n` +
-      `Photos: ${selectedImages.length}\n\n` +
-      `✓ Students Present (${taggedStudentIds.length}):\n` +
-      `${selectedStudentNames.join(', ')}\n\n` +
-      `Do you want to continue?`;
+    // Show confirmation modal instead of browser confirm
+    setConfirmData({
+      title: title || 'Untitled Activity',
+      className: className || 'Not specified',
+      date: formatDate(date),
+      photoCount: selectedImages.length,
+      studentCount: taggedStudentIds.length,
+      studentNames: selectedStudentNames
+    });
+    setShowConfirmModal(true);
+  };
 
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
-
+  // Handle confirmed submission
+  const handleConfirmSubmit = async () => {
+    setShowConfirmModal(false);
     setUploading(true);
     setUploadProgress({ current: 0, total: selectedImages.length });
 
@@ -334,7 +338,6 @@ const PlayGroupActivity = () => {
                       <Calendar
                         onChange={setDate}
                         value={date}
-                        maxDate={new Date()}
                         className="play-group__calendar"
                       />
                       <div className="play-group__selected-date">
@@ -554,6 +557,75 @@ const PlayGroupActivity = () => {
         </div>
 
       </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && confirmData && (
+        <div className="play-group__modal-overlay" onClick={() => setShowConfirmModal(false)}>
+          <div className="play-group__confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="play-group__confirm-header">
+              <div className="play-group__confirm-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+              </div>
+              <h2>Post Group Activity?</h2>
+              <p>Please review the details before posting</p>
+            </div>
+
+            <div className="play-group__confirm-body">
+              <div className="play-group__confirm-item">
+                <span className="play-group__confirm-label">Activity Title</span>
+                <span className="play-group__confirm-value">{confirmData.title}</span>
+              </div>
+              <div className="play-group__confirm-item">
+                <span className="play-group__confirm-label">Class</span>
+                <span className="play-group__confirm-value">{confirmData.className}</span>
+              </div>
+              <div className="play-group__confirm-item">
+                <span className="play-group__confirm-label">Date</span>
+                <span className="play-group__confirm-value">{confirmData.date}</span>
+              </div>
+              <div className="play-group__confirm-item">
+                <span className="play-group__confirm-label">Photos</span>
+                <span className="play-group__confirm-value">{confirmData.photoCount} photo{confirmData.photoCount !== 1 ? 's' : ''}</span>
+              </div>
+              <div className="play-group__confirm-students">
+                <span className="play-group__confirm-label">
+                  Students Present ({confirmData.studentCount})
+                </span>
+                <div className="play-group__confirm-student-list">
+                  {confirmData.studentNames.map((name, idx) => (
+                    <span key={idx} className="play-group__confirm-student-tag">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                      </svg>
+                      {name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="play-group__confirm-actions">
+              <button
+                className="play-group__confirm-cancel"
+                onClick={() => setShowConfirmModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="play-group__confirm-submit"
+                onClick={handleConfirmSubmit}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                </svg>
+                Post Activity
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
