@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../context/ToastContext';
 import childService from '../../services/childService';
 import { saveSessionActivity } from '../../services/activityService';
+import offeringsService from '../../services/offeringsService';
 import Loading from '../../components/common/Loading';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getTeacherConfig } from '../../components/sidebar/sidebarConfigs';
@@ -63,6 +65,24 @@ const TeacherDashboard = () => {
 
   // Fetch Data
   const { students, isLoading: loading, error: queryError } = useTeacherDashboardData();
+
+  // Fetch class services for images
+  const { data: classServices = [] } = useQuery({
+    queryKey: ['services', 'Class'],
+    queryFn: () => offeringsService.getServicesByType('Class'),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // Create a map for quick service image lookup
+  const serviceImageMap = useMemo(() => {
+    const map = new Map();
+    classServices.forEach(service => {
+      if (service.imageUrl) {
+        map.set(service.name, service.imageUrl);
+      }
+    });
+    return map;
+  }, [classServices]);
 
   // Process Data
   useEffect(() => {
@@ -262,6 +282,16 @@ const TeacherDashboard = () => {
             {/* Header Banner */}
             <div className="teacher-dashboard__header-banner">
               <div className="teacher-dashboard__header-content">
+                {/* Back Arrow - only shows when viewing a class */}
+                {selectedClass && (
+                  <button
+                    onClick={() => { setSelectedClass(null); setSearchTerm(''); setDisplayCount(PAGE_SIZE); }}
+                    className="teacher-dashboard__header-back-arrow"
+                    aria-label="Back to Classes"
+                  >
+                    <ArrowLeft size={28} strokeWidth={2.5} />
+                  </button>
+                )}
                 <div className="teacher-dashboard__header-text">
                   <h1 className="teacher-dashboard__title">
                     {selectedClass ? selectedClass.name : 'MY CLASSES'}
@@ -343,26 +373,30 @@ const TeacherDashboard = () => {
                   </div>
                 ) : (
                   <div className="teacher-dashboard__classes-grid">
-                    {filteredClasses.map((cls, idx) => (
-                      <div
-                        key={idx}
-                        className="teacher-dashboard__class-card"
-                        onClick={() => { setSelectedClass(cls); setSearchTerm(''); setDisplayCount(PAGE_SIZE); }}
-                      >
-                        <div className="teacher-dashboard__class-icon">
-                          <Users size={28} strokeWidth={2} />
-                        </div>
-                        <div className="teacher-dashboard__class-info">
-                          <h3 className="teacher-dashboard__class-name">{cls.name}</h3>
-                          <p className="teacher-dashboard__class-count">
+                    {filteredClasses.map((cls, idx) => {
+                      const serviceImage = serviceImageMap.get(cls.name);
+                      return (
+                        <div
+                          key={idx}
+                          className="teacher-dashboard__class-card"
+                          onClick={() => { setSelectedClass(cls); setSearchTerm(''); setDisplayCount(PAGE_SIZE); }}
+                        >
+                          {serviceImage ? (
+                            <div className="teacher-dashboard__class-image-box">
+                              <img src={serviceImage} alt={cls.name} className="teacher-dashboard__class-image" />
+                            </div>
+                          ) : (
+                            <div className="teacher-dashboard__class-icon-fallback">
+                              <Users size={40} strokeWidth={1.5} />
+                            </div>
+                          )}
+                          <h3 className="teacher-dashboard__class-card-name">{cls.name}</h3>
+                          <span className="teacher-dashboard__class-student-badge">
                             {cls.students.length} Student{cls.students.length !== 1 ? 's' : ''}
-                          </p>
+                          </span>
                         </div>
-                        <div className="teacher-dashboard__class-arrow">
-                          <ChevronRight size={24} strokeWidth={2} />
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </>
@@ -371,14 +405,6 @@ const TeacherDashboard = () => {
             {/* View 2: Student Roster */}
             {selectedClass && (
               <>
-                <button
-                  onClick={() => { setSelectedClass(null); setSearchTerm(''); setDisplayCount(PAGE_SIZE); }}
-                  className="teacher-dashboard__back-btn"
-                >
-                  <ArrowLeft size={18} strokeWidth={2.5} />
-                  Back to Classes
-                </button>
-
                 {filteredStudents.length === 0 ? (
                   <div className="teacher-dashboard__empty-state">
                     <h3 className="teacher-dashboard__empty-state-title">No students found</h3>

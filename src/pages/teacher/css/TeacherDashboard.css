@@ -36,6 +36,38 @@
   gap: 1.5rem;
 }
 
+/* Header Back Arrow - Simple White Chevron */
+.teacher-dashboard__header-back-arrow {
+  cursor: pointer;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  flex-shrink: 0;
+  transition: opacity 0.2s ease;
+}
+
+.teacher-dashboard__header-back-arrow:hover {
+  opacity: 0.8;
+}
+
+.teacher-dashboard__header-back-arrow:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.6);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.teacher-dashboard__header-back-arrow svg {
+  width: 24px;
+  height: 24px;
+  color: #ffffff;
+  stroke: #ffffff;
+  stroke-width: 2.5;
+}
+
 .teacher-dashboard__header-text {
   flex: 1;
   min-width: 200px;
@@ -111,9 +143,25 @@
   }
 
   .teacher-dashboard__header-content {
-    flex-direction: column;
-    align-items: stretch;
+    flex-wrap: wrap;
     gap: 1rem;
+  }
+
+  /* Keep back arrow consistent with admin on mobile */
+  .teacher-dashboard__header-back-arrow {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+
+  .teacher-dashboard__header-back-arrow svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .teacher-dashboard__header-text {
+    flex: 1;
+    min-width: 150px;
   }
 
   .teacher-dashboard__title {
@@ -124,6 +172,7 @@
     min-width: unset;
     max-width: unset;
     width: 100%;
+    flex-basis: 100%;
   }
 }
 
@@ -179,25 +228,7 @@
   background-color: #f59e0b;
 }
 
-/* Back Button */
-.teacher-dashboard__back-btn {
-  background: none;
-  border: none;
-  color: #64748b;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: color 0.2s ease;
-}
-
-.teacher-dashboard__back-btn:hover {
-  color: #334155;
-}
+/* Old Back Button - REMOVED, now using header back arrow */
 
 /* Empty State */
 .teacher-dashboard__empty-state {
@@ -265,34 +296,98 @@
   box-shadow: 0 6px 16px rgba(251, 191, 36, 0.35);
 }
 
-/* Classes Grid */
+/* Classes Grid - Image-based cards like PlayGroup */
 .teacher-dashboard__classes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  justify-content: center;
 }
 
-/* Class Card */
+/* Class Card - Image-based style */
 .teacher-dashboard__class-card {
-  background-color: white;
-  border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f1f5f9;
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 2px solid transparent;
 }
 
 .teacher-dashboard__class-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  transform: translateY(-4px);
-  border-color: #fbbf24;
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  border-color: #FFCB10;
 }
 
+/* Class Card Image Box with blur overlay */
+.teacher-dashboard__class-image-box {
+  width: 100%;
+  height: 160px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f9f9f9;
+  position: relative;
+}
+
+
+.teacher-dashboard__class-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.teacher-dashboard__class-card:hover .teacher-dashboard__class-image {
+  transform: scale(1.05);
+}
+
+/* Fallback Icon when no image */
+.teacher-dashboard__class-icon-fallback {
+  width: 100%;
+  height: 160px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 8px;
+  color: #f59e0b;
+}
+
+/* Class Card Name */
+.teacher-dashboard__class-card-name {
+  margin: 0 0 8px 0;
+  color: #333333;
+  font-size: clamp(13px, 3.5vw, 16px);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  text-align: center;
+  padding: 0 4px;
+  box-sizing: border-box;
+}
+
+/* Student Count Badge */
+.teacher-dashboard__class-student-badge {
+  display: inline-block;
+  background: #e0f2fe;
+  color: #0284c7;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* Legacy styles kept for compatibility */
 .teacher-dashboard__class-icon {
   width: 60px;
   height: 60px;
@@ -882,57 +977,62 @@
    QUICK ACTIONS SECTION
    =========================================== */
 .teacher-dashboard__quick-actions {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
   margin-bottom: 2rem;
+  width: 100%;
 }
 
 .teacher-dashboard__quick-action {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1.25rem 1.5rem;
-  border-radius: 1rem;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  border-radius: 0.875rem;
   cursor: pointer;
   text-align: left;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
+  width: 100%;
 }
 
 .teacher-dashboard__quick-action--primary {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  box-shadow: 0 4px 16px rgba(251, 191, 36, 0.35);
-  padding: 1.75rem 2rem;
+  background: linear-gradient(135deg, #fef9c3 0%, #fefce8 100%);
+  border: 2px solid #fef3c7;
+  box-shadow: 0 4px 16px rgba(202, 138, 4, 0.15);
+  padding: 1.125rem 1.5rem;
+  width: 100%;
 }
 
 .teacher-dashboard__quick-action--primary:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(251, 191, 36, 0.45);
+  box-shadow: 0 8px 24px rgba(202, 138, 4, 0.25);
+  background: linear-gradient(135deg, #fefce8 0%, #fffbeb 100%);
 }
 
 .teacher-dashboard__quick-action--primary .teacher-dashboard__quick-action-icon {
-  width: 56px;
-  height: 56px;
-  background: rgba(255, 255, 255, 0.25);
-  border-radius: 14px;
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: #ca8a04;
   flex-shrink: 0;
 }
 
 .teacher-dashboard__quick-action--primary .teacher-dashboard__quick-action-content h3 {
-  font-size: 1.25rem;
+  font-size: 1.0625rem;
   font-weight: 800;
-  color: white;
-  margin: 0 0 0.25rem 0;
+  color: #ca8a04;
+  margin: 0 0 0.125rem 0;
 }
 
 .teacher-dashboard__quick-action--primary .teacher-dashboard__quick-action-content p {
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.8125rem;
+  color: #d97706;
   margin: 0;
   font-weight: 500;
 }
@@ -983,11 +1083,11 @@
 /* Quick Actions responsive */
 @media (max-width: 640px) {
   .teacher-dashboard__quick-actions {
-    grid-template-columns: 1fr;
+    margin-bottom: 1.5rem;
   }
 
   .teacher-dashboard__quick-action--primary {
-    padding: 1.25rem 1.5rem;
+    padding: 1rem 1.25rem;
   }
 }
 
@@ -1306,4 +1406,34 @@
   margin-top: 8px;
   font-size: 0.875rem;
   color: #64748b;
+}
+
+/* Responsive styles for image-based class cards */
+@media (max-width: 900px) {
+  .teacher-dashboard__classes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .teacher-dashboard__classes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .teacher-dashboard__class-image-box,
+  .teacher-dashboard__class-icon-fallback {
+    height: 120px;
+    margin-bottom: 10px;
+  }
+
+  .teacher-dashboard__class-card-name {
+    font-size: 13px;
+  }
+
+  .teacher-dashboard__class-student-badge {
+    font-size: 11px;
+    padding: 3px 10px;
+  }
 }
