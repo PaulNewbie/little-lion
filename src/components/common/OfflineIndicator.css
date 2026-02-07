@@ -1,0 +1,45 @@
+.offline-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  animation: slideDown 0.3s ease-out;
+}
+
+.offline-indicator.offline {
+  background: #fef3c7;
+  color: #92400e;
+  border-bottom: 2px solid #f59e0b;
+}
+
+.offline-indicator.online {
+  background: #d1fae5;
+  color: #065f46;
+  border-bottom: 2px solid #10b981;
+  animation: slideDown 0.3s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}

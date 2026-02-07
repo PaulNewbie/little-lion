@@ -12,6 +12,7 @@ import { ToastProvider } from './context/ToastContext';
 import { UnreadConcernsProvider } from './context/UnreadConcernsContext';
 import AppRoutes from './routes/routeConfig';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import OfflineIndicator from './components/common/OfflineIndicator';
 
 // Read counter imports
 import { enableReadCounter, ReadStatsDisplay } from './utils/readCounter';
@@ -27,6 +28,9 @@ function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
+          {/* Offline/online status banner */}
+          <OfflineIndicator />
+
           {/* Track page changes for read counter */}
           <PageTracker />
 
