@@ -201,19 +201,6 @@ const styles = {
     padding: '8px 0',
     fontSize: '14px'
   },
-  passwordToggle: {
-    position: 'absolute',
-    right: '12px',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    color: '#666'
-  },
-  inputWrapper: {
-    position: 'relative'
-  },
   hint: {
     fontSize: '12px',
     color: '#666',
@@ -234,9 +221,9 @@ export default function ActivatePage() {
   const urlCode = searchParams.get('code') || '';
   
   // States
-  const [step, setStep] = useState(urlCode ? 'validating' : 'enter_code'); 
-  // Steps: enter_code, validating, welcome, verify, password, success, error
-  
+  const [step, setStep] = useState(urlCode ? 'validating' : 'enter_code');
+  // Steps: enter_code, validating, welcome, verify, terms, password, success, error
+
   const [code, setCode] = useState(urlCode);
   const [userData, setUserData] = useState(null);
   const [children, setChildren] = useState([]);
@@ -262,8 +249,8 @@ export default function ActivatePage() {
       const timer = setTimeout(() => {
         window.history.replaceState({}, '', '/activate');
         navigate('/login');
-      }, 5000); // 5 seconds
-      
+      }, 5000);
+
       return () => clearTimeout(timer);
     }
   }, [step, navigate]);
@@ -309,37 +296,34 @@ export default function ActivatePage() {
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
-    // Validation
+
     if (password.length < 8) {
       setError('Password must be at least 8 characters');
       return;
     }
-    
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-    
-    // Check blocked passwords
+
     const blocked = ['password', '12345678', 'qwerty123', 'password123'];
     if (blocked.includes(password.toLowerCase())) {
       setError('Please choose a stronger password');
       return;
     }
-    
+
     setLoading(true);
-    
+
     try {
-      // Set password directly and clean up activation code document
       const result = await activationService.completeActivation(
         userData.uid,
         userData.email,
         password,
         'self',
-        userData.activationCode  // Pass activation code for cleanup
+        userData.activationCode
       );
-      
+
       if (result.success) {
         setStep('success');
       } else {
@@ -399,7 +383,7 @@ export default function ActivatePage() {
                   autoFocus
                 />
                 <p style={styles.hint}>
-                  Format: XXXX-XXXX (e.g., STAR-7842)
+                  Format: WORD-1234 (e.g., STAR-7842)
                 </p>
               </div>
               
@@ -525,10 +509,10 @@ export default function ActivatePage() {
               <div style={styles.stepDotActive} />
               <div style={styles.stepDot} />
             </div>
-            
+
             <h1 style={styles.title}>Terms & Agreement</h1>
             <p style={styles.subtitle}>Please read and accept to continue</p>
-            
+
             <div style={{
               maxHeight: '200px',
               overflowY: 'auto',
@@ -544,7 +528,7 @@ export default function ActivatePage() {
             }}>
               {TERMS_CONTENT}
             </div>
-            
+
             <label style={{
               display: 'flex',
               alignItems: 'flex-start',
@@ -561,7 +545,7 @@ export default function ActivatePage() {
               />
               <span>I have read and agree to the Terms & Agreement</span>
             </label>
-            
+
             <button
               onClick={() => setStep('password')}
               disabled={!termsAccepted}
@@ -569,7 +553,7 @@ export default function ActivatePage() {
             >
               Continue
             </button>
-            
+
             <button
               onClick={() => { setStep('verify'); setTermsAccepted(false); }}
               style={{ ...styles.linkButton, marginTop: '16px', display: 'block', textAlign: 'center', width: '100%' }}
@@ -588,12 +572,12 @@ export default function ActivatePage() {
               <div style={styles.stepDotActive} />
               <div style={styles.stepDotActive} />
             </div>
-            
+
             <h1 style={styles.title}>Create Password</h1>
             <p style={styles.subtitle}>Choose a password you'll remember</p>
-            
+
             {error && <div style={styles.error}>{error}</div>}
-            
+
             <form onSubmit={handlePasswordSubmit}>
               <div style={styles.inputGroup}>
                 <label style={styles.label}>Email</label>
@@ -604,10 +588,10 @@ export default function ActivatePage() {
                   style={styles.inputDisabled}
                 />
               </div>
-              
+
               <div style={styles.inputGroup}>
                 <label style={styles.label}>New Password</label>
-                <div style={styles.inputWrapper}>
+                <div style={{ position: 'relative' }}>
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
@@ -618,13 +602,22 @@ export default function ActivatePage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    style={styles.passwordToggle}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: '#666'
+                    }}
                   >
                     {showPassword ? 'Hide' : 'Show'}
                   </button>
                 </div>
               </div>
-              
+
               <div style={styles.inputGroup}>
                 <label style={styles.label}>Confirm Password</label>
                 <input
@@ -635,27 +628,27 @@ export default function ActivatePage() {
                   style={styles.input}
                 />
                 {confirmPassword && password === confirmPassword && (
-                  <p style={{ ...styles.hint, color: '#059669' }}>✓ Passwords match</p>
+                  <p style={{ ...styles.hint, color: '#059669' }}>Passwords match</p>
                 )}
               </div>
-              
+
               <div style={styles.infoBox}>
                 <p style={{ margin: 0, fontSize: '13px' }}>
                   <strong>Tip:</strong> Use something memorable like "ILoveJuan2024!"
                 </p>
               </div>
-              
-              <button 
-                type="submit" 
+
+              <button
+                type="submit"
                 disabled={loading}
                 style={loading ? styles.buttonDisabled : styles.button}
               >
                 {loading ? 'Setting up...' : 'Complete Setup'}
               </button>
             </form>
-            
-            <button 
-              onClick={() => setStep('verify')}
+
+            <button
+              onClick={() => setStep('terms')}
               style={{ ...styles.linkButton, marginTop: '16px', display: 'block', textAlign: 'center', width: '100%' }}
             >
               ← Back
@@ -693,18 +686,17 @@ export default function ActivatePage() {
               <p style={{ margin: '0 0 4px 0' }}><strong>Email:</strong> {userData?.email}</p>
               <p style={{ margin: 0 }}><strong>Password:</strong> The one you just created</p>
             </div>
-            
-            <button 
+
+            <button
               onClick={() => {
-                // Clear the URL params and navigate to login
                 window.history.replaceState({}, '', '/activate');
                 navigate('/login');
               }}
               style={styles.button}
             >
-              Go to Login →
+              Go to Login
             </button>
-            
+
             <p style={{ textAlign: 'center', fontSize: '12px', color: '#999', marginTop: '16px' }}>
               Redirecting to login in 5 seconds...
             </p>

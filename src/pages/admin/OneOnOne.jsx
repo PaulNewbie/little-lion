@@ -146,7 +146,7 @@ const OneOnOne = () => {
     try {
       let imageUrl = "";
       if (newServiceImage) {
-        imageUrl = await cloudinaryService.uploadImage(newServiceImage, 'one-on-one/services');
+        imageUrl = await cloudinaryService.uploadImage(newServiceImage, 'little-lions/one-on-one/services');
       }
       await addDoc(collection(db, "services"), { ...newService, imageUrl, active: true, createdAt: new Date() });
       queryClient.invalidateQueries({ queryKey: ["services"] });
@@ -165,7 +165,7 @@ const OneOnOne = () => {
     setEditing(true);
     try {
       let imageUrl = editServiceData.imageUrl;
-      if (editServiceImage) imageUrl = await cloudinaryService.uploadImage(editServiceImage, 'one-on-one/services');
+      if (editServiceImage) imageUrl = await cloudinaryService.uploadImage(editServiceImage, 'little-lions/one-on-one/services');
       await offeringsService.updateService(editServiceData.id, { ...editServiceData, imageUrl });
       queryClient.invalidateQueries({ queryKey: ["services"] });
       setShowEditModal(false);

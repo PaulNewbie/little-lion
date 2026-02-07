@@ -1,0 +1,205 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ========== HELPER FUNCTIONS ==========
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function getUserRole() {
+      return getUserData().role;
+    }
+
+    function isSuperAdmin() {
+      return getUserRole() == 'super_admin';
+    }
+
+    function isAdmin() {
+      return getUserRole() in ['admin', 'super_admin'];
+    }
+
+    function isStaff() {
+      return getUserRole() in ['admin', 'super_admin', 'teacher', 'therapist'];
+    }
+
+    function isActiveAccount() {
+      return getUserData().accountStatus == 'active' ||
+             !('accountStatus' in getUserData());
+    }
+
+    function canEnrollStudents() {
+      return isSuperAdmin() ||
+             (isActiveAccount() &&
+              getUserData().permissions.get('canEnrollStudents', false) == true);
+    }
+
+    // ========== COLLECTION RULES ==========
+
+    // Activation codes - public read needed for QR code scanning during activation
+    // Contains _tempKey for in-page password setup. Codes expire in 7 days.
+    match /activation_codes/{codeId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isAdmin();
+      allow delete: if isAuthenticated();
+      allow update: if false;
+    }
+
+    // Services - read by all staff, managed by admins
+    match /services/{serviceId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isAdmin();
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isAdmin();
+      allow update: if isAuthenticated() &&
+        (request.auth.uid == userId || isAdmin());
+      allow delete: if isAuthenticated() && isSuperAdmin();
+    }
+
+    // Children collection
+    // Staff can read all, parents can only read their own children
+    match /children/{childId} {
+      allow read: if isAuthenticated() && (
+        isStaff() || resource.data.parentId == request.auth.uid
+      );
+
+      allow create: if isAuthenticated() && canEnrollStudents();
+
+      // Admins can update everything, parents can only update photo
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        (resource.data.parentId == request.auth.uid &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['photoUrl', 'updatedAt']))
+      );
+
+      allow delete: if isAuthenticated() && isSuperAdmin();
+    }
+
+    // Assessments - admin-only, no parent or teacher access
+    match /assessments/{assessmentId} {
+      allow read: if isAuthenticated() && isStaff();
+      allow create: if isAuthenticated() && canEnrollStudents();
+      allow update: if isAuthenticated() && isAdmin();
+      allow delete: if isAuthenticated() && isSuperAdmin();
+    }
+
+    // Activities collection
+    // Parents read (filtered by child in app), staff can write
+    match /activities/{activityId} {
+      allow read: if isAuthenticated();
+
+      allow create: if isAuthenticated() && isStaff();
+
+      // Activity creator or admin can update
+      allow update: if isAuthenticated() && (
+        isAdmin() || resource.data.teacherId == request.auth.uid
+      );
+
+      allow delete: if isAuthenticated() && isAdmin();
+
+      match /comments/{commentId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated() &&
+          request.resource.data.authorId == request.auth.uid;
+        allow update, delete: if isAuthenticated() &&
+          resource.data.authorId == request.auth.uid;
+      }
+    }
+
+    // Therapy sessions
+    // Parents can read (app filters by child + visibleToParents flag)
+    // Teachers write observations, therapists write sessions
+    match /therapy_sessions/{sessionId} {
+      allow read: if isAuthenticated();
+
+      allow create: if isAuthenticated() && isStaff();
+
+      // Session creator or admin can update
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        resource.data.therapistId == request.auth.uid ||
+        resource.data.teacherId == request.auth.uid
+      );
+
+      allow delete: if isAuthenticated() && isAdmin();
+
+      match /comments/{commentId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated() &&
+          request.resource.data.authorId == request.auth.uid;
+        allow update, delete: if isAuthenticated() &&
+          resource.data.authorId == request.auth.uid;
+      }
+    }
+
+    // Concerns (parent-staff communication)
+    match /concerns/{concernId} {
+      allow read: if isAuthenticated() && (
+        resource.data.createdByUserId == request.auth.uid || isAdmin()
+      );
+
+      allow create: if isAuthenticated() &&
+        request.resource.data.createdByUserId == request.auth.uid;
+
+      allow update: if isAuthenticated() && (
+        resource.data.createdByUserId == request.auth.uid || isAdmin()
+      );
+
+      allow delete: if isAuthenticated() && isAdmin();
+
+      match /messages/{messageId} {
+        allow read: if isAuthenticated() && (
+          get(/databases/$(database)/documents/concerns/$(concernId)).data.createdByUserId == request.auth.uid ||
+          isAdmin()
+        );
+
+        allow create: if isAuthenticated() && (
+          (get(/databases/$(database)/documents/concerns/$(concernId)).data.createdByUserId == request.auth.uid &&
+           request.resource.data.senderId == request.auth.uid &&
+           request.resource.data.role == 'parent') ||
+          (isAdmin() &&
+           request.resource.data.senderId == request.auth.uid &&
+           request.resource.data.role in ['admin', 'super_admin'])
+        );
+
+        allow update: if false;
+        allow delete: if isAuthenticated() && isAdmin();
+      }
+    }
+
+    // Inquiries (parent-staff messages)
+    match /inquiries/{inquiryId} {
+      allow read: if isAuthenticated() && (
+        resource.data.parentId == request.auth.uid ||
+        resource.data.targetId == request.auth.uid ||
+        isAdmin()
+      );
+
+      allow create: if isAuthenticated() &&
+        request.resource.data.parentId == request.auth.uid;
+
+      allow update: if isAuthenticated() && (
+        resource.data.parentId == request.auth.uid ||
+        resource.data.targetId == request.auth.uid ||
+        isAdmin()
+      );
+
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Migration logs - written by Apps Script via REST API (bypasses rules)
+    match /migration_logs/{logId} {
+      allow read: if isAuthenticated() && isAdmin();
+      allow write: if false;
+    }
+  }
+}

@@ -234,6 +234,7 @@ const PlayGroupActivity = () => {
         date: dateString,
         className,
         photoUrls: uploadedUrls,
+        photoUrlsUploadedAt: new Date().toISOString(),
         participatingStudentIds: taggedStudentIds,
         teacherId: currentUser.uid,
         teacherName: `${currentUser.firstName} ${currentUser.lastName}`,

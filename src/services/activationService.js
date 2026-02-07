@@ -28,7 +28,7 @@ import {
 } from '../utils/codeGenerator';
 
 // Constants
-const ACTIVATION_EXPIRY_DAYS = 14;
+const ACTIVATION_EXPIRY_DAYS = 7;
 const ADMIN_CODE_EXPIRY_MINUTES = 10;
 
 class ActivationService {
@@ -49,7 +49,6 @@ class ActivationService {
       activationCode: code,
       activationExpiry: now + expiryMs,
       activationCreatedAt: now,
-      // Store temp password (base64 encoded) - will be deleted after activation
       _tempKey: btoa(tempPassword)
     };
   }
@@ -204,7 +203,7 @@ class ActivationService {
     let tempApp = null;
 
     try {
-      // 1. Get the temp password from activation_codes collection first
+      // 1. Get the temp password from activation_codes collection
       let tempKey = null;
 
       if (activationCode) {
@@ -224,7 +223,7 @@ class ActivationService {
       }
 
       if (!tempKey) {
-        // Fallback to email reset if no temp key (shouldn't happen)
+        // Fallback to email reset if no temp key
         console.warn('No temp key found, falling back to email reset');
         await sendPasswordResetEmail(auth, email, {
           url: `${window.location.origin}/login?activated=true`
@@ -249,7 +248,7 @@ class ActivationService {
       // 6. Sign out from temp app
       await tempAuth.signOut();
 
-      // 7. Mark account as active and remove temp key
+      // 7. Mark account as active and clean up
       await this.markAccountAsActive(uid, activatedBy, activationCode, new Date().toISOString());
 
       return { success: true, method: 'direct' };
@@ -257,8 +256,7 @@ class ActivationService {
     } catch (error) {
       console.error('Error completing activation:', error);
 
-      // If sign-in fails, the temp password might have been changed already
-      // Fall back to email reset
+      // If sign-in fails, fall back to email reset
       if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         try {
           await sendPasswordResetEmail(auth, email, {
@@ -273,7 +271,6 @@ class ActivationService {
 
       return { success: false, error: error.message };
     } finally {
-      // Clean up temp app
       if (tempApp) {
         try {
           const { deleteApp } = await import('firebase/app');
@@ -329,15 +326,14 @@ class ActivationService {
 
   /**
    * Regenerate activation code (for resend)
-   * Also generates a new temp password
+   * Also sends a password reset email as fallback
    * @param {string} uid - User's UID
-   * @param {string} email - User's email (needed to reset in Firebase Auth)
+   * @param {string} email - User's email
    * @param {object} userData - User data for creating new activation code doc
    * @returns {object} { success: boolean, newCode?: string, error?: string }
    */
   async regenerateActivationCode(uid, email, userData = null) {
     try {
-      // Generate new temp password
       const { generateSecurePassword } = await import('../utils/codeGenerator');
       const newTempPassword = generateSecurePassword(24);
 
@@ -376,8 +372,7 @@ class ActivationService {
         role: userData?.role || 'parent'
       }, activationData);
 
-      // Note: We can't easily update the Firebase Auth password without signing in
-      // The user will need to use email reset if they already changed their password
+      // Send password reset email as fallback
       await sendPasswordResetEmail(auth, email);
 
       return { success: true, newCode: activationData.activationCode };

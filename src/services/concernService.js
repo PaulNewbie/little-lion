@@ -8,7 +8,8 @@ import {
   doc,
   serverTimestamp,
   onSnapshot,
-  orderBy
+  orderBy,
+  limit
 } from 'firebase/firestore';
 
 import { db } from '../config/firebase';
@@ -201,10 +202,11 @@ class ConcernService {
      6. LISTEN TO ALL CONCERNS (Admin - Real-time)
      ✅ UPDATED: Now orders by lastUpdated for most recent activity
      ---------------------------------------------------- */
-  listenToAllConcerns(callback) {
+  listenToAllConcerns(callback, maxResults = 50) {
     const q = query(
       collection(db, 'concerns'),
-      orderBy('lastUpdated', 'desc') // ✅ Changed from createdAt to lastUpdated
+      orderBy('lastUpdated', 'desc'),
+      limit(maxResults)
     );
 
     return onSnapshot(q, (snapshot) => {
@@ -247,11 +249,12 @@ class ConcernService {
      8. GET ALL CONCERNS (One-time fetch)
      ✅ UPDATED: Now orders by lastUpdated
      ---------------------------------------------------- */
-  async getAllConcerns() {
+  async getAllConcerns(maxResults = 50) {
     try {
       const q = query(
         collection(db, 'concerns'),
-        orderBy('lastUpdated', 'desc') // ✅ Changed from createdAt to lastUpdated
+        orderBy('lastUpdated', 'desc'),
+        limit(maxResults)
       );
 
       const snapshot = await getDocs(q);

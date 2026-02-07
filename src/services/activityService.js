@@ -6,7 +6,8 @@ import {
   addDoc,
   serverTimestamp,
   onSnapshot,
-  orderBy
+  orderBy,
+  limit
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
@@ -49,13 +50,13 @@ class ActivityService {
       // A. Query General Activities (Group & Class Events)
       const activitiesRef = collection(db, 'activities');
       // Case 1: Child is specifically tagged (Legacy 1:1 or specific assignments)
-      const q1 = query(activitiesRef, where('studentId', '==', childId));
+      const q1 = query(activitiesRef, where('studentId', '==', childId), limit(50));
       // Case 2: Child is part of a group activity
-      const q2 = query(activitiesRef, where('participatingStudentIds', 'array-contains', childId));
+      const q2 = query(activitiesRef, where('participatingStudentIds', 'array-contains', childId), limit(50));
 
       // B. Query Clinical Therapy Sessions (New Collection)
       const sessionsRef = collection(db, 'therapy_sessions');
-      const q3 = query(sessionsRef, where('childId', '==', childId));
+      const q3 = query(sessionsRef, where('childId', '==', childId), limit(50));
 
       // Execute all queries in parallel
       const [snap1, snap2, snap3] = await Promise.all([
@@ -101,20 +102,20 @@ class ActivityService {
 
   // 4. Get All Group Activities (Admin Calendar)
   // Only looks at 'activities' collection to avoid fetching private clinical notes
-  async getAllPlayGroupActivities() {
+  async getAllPlayGroupActivities(maxResults = 50) {
     try {
       const q = query(
         collection(db, 'activities'),
-        where('type', '==', 'group_activity')
+        where('type', '==', 'group_activity'),
+        orderBy('date', 'desc'),
+        limit(maxResults)
       );
 
       const querySnapshot = await getDocs(q);
-      const activities = querySnapshot.docs.map(doc => ({
+      return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-
-      return activities.sort((a, b) => new Date(b.date) - new Date(a.date));
     } catch (error) {
       throw new Error('Failed to fetch group activities: ' + error.message);
     }
@@ -122,10 +123,12 @@ class ActivityService {
 
   // 5. Real-time listener for Play Group Activities (Admin Dashboard)
   // Returns unsubscribe function for cleanup
-  listenToPlayGroupActivities(callback) {
+  listenToPlayGroupActivities(callback, maxResults = 50) {
     const q = query(
       collection(db, 'activities'),
-      where('type', '==', 'group_activity')
+      where('type', '==', 'group_activity'),
+      orderBy('date', 'desc'),
+      limit(maxResults)
     );
 
     return onSnapshot(q, (snapshot) => {
@@ -133,8 +136,6 @@ class ActivityService {
         id: doc.id,
         ...doc.data()
       }));
-      // Sort by date descending (newest first)
-      activities.sort((a, b) => new Date(b.date) - new Date(a.date));
       callback(activities);
     }, (error) => {
       console.error('Error listening to play group activities:', error);

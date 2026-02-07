@@ -21,6 +21,7 @@ const ADMIN_CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /**
  * Generate a user-friendly activation code
  * Format: WORD-1234 (e.g., STAR-7842)
+ * Warm, easy to read aloud - designed for parents including older users
  * @returns {string} Activation code
  */
 export function generateActivationCode() {
@@ -61,7 +62,7 @@ export function normalizeCode(code) {
 export function isValidActivationCodeFormat(code) {
   if (!code) return false;
   const normalized = normalizeCode(code);
-  // Should be 8 characters: 4 letters + 4 numbers
+  // WORD-1234 format: 4 letters + 4 numbers = 8 chars
   return /^[A-Z]{4}[0-9]{4}$/.test(normalized);
 }
 
