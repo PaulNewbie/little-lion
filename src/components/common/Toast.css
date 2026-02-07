@@ -112,3 +112,37 @@
 .toast-info .toast-close {
   color: #1e40af;
 }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .toast {
+    left: 12px;
+    right: 12px;
+    max-width: none;
+    transform: translateY(-120%);
+  }
+
+  .toast-show {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .toast {
+    top: 12px;
+    left: 8px;
+    right: 8px;
+    padding: 12px 14px;
+    font-size: 14px;
+    gap: 10px;
+  }
+
+  .toast-close {
+    font-size: 22px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

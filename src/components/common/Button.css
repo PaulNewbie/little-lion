@@ -122,3 +122,35 @@
 .btn:active:not(:disabled) {
   transform: translateY(0);
 }
+
+/* Responsive - Touch-friendly sizing */
+@media (max-width: 768px) {
+  .btn--small {
+    padding: 10px 16px;
+    min-height: 40px;
+  }
+
+  .btn--medium {
+    padding: 12px 24px;
+    min-height: 44px;
+  }
+
+  .btn--large {
+    padding: 14px 28px;
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn--small {
+    font-size: 13px;
+  }
+
+  .btn--medium {
+    font-size: 14px;
+  }
+
+  .btn--large {
+    font-size: 15px;
+  }
+}

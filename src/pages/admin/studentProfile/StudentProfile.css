@@ -1418,12 +1418,104 @@
   }
   .calendar-view-container {
     grid-template-columns: 1fr;
+    flex-direction: column;
   }
   .calendar-section {
     border-right: none;
     border-bottom: 1px solid #eee;
     padding-right: 0;
     padding-bottom: 30px;
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-wrapper {
+    padding: 20px 16px 40px 16px;
+  }
+
+  .profile-fullname {
+    font-size: 24px;
+  }
+
+  .profile-details {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .services-list {
+    grid-template-columns: 1fr;
+  }
+
+  .services-split-row {
+    gap: 20px;
+  }
+
+  .report-meta-grid {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .report-section {
+    padding: 16px;
+  }
+
+  .add-service-modal {
+    width: 100%;
+    padding: 20px;
+  }
+
+  .header-back-arrow svg {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-wrapper {
+    padding: 16px 12px 30px 12px;
+  }
+
+  .profile-fullname {
+    font-size: 20px;
+  }
+
+  .profile-info {
+    padding: 20px 16px;
+  }
+
+  .assessment-toggle-btn {
+    padding: 12px 24px;
+    font-size: 13px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .calendar-view-container {
+    padding: 16px;
+  }
+
+  .daily-records-list {
+    max-height: 300px;
+    padding-right: 4px;
+  }
+
+  .date-heading {
+    font-size: 18px;
+  }
+
+  .modal-select {
+    font-size: 16px; /* Prevent iOS zoom */
+  }
+
+  .header-back-arrow svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .header-title-text {
+    font-size: 1.2rem;
   }
 }
 
@@ -1517,7 +1609,9 @@
   padding: 25px;
   border-radius: 12px;
   width: 400px;
+  max-width: 95%;
   box-shadow: 0 4px 20px rgba(0,0,0,0);
+  box-sizing: border-box;
 }
 
 

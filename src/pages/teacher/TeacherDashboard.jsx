@@ -361,7 +361,7 @@ const TeacherDashboard = () => {
                     Complete Your Profile
                   </h3>
                   <p className="teacher-dashboard__profile-banner-text">
-                    Help parents know you better by adding your credentials, bio, and certifications.
+                    Please add your profile photo and contact information to help parents and staff identify you.
                   </p>
                 </div>
                 <button
@@ -369,6 +369,27 @@ const TeacherDashboard = () => {
                   className="teacher-dashboard__profile-banner-button"
                 >
                   Complete Now
+                </button>
+              </div>
+            )}
+
+            {/* Credentials Completion Banner - shows when profile is done but credentials aren't */}
+            {currentUser?.profilePhoto && currentUser?.phone && currentUser?.gender && (!currentUser?.licenseType && !currentUser?.teachingLicense && !currentUser?.prcIdNumber) && (
+              <div className="teacher-dashboard__profile-banner teacher-dashboard__profile-banner--credentials">
+                <div>
+                  <h3 className="teacher-dashboard__profile-banner-title">
+                    <ClipboardList size={20} />
+                    Add Your Teaching Credentials
+                  </h3>
+                  <p className="teacher-dashboard__profile-banner-text">
+                    Your teaching license and credentials are not yet completed. Please update your credentials to keep your profile up to date.
+                  </p>
+                </div>
+                <button
+                  onClick={() => navigate('/teacher/profile')}
+                  className="teacher-dashboard__profile-banner-button"
+                >
+                  Add Credentials
                 </button>
               </div>
             )}

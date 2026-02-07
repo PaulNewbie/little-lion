@@ -89,6 +89,12 @@ const TherapistProfile = () => {
   // Check if profile has required fields completed
   const isProfileComplete = formData.profilePhoto && formData.firstName && formData.lastName && formData.phone;
 
+  // Check if credentials are filled in (therapists need at least 1 license)
+  const isCredentialsComplete = formData.licenses?.length > 0;
+
+  // Check if education section has entries
+  const isEducationComplete = (formData.educationHistory?.length > 0) || (formData.certifications?.length > 0);
+
   // Render tab icon
   const renderTabIcon = (iconName) => {
     switch (iconName) {
@@ -852,6 +858,30 @@ const TherapistProfile = () => {
                     </div>
                   </div>
 
+                  {/* Credentials Status Indicator */}
+                  {!isCredentialsComplete && (
+                    <div className="tp-credential-status tp-credential-status--incomplete">
+                      <div className="tp-credential-status-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10"/>
+                          <line x1="12" y1="8" x2="12" y2="12"/>
+                          <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                      </div>
+                      <div className="tp-credential-status-content">
+                        <span className="tp-credential-status-label">Professional Credentials Incomplete</span>
+                        <span className="tp-credential-status-text">Please add at least one professional license to complete your profile.</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="tp-credential-status-btn"
+                        onClick={() => setActiveTab('credentials')}
+                      >
+                        Add Credentials
+                      </button>
+                    </div>
+                  )}
+
                   {/* Licenses Summary Card */}
                   {formData.licenses?.length > 0 && (
                     <div className="tp-licenses-card">
@@ -891,22 +921,29 @@ const TherapistProfile = () => {
               {/* Tab Navigation */}
               <div className="tp-tabs-nav">
                 <div className="tp-tabs-list">
-                  {TABS.map((tab) => (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      className={`tp-tab-btn ${activeTab === tab.id ? 'tp-tab-btn--active' : ''}`}
-                      onClick={() => {
-                        if (!isEditing) {
-                          setActiveTab(tab.id);
-                        }
-                      }}
-                      disabled={isEditing && activeTab !== tab.id}
-                    >
-                      {renderTabIcon(tab.icon)}
-                      <span>{tab.label}</span>
-                    </button>
-                  ))}
+                  {TABS.map((tab) => {
+                    const needsAttention =
+                      (tab.id === 'personal' && !isProfileComplete) ||
+                      (tab.id === 'credentials' && !isCredentialsComplete) ||
+                      (tab.id === 'education' && !isEducationComplete);
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        className={`tp-tab-btn ${activeTab === tab.id ? 'tp-tab-btn--active' : ''} ${needsAttention && activeTab !== tab.id ? 'tp-tab-btn--attention' : ''}`}
+                        onClick={() => {
+                          if (!isEditing) {
+                            setActiveTab(tab.id);
+                          }
+                        }}
+                        disabled={isEditing && activeTab !== tab.id}
+                      >
+                        {renderTabIcon(tab.icon)}
+                        <span>{tab.label}</span>
+                        {needsAttention && <span className="tp-tab-badge" />}
+                      </button>
+                    );
+                  })}
                 </div>
                 {!isEditing && (
                   <button type="button" className="tp-btn-edit" onClick={startEditing}>

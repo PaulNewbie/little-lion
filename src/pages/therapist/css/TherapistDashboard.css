@@ -239,6 +239,29 @@
   transform: translateY(-2px);
 }
 
+/* Credentials Banner Variant */
+.therapist-dashboard__profile-banner--credentials {
+  background-color: #dbeafe;
+  border-color: #60a5fa;
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1);
+}
+
+.therapist-dashboard__profile-banner--credentials .therapist-dashboard__profile-banner-title {
+  color: #1e40af;
+}
+
+.therapist-dashboard__profile-banner--credentials .therapist-dashboard__profile-banner-text {
+  color: #1d4ed8;
+}
+
+.therapist-dashboard__profile-banner--credentials .therapist-dashboard__profile-banner-button {
+  background-color: #3b82f6;
+}
+
+.therapist-dashboard__profile-banner--credentials .therapist-dashboard__profile-banner-button:hover {
+  background-color: #2563eb;
+}
+
 @media (max-width: 640px) {
   .therapist-dashboard__profile-banner {
     flex-direction: column;

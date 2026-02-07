@@ -5,7 +5,7 @@ import { ROUTES } from "../../routes/routeConfig";
 import ErrorMessage from "../../components/common/ErrorMessage";
 import { ChevronDown, Volume2, VolumeX, Mail, Phone, Eye, EyeOff } from 'lucide-react';
 import logo from '../../images/logo.webp';
-import childImage from '../../images/child.webp';
+import childImage from '../../images/login pic.jpg';
 import "./LandingPage.css";
 
 const LandingPage = () => {
@@ -27,10 +27,11 @@ const LandingPage = () => {
   const loginRef = useRef(null);
   const audioRef = useRef(null);
   const volumeControlRef = useRef(null);
+  const userMutedRef = useRef(false);
 
   // Smooth scroll function
   const scrollToLogin = () => {
-    if (audioRef.current && !isPlaying) {
+    if (audioRef.current && !isPlaying && !userMutedRef.current) {
       audioRef.current.play()
         .then(() => setIsPlaying(true))
         .catch(err => console.error("Playback failed:", err));
@@ -38,10 +39,10 @@ const LandingPage = () => {
     loginRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Start audio on scroll (every time user scrolls, audio plays if stopped)
+  // Start audio on first scroll only (respects user mute)
   useEffect(() => {
     const startAudioOnScroll = () => {
-      if (audioRef.current && !isPlaying) {
+      if (audioRef.current && !isPlaying && !userMutedRef.current) {
         audioRef.current.volume = volume;
         audioRef.current.play().then(() => {
           setIsPlaying(true);
@@ -76,7 +77,9 @@ const LandingPage = () => {
       if (isPlaying) {
         audioRef.current.pause();
         setIsPlaying(false);
+        userMutedRef.current = true;
       } else {
+        userMutedRef.current = false;
         audioRef.current.play().then(() => {
           setIsPlaying(true);
         }).catch((err) => {
@@ -150,6 +153,14 @@ const LandingPage = () => {
           aria-label={isPlaying ? 'Mute audio' : 'Play audio'}
         >
           {isPlaying ? <Volume2 size={20} /> : <VolumeX size={20} />}
+          {isPlaying && (
+            <div className="equalizer-bars">
+              <span className="eq-bar"></span>
+              <span className="eq-bar"></span>
+              <span className="eq-bar"></span>
+              <span className="eq-bar"></span>
+            </div>
+          )}
         </button>
 
         <div className={`volume-slider-container ${showVolumeSlider ? 'visible' : ''}`}>
@@ -163,7 +174,7 @@ const LandingPage = () => {
             className="volume-slider"
             aria-label="Volume control"
           />
-          <div className="volume-level" style={{ width: `${volume * 100}%` }} />
+          <div className="volume-level" style={{ width: `calc((100% - 24px) * ${volume})` }} />
         </div>
       </div>
 
@@ -183,9 +194,9 @@ const LandingPage = () => {
               <p className="welcome-subtitle">Welcome to the</p>
             </div>
 
-            <svg viewBox="0 0 800 180" className="portal-curved-svg">
+            <svg viewBox="0 0 1000 200" className="portal-curved-svg desktop-only">
               <defs>
-                <path id="curvedPath" d="M 40,160 Q 400,10 760,160" fill="transparent" />
+                <path id="curvedPath" d="M 30,185 Q 500,5 970,185" fill="transparent" />
               </defs>
               <text>
                 <textPath xlinkHref="#curvedPath" startOffset="50%" textAnchor="middle" className="curved-portal-title">
@@ -193,6 +204,7 @@ const LandingPage = () => {
                 </textPath>
               </text>
             </svg>
+            <h2 className="mobile-portal-title mobile-only">LITTLE LIONS TEAM PORTAL</h2>
           </div>
         </div>
       </div>

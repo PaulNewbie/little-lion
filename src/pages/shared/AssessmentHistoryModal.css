@@ -73,3 +73,47 @@
   margin: 0;
   font-size: 15px;
 }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal-container--large.assessment-history-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: 95vh;
+    height: auto;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .modal-overlay:has(.assessment-history-modal) {
+    padding-top: 10px;
+    align-items: flex-end;
+  }
+
+  .assessment-modal-close-btn {
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    font-size: 22px;
+  }
+
+  .assessment-loading {
+    padding: 40px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-container--large.assessment-history-modal {
+    max-height: 90vh;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .assessment-modal-close-btn {
+    top: 10px;
+    right: 10px;
+  }
+
+  .assessment-loading {
+    padding: 30px 16px;
+  }
+}

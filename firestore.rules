@@ -39,6 +39,22 @@ service cloud.firestore {
               getUserData().permissions.get('canEnrollStudents', false) == true);
     }
 
+    // Check if the authenticated parent owns a specific child
+    // Requires parent's user doc to have childrenIds array
+    function parentHasChild(childId) {
+      return childId != null &&
+             'childrenIds' in getUserData() &&
+             getUserData().childrenIds.hasAny([childId]);
+    }
+
+    // Check if parent can read an activity (by studentId or participatingStudentIds)
+    function canParentReadActivity(activityData) {
+      return ('studentId' in activityData && parentHasChild(activityData.studentId)) ||
+             ('participatingStudentIds' in activityData &&
+              'childrenIds' in getUserData() &&
+              getUserData().childrenIds.hasAny(activityData.participatingStudentIds));
+    }
+
     // ========== COLLECTION RULES ==========
 
     // Activation codes - public read needed for QR code scanning during activation
@@ -46,11 +62,13 @@ service cloud.firestore {
     match /activation_codes/{codeId} {
       allow read: if true;
       allow create: if isAuthenticated() && isAdmin();
-      allow delete: if isAuthenticated();
+      // Only the code owner (activating user) or admins can delete
+      allow delete: if isAuthenticated() &&
+        (resource.data.userId == request.auth.uid || isAdmin());
       allow update: if false;
     }
 
-    // Services - read by all staff, managed by admins
+    // Services - read by all authenticated users, managed by admins
     match /services/{serviceId} {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated() && isAdmin();
@@ -60,8 +78,16 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() && isAdmin();
-      allow update: if isAuthenticated() &&
-        (request.auth.uid == userId || isAdmin());
+
+      // SECURITY: Self-updates cannot modify role, permissions, or permissionsHistory
+      // These fields are admin-only. accountStatus is allowed for activation flow.
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        (request.auth.uid == userId &&
+         !request.resource.data.diff(resource.data).affectedKeys()
+           .hasAny(['role', 'permissions', 'permissionsHistory']))
+      );
+
       allow delete: if isAuthenticated() && isSuperAdmin();
     }
 
@@ -93,9 +119,12 @@ service cloud.firestore {
     }
 
     // Activities collection
-    // Parents read (filtered by child in app), staff can write
+    // SECURITY: Staff read all, parents only read their own children's activities
     match /activities/{activityId} {
-      allow read: if isAuthenticated();
+      allow read: if isAuthenticated() && (
+        isStaff() ||
+        canParentReadActivity(resource.data)
+      );
 
       allow create: if isAuthenticated() && isStaff();
 
@@ -107,7 +136,13 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && isAdmin();
 
       match /comments/{commentId} {
-        allow read: if isAuthenticated();
+        // Staff can read all; parents can read if they have access to parent activity
+        allow read: if isAuthenticated() && (
+          isStaff() ||
+          canParentReadActivity(
+            get(/databases/$(database)/documents/activities/$(activityId)).data
+          )
+        );
         allow create: if isAuthenticated() &&
           request.resource.data.authorId == request.auth.uid;
         allow update, delete: if isAuthenticated() &&
@@ -116,10 +151,12 @@ service cloud.firestore {
     }
 
     // Therapy sessions
-    // Parents can read (app filters by child + visibleToParents flag)
-    // Teachers write observations, therapists write sessions
+    // SECURITY: Staff read all, parents only read their own children's sessions
     match /therapy_sessions/{sessionId} {
-      allow read: if isAuthenticated();
+      allow read: if isAuthenticated() && (
+        isStaff() ||
+        ('childId' in resource.data && parentHasChild(resource.data.childId))
+      );
 
       allow create: if isAuthenticated() && isStaff();
 
@@ -133,7 +170,14 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && isAdmin();
 
       match /comments/{commentId} {
-        allow read: if isAuthenticated();
+        // Staff can read all; parents can read if they have access to parent session
+        allow read: if isAuthenticated() && (
+          isStaff() ||
+          ('childId' in get(/databases/$(database)/documents/therapy_sessions/$(sessionId)).data &&
+           parentHasChild(
+             get(/databases/$(database)/documents/therapy_sessions/$(sessionId)).data.childId
+           ))
+        );
         allow create: if isAuthenticated() &&
           request.resource.data.authorId == request.auth.uid;
         allow update, delete: if isAuthenticated() &&
@@ -194,6 +238,12 @@ service cloud.firestore {
       );
 
       allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Metadata - staff summaries, cached aggregations
+    match /metadata/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isAdmin();
     }
 
     // Migration logs - written by Apps Script via REST API (bypasses rules)

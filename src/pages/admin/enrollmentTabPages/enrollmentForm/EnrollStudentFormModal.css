@@ -706,6 +706,134 @@ button {
   }
 }
 
+@media (max-width: 768px) {
+  .multi-step-modal {
+    width: 100%;
+    max-height: 95vh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .modal-header-sticky {
+    padding: 20px;
+  }
+
+  .modal-header-flex h2 {
+    font-size: 1.15rem;
+  }
+
+  .enroll-form-scroll {
+    padding: 20px;
+  }
+
+  .sticky-footer {
+    padding: 16px 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .left-actions,
+  .right-actions {
+    gap: 10px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .grid-3-col {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .form-row.three-col {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .service-assign-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .assessment-tools-header {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .assessment-tool-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .assessment-tool-row .remove-entry-btn {
+    margin-top: 0;
+  }
+
+  .independence-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .independence-row select {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .multi-step-modal {
+    border-radius: 12px 12px 0 0;
+  }
+
+  .modal-header-sticky {
+    padding: 16px;
+  }
+
+  .enroll-form-scroll {
+    padding: 16px;
+  }
+
+  .sticky-footer {
+    padding: 12px 16px;
+    flex-direction: column;
+  }
+
+  .left-actions,
+  .right-actions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .create-btn,
+  .cancel-btn,
+  .save-draft-btn,
+  .cancel-btn-alt,
+  .skip-btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    min-height: 44px;
+  }
+
+  .form-section h3 {
+    font-size: 1rem;
+    margin-bottom: 20px;
+  }
+
+  .input-group input,
+  .input-group select,
+  .input-group textarea {
+    font-size: 16px; /* Prevent iOS zoom */
+  }
+
+  .skipped-banner-content {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
 /* =============================================================================
    6A. ASSESSMENT TOOLS & MEASURES (STEP 6 – FORM STYLE)
    ============================================================================= */
