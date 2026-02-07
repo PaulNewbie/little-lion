@@ -627,6 +627,31 @@
   color: #334155;
 }
 
+.pg-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FFCB10, #f59e0b);
+  color: #ffffff;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.pg-avatar-sm {
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+}
+
+.pg-avatar-md {
+  width: 36px;
+  height: 36px;
+  font-size: 15px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
 .pg-no-photos-msg {
   font-size: 13px;
   color: #94a3b8;

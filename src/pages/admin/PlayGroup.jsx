@@ -427,7 +427,13 @@ const PlayGroup = () => {
                                   ) : (
                                     activityStudents.map(child => (
                                       <div key={child.id} className="pg-activity-student-chip">
-                                        <img src={child.photoUrl || "https://via.placeholder.com/24"} alt={child.firstName} />
+                                        {child.photoUrl ? (
+                                          <img src={child.photoUrl} alt={child.firstName} />
+                                        ) : (
+                                          <span className="pg-avatar-placeholder pg-avatar-sm">
+                                            {child.firstName?.charAt(0)?.toUpperCase() || '?'}
+                                          </span>
+                                        )}
                                         <span>{child.firstName} {child.lastName?.charAt(0)}.</span>
                                       </div>
                                     ))
@@ -477,7 +483,13 @@ const PlayGroup = () => {
                         <div className="pg-attendance-grid">
                           {getPresentChildren().map(child => (
                             <div key={child.id} className="pg-simple-student-card">
-                              <img src={child.photoUrl || "https://via.placeholder.com/40"} alt={child.firstName} />
+                              {child.photoUrl ? (
+                                <img src={child.photoUrl} alt={child.firstName} />
+                              ) : (
+                                <span className="pg-avatar-placeholder pg-avatar-md">
+                                  {child.firstName?.charAt(0)?.toUpperCase() || '?'}
+                                </span>
+                              )}
                               <span className="pg-student-name">{child.firstName} {child.lastName}</span>
                             </div>
                           ))}
