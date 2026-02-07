@@ -259,16 +259,41 @@ class ActivationService {
     } catch (error) {
       console.error('Error completing activation:', error);
 
-      // If sign-in fails, fall back to email reset
+      // Temp password invalid - may have been changed in a previous partial attempt
+      // Try signing in with the password the user just entered
       if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        let retryApp = null;
         try {
-          await sendPasswordResetEmail(auth, email, {
-            url: `${window.location.origin}/login?activated=true`
-          });
-          await this.markAccountAsActive(uid, activatedBy, activationCode, new Date().toISOString());
-          return { success: true, method: 'email_reset', fallback: true };
-        } catch (resetError) {
-          return { success: false, error: 'Failed to set password. Please contact support.' };
+          retryApp = initializeApp(firebaseConfig, 'retryApp-' + Date.now());
+          const retryAuth = getAuth(retryApp);
+          await signInWithEmailAndPassword(retryAuth, email, newPassword);
+
+          // It worked - password was already set from a previous attempt
+          // Just mark the account as active
+          const { getFirestore } = await import('firebase/firestore');
+          const retryDb = getFirestore(retryApp);
+          await this.markAccountAsActive(uid, activatedBy, activationCode, new Date().toISOString(), retryDb);
+
+          await retryAuth.signOut();
+          return { success: true, method: 'retry' };
+        } catch (retryError) {
+          // Can't sign in with either password - send email reset
+          // Skip markAccountAsActive since we can't authenticate
+          try {
+            await sendPasswordResetEmail(auth, email, {
+              url: `${window.location.origin}/login?activated=true`
+            });
+            return { success: true, method: 'email_reset', fallback: true };
+          } catch (resetError) {
+            return { success: false, error: 'Failed to set password. Please contact support.' };
+          }
+        } finally {
+          if (retryApp) {
+            try {
+              const { deleteApp } = await import('firebase/app');
+              await deleteApp(retryApp);
+            } catch (e) {}
+          }
         }
       }
 
