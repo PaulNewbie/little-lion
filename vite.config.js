@@ -42,6 +42,28 @@ export default defineConfig({
       }
     })
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'firebase': [
+            'firebase/app',
+            'firebase/auth',
+            'firebase/firestore',
+            'firebase/storage',
+          ],
+          'vendor': [
+            'react',
+            'react-dom',
+            'react-router-dom',
+          ],
+          'query': [
+            '@tanstack/react-query',
+          ],
+        },
+      },
+    },
+  },
   server: {
     port: 3000,
     open: true,

@@ -7,7 +7,7 @@ import Sidebar from '../../components/sidebar/Sidebar';
 import { getTherapistConfig } from '../../components/sidebar/sidebarConfigs';
 import { Mail, Phone, X, Play, MessageCircle, Hand, Activity, Brain, TrendingUp, BookOpen, Briefcase, User, ClipboardList } from 'lucide-react';
 import { useTherapistDashboardData } from '../../hooks/useCachedData';
-import logo from '../../images/logo.png';
+import logo from '../../images/logo.webp';
 import './css/TherapistDashboard.css';
 import WelcomeModal from '../../components/common/WelcomeModal';
 

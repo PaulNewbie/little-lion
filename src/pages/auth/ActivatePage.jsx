@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import activationService from '../../services/activationService';
 import { useToast } from '../../context/ToastContext';
-import bgImage from '../../images/Little-lion-bg.png';
+import bgImage from '../../images/Little-lion-bg.webp';
 
 // Terms and Agreement content
 const TERMS_CONTENT = `Welcome to Little Lions Learning and Development Center's Parent Portal.

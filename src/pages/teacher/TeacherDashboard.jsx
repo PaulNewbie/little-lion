@@ -13,7 +13,7 @@ import QuickSelectTags from '../../components/common/form-elements/QuickSelectTa
 import VoiceInput from '../../components/common/form-elements/VoiceInput';
 import { Mail, Phone, Camera, FileEdit, X, ClipboardList, Users, ChevronRight, ArrowLeft, Search } from 'lucide-react';
 import { useTeacherDashboardData } from '../../hooks/useCachedData';
-import logo from '../../images/logo.png';
+import logo from '../../images/logo.webp';
 import './css/TeacherDashboard.css';
 import WelcomeModal from '../../components/common/WelcomeModal';
 

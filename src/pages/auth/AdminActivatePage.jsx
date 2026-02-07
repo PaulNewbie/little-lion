@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../../config/firebase';
 import activationService from '../../services/activationService';
-import bgImage from '../../images/Little-lion-bg.png';
+import bgImage from '../../images/Little-lion-bg.webp';
 
 const styles = {
   container: {

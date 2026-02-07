@@ -1,0 +1,8 @@
+name = "little-lions"
+compatibility_date = "2026-02-07"
+pages_build_output_dir = "./dist"
+
+[vars]
+# Environment variables are set in the Cloudflare dashboard, not here.
+# Go to Workers & Pages > little-lions > Settings > Environment variables
+# and add your VITE_FIREBASE_* and VITE_CLOUDINARY_* variables there.

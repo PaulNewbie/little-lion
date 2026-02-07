@@ -4,9 +4,8 @@ import { useAuth } from "../../hooks/useAuth";
 import { ROUTES } from "../../routes/routeConfig";
 import ErrorMessage from "../../components/common/ErrorMessage";
 import { ChevronDown, Volume2, VolumeX, Mail, Phone, Eye, EyeOff } from 'lucide-react';
-import logo from '../../images/logo.png';
-import childImage from '../../images/child.png';
-import backgroundMusic from '../../audio/Little Lion Jingle.mp3';
+import logo from '../../images/logo.webp';
+import childImage from '../../images/child.webp';
 import "./LandingPage.css";
 
 const LandingPage = () => {
@@ -137,9 +136,9 @@ const LandingPage = () => {
 
   return (
     <div className="landing-page">
-      {/* Background Audio */}
-      <audio ref={audioRef} loop preload="auto">
-        <source src={backgroundMusic} type="audio/mpeg" />
+      {/* Background Audio - lazy loaded */}
+      <audio ref={audioRef} loop preload="none">
+        <source src={new URL('../../audio/Little Lion Jingle.mp3', import.meta.url).href} type="audio/mpeg" />
       </audio>
 
       {/* Volume Control */}

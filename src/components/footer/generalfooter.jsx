@@ -1,7 +1,7 @@
 import React from "react";
 import { Mail, Phone } from "lucide-react";
 import "./generalfooter.css";
-import logo from "../../images/logo.png";
+import logo from "../../images/logo.webp";
 
 const GeneralFooter = ({ pageLabel = "" }) => {
   return (
