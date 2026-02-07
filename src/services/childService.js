@@ -685,7 +685,7 @@ class ChildService {
 
     try {
       // Simple query without orderBy to avoid index issues
-      const snapshot = await getDocs(collection(db, COLLECTION_NAME));
+      const snapshot = await getDocs(query(collection(db, COLLECTION_NAME), limit(200)));
       trackRead(COLLECTION_NAME, snapshot.docs.length);
       
       const children = snapshot.docs.map(doc => ({

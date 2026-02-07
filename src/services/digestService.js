@@ -44,12 +44,12 @@ export const getDailyDigest = async (childId, date) => {
   try {
     // A. Query General Activities (Group & Class Events)
     const activitiesRef = collection(db, 'activities');
-    const q1 = query(activitiesRef, where('studentId', '==', childId));
-    const q2 = query(activitiesRef, where('participatingStudentIds', 'array-contains', childId));
+    const q1 = query(activitiesRef, where('studentId', '==', childId), limit(100));
+    const q2 = query(activitiesRef, where('participatingStudentIds', 'array-contains', childId), limit(100));
 
     // B. Query Clinical Therapy Sessions
     const sessionsRef = collection(db, 'therapy_sessions');
-    const q3 = query(sessionsRef, where('childId', '==', childId));
+    const q3 = query(sessionsRef, where('childId', '==', childId), limit(100));
 
     // Execute all queries in parallel
     const [snap1, snap2, snap3] = await Promise.all([
@@ -176,8 +176,8 @@ export const getLastActivityDate = async (childId) => {
 
     // Note: We query without composite indexes by fetching and sorting client-side
     const [activitySnap, sessionSnap] = await Promise.all([
-      getDocs(query(activitiesRef, where('participatingStudentIds', 'array-contains', childId))),
-      getDocs(query(sessionsRef, where('childId', '==', childId)))
+      getDocs(query(activitiesRef, where('participatingStudentIds', 'array-contains', childId), limit(100))),
+      getDocs(query(sessionsRef, where('childId', '==', childId), limit(100)))
     ]);
 
     let latestDate = null;

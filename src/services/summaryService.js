@@ -11,7 +11,8 @@ import {
   getDoc,
   setDoc,
   serverTimestamp,
-  Timestamp
+  Timestamp,
+  limit
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { trackRead } from '../utils/readCounter';
@@ -122,7 +123,8 @@ class SummaryService {
     try {
       const q = query(
         collection(db, 'therapy_sessions'),
-        where('childId', '==', childId)
+        where('childId', '==', childId),
+        limit(100)
       );
 
       const snapshot = await getDocs(q);
@@ -152,11 +154,13 @@ class SummaryService {
       // Check both studentId and participatingStudentIds
       const q1 = query(
         collection(db, 'activities'),
-        where('studentId', '==', childId)
+        where('studentId', '==', childId),
+        limit(100)
       );
       const q2 = query(
         collection(db, 'activities'),
-        where('participatingStudentIds', 'array-contains', childId)
+        where('participatingStudentIds', 'array-contains', childId),
+        limit(100)
       );
 
       const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);

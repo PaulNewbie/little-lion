@@ -35,7 +35,8 @@ class UserService {
     try {
       const q = query(
         collection(db, COLLECTION_NAME),
-        where('role', 'in', ['teacher', 'therapist'])
+        where('role', 'in', ['teacher', 'therapist']),
+        limit(200)
       );
 
       const snapshot = await getDocs(q);
@@ -65,20 +66,21 @@ class UserService {
     try {
       const q = query(
         collection(db, COLLECTION_NAME),
-        where('role', '==', role)
+        where('role', '==', role),
+        limit(200)
       );
 
       const snapshot = await getDocs(q);
       trackRead(COLLECTION_NAME, snapshot.docs.length);
-      
+
       const users = snapshot.docs.map(doc => ({
         id: doc.id,
         uid: doc.id,
         ...doc.data()
       }));
-      
+
       // Sort client-side
-      return users.sort((a, b) => 
+      return users.sort((a, b) =>
         (a.lastName || '').localeCompare(b.lastName || '')
       );
     } catch (error) {
@@ -105,7 +107,8 @@ class UserService {
       // Simple query - no orderBy to avoid index requirement
       const q = query(
         collection(db, COLLECTION_NAME),
-        where('role', '==', 'parent')
+        where('role', '==', 'parent'),
+        limit(200)
       );
 
       const snapshot = await getDocs(q);

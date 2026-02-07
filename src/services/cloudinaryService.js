@@ -1,14 +1,33 @@
 import axios from 'axios';
 
-const CLOUDINARY_CLOUD_NAME = 'dlfjnz8xq';
-const CLOUDINARY_UPLOAD_PRESET = 'little-lions';
+const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
 // Image compression settings
 const MAX_IMAGE_WIDTH = 1920;
 const MAX_IMAGE_HEIGHT = 1080;
 const IMAGE_QUALITY = 0.8; // 80% quality
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 class CloudinaryService {
+
+  /**
+   * Validate file before upload
+   */
+  validateFile(file) {
+    if (!file) throw new Error('No file provided.');
+    if (file.size > MAX_FILE_SIZE) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+      throw new Error(`File too large (${sizeMB}MB). Maximum size is 10MB.`);
+    }
+  }
+
+  validateImageFile(file) {
+    this.validateFile(file);
+    if (!file.type.startsWith('image/')) {
+      throw new Error('Invalid file type. Only images are allowed.');
+    }
+  }
   /**
    * Compress an image file before upload
    * @param {File} file - Original image file
@@ -73,6 +92,7 @@ class CloudinaryService {
    * @returns {Promise<string>} Uploaded image URL
    */
   async uploadImage(file, folder = 'little-lions/general', compress = true) {
+    this.validateImageFile(file);
     let uploadFile = file;
 
     // Compress image if enabled and file is large (> 500KB)
@@ -137,6 +157,7 @@ class CloudinaryService {
   // ✅ NEW: Generic file upload (Supports PDF, Docs)
   // Uses 'auto' upload with the docs preset, then fixes URL for PDFs
   async uploadFile(file, folder = 'little-lions/documents') {
+    this.validateFile(file);
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);

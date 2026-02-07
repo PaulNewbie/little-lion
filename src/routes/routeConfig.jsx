@@ -1,49 +1,49 @@
 // src/routes/routeConfig.jsx
 
-import React from "react";
+import React, { Suspense } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { QueryClient } from "@tanstack/react-query";
 import { useAuth } from "../hooks/useAuth";
 
-// Auth Components
-import LandingPage from "../pages/auth/LandingPage";
-import ChangePassword from "../pages/auth/ChangePassword";
-import ActivatePage from "../pages/auth/ActivatePage";
-import AdminActivatePage from "../pages/auth/AdminActivatePage";
-import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
-
-// Admin Components
-import OneOnOne from "../pages/admin/OneOnOne";
-import PlayGroup from "../pages/admin/PlayGroup";
-import ManageTeachers from "../pages/admin/ManageTeachers";
-import ManageTherapists from "../pages/admin/ManageTherapists";
-import EnrollStudent from "../pages/admin/enrollmentTabPages/EnrollStudent";
-import Concerns from "../pages/admin/Concerns";
-import ManageAdmins from "../pages/admin/ManageAdmins";
-import StudentProfile from "../pages/admin/studentProfile/StudentProfile";
-import PendingAccounts from "../pages/admin/PendingAccounts";
-import UserAccessManagement from "../pages/admin/UserAccessManagement";
-import CleanupOldStudents from "../pages/admin/utils/CleanupOldStudents";
-
-// Teacher Components
-import TeacherDashboard from "../pages/teacher/TeacherDashboard";
-import PlayGroupActivity from "../pages/teacher/PlayGroupActivity";
-import TeacherProfile from "../pages/teacher/TeacherProfile";
-
-// Therapist Components
-import TherapistDashboard from "../pages/therapist/TherapistDashboard";
-import TherapySessionForm from "../pages/therapist/TherapySessionForm";
-import TherapistProfile from "../pages/therapist/TherapistProfile";
-
-// Parent Components
-import ParentDashboard from "../pages/parent/ParentChildProfile";
-import ChildActivities from "../pages/parent/ChildActivities";
-import ParentConcerns from "../pages/parent/parentConcernsPages/ParentConcerns";
-import MonthlySummary from "../pages/parent/MonthlySummary";
-import DailyDigest from "../pages/parent/DailyDigest";
-
-// Common Components
+// Common Components (loaded eagerly - needed immediately)
 import Loading from "../components/common/Loading";
+
+// Auth Components (lazy loaded)
+const LandingPage = React.lazy(() => import("../pages/auth/LandingPage"));
+const ChangePassword = React.lazy(() => import("../pages/auth/ChangePassword"));
+const ActivatePage = React.lazy(() => import("../pages/auth/ActivatePage"));
+const AdminActivatePage = React.lazy(() => import("../pages/auth/AdminActivatePage"));
+const ForgotPasswordPage = React.lazy(() => import("../pages/auth/ForgotPasswordPage"));
+
+// Admin Components (lazy loaded)
+const OneOnOne = React.lazy(() => import("../pages/admin/OneOnOne"));
+const PlayGroup = React.lazy(() => import("../pages/admin/PlayGroup"));
+const ManageTeachers = React.lazy(() => import("../pages/admin/ManageTeachers"));
+const ManageTherapists = React.lazy(() => import("../pages/admin/ManageTherapists"));
+const EnrollStudent = React.lazy(() => import("../pages/admin/enrollmentTabPages/EnrollStudent"));
+const Concerns = React.lazy(() => import("../pages/admin/Concerns"));
+const ManageAdmins = React.lazy(() => import("../pages/admin/ManageAdmins"));
+const StudentProfile = React.lazy(() => import("../pages/admin/studentProfile/StudentProfile"));
+const PendingAccounts = React.lazy(() => import("../pages/admin/PendingAccounts"));
+const UserAccessManagement = React.lazy(() => import("../pages/admin/UserAccessManagement"));
+const CleanupOldStudents = React.lazy(() => import("../pages/admin/utils/CleanupOldStudents"));
+
+// Teacher Components (lazy loaded)
+const TeacherDashboard = React.lazy(() => import("../pages/teacher/TeacherDashboard"));
+const PlayGroupActivity = React.lazy(() => import("../pages/teacher/PlayGroupActivity"));
+const TeacherProfile = React.lazy(() => import("../pages/teacher/TeacherProfile"));
+
+// Therapist Components (lazy loaded)
+const TherapistDashboard = React.lazy(() => import("../pages/therapist/TherapistDashboard"));
+const TherapySessionForm = React.lazy(() => import("../pages/therapist/TherapySessionForm"));
+const TherapistProfile = React.lazy(() => import("../pages/therapist/TherapistProfile"));
+
+// Parent Components (lazy loaded)
+const ParentDashboard = React.lazy(() => import("../pages/parent/ParentChildProfile"));
+const ChildActivities = React.lazy(() => import("../pages/parent/ChildActivities"));
+const ParentConcerns = React.lazy(() => import("../pages/parent/parentConcernsPages/ParentConcerns"));
+const MonthlySummary = React.lazy(() => import("../pages/parent/MonthlySummary"));
+const DailyDigest = React.lazy(() => import("../pages/parent/DailyDigest"));
 
 import { hasPermission } from '../utils/permissions';
 
@@ -241,6 +241,7 @@ export const AppRoutes = () => {
   if (loading) return <Loading message="Initializing" showProgress />;
 
   return (
+    <Suspense fallback={<Loading message="Loading page" />}>
     <Routes>
       {/* PUBLIC ROUTES */}
       <Route path={ROUTES.CHANGE_PASSWORD} element={<ChangePassword />} />
@@ -293,6 +294,7 @@ export const AppRoutes = () => {
       <Route path={ROUTES.UNAUTHORIZED} element={<UnauthorizedPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
   );
 };
 

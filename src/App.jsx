@@ -11,6 +11,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { UnreadConcernsProvider } from './context/UnreadConcernsContext';
 import AppRoutes from './routes/routeConfig';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 // Read counter imports
 import { enableReadCounter, ReadStatsDisplay } from './utils/readCounter';
@@ -23,23 +24,25 @@ if (import.meta.env.DEV) {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        {/* Track page changes for read counter */}
-        <PageTracker />
-        
-        <AuthProvider>
-          <ToastProvider>
-            <UnreadConcernsProvider>
-              <AppRoutes />
-            </UnreadConcernsProvider>
-          </ToastProvider>
-        </AuthProvider>
-        
-        {/* Development: Show read stats overlay */}
-        {import.meta.env.DEV && <ReadStatsDisplay />}
-      </BrowserRouter>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          {/* Track page changes for read counter */}
+          <PageTracker />
+
+          <AuthProvider>
+            <ToastProvider>
+              <UnreadConcernsProvider>
+                <AppRoutes />
+              </UnreadConcernsProvider>
+            </ToastProvider>
+          </AuthProvider>
+
+          {/* Development: Show read stats overlay */}
+          {import.meta.env.DEV && <ReadStatsDisplay />}
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
