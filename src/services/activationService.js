@@ -245,11 +245,14 @@ class ActivationService {
       // 5. Update to new password
       await updatePassword(userCredential.user, newPassword);
 
-      // 6. Sign out from temp app
-      await tempAuth.signOut();
+      // 6. Mark account as active BEFORE signing out
+      // Use temp app's Firestore so writes are authenticated
+      const { getFirestore } = await import('firebase/firestore');
+      const tempDb = getFirestore(tempApp);
+      await this.markAccountAsActive(uid, activatedBy, activationCode, new Date().toISOString(), tempDb);
 
-      // 7. Mark account as active and clean up
-      await this.markAccountAsActive(uid, activatedBy, activationCode, new Date().toISOString());
+      // 7. Sign out from temp app
+      await tempAuth.signOut();
 
       return { success: true, method: 'direct' };
 
@@ -289,8 +292,9 @@ class ActivationService {
    * @param {string} activationCode - The activation code to delete
    * @param {string} termsAcceptedAt - ISO timestamp of terms acceptance
    */
-  async markAccountAsActive(uid, activatedBy = 'self', activationCode = null, termsAcceptedAt = null) {
-    const userRef = doc(db, 'users', uid);
+  async markAccountAsActive(uid, activatedBy = 'self', activationCode = null, termsAcceptedAt = null, dbInstance = null) {
+    const firestoreDb = dbInstance || db;
+    const userRef = doc(firestoreDb, 'users', uid);
 
     // First, set the active status
     await updateDoc(userRef, {
@@ -316,7 +320,7 @@ class ActivationService {
     // Delete the activation_codes document
     if (activationCode) {
       try {
-        const codeDocRef = doc(db, 'activation_codes', activationCode);
+        const codeDocRef = doc(firestoreDb, 'activation_codes', activationCode);
         await deleteDoc(codeDocRef);
       } catch (error) {
         // Ignore cleanup errors
