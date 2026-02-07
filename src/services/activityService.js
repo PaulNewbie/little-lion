@@ -6,7 +6,6 @@ import {
   addDoc,
   serverTimestamp,
   onSnapshot,
-  orderBy,
   limit
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
@@ -107,7 +106,6 @@ class ActivityService {
       const q = query(
         collection(db, 'activities'),
         where('type', '==', 'group_activity'),
-        orderBy('date', 'desc'),
         limit(maxResults)
       );
 
@@ -127,7 +125,6 @@ class ActivityService {
     const q = query(
       collection(db, 'activities'),
       where('type', '==', 'group_activity'),
-      orderBy('date', 'desc'),
       limit(maxResults)
     );
 
