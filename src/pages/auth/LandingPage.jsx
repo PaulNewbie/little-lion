@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { ROUTES } from "../../routes/routeConfig";
 import ErrorMessage from "../../components/common/ErrorMessage";
-import { ChevronDown, Volume2, VolumeX, Mail, Phone } from 'lucide-react';
+import { ChevronDown, Volume2, VolumeX, Mail, Phone, Eye, EyeOff } from 'lucide-react';
 import logo from '../../images/logo.png';
 import childImage from '../../images/child.png';
 import backgroundMusic from '../../audio/Little Lion Jingle.mp3';
@@ -14,6 +14,7 @@ const LandingPage = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   // Audio state
   const [isPlaying, setIsPlaying] = useState(false);
@@ -256,14 +257,24 @@ const LandingPage = () => {
                       <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
                     <input
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       onKeyPress={handleKeyPress}
                       disabled={loading}
                       className="login-input"
                       placeholder="••••••"
+                      style={{ paddingRight: '40px' }}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="password-toggle-btn"
+                      tabIndex={-1}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
                   </div>
                 </div>
 
