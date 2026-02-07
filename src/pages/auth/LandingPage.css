@@ -872,11 +872,31 @@
     letter-spacing: 1px;
   }
 
+  .login-input {
+    padding-right: 38px;
+  }
+
+  .password-toggle-btn {
+    right: 8px;
+  }
+
+  .landing-footer {
+    padding: 10px 0;
+  }
+
   .footer-content {
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 15px;
     font-size: 0.75rem;
-    gap: 12px;
-    flex-wrap: wrap;
-    padding: 0 10px;
+  }
+
+  .footer-divider {
+    display: none;
+  }
+
+  .footer-info-item {
+    justify-content: center;
   }
 
   .footer-logo-circle {
@@ -887,10 +907,6 @@
   .footer-logo-img {
     width: 28px;
     height: 28px;
-  }
-
-  .footer-divider {
-    font-size: 1.5rem;
   }
 }
 
@@ -943,126 +959,12 @@
 
   .footer-content {
     font-size: 0.7rem;
+    gap: 2px;
+  }
+
+  .login-card {
+    width: 98%;
   }
 }
 
-/* Floating Audio Button */
-.audio-control-btn {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: none;
-  background-color: #ffffff;
-  color: #ff9800; /* Primary brand color */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  transition: all 0.3s ease;
-}
 
-.audio-control-btn:hover {
-  transform: scale(1.1);
-  background-color: #fffaf0;
-}
-
-.audio-control-btn.playing {
-  background-color: #ff9800;
-  color: white;
-  animation: audioPulse 2s infinite;
-}
-
-@keyframes audioPulse {
-  0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7); }
-  70% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
-}
-
-/* Ensure icons align correctly */
-.input-with-icon {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.input-icon {
-  position: absolute;
-  left: 12px;
-  color: #666;
-}
-
-.login-input {
-  padding-left: 40px !important;
-}
-
-/* Container for both button and slider */
-.audio-controls-container {
-  position: fixed;
-  bottom: 25px;
-  right: 25px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  z-index: 9999;
-}
-
-/* Vertical volume slider that appears on hover or stays simple */
-.volume-slider-wrapper {
-  background: rgba(255, 255, 255, 0.9);
-  padding: 10px 5px;
-  border-radius: 20px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.volume-slider {
-  writing-mode: bt-lr; /* Vertical for some browsers */
-  appearance: slider-vertical;
-  width: 8px;
-  height: 80px;
-  cursor: pointer;
-}
-
-/* Customizing the slider look */
-.volume-slider::-webkit-slider-runnable-track {
-  background: #ddd;
-  border-radius: 4px;
-}
-
-.volume-slider::-webkit-slider-thumb {
-  appearance: none;
-  height: 16px;
-  width: 16px;
-  background: #ff9800;
-  border-radius: 50%;
-  margin-top: -4px;
-}
-
-/* The existing audio button now fits inside the container */
-.audio-control-btn {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  border: none;
-  background-color: white;
-  color: #ff9800;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.audio-control-btn.playing {
-  background-color: #ff9800;
-  color: white;
-}
