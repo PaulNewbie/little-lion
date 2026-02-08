@@ -437,7 +437,7 @@ export default function EnrollStudentFormModal({
 
   // Auto-save function
   const performAutoSave = useCallback(async () => {
-    if (!hasUnsavedChanges.current || isSaving) return;
+    if (!hasUnsavedChanges.current || isSaving || isAutoSaving) return;
 
     setIsAutoSaving(true);
     try {
@@ -511,7 +511,7 @@ export default function EnrollStudentFormModal({
     } finally {
       setIsAutoSaving(false);
     }
-  }, [studentInput, selectedParent, isSaving]);
+  }, [studentInput, selectedParent, isSaving, isAutoSaving]);
 
   // Set up auto-save interval
   useEffect(() => {

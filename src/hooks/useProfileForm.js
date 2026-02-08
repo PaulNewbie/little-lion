@@ -394,7 +394,8 @@ export const useProfileForm = (currentUser, role, navigate) => {
   // Save profile
   const handleSaveProfile = async (e) => {
     e.preventDefault();
-    
+    if (saving) return;
+
     const { isValid, errors, warnings } = validateProfile(formData, role);
     
     if (!isValid) {
