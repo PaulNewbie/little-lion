@@ -67,6 +67,7 @@ class AuthService {
         childrenIds: [],
         active: true,
         ...activationData,
+        createdBy: parentData.createdBy || null,
         createdAt: new Date().toISOString()
       });
 

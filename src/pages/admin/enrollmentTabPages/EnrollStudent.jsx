@@ -51,12 +51,13 @@ export default function EnrollStudent() {
   const { data: assignedStudents = [] } = useChildrenByStaff(isStaffRole ? currentUser?.uid : null);
 
   // Filter guardians based on role - teachers/therapists only see guardians of their assigned students
+  // Also include guardians they created (who may not have children enrolled yet)
   const visibleGuardians = isStaffRole
     ? (() => {
         // Get unique parentIds from assigned students
         const assignedParentIds = [...new Set(assignedStudents.map(s => s.parentId).filter(Boolean))];
-        // Filter parents to only those with assigned students
-        return allParents.filter(p => assignedParentIds.includes(p.uid));
+        // Filter parents to those with assigned students OR created by this staff member
+        return allParents.filter(p => assignedParentIds.includes(p.uid) || p.createdBy === currentUser?.uid);
       })()
     : allParents;
 
@@ -124,6 +125,7 @@ export default function EnrollStudent() {
       const result = await authService.createParentAccount(email, {
         ...profileData,
         email: email,
+        createdBy: currentUser?.uid || null,
       });
 
       // 3. refetch parents automatically
