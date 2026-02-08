@@ -40,14 +40,19 @@ service cloud.firestore {
     }
 
     // Check if the authenticated parent owns a specific child
-    // Requires parent's user doc to have childrenIds array
+    // Fast path: childrenIds array on parent's user doc
+    // Fallback: lookup child doc's parentId (for parents whose childrenIds hasn't been backfilled yet)
     function parentHasChild(childId) {
-      return childId != null &&
-             'childrenIds' in getUserData() &&
-             getUserData().childrenIds.hasAny([childId]);
+      return childId != null && (
+             ('childrenIds' in getUserData() &&
+              getUserData().childrenIds.hasAny([childId])) ||
+             get(/databases/$(database)/documents/children/$(childId)).data.parentId == request.auth.uid
+      );
     }
 
     // Check if parent can read an activity (by studentId or participatingStudentIds)
+    // Note: participatingStudentIds branch requires childrenIds to be backfilled on parent's user doc.
+    // The childrenIds backfill runs automatically on parent login via AuthContext.
     function canParentReadActivity(activityData) {
       return ('studentId' in activityData && parentHasChild(activityData.studentId)) ||
              ('participatingStudentIds' in activityData &&
@@ -145,8 +150,10 @@ service cloud.firestore {
         );
         allow create: if isAuthenticated() &&
           request.resource.data.authorId == request.auth.uid;
-        allow update, delete: if isAuthenticated() &&
-          resource.data.authorId == request.auth.uid;
+        // Comment author can update/delete their own; admins can update/delete any (for hiding)
+        allow update, delete: if isAuthenticated() && (
+          resource.data.authorId == request.auth.uid || isAdmin()
+        );
       }
     }
 
@@ -180,8 +187,10 @@ service cloud.firestore {
         );
         allow create: if isAuthenticated() &&
           request.resource.data.authorId == request.auth.uid;
-        allow update, delete: if isAuthenticated() &&
-          resource.data.authorId == request.auth.uid;
+        // Comment author can update/delete their own; admins can update/delete any (for hiding)
+        allow update, delete: if isAuthenticated() && (
+          resource.data.authorId == request.auth.uid || isAdmin()
+        );
       }
     }
 

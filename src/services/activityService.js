@@ -57,13 +57,16 @@ class ActivityService {
       const sessionsRef = collection(db, 'therapy_sessions');
       const q3 = query(sessionsRef, where('childId', '==', childId), limit(50));
 
-      // Execute all queries in parallel
-      const [snap1, snap2, snap3] = await Promise.all([
-        getDocs(q1), 
+      // Execute all queries in parallel - use allSettled so one permission error
+      // doesn't block all results (e.g. if childrenIds backfill is still pending)
+      const settled = await Promise.allSettled([
+        getDocs(q1),
         getDocs(q2),
         getDocs(q3)
       ]);
-      
+
+      const [res1, res2, res3] = settled;
+
       const results = [];
       const seenIds = new Set(); // Helper to prevent duplicates
 
@@ -72,25 +75,30 @@ class ActivityService {
         if (!seenIds.has(doc.id)) {
           seenIds.add(doc.id);
           const data = doc.data();
-          results.push({ 
-            id: doc.id, 
+          results.push({
+            id: doc.id,
             ...data,
             // Ensure type is 'therapy_session' for clinical notes so Parent UI uses the correct card
             type: sourceCollection === 'therapy_sessions' ? 'therapy_session' : data.type,
-            _collection: sourceCollection 
+            _collection: sourceCollection
           });
         }
       };
 
-      // Process General Activities
-      snap1.forEach(doc => addResult(doc, 'activities'));
-      snap2.forEach(doc => addResult(doc, 'activities'));
+      // Process General Activities (skip if query was rejected due to permissions)
+      if (res1.status === 'fulfilled') {
+        res1.value.forEach(doc => addResult(doc, 'activities'));
+      }
+      if (res2.status === 'fulfilled') {
+        res2.value.forEach(doc => addResult(doc, 'activities'));
+      }
 
       // Process Therapy Sessions
-      snap3.forEach(doc => addResult(doc, 'therapy_sessions'));
+      if (res3.status === 'fulfilled') {
+        res3.value.forEach(doc => addResult(doc, 'therapy_sessions'));
+      }
 
       // Sort combined list by Date Descending (Newest First)
-      // Note: Ensure your documents all have a consistent 'date' ISO string field
       return results.sort((a, b) => new Date(b.date) - new Date(a.date));
       
     } catch (error) {

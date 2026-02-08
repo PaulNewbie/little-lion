@@ -1,7 +1,25 @@
 import React, { createContext, useState, useEffect } from 'react';
+import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { db } from '../config/firebase';
 import authService from '../services/authService';
 
 export const AuthContext = createContext();
+
+// Backfill childrenIds on parent's user doc so Firestore rules can verify access
+const backfillChildrenIds = async (uid) => {
+  try {
+    const q = query(collection(db, 'children'), where('parentId', '==', uid));
+    const snapshot = await getDocs(q);
+    const ids = snapshot.docs.map(d => d.id);
+    if (ids.length > 0) {
+      await updateDoc(doc(db, 'users', uid), { childrenIds: ids });
+    }
+    return ids;
+  } catch (error) {
+    console.error('childrenIds backfill failed:', error);
+    return [];
+  }
+};
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -12,6 +30,16 @@ export const AuthProvider = ({ children }) => {
       if (user) {
         try {
           const userData = await authService.getUserData(user.uid);
+
+          // Auto-backfill childrenIds for parents (required by Firestore rules)
+          if (userData.role === 'parent') {
+            const hasChildrenIds = Array.isArray(userData.childrenIds) && userData.childrenIds.length > 0;
+            if (!hasChildrenIds) {
+              const ids = await backfillChildrenIds(user.uid);
+              userData.childrenIds = ids;
+            }
+          }
+
           setCurrentUser({
             uid: user.uid,
             email: user.email,
