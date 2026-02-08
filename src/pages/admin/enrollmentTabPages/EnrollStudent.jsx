@@ -102,6 +102,11 @@ export default function EnrollStudent() {
   const { data: allStudents = [], isLoading: isLoadingChildren } = useChildrenByParent(selectedParent?.uid);
   const { invalidateParents, invalidateChildrenByParent } = useCacheInvalidation();
 
+  // Filter children visible in the modal - staff only see children assigned to them
+  const visibleStudents = isStaffRole
+    ? allStudents.filter(child => assignedStudents.some(s => s.id === child.id))
+    : allStudents;
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -706,24 +711,29 @@ export default function EnrollStudent() {
                     <div className="csm-spinner"></div>
                     <p>Loading children...</p>
                   </div>
-                ) : allStudents.length === 0 ? (
+                ) : visibleStudents.length === 0 ? (
                   <div className="csm-empty">
                     <div className="csm-empty-icon">🦁</div>
-                    <h3>No Children Enrolled</h3>
-                    <p>This guardian doesn't have any children enrolled yet.</p>
-                    <button className="csm-enroll-btn" onClick={() => {
-                      setShowChildrenModal(false);
-                      setShowEnrollForm(true);
-                    }}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M12 5v14M5 12h14"/>
-                      </svg>
-                      Enroll a Child
-                    </button>
+                    <h3>{isStaffRole ? "No Children in Your Services" : "No Children Enrolled"}</h3>
+                    <p>{isStaffRole
+                      ? "No children enrolled in your services for this guardian."
+                      : "This guardian doesn't have any children enrolled yet."
+                    }</p>
+                    {!isStaffRole && (
+                      <button className="csm-enroll-btn" onClick={() => {
+                        setShowChildrenModal(false);
+                        setShowEnrollForm(true);
+                      }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                        Enroll a Child
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div className="csm-children-list">
-                    {allStudents.map((child) => {
+                    {visibleStudents.map((child) => {
                       const completion = calculateProfileCompletion(child);
                       const isEnrolled = child.status === "ENROLLED";
 
