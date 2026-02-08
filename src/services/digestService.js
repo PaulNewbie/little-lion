@@ -51,12 +51,15 @@ export const getDailyDigest = async (childId, date) => {
     const sessionsRef = collection(db, 'therapy_sessions');
     const q3 = query(sessionsRef, where('childId', '==', childId), limit(100));
 
-    // Execute all queries in parallel
-    const [snap1, snap2, snap3] = await Promise.all([
+    // Execute all queries in parallel - use allSettled so one permission error
+    // doesn't block all results (e.g. if childrenIds backfill is still pending)
+    const settled = await Promise.allSettled([
       getDocs(q1),
       getDocs(q2),
       getDocs(q3)
     ]);
+
+    const [res1, res2, res3] = settled;
 
     const allActivities = [];
     const seenIds = new Set();
@@ -79,10 +82,10 @@ export const getDailyDigest = async (childId, date) => {
       }
     };
 
-    // Process all snapshots
-    snap1.forEach(doc => addResult(doc, 'activities'));
-    snap2.forEach(doc => addResult(doc, 'activities'));
-    snap3.forEach(doc => addResult(doc, 'therapy_sessions'));
+    // Process snapshots (skip any that failed due to permissions)
+    if (res1.status === 'fulfilled') res1.value.forEach(doc => addResult(doc, 'activities'));
+    if (res2.status === 'fulfilled') res2.value.forEach(doc => addResult(doc, 'activities'));
+    if (res3.status === 'fulfilled') res3.value.forEach(doc => addResult(doc, 'therapy_sessions'));
 
     // Sort by time (if available) or keep as-is
     allActivities.sort((a, b) => {
@@ -175,7 +178,8 @@ export const getLastActivityDate = async (childId) => {
     const sessionsRef = collection(db, 'therapy_sessions');
 
     // Note: We query without composite indexes by fetching and sorting client-side
-    const [activitySnap, sessionSnap] = await Promise.all([
+    // Use allSettled so a permission error on one collection doesn't block the other
+    const [activityRes, sessionRes] = await Promise.allSettled([
       getDocs(query(activitiesRef, where('participatingStudentIds', 'array-contains', childId), limit(100))),
       getDocs(query(sessionsRef, where('childId', '==', childId), limit(100)))
     ]);
@@ -183,24 +187,28 @@ export const getLastActivityDate = async (childId) => {
     let latestDate = null;
 
     // Check activities
-    activitySnap.forEach(doc => {
-      const data = doc.data();
-      const actDate = parseDate(data.date);
-      if (actDate && (!latestDate || actDate > latestDate)) {
-        latestDate = actDate;
-      }
-    });
-
-    // Check therapy sessions (only visible ones)
-    sessionSnap.forEach(doc => {
-      const data = doc.data();
-      if (data.visibleToParents !== false) {
+    if (activityRes.status === 'fulfilled') {
+      activityRes.value.forEach(doc => {
+        const data = doc.data();
         const actDate = parseDate(data.date);
         if (actDate && (!latestDate || actDate > latestDate)) {
           latestDate = actDate;
         }
-      }
-    });
+      });
+    }
+
+    // Check therapy sessions (only visible ones)
+    if (sessionRes.status === 'fulfilled') {
+      sessionRes.value.forEach(doc => {
+        const data = doc.data();
+        if (data.visibleToParents !== false) {
+          const actDate = parseDate(data.date);
+          if (actDate && (!latestDate || actDate > latestDate)) {
+            latestDate = actDate;
+          }
+        }
+      });
+    }
 
     return latestDate;
 

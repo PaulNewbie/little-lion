@@ -163,7 +163,10 @@ class SummaryService {
         limit(100)
       );
 
-      const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+      // Use allSettled so a permission error on one query doesn't block the other
+      const [res1, res2] = await Promise.allSettled([getDocs(q1), getDocs(q2)]);
+      const snap1 = res1.status === 'fulfilled' ? res1.value : { docs: [], forEach: () => {} };
+      const snap2 = res2.status === 'fulfilled' ? res2.value : { docs: [], forEach: () => {} };
       trackRead('activities', snap1.docs.length + snap2.docs.length);
 
       const seenIds = new Set();
