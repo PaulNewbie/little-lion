@@ -1,7 +1,7 @@
 // src/routes/routeConfig.jsx
 
 import React, { Suspense } from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation, Link } from "react-router-dom";
 import { QueryClient } from "@tanstack/react-query";
 import { useAuth } from "../hooks/useAuth";
 
@@ -185,6 +185,38 @@ const UnauthorizedPage = () => (
 );
 
 /**
+ * 404 Not Found page component
+ */
+const NotFoundPage = () => {
+  const { currentUser } = useAuth();
+  const homePath = currentUser ? getHomeRoute(currentUser.role) : ROUTES.LOGIN;
+
+  return (
+    <div style={{ padding: "60px 20px", textAlign: "center", maxWidth: "480px", margin: "0 auto" }}>
+      <h1 style={{ fontSize: "72px", margin: "0", color: "#FFA500" }}>404</h1>
+      <h2 style={{ margin: "8px 0 16px", color: "#1e293b" }}>Page Not Found</h2>
+      <p style={{ color: "#64748b", marginBottom: "24px" }}>
+        The page you're looking for doesn't exist or has been moved.
+      </p>
+      <Link
+        to={homePath}
+        style={{
+          display: "inline-block",
+          padding: "10px 24px",
+          backgroundColor: "#FFA500",
+          color: "#fff",
+          borderRadius: "8px",
+          textDecoration: "none",
+          fontWeight: "600",
+        }}
+      >
+        Go to Home
+      </Link>
+    </div>
+  );
+};
+
+/**
  * Auth redirect component
  */
 const AuthRedirect = ({ children }) => {
@@ -292,7 +324,7 @@ export const AppRoutes = () => {
 
       {/* ERROR ROUTES */}
       <Route path={ROUTES.UNAUTHORIZED} element={<UnauthorizedPage />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
     </Suspense>
   );
