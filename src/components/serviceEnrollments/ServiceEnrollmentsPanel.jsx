@@ -1,8 +1,9 @@
 // src/components/serviceEnrollments/ServiceEnrollmentsPanel.jsx
 // Container panel for displaying and managing all service enrollments
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import ServiceCard from './ServiceCard';
 import ChangeStaffModal from './ChangeStaffModal';
 import DeactivateServiceModal from './DeactivateServiceModal';
@@ -11,6 +12,7 @@ import { useServiceEnrollments } from '../../hooks/useServiceEnrollments';
 import userService from '../../services/userService';
 import Loading from '../common/Loading';
 import { ROUTES } from '../../routes/routeConfig';
+import { QUERY_KEYS, QUERY_OPTIONS } from '../../config/queryClient';
 import './ServiceEnrollments.css';
 
 /**
@@ -75,39 +77,53 @@ const ServiceEnrollmentsPanel = ({
   // Show/hide inactive services
   const [showInactive, setShowInactive] = useState(false);
 
-  // Staff photos state
-  const [staffPhotos, setStaffPhotos] = useState({});
+  // Staff photos - cached to avoid redundant Firestore reads on every student click
+  const queryClient = useQueryClient();
 
-  // Fetch staff photos when enrollments change
-  useEffect(() => {
-    const fetchStaffPhotos = async () => {
-      if (!activeEnrollments || activeEnrollments.length === 0) return;
+  const staffIds = useMemo(() => {
+    if (!activeEnrollments || activeEnrollments.length === 0) return [];
+    return [...new Set(
+      activeEnrollments
+        .filter(e => e.currentStaff?.staffId)
+        .map(e => e.currentStaff.staffId)
+    )].sort();
+  }, [activeEnrollments]);
 
-      // Get unique staff IDs
-      const staffIds = [...new Set(
-        activeEnrollments
-          .filter(e => e.currentStaff?.staffId)
-          .map(e => e.currentStaff.staffId)
-      )];
+  const { data: staffPhotos = {} } = useQuery({
+    queryKey: ['staffPhotos', ...staffIds],
+    queryFn: async () => {
+      // Check existing teacher/therapist caches first to avoid redundant reads
+      const cachedTeachers = queryClient.getQueryData(QUERY_KEYS.users('teacher')) || [];
+      const cachedTherapists = queryClient.getQueryData(QUERY_KEYS.users('therapist')) || [];
+      const allCached = [...cachedTeachers, ...cachedTherapists];
 
-      if (staffIds.length === 0) return;
+      const photosMap = {};
+      const uncachedIds = [];
 
-      try {
-        const staffData = await userService.getStaffByIds(staffIds);
-        const photosMap = {};
-        staffData.forEach(staff => {
+      for (const id of staffIds) {
+        const found = allCached.find(s => s.uid === id || s.id === id);
+        if (found?.profilePhoto) {
+          photosMap[id] = found.profilePhoto;
+        } else if (!found) {
+          uncachedIds.push(id);
+        }
+      }
+
+      // Only fetch staff not already in cache
+      if (uncachedIds.length > 0) {
+        const fetched = await userService.getStaffByIds(uncachedIds);
+        fetched.forEach(staff => {
           if (staff.profilePhoto) {
             photosMap[staff.uid] = staff.profilePhoto;
           }
         });
-        setStaffPhotos(photosMap);
-      } catch (error) {
-        console.error('Error fetching staff photos:', error);
       }
-    };
 
-    fetchStaffPhotos();
-  }, [activeEnrollments]);
+      return photosMap;
+    },
+    enabled: staffIds.length > 0,
+    ...QUERY_OPTIONS.semiStatic, // 30-min stale, 12-hour cache
+  });
 
   // Handlers
   const handleChangeStaff = (enrollmentId, currentStaff) => {
