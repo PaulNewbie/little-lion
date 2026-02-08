@@ -1,7 +1,7 @@
 // src/components/serviceEnrollments/ServiceEnrollmentsPanel.jsx
 // Container panel for displaying and managing all service enrollments
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import ServiceCard from './ServiceCard';
@@ -48,6 +48,7 @@ const ServiceEnrollmentsPanel = ({
     changeStaff,
     deactivateService,
     reactivateService,
+    refreshData,
     STAFF_REMOVAL_REASONS,
     SERVICE_DEACTIVATION_REASONS,
   } = useServiceEnrollments(childId);
@@ -76,6 +77,9 @@ const ServiceEnrollmentsPanel = ({
 
   // Show/hide inactive services
   const [showInactive, setShowInactive] = useState(false);
+
+  // Refresh state
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Staff photos - cached to avoid redundant Firestore reads on every student click
   const queryClient = useQueryClient();
@@ -198,6 +202,16 @@ const ServiceEnrollmentsPanel = ({
     }
   };
 
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      await refreshData();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refreshData, isRefreshing]);
+
   if (isLoading) {
     return <Loading variant="compact" message="Loading services" showBrand={false} />;
   }
@@ -248,15 +262,39 @@ const ServiceEnrollmentsPanel = ({
             Active Services
             <span className="se-panel__count">{filteredActiveEnrollments.length}</span>
           </h2>
-          {!isReadOnly && onAddService && (
+          <div className="se-panel__header-actions">
             <button
-              className="se-panel__add-btn"
-              onClick={onAddService}
-              disabled={isMutating}
+              className="se-panel__refresh-btn"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              title="Refresh services"
             >
-              + Add Service
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={isRefreshing ? 'se-panel__refresh-spin' : ''}
+              >
+                <polyline points="23 4 23 10 17 10" />
+                <polyline points="1 20 1 14 7 14" />
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+              </svg>
             </button>
-          )}
+            {!isReadOnly && onAddService && (
+              <button
+                className="se-panel__add-btn"
+                onClick={onAddService}
+                disabled={isMutating}
+              >
+                + Add Service
+              </button>
+            )}
+          </div>
         </div>
 
         {hasActiveServices ? (

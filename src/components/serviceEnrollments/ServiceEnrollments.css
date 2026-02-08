@@ -88,6 +88,47 @@
   background: var(--se-gray-400);
 }
 
+.se-panel__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.se-panel__refresh-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--se-gray-300);
+  border-radius: var(--se-border-radius-sm);
+  background: white;
+  color: var(--se-gray-500);
+  cursor: pointer;
+  transition: var(--se-transition);
+  flex-shrink: 0;
+}
+
+.se-panel__refresh-btn:hover:not(:disabled) {
+  background: var(--se-gray-100);
+  color: var(--se-gray-700);
+  border-color: var(--se-gray-400);
+}
+
+.se-panel__refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes se-refresh-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.se-panel__refresh-spin {
+  animation: se-refresh-spin 0.8s linear infinite;
+}
+
 .se-panel__add-btn {
   background: var(--se-primary);
   color: white;
@@ -1100,8 +1141,12 @@
     gap: 15px;
   }
 
-  .se-panel__add-btn {
+  .se-panel__header-actions {
     width: 100%;
+  }
+
+  .se-panel__add-btn {
+    flex: 1;
   }
 
   .se-card__header {

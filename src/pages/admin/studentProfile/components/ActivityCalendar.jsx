@@ -497,12 +497,23 @@ const handleSendComment = async (text, parentId = null) => {
 // ==========================================
 // 3. Main Calendar Component
 // ==========================================
-const ActivityCalendar = ({ activities, teachers, selectedServiceName }) => {
+const ActivityCalendar = ({ activities, teachers, selectedServiceName, onRefresh }) => {
   const [date, setDate] = useState(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     setDate(new Date());
   }, [selectedServiceName]);
+
+  const handleRefresh = async () => {
+    if (!onRefresh || isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      await onRefresh();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const getActivitiesForDate = (selectedDate) => {
     return activities.filter((act) => {
@@ -572,9 +583,35 @@ const ActivityCalendar = ({ activities, teachers, selectedServiceName }) => {
   return (
     <div className="calendar-view-container">
       <div className="day-details-section">
-        <h3 className="date-heading">
-          {date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-        </h3>
+        <div className="date-heading-row">
+          <h3 className="date-heading">
+            {date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+          </h3>
+          {onRefresh && (
+            <button
+              className="ac-refresh-btn"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              title="Refresh activities"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={isRefreshing ? 'ac-refresh-spin' : ''}
+              >
+                <polyline points="23 4 23 10 17 10" />
+                <polyline points="1 20 1 14 7 14" />
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+              </svg>
+            </button>
+          )}
+        </div>
 
         {selectedActivities.length === 0 ? (
           <div className="no-activity-msg">

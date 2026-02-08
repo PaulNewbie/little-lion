@@ -219,13 +219,19 @@ export function useServiceEnrollments(childId) {
   // ─────────────────────────────────────────────────────────────────────────
 
   const invalidateEnrollmentCaches = useCallback(async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ENROLLMENT_KEYS.enrollments(childId) }),
-      queryClient.invalidateQueries({ queryKey: ENROLLMENT_KEYS.staffHistory(childId) }),
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.student(childId) }),
-      // Also invalidate the students list since assignedStaffIds changes
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.students() }),
-    ]);
+    // Fetch fresh enrollment data directly from DB (bypasses stale getChildFromCache)
+    const freshEnrollments = await childService.getServiceEnrollments(childId);
+
+    // Set fresh data directly in cache — immediate UI update
+    queryClient.setQueryData(ENROLLMENT_KEYS.enrollments(childId), freshEnrollments);
+    queryClient.setQueryData(
+      ENROLLMENT_KEYS.staffHistory(childId),
+      extractStaffHistoryFromEnrollments(freshEnrollments)
+    );
+
+    // Invalidate student caches in background so other consumers eventually get fresh data
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.student(childId) });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.students() });
   }, [queryClient, childId]);
 
   // ─────────────────────────────────────────────────────────────────────────

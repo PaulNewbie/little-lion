@@ -361,11 +361,12 @@ export const useStudentProfileData = (locationState, options = {}) => {
       invalidations.push(queryClient.invalidateQueries({ queryKey: ["assessment", selectedStudent.assessmentId] }));
     }
 
-    // Also invalidate service enrollment queries for the selected student
+    // Also invalidate service enrollment and activity queries for the selected student
     if (selectedStudentId) {
       invalidations.push(queryClient.invalidateQueries({ queryKey: ['serviceEnrollments', selectedStudentId] }));
       invalidations.push(queryClient.invalidateQueries({ queryKey: ['staffHistory', selectedStudentId] }));
       invalidations.push(queryClient.invalidateQueries({ queryKey: ['student', selectedStudentId] }));
+      invalidations.push(queryClient.invalidateQueries({ queryKey: ['activities', selectedStudentId] }));
     }
 
     await Promise.all(invalidations);

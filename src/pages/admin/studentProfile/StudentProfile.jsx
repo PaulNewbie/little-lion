@@ -374,13 +374,14 @@ const StudentProfile = ({
         });
       }
 
-      // Invalidate all related caches for immediate UI update
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['serviceEnrollments', selectedStudent.id] }),
-        queryClient.invalidateQueries({ queryKey: ['staffHistory', selectedStudent.id] }),
-        queryClient.invalidateQueries({ queryKey: ['student', selectedStudent.id] }),
-        refreshData(),
-      ]);
+      // Fetch fresh enrollment data and set directly in cache (bypasses stale getChildFromCache)
+      const freshEnrollments = await childService.getServiceEnrollments(selectedStudent.id);
+      queryClient.setQueryData(['serviceEnrollments', selectedStudent.id], freshEnrollments);
+
+      // Invalidate other caches in background
+      queryClient.invalidateQueries({ queryKey: ['staffHistory', selectedStudent.id] });
+      queryClient.invalidateQueries({ queryKey: ['student', selectedStudent.id] });
+      refreshData();
 
       setIsAddModalOpen(false);
       toast.success("Service enrolled successfully!");
@@ -497,6 +498,7 @@ const StudentProfile = ({
                         )}
                         teachers={combinedStaff}
                         selectedServiceName={selectedService}
+                        onRefresh={refreshData}
                       />
                     </div>
                   )}
