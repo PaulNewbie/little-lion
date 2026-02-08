@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect } from 'react';
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import authService from '../services/authService';
+import { setErrorUser, clearErrorUser } from '../config/errorReporting';
 
 export const AuthContext = createContext();
 
@@ -40,11 +41,13 @@ export const AuthProvider = ({ children }) => {
             }
           }
 
-          setCurrentUser({
+          const fullUser = {
             uid: user.uid,
             email: user.email,
             ...userData
-          });
+          };
+          setCurrentUser(fullUser);
+          setErrorUser(fullUser);
         } catch (error) {
           console.error('Error fetching user data:', error);
           setCurrentUser(null);
@@ -65,6 +68,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     await authService.signOut();
     setCurrentUser(null);
+    clearErrorUser();
   };
 
   // Refresh user data from Firestore (useful after profile updates)

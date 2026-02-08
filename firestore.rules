@@ -62,11 +62,12 @@ service cloud.firestore {
 
     // ========== COLLECTION RULES ==========
 
-    // Activation codes - public read needed for QR code scanning during activation
+    // Activation codes - single-doc lookup for activation, no listing all codes
     // Contains _tempKey for in-page password setup. Codes expire in 7 days.
     match /activation_codes/{codeId} {
-      allow read: if true;
-      allow create: if isAuthenticated() && isAdmin();
+      allow get: if true;
+      allow list: if false;
+      allow create: if isAuthenticated() && (isAdmin() || canEnrollStudents());
       // Only the code owner (activating user) or admins can delete
       allow delete: if isAuthenticated() &&
         (resource.data.userId == request.auth.uid || isAdmin());
@@ -82,7 +83,11 @@ service cloud.firestore {
     // Users collection
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && isAdmin();
+      // Admins can create any user. Staff with enrollment permission can only create parent accounts.
+      allow create: if isAuthenticated() && (
+        isAdmin() ||
+        (canEnrollStudents() && request.resource.data.role == 'parent')
+      );
 
       // SECURITY: Self-updates cannot modify role, permissions, or permissionsHistory
       // These fields are admin-only. accountStatus is allowed for activation flow.

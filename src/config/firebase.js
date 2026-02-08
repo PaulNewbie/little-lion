@@ -62,11 +62,10 @@ let db;
 
 try {
   // Modern approach (Firebase v9.8+): Use persistentLocalCache
-  const db = initializeFirestore(app, {
+  db = initializeFirestore(app, {
     localCache: persistentLocalCache({
       tabManager: persistentMultipleTabManager()
     }),
-    experimentalForceLongPolling: true,
     experimentalAutoDetectLongPolling: true
   });
   console.log('✅ Firestore initialized with persistent cache (multi-tab)');
@@ -127,13 +126,3 @@ export const getServerTimestamp = () => {
   const { serverTimestamp } = require('firebase/firestore');
   return serverTimestamp();
 };
-
-// const firebaseConfig = {
-//   apiKey: "AIzaSyBg7o5TWmKdELQq53Ji8cA5z9z6h_kbI7g",
-//   authDomain: "little-lions-2cae7.firebaseapp.com",
-//   projectId: "little-lions-2cae7",
-//   storageBucket: "little-lions-2cae7.firebasestorage.app",
-//   messagingSenderId: "1033644878508",
-//   appId: "1:1033644878508:web:448b1c68247e9136410d09"
-// };
-

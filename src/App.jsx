@@ -14,9 +14,15 @@ import AppRoutes from './routes/routeConfig';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import OfflineIndicator from './components/common/OfflineIndicator';
 
+// Error monitoring
+import { initErrorReporting } from './config/errorReporting';
+
 // Read counter imports
 import { enableReadCounter, ReadStatsDisplay } from './utils/readCounter';
 import { PageTracker } from './hooks/usePageTracker';
+
+// Initialize error reporting (Sentry) - safe to call without DSN
+initErrorReporting();
 
 // Enable read counter in development
 if (import.meta.env.DEV) {
