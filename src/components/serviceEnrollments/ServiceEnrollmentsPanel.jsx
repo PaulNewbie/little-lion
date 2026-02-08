@@ -263,6 +263,7 @@ const ServiceEnrollmentsPanel = ({
             <span className="se-panel__count">{filteredActiveEnrollments.length}</span>
           </h2>
           <div className="se-panel__header-actions">
+            <span className="se-panel__refresh-hint">Not seeing updates? Click refresh</span>
             <button
               className="se-panel__refresh-btn"
               onClick={handleRefresh}

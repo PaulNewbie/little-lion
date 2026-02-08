@@ -1367,6 +1367,19 @@
   margin: 0;
 }
 
+.ac-refresh-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ac-refresh-hint {
+  font-size: 11px;
+  color: #aaa;
+  font-style: italic;
+  white-space: nowrap;
+}
+
 .ac-refresh-btn {
   display: flex;
   align-items: center;

@@ -1,6 +1,6 @@
 // src/pages/admin/UserAccessManagement.jsx
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../context/ToastContext';
@@ -31,6 +31,8 @@ export default function UserAccessManagement() {
     error
   } = useStaffWithPermissions(roleFilter || null);
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   // Helper to invalidate all user-related caches
   const invalidateUserCaches = () => {
     // Invalidate staff permissions cache
@@ -41,6 +43,23 @@ export default function UserAccessManagement() {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.users('admin') });
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.staff() });
   };
+
+  // Force refresh: remove stale caches so refetch reads from DB
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      // Remove stale role caches so useStaffWithPermissions fetches fresh from DB
+      queryClient.removeQueries({ queryKey: QUERY_KEYS.users('teacher') });
+      queryClient.removeQueries({ queryKey: QUERY_KEYS.users('therapist') });
+      queryClient.removeQueries({ queryKey: QUERY_KEYS.users('admin') });
+      queryClient.removeQueries({ queryKey: ['staffPermissions'] });
+      // Refetch
+      await queryClient.refetchQueries({ queryKey: ['staffPermissions'] });
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [queryClient, isRefreshing]);
 
   // ============ REACT QUERY: Toggle single permission ============
   const togglePermissionMutation = useMutation({
@@ -169,6 +188,31 @@ export default function UserAccessManagement() {
                   <h2>Student Enrollment Permission</h2>
                   <p>Control which staff members can enroll new students into the system</p>
                 </div>
+              </div>
+              <div className="uam-refresh-group">
+                <span className="uam-refresh-hint">Not seeing updates? Click refresh</span>
+                <button
+                  className="uam-refresh-btn"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  title="Refresh staff list"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={isRefreshing ? 'uam-refresh-spin' : ''}
+                  >
+                    <polyline points="23 4 23 10 17 10" />
+                    <polyline points="1 20 1 14 7 14" />
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                  </svg>
+                </button>
               </div>
             </div>
 

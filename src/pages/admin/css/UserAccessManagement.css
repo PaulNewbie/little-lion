@@ -60,12 +60,66 @@
   padding: 20px 24px;
   border-bottom: 1px solid #f0f0f0;
   background: #fafbfc;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .uam-card-title {
   display: flex;
   align-items: flex-start;
   gap: 14px;
+}
+
+.uam-refresh-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.uam-refresh-hint {
+  font-size: 11px;
+  color: #9ca3af;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.uam-refresh-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.uam-refresh-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+  color: #374151;
+  border-color: #9ca3af;
+}
+
+.uam-refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes uam-refresh-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.uam-refresh-spin {
+  animation: uam-refresh-spin 0.8s linear infinite;
 }
 
 .uam-card-icon {

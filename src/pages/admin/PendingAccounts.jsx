@@ -1,6 +1,6 @@
 // src/pages/admin/PendingAccounts.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../context/ToastContext';
 import Sidebar from '../../components/sidebar/Sidebar';
@@ -109,13 +109,31 @@ const styles = {
     borderRadius: '6px',
     fontSize: '14px'
   },
+  refreshGroup: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    marginLeft: 'auto'
+  },
+  refreshHint: {
+    fontSize: '11px',
+    color: '#9ca3af',
+    fontStyle: 'italic',
+    whiteSpace: 'nowrap'
+  },
   refreshBtn: {
-    padding: '8px 16px',
-    border: '1px solid #ddd',
-    borderRadius: '6px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '34px',
+    height: '34px',
+    border: '1px solid #d1d5db',
+    borderRadius: '8px',
     backgroundColor: 'white',
+    color: '#6b7280',
     cursor: 'pointer',
-    fontSize: '14px'
+    flexShrink: 0,
+    transition: 'all 0.2s ease'
   }
 };
 
@@ -157,6 +175,7 @@ export default function PendingAccounts() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [selectedUser, setSelectedUser] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     fetchPendingAccounts();
@@ -168,6 +187,17 @@ export default function PendingAccounts() {
     setUsers(pendingUsers);
     setLoading(false);
   };
+
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      const pendingUsers = await activationService.getPendingAccounts();
+      setUsers(pendingUsers);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing]);
 
   const handleShowQR = (user) => {
     setSelectedUser(user);
@@ -200,6 +230,7 @@ export default function PendingAccounts() {
 
   return (
     <div style={styles.layout}>
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       <Sidebar {...getAdminConfig(isSuperAdmin)} />
       
       <main style={styles.main}>
@@ -223,9 +254,35 @@ export default function PendingAccounts() {
             <option value="admin">Admins</option>
           </select>
           
-          <button style={styles.refreshBtn} onClick={fetchPendingAccounts}>
-            🔄 Refresh
-          </button>
+          <div style={styles.refreshGroup}>
+            <span style={styles.refreshHint}>Not seeing updates? Click refresh</span>
+            <button
+              style={{
+                ...styles.refreshBtn,
+                opacity: isRefreshing ? 0.5 : 1,
+                cursor: isRefreshing ? 'not-allowed' : 'pointer'
+              }}
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              title="Refresh pending accounts"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={isRefreshing ? { animation: 'spin 0.8s linear infinite' } : {}}
+              >
+                <polyline points="23 4 23 10 17 10" />
+                <polyline points="1 20 1 14 7 14" />
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <div style={styles.card}>

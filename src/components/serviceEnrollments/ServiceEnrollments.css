@@ -94,6 +94,13 @@
   gap: 10px;
 }
 
+.se-panel__refresh-hint {
+  font-size: 11px;
+  color: var(--se-gray-400);
+  font-style: italic;
+  white-space: nowrap;
+}
+
 .se-panel__refresh-btn {
   display: flex;
   align-items: center;
@@ -1143,6 +1150,10 @@
 
   .se-panel__header-actions {
     width: 100%;
+  }
+
+  .se-panel__refresh-hint {
+    display: none;
   }
 
   .se-panel__add-btn {
