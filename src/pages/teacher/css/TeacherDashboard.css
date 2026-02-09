@@ -148,7 +148,9 @@
 /* Header Responsive */
 @media (max-width: 768px) {
   .teacher-dashboard__header-banner {
-    padding: 1.5rem;
+    padding: 1.25rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 12px;
   }
 
   .teacher-dashboard__header-content {
@@ -158,14 +160,14 @@
 
   /* Keep back arrow consistent with admin on mobile */
   .teacher-dashboard__header-back-arrow {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
   }
 
   .teacher-dashboard__header-back-arrow svg {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
   }
 
   .teacher-dashboard__header-text {
@@ -174,7 +176,7 @@
   }
 
   .teacher-dashboard__title {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
   }
 
   .teacher-dashboard__search-wrapper {
@@ -668,9 +670,18 @@
 }
 
 @media (max-width: 480px) {
+  .teacher-dashboard__header-banner {
+    padding: 1rem 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .teacher-dashboard__title {
+    font-size: 1.25rem;
+  }
+
   .teacher-dashboard__students-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    gap: 8px;
   }
 }
 

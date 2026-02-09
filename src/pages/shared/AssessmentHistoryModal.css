@@ -80,11 +80,12 @@
     width: 100%;
     max-width: 100%;
     max-height: 95vh;
-    height: auto;
+    height: 95vh;
     border-radius: 16px 16px 0 0;
   }
 
   .modal-overlay:has(.assessment-history-modal) {
+    padding: 0;
     padding-top: 10px;
     align-items: flex-end;
   }
@@ -104,7 +105,8 @@
 
 @media (max-width: 480px) {
   .modal-container--large.assessment-history-modal {
-    max-height: 90vh;
+    max-height: 92vh;
+    height: 92vh;
     border-radius: 12px 12px 0 0;
   }
 

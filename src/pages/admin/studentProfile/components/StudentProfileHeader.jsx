@@ -1,19 +1,5 @@
 import React from 'react';
-
-/**
- * BackArrowIcon - SVG back arrow
- */
-const BackArrowIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M15 18L9 12L15 6"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+import BackButton from '../../../../components/common/BackButton';
 
 /**
  * Calculate age from date of birth
@@ -59,9 +45,7 @@ const StudentProfileHeader = ({
     <div className="profile-header-section">
       {/* Header Bar */}
       <div className="profile-header-bar">
-        <span className="header-back-arrow" onClick={onBack}>
-          <BackArrowIcon />
-        </span>
+        <BackButton onClick={onBack} />
         <div className="header-text">
           <h1 className="header-title-text">STUDENT PROFILE</h1>
           <p className="header-subtitle-text">

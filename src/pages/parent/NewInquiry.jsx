@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../context/ToastContext';
 import childService from '../../services/childService';
 import inquiryService from '../../services/inquiryService';
+import BackButton from '../../components/common/BackButton';
 
 const NewInquiry = () => {
   const { currentUser } = useAuth();
@@ -135,9 +136,7 @@ const NewInquiry = () => {
     <div style={styles.container}>
       {/* Header */}
       <div style={styles.header}>
-        <button onClick={() => navigate('/parent/inquiries')} style={styles.backBtn}>
-          ← Back to Inquiries
-        </button>
+        <BackButton to="/parent/inquiries" />
         <h1 style={styles.title}>✉️ New Inquiry</h1>
         <p style={styles.subtitle}>Send a message to your child's teacher or therapist</p>
       </div>
@@ -277,17 +276,6 @@ const styles = {
   
   header: {
     marginBottom: '2rem'
-  },
-  
-  backBtn: {
-    background: 'none',
-    border: 'none',
-    color: '#64748b',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-    fontWeight: '600',
-    marginBottom: '1rem',
-    padding: '0.5rem 0'
   },
   
   title: {

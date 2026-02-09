@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useChildActivities } from '../../hooks/useCachedData';
 import Loading from '../../components/common/Loading';
+import BackButton from '../../components/common/BackButton';
 import { TherapyCard, GroupCard } from '../../components/activities/ActivityCards';
 
 const ChildActivities = () => {
@@ -27,9 +28,7 @@ const ChildActivities = () => {
 
   return (
     <div style={styles.container}>
-      <button style={styles.backBtn} onClick={() => navigate('/parent/dashboard')}>
-        ← Back to Dashboard
-      </button>
+      <BackButton to="/parent/dashboard" />
 
       <div style={styles.pageHeader}>
         <h1>Activity Journal</h1>
@@ -62,7 +61,6 @@ const ChildActivities = () => {
 
 const styles = {
   container: { padding: '20px', maxWidth: '800px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' },
-  backBtn: { background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '15px', marginBottom: '20px', padding: 0, fontWeight: '600' },
   pageHeader: { marginBottom: '30px', borderBottom: '1px solid #e2e8f0', paddingBottom: '15px' },
   empty: { textAlign: 'center', padding: '50px', color: '#94a3b8', backgroundColor: '#f8fafc', borderRadius: '12px', border: '2px dashed #e2e8f0' },
   feed: { display: 'flex', flexDirection: 'column', gap: '25px' },

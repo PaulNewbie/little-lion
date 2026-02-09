@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import Loading from '../../components/common/Loading';
+import BackButton from '../../components/common/BackButton';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getTherapistConfig } from '../../components/sidebar/sidebarConfigs';
 
@@ -18,21 +19,6 @@ const TABS = [
   { id: 'credentials', label: 'Credentials', icon: 'badge' },
   { id: 'education', label: 'Education & Certifications', icon: 'graduation' }
 ];
-
-/**
- * BackArrowIcon - SVG back arrow
- */
-const BackArrowIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M15 18L9 12L15 6"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
 
 const TherapistProfile = () => {
   const { currentUser } = useAuth();
@@ -719,13 +705,7 @@ const TherapistProfile = () => {
             <section className="tp-profile-header-section">
               {/* Header Bar */}
               <div className="tp-profile-header-bar">
-                <button
-                  onClick={() => navigate(-1)}
-                  className="tp-back-btn"
-                  aria-label="Go back"
-                >
-                  <BackArrowIcon />
-                </button>
+                <BackButton />
                 <div className="tp-header-text">
                   <h1 className="tp-header-title-text">MY PROFILE</h1>
                   <p className="tp-header-subtitle-text">View and manage your professional information</p>

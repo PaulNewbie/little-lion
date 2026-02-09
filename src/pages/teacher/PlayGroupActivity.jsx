@@ -10,7 +10,8 @@ import activityService from '../../services/activityService';
 import cloudinaryService from '../../services/cloudinaryService';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getTeacherConfig } from '../../components/sidebar/sidebarConfigs';
-import { Upload, X, ArrowLeft } from 'lucide-react';
+import BackButton from '../../components/common/BackButton';
+import { Upload, X } from 'lucide-react';
 import './css/PlayGroupActivity.css';
 
 const PlayGroupActivity = () => {
@@ -257,22 +258,16 @@ const PlayGroupActivity = () => {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="sidebar-page">
       <Sidebar {...getTeacherConfig()} forceActive="/teacher/dashboard" />
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', backgroundColor: '#f8f9fa' }}>
-        <div style={{ padding: '20px', flex: 1 }}>
+      <div className="sidebar-page__content">
+        <div className="sidebar-page__body">
           <div className="play-group__content">
 
             {/* Header Banner - Matches Dashboard Pattern */}
             <div className="play-group__header-banner">
               <div className="play-group__header-content">
-                <button
-                  onClick={() => navigate(-1)}
-                  className="play-group__header-back-btn"
-                  aria-label="Go back"
-                >
-                  <ArrowLeft size={24} strokeWidth={2.5} />
-                </button>
+                <BackButton />
                 <div className="play-group__header-text">
                   <h1 className="play-group__title">NEW GROUP ACTIVITY</h1>
                   <p className="play-group__subtitle">Upload photos and tag participating students</p>

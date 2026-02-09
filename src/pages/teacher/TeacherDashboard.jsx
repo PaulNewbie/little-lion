@@ -11,7 +11,8 @@ import Sidebar from '../../components/sidebar/Sidebar';
 import { getTeacherConfig } from '../../components/sidebar/sidebarConfigs';
 import QuickSelectTags from '../../components/common/form-elements/QuickSelectTags';
 import VoiceInput from '../../components/common/form-elements/VoiceInput';
-import { Mail, Phone, Camera, FileEdit, X, ClipboardList, Users, ChevronRight, ArrowLeft, Search } from 'lucide-react';
+import { Mail, Phone, Camera, FileEdit, X, ClipboardList, Users, ChevronRight, Search } from 'lucide-react';
+import BackButton from '../../components/common/BackButton';
 import { useTeacherDashboardData } from '../../hooks/useCachedData';
 import logo from '../../images/logo.webp';
 import './css/TeacherDashboard.css';
@@ -290,13 +291,13 @@ const TeacherDashboard = () => {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="sidebar-page">
       <Sidebar {...getTeacherConfig()} forceActive="/teacher/dashboard" />
       {loading ? (
         <Loading role="teacher" message="Loading classes" variant="content" />
       ) : (
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', backgroundColor: '#f8f9fa' }}>
-        <div style={{ padding: '20px', flex: 1 }}>
+      <div className="sidebar-page__content">
+        <div className="sidebar-page__body">
           <div className="teacher-dashboard__content">
 
             {/* Header Banner */}
@@ -304,18 +305,12 @@ const TeacherDashboard = () => {
               <div className="teacher-dashboard__header-content">
                 {/* Back Arrow - only shows when viewing a class */}
                 {selectedClass && (
-                  <button
-                    onClick={() => {
+                  <BackButton onClick={() => {
                       setSelectedClass(null);
                       setSearchTerm('');
                       setDisplayCount(PAGE_SIZE);
                       sessionStorage.removeItem(SELECTED_CLASS_VIEW_KEY);
-                    }}
-                    className="teacher-dashboard__header-back-arrow"
-                    aria-label="Back to Classes"
-                  >
-                    <ArrowLeft size={28} strokeWidth={2.5} />
-                  </button>
+                    }} />
                 )}
                 <div className="teacher-dashboard__header-text">
                   <h1 className="teacher-dashboard__title">

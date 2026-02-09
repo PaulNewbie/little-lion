@@ -174,13 +174,18 @@
 
 /* Header Responsive */
 @media (max-width: 768px) {
+  .sp-main {
+    padding: 12px;
+  }
+
   .sp-header {
-    padding: 1.5rem;
-    margin: 15px;
+    padding: 1.25rem 1rem;
+    margin: 0 0 12px 0;
+    border-radius: 12px;
   }
 
   .sp-header .header-title h1 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
   }
 
   .filter-actions {
@@ -613,9 +618,8 @@
 
 @media (max-width: 480px) {
   .profile-header-bar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    gap: 10px;
+    padding: 14px 16px;
   }
 
   .profile-info-section {
@@ -882,9 +886,13 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  .sp-content-area {
+    padding: 0 8px 12px 8px;
+  }
+
   .sp-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 12px;
+    gap: 10px;
   }
 
   .sp-photo-placeholder {
@@ -907,13 +915,26 @@
 }
 
 @media (max-width: 480px) {
+  .sp-main {
+    padding: 8px;
+  }
+
+  .sp-header {
+    padding: 1rem 0.75rem;
+    margin: 0 0 8px 0;
+  }
+
+  .sp-header .header-title h1 {
+    font-size: 1.25rem;
+  }
+
   .sp-content-area {
-    padding: 20px;
+    padding: 0 4px 8px 4px;
   }
 
   .sp-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 8px;
   }
 }
 
@@ -1485,7 +1506,7 @@
 
 @media (max-width: 768px) {
   .profile-wrapper {
-    padding: 20px 16px 40px 16px;
+    padding: 16px 12px 32px 12px;
   }
 
   .profile-fullname {
@@ -1502,7 +1523,7 @@
   }
 
   .services-split-row {
-    gap: 20px;
+    gap: 16px;
   }
 
   .report-meta-grid {
@@ -1524,11 +1545,23 @@
     width: 50px;
     height: 50px;
   }
+
+  .profile-header-section {
+    margin-bottom: 12px;
+  }
+
+  .profile-card-container {
+    gap: 0;
+  }
+
+  .profile-info-section {
+    padding: 20px 16px;
+  }
 }
 
 @media (max-width: 480px) {
   .profile-wrapper {
-    padding: 16px 12px 30px 12px;
+    padding: 12px 8px 24px 8px;
   }
 
   .profile-fullname {
@@ -1536,18 +1569,18 @@
   }
 
   .profile-info {
-    padding: 20px 16px;
+    padding: 16px 12px;
   }
 
   .assessment-toggle-btn {
-    padding: 12px 24px;
-    font-size: 13px;
+    padding: 10px 20px;
+    font-size: 12px;
     width: 100%;
     justify-content: center;
   }
 
   .calendar-view-container {
-    padding: 16px;
+    padding: 12px;
   }
 
   .daily-records-list {
@@ -1569,7 +1602,23 @@
   }
 
   .header-title-text {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+  }
+
+  .profile-header-bar {
+    padding: 12px 16px;
+  }
+
+  .profile-info-section {
+    padding: 16px 12px;
+  }
+
+  .profile-header-section {
+    margin-bottom: 8px;
+  }
+
+  .info-item {
+    padding: 12px;
   }
 }
 

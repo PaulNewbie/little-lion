@@ -230,20 +230,25 @@ const Sidebar = ({
 
   return (
     <>
-      {/* Mobile hamburger button */}
+      {/* Mobile menu button */}
       {!isOpen && !isDesktop && (
-        <button className="sidebar__open-btn" onClick={() => setIsOpen(true)}>
-          ☰
+        <button className="sidebar__open-btn" onClick={() => setIsOpen(true)} aria-label="Open menu">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      )}
+
+      {/* Mobile close arrow - sits at right edge of sidebar, vertically centered */}
+      {isOpen && !isDesktop && (
+        <button className="sidebar__close-arrow" onClick={() => setIsOpen(false)} aria-label="Close menu">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
         </button>
       )}
 
       <div className={`sidebar sidebar--${role} ${isOpen ? "open" : "closed"}`}>
-        {/* Mobile close button */}
-        {!isDesktop && (
-          <button className="sidebar__close-btn" onClick={() => setIsOpen(false)}>
-            ✕
-          </button>
-        )}
 
         {/* Profile Section */}
         <div className="sidebar__profile">

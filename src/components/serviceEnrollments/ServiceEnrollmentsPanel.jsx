@@ -468,6 +468,7 @@ const ServiceEnrollmentsPanel = ({
         serviceType={changeStaffModal.serviceType}
         removalReasons={STAFF_REMOVAL_REASONS}
         isSubmitting={isMutating}
+        staffPhotos={staffPhotos}
       />
 
       <DeactivateServiceModal
