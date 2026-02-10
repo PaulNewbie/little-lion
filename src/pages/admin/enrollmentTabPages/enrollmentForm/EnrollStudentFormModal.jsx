@@ -266,7 +266,14 @@ export default function EnrollStudentFormModal({
         // Interventions are now optional - only validate if any are added
         if (data.backgroundHistory?.interventions?.length > 0) {
           const invalidIntervention = data.backgroundHistory.interventions.some(
-            (intervention) => !intervention.name?.trim() || !intervention.frequency?.trim()
+            (intervention) => {
+              // Check that service is selected
+              const hasService = intervention.serviceId && intervention.serviceId.toString().trim();
+              // Check that both frequency count and unit are selected
+              const hasFrequencyCount = intervention.frequencyCount && intervention.frequencyCount.toString().trim();
+              const hasFrequencyUnit = intervention.frequencyUnit && intervention.frequencyUnit.toString().trim();
+              return !hasService || !hasFrequencyCount || !hasFrequencyUnit;
+            }
           );
           if (invalidIntervention) {
             errors.interventions = "All interventions must have both service and frequency selected";
