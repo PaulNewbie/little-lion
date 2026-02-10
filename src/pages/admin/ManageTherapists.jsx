@@ -494,7 +494,7 @@ const ManageTherapists = () => {
         {/* FAB */}
         {!selectedTherapistId && (
           <button className="mt-fab" onClick={() => setShowForm(true)}>
-            + ADD THERAPIST
+            + ADD THERAPIST 
           </button>
         )}
 
