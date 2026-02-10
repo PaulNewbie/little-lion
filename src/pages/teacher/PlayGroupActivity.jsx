@@ -28,6 +28,8 @@ const PlayGroupActivity = () => {
   const [students, setStudents] = useState([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmData, setConfirmData] = useState(null);
 
   // Form Data
   const [title, setTitle] = useState('');
@@ -189,21 +191,22 @@ const PlayGroupActivity = () => {
       })
       .filter(Boolean);
 
-    // Confirmation dialog
-    const confirmMessage =
-      `Post Group Activity?\n\n` +
-      `Activity: "${title || 'Untitled'}"\n` +
-      `Class: ${className || 'Not specified'}\n` +
-      `Date: ${formatDate(date)}\n` +
-      `Photos: ${selectedImages.length}\n\n` +
-      `✓ Students Present (${taggedStudentIds.length}):\n` +
-      `${selectedStudentNames.join(', ')}\n\n` +
-      `Do you want to continue?`;
+    // Show confirmation modal
+    setConfirmData({
+      title: title || 'Untitled',
+      className: className || 'Not specified',
+      date: formatDate(date),
+      photoCount: selectedImages.length,
+      studentCount: taggedStudentIds.length,
+      studentNames: selectedStudentNames,
+    });
+    setShowConfirmModal(true);
+  };
 
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
-
+  // Actually post after confirmation
+  const handleConfirmedPost = async () => {
+    setShowConfirmModal(false);
+    setConfirmData(null);
     setUploading(true);
     setUploadProgress({ current: 0, total: selectedImages.length });
 
@@ -555,6 +558,48 @@ const PlayGroupActivity = () => {
         </div>
 
       </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && confirmData && (
+        <div className="confirm-modal-overlay" onClick={() => setShowConfirmModal(false)}>
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-modal-header">
+              <h3>Post Activity?</h3>
+              <button className="confirm-modal-close" onClick={() => setShowConfirmModal(false)}>&times;</button>
+            </div>
+            <div className="confirm-modal-body">
+              <div className="confirm-detail-row">
+                <span className="confirm-label">Activity</span>
+                <span className="confirm-value">{confirmData.title}</span>
+              </div>
+              <div className="confirm-detail-row">
+                <span className="confirm-label">Class</span>
+                <span className="confirm-value">{confirmData.className}</span>
+              </div>
+              <div className="confirm-detail-row">
+                <span className="confirm-label">Date</span>
+                <span className="confirm-value">{confirmData.date}</span>
+              </div>
+              <div className="confirm-detail-row">
+                <span className="confirm-label">Photos</span>
+                <span className="confirm-value">{confirmData.photoCount}</span>
+              </div>
+              <div className="confirm-students-section">
+                <span className="confirm-label">Students Present ({confirmData.studentCount})</span>
+                <div className="confirm-student-tags">
+                  {confirmData.studentNames.map((name, i) => (
+                    <span key={i} className="confirm-student-tag">{name}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="confirm-modal-footer">
+              <button className="confirm-btn-cancel" onClick={() => setShowConfirmModal(false)}>Cancel</button>
+              <button className="confirm-btn-post" onClick={handleConfirmedPost}>Post Activity</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

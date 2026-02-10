@@ -102,11 +102,23 @@
   display: flex;
   gap: 8px;
   padding: 16px 24px;
-  background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid #e2e8f0;
   flex-wrap: wrap;
   justify-content: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  pointer-events: auto;
+}
+
+.section-nav-badges.nav-hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .nav-badge {

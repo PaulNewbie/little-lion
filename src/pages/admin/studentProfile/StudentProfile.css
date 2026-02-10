@@ -945,7 +945,7 @@
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 30px 40px 60px 40px;
+  padding: 0 0 40px 0;
   overflow: visible;     /* ✅ stop fighting with sp-main */
   flex: 1;               /* ✅ grow to fill space, pushing footer down */
 }
@@ -1524,7 +1524,7 @@
 
 @media (max-width: 768px) {
   .profile-wrapper {
-    padding: 16px 12px 32px 12px;
+    padding: 0 0 24px 0;
   }
 
   .profile-fullname {
@@ -1579,7 +1579,7 @@
 
 @media (max-width: 480px) {
   .profile-wrapper {
-    padding: 12px 8px 24px 8px;
+    padding: 0 0 16px 0;
   }
 
   .profile-fullname {

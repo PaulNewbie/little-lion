@@ -57,8 +57,11 @@ const AssessmentHistory = ({
   onReportsChange = null
 }) => {
   const [activeSection, setActiveSection] = useState("overview");
+  const [navHidden, setNavHidden] = useState(false);
   const scrollContainerRef = useRef(null);
   const sectionRefs = useRef({});
+  const lastScrollY = useRef(0);
+  const scrollUpCount = useRef(0);
 
   // Additional Reports state
   const [showReportsPanel, setShowReportsPanel] = useState(false);
@@ -567,6 +570,40 @@ const AssessmentHistory = ({
     return () => container.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Hide nav badges on scroll down, require 2 scroll-ups to reappear
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const DELTA = 15;
+
+    const handleNavScroll = () => {
+      const st = el.scrollTop;
+      const diff = st - lastScrollY.current;
+
+      if (Math.abs(diff) < DELTA) return;
+
+      const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 30;
+      if (nearBottom) return;
+
+      if (diff > 0 && st > 60) {
+        // Scrolling down — hide and reset up-count
+        setNavHidden(true);
+        scrollUpCount.current = 0;
+      } else if (diff < 0) {
+        // Scrolling up — increment counter, show after 2 up-scrolls
+        scrollUpCount.current += 1;
+        if (scrollUpCount.current >= 2) {
+          setNavHidden(false);
+        }
+      }
+      lastScrollY.current = st;
+    };
+
+    el.addEventListener('scroll', handleNavScroll, { passive: true });
+    return () => el.removeEventListener('scroll', handleNavScroll);
+  }, []);
+
   const setSectionRef = (id) => (el) => {
     sectionRefs.current[id] = el;
   };
@@ -594,7 +631,7 @@ const AssessmentHistory = ({
       {/* Scrollable Content Area */}
       <div className="assessment-scroll-container" ref={scrollContainerRef}>
         {/* Sticky Navigation Badges */}
-        <div className="section-nav-badges">
+        <div className={`section-nav-badges${navHidden ? ' nav-hidden' : ''}`}>
           {SECTION_LABELS.map(({ id, label }) => (
             <button
               key={id}

@@ -111,11 +111,15 @@ const TeacherCard = ({ teacher, isSuperAdmin, onManageSpecs, onSpecializationCli
                 <button
                   onClick={() => onManageSpecs(teacher)}
                   style={styles.manageButton}
+                  title="Update services for this teacher"
                 >
                   MANAGE
                 </button>
               )}
             </div>
+            {isSuperAdmin && onManageSpecs && (
+              <p style={styles.manageHint}>Tap Manage to update assigned services</p>
+            )}
 
             <div style={styles.specializationGrid}>
               {(teacher.specializations && teacher.specializations.length > 0) ? (
@@ -463,7 +467,7 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "0.75rem",
+    marginBottom: "4px",
   },
 
   sectionLabel: {
@@ -475,15 +479,26 @@ const styles = {
   },
 
   manageButton: {
-    background: "none",
+    background: "#2563eb",
     border: "none",
-    color: "#2563eb",
-    fontSize: "0.75rem",
+    color: "#ffffff",
+    fontSize: "0.7rem",
     fontWeight: 700,
     cursor: "pointer",
-    textDecoration: "underline",
-    padding: 0,
+    textDecoration: "none",
+    padding: "5px 14px",
     textTransform: "uppercase",
+    borderRadius: "20px",
+    letterSpacing: "0.5px",
+    transition: "background 0.2s ease",
+  },
+
+  manageHint: {
+    fontSize: "0.7rem",
+    color: "#94a3b8",
+    fontStyle: "italic",
+    margin: "0 0 10px 0",
+    textAlign: "right",
   },
 
   specializationGrid: {
