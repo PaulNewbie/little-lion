@@ -36,7 +36,7 @@ const TeacherProfile = () => {
     newCertification,
     handleInputChange,
     handleNestedChange,
-    handleSpecializationToggle,
+
     handleProfilePhotoUpload,
     handleEducationCertificateUpload,
     handleCertificationCertificateUpload,
@@ -102,20 +102,6 @@ const TeacherProfile = () => {
         return null;
     }
   };
-
-  // Teacher specializations list
-  const TEACHER_SPECIALIZATIONS = [
-    'Early Childhood Education',
-    'Special Education',
-    'Autism Spectrum Disorder',
-    'Learning Disabilities',
-    'Behavioral Management',
-    'Speech & Language Support',
-    'Occupational Therapy Support',
-    'Sensory Integration',
-    'Applied Behavior Analysis',
-    'Play-Based Learning'
-  ];
 
   // Personal Info Section Content
   const renderPersonalInfo = () => (
@@ -435,26 +421,6 @@ const TeacherProfile = () => {
             </div>
           </div>
 
-          {/* Specializations Section */}
-          <div className="tp-form-section">
-            <h4 className="tp-form-section-title">Specializations</h4>
-            <div className="tp-add-section">
-              <h4 className="tp-add-title">Select Your Specializations</h4>
-              <div className="tp-specialization-grid">
-                {TEACHER_SPECIALIZATIONS.map((spec) => (
-                  <label key={spec} className="tp-specialization-item">
-                    <input
-                      type="checkbox"
-                      checked={formData.specializations?.includes(spec) || false}
-                      onChange={() => handleSpecializationToggle(spec)}
-                    />
-                    <span className="tp-specialization-label">{spec}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-
           <div className="tp-form-actions">
             <button type="button" className="tp-btn tp-btn--secondary" onClick={cancelEditing}>Cancel</button>
             <button type="submit" className="tp-btn tp-btn--primary" disabled={saving}>
@@ -488,10 +454,10 @@ const TeacherProfile = () => {
             <p className="tp-empty-message">No teaching license added yet. Click Edit to add your license information.</p>
           )}
 
-          {/* Experience & Specializations Display */}
-          {(formData.yearsExperience > 0 || formData.certificationLevel || formData.specializations?.length > 0) && (
+          {/* Experience Display */}
+          {(formData.yearsExperience > 0 || formData.certificationLevel) && (
             <div className="tp-info-section tp-info-section--bordered">
-              <h4 className="tp-info-section-title">Experience & Specializations</h4>
+              <h4 className="tp-info-section-title">Experience</h4>
               <div className="tp-info-grid">
                 {formData.yearsExperience > 0 && (
                   <div className="tp-info-item">
@@ -506,16 +472,6 @@ const TeacherProfile = () => {
                   </div>
                 )}
               </div>
-              {formData.specializations?.length > 0 && (
-                <div className="tp-specializations">
-                  <span className="tp-info-label">Specializations</span>
-                  <div className="tp-tags">
-                    {formData.specializations.map((spec, idx) => (
-                      <span key={idx} className="tp-tag">{spec}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -792,19 +748,6 @@ const TeacherProfile = () => {
                         <div className="tp-photo-info-content">
                           <span className="tp-photo-info-label">Experience</span>
                           <span className="tp-photo-info-value">{formData.yearsExperience} years</span>
-                        </div>
-                      </div>
-                    )}
-                    {formData.specializations?.length > 0 && (
-                      <div className="tp-photo-info-item">
-                        <div className="tp-photo-info-icon">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                          </svg>
-                        </div>
-                        <div className="tp-photo-info-content">
-                          <span className="tp-photo-info-label">Specializations</span>
-                          <span className="tp-photo-info-value">{formData.specializations.length}</span>
                         </div>
                       </div>
                     )}

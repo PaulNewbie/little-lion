@@ -458,9 +458,9 @@ const TherapistProfile = () => {
             <p className="tp-empty-message">No licenses added yet. Click Edit to add your professional licenses.</p>
           )}
 
-          {(formData.yearsExperience > 0 || formData.employmentStatus || formData.specializations?.length > 0) && (
+          {(formData.yearsExperience > 0 || formData.employmentStatus) && (
             <div className="tp-info-section tp-info-section--bordered">
-              <h4 className="tp-info-section-title">Experience & Specializations</h4>
+              <h4 className="tp-info-section-title">Experience</h4>
               <div className="tp-info-grid">
                 {formData.yearsExperience > 0 && (
                   <div className="tp-info-item">
@@ -475,12 +475,6 @@ const TherapistProfile = () => {
                   </div>
                 )}
               </div>
-              {formData.specializations?.length > 0 && (
-                <div className="tp-info-item">
-                  <span className="tp-info-label">Specializations</span>
-                  <span className="tp-info-value">{formData.specializations.length}</span>
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -757,19 +751,6 @@ const TherapistProfile = () => {
                         <div className="tp-photo-info-content">
                           <span className="tp-photo-info-label">Experience</span>
                           <span className="tp-photo-info-value">{formData.yearsExperience} years</span>
-                        </div>
-                      </div>
-                    )}
-                    {formData.specializations?.length > 0 && (
-                      <div className="tp-photo-info-item">
-                        <div className="tp-photo-info-icon">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                          </svg>
-                        </div>
-                        <div className="tp-photo-info-content">
-                          <span className="tp-photo-info-label">Specializations</span>
-                          <span className="tp-photo-info-value">{formData.specializations.length}</span>
                         </div>
                       </div>
                     )}
