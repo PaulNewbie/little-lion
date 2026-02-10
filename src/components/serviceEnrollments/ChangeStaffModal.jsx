@@ -17,7 +17,31 @@ import './ServiceEnrollments.css';
  * @param {string} serviceType - 'Therapy' or 'Class'
  * @param {array} removalReasons - Array of reason options
  * @param {boolean} isSubmitting - Whether submission is in progress
+ * @param {object} staffPhotos - Map of staffId to profile photo URL
  */
+
+const getInitials = (name) => {
+  if (!name) return '?';
+  const parts = name.split(' ').filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+  }
+  return parts[0]?.[0]?.toUpperCase() || '?';
+};
+
+const StaffAvatar = ({ name, photoUrl, size = 44, role }) => (
+  <div
+    className={`csm-avatar ${!photoUrl ? (role === 'therapist' ? 'csm-avatar--therapist' : 'csm-avatar--teacher') : ''}`}
+    style={{ width: size, height: size, minWidth: size }}
+  >
+    {photoUrl ? (
+      <img src={photoUrl} alt={name} />
+    ) : (
+      <span className="csm-avatar__initials">{getInitials(name)}</span>
+    )}
+  </div>
+);
+
 const ChangeStaffModal = ({
   isOpen,
   onClose,
@@ -27,6 +51,7 @@ const ChangeStaffModal = ({
   serviceType,
   removalReasons = [],
   isSubmitting = false,
+  staffPhotos = {},
 }) => {
   const [selectedStaffId, setSelectedStaffId] = useState('');
   const [removalReason, setRemovalReason] = useState('');
@@ -54,6 +79,10 @@ const ChangeStaffModal = ({
     (staff) => (staff.uid || staff.id) !== currentStaff?.staffId
   );
 
+  const selectedStaffMember = availableStaff.find(
+    (s) => (s.uid || s.id) === selectedStaffId
+  );
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -67,10 +96,6 @@ const ChangeStaffModal = ({
       setError('Please select a reason for the change');
       return;
     }
-
-    const selectedStaffMember = availableStaff.find(
-      (s) => (s.uid || s.id) === selectedStaffId
-    );
 
     if (!selectedStaffMember) {
       setError('Selected staff member not found');
@@ -98,66 +123,142 @@ const ChangeStaffModal = ({
       title="Change Staff Assignment"
       size="medium"
     >
-      <form onSubmit={handleSubmit} className="se-modal-form">
-        {/* Current Staff Info */}
-        <div className="se-modal-form__section">
-          <label className="se-modal-form__label">Current Staff</label>
-          <div className="se-modal-form__current-staff">
-            <span className="se-modal-form__staff-icon">
-              {currentStaff?.staffRole === 'therapist' ? '👨‍⚕️' : '👩‍🏫'}
-            </span>
-            <span className="se-modal-form__staff-name">
-              {currentStaff?.staffName || 'Unknown'}
-            </span>
+      <form onSubmit={handleSubmit} className="csm-form">
+        {/* Service Badge */}
+        <div className="csm-service-badge">
+          {serviceType === 'Therapy' ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          )}
+          <span>{serviceName}</span>
+          <span className="csm-service-badge__type">{serviceType}</span>
+        </div>
+
+        {/* Transfer Visual: Current → New */}
+        <div className="csm-transfer">
+          {/* Current Staff Card */}
+          <div className="csm-transfer__card csm-transfer__card--current">
+            <div className="csm-transfer__label">Current</div>
+            <StaffAvatar
+              name={currentStaff?.staffName}
+              photoUrl={staffPhotos[currentStaff?.staffId]}
+              size={52}
+              role={currentStaff?.staffRole}
+            />
+            <div className="csm-transfer__name">{currentStaff?.staffName || 'Unknown'}</div>
+            <div className="csm-transfer__role">
+              {currentStaff?.staffRole === 'therapist' ? 'Therapist' : 'Teacher'}
+            </div>
+          </div>
+
+          {/* Arrow */}
+          <div className="csm-transfer__arrow">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </div>
+
+          {/* New Staff Card */}
+          <div className={`csm-transfer__card csm-transfer__card--new ${selectedStaffMember ? 'csm-transfer__card--selected' : ''}`}>
+            <div className="csm-transfer__label">New</div>
+            {selectedStaffMember ? (
+              <>
+                <StaffAvatar
+                  name={`${selectedStaffMember.firstName} ${selectedStaffMember.lastName}`}
+                  photoUrl={selectedStaffMember.profilePhoto || staffPhotos[selectedStaffMember.uid || selectedStaffMember.id]}
+                  size={52}
+                  role={serviceType === 'Therapy' ? 'therapist' : 'teacher'}
+                />
+                <div className="csm-transfer__name">
+                  {selectedStaffMember.firstName} {selectedStaffMember.lastName}
+                </div>
+                <div className="csm-transfer__role">
+                  {serviceType === 'Therapy' ? 'Therapist' : 'Teacher'}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="csm-avatar csm-avatar--empty" style={{ width: 52, height: 52, minWidth: 52 }}>
+                  <span className="csm-avatar__initials">?</span>
+                </div>
+                <div className="csm-transfer__name csm-transfer__name--placeholder">Select below</div>
+              </>
+            )}
           </div>
         </div>
 
-        {/* Service Info */}
-        <div className="se-modal-form__info">
-          <span className="se-modal-form__service-badge">
-            {serviceType === 'Therapy' ? '🧠' : '👥'} {serviceName}
-          </span>
-        </div>
-
-        {/* New Staff Selection */}
-        <div className="se-modal-form__section">
-          <label className="se-modal-form__label" htmlFor="newStaff">
-            New Staff Member *
-          </label>
-          <select
-            id="newStaff"
-            className="se-modal-form__select"
-            value={selectedStaffId}
-            onChange={(e) => setSelectedStaffId(e.target.value)}
-            disabled={loadingStaff || isSubmitting}
-          >
-            <option value="">
-              {loadingStaff ? 'Loading staff...' : 'Select staff member'}
-            </option>
-            {filteredStaff.map((staff) => (
-              <option key={staff.uid || staff.id} value={staff.uid || staff.id}>
-                {staff.firstName} {staff.lastName}
-                {staff.specializations?.length > 0 &&
-                  ` (${staff.specializations.slice(0, 2).join(', ')})`
-                }
-              </option>
-            ))}
-          </select>
-          {filteredStaff.length === 0 && !loadingStaff && (
-            <p className="se-modal-form__hint">
+        {/* Staff Selection List */}
+        <div className="csm-section">
+          <label className="csm-section__label">Select New Staff Member</label>
+          {loadingStaff ? (
+            <div className="csm-staff-list__loading">Loading available staff...</div>
+          ) : filteredStaff.length === 0 ? (
+            <div className="csm-staff-list__empty">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
               No other staff members available for this service type.
-            </p>
+            </div>
+          ) : (
+            <div className="csm-staff-list">
+              {filteredStaff.map((staff) => {
+                const id = staff.uid || staff.id;
+                const isSelected = selectedStaffId === id;
+                const fullName = `${staff.firstName} ${staff.lastName}`;
+                return (
+                  <button
+                    type="button"
+                    key={id}
+                    className={`csm-staff-option ${isSelected ? 'csm-staff-option--selected' : ''}`}
+                    onClick={() => setSelectedStaffId(id)}
+                  >
+                    <StaffAvatar
+                      name={fullName}
+                      photoUrl={staff.profilePhoto || staffPhotos[id]}
+                      size={40}
+                      role={serviceType === 'Therapy' ? 'therapist' : 'teacher'}
+                    />
+                    <div className="csm-staff-option__info">
+                      <div className="csm-staff-option__name">{fullName}</div>
+                      {staff.specializations?.length > 0 && (
+                        <div className="csm-staff-option__spec">
+                          {staff.specializations.slice(0, 2).join(', ')}
+                        </div>
+                      )}
+                    </div>
+                    <div className="csm-staff-option__check">
+                      {isSelected && (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           )}
         </div>
 
-        {/* Removal Reason */}
-        <div className="se-modal-form__section">
-          <label className="se-modal-form__label" htmlFor="removalReason">
-            Reason for Change *
+        {/* Reason for Change */}
+        <div className="csm-section">
+          <label className="csm-section__label" htmlFor="removalReason">
+            Reason for Change
           </label>
           <select
             id="removalReason"
-            className="se-modal-form__select"
+            className="csm-select"
             value={removalReason}
             onChange={(e) => setRemovalReason(e.target.value)}
             disabled={isSubmitting}
@@ -171,16 +272,16 @@ const ChangeStaffModal = ({
           </select>
         </div>
 
-        {/* Custom Reason (if "Other" selected) */}
+        {/* Custom Reason */}
         {removalReason === 'other' && (
-          <div className="se-modal-form__section">
-            <label className="se-modal-form__label" htmlFor="customReason">
-              Please specify *
+          <div className="csm-section">
+            <label className="csm-section__label" htmlFor="customReason">
+              Please specify
             </label>
             <input
               id="customReason"
               type="text"
-              className="se-modal-form__input"
+              className="csm-input"
               value={customReason}
               onChange={(e) => setCustomReason(e.target.value)}
               placeholder="Enter reason..."
@@ -189,18 +290,23 @@ const ChangeStaffModal = ({
           </div>
         )}
 
-        {/* Error Message */}
+        {/* Error */}
         {error && (
-          <div className="se-modal-form__error">
+          <div className="csm-error">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="15" y1="9" x2="9" y2="15"/>
+              <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
             {error}
           </div>
         )}
 
         {/* Actions */}
-        <div className="se-modal-form__actions">
+        <div className="csm-actions">
           <button
             type="button"
-            className="se-modal-form__btn se-modal-form__btn--cancel"
+            className="csm-btn csm-btn--cancel"
             onClick={onClose}
             disabled={isSubmitting}
           >
@@ -208,10 +314,10 @@ const ChangeStaffModal = ({
           </button>
           <button
             type="submit"
-            className="se-modal-form__btn se-modal-form__btn--primary"
+            className="csm-btn csm-btn--primary"
             disabled={isSubmitting || loadingStaff || filteredStaff.length === 0}
           >
-            {isSubmitting ? 'Saving...' : 'Change Staff'}
+            {isSubmitting ? 'Saving...' : 'Confirm Change'}
           </button>
         </div>
       </form>

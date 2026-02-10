@@ -31,37 +31,58 @@
   transform: translateX(-100%);
 }
 
-/* Open button (hamburger) */
+/* Open button (arrow icon) */
 .sidebar__open-btn {
   position: fixed;
-  top: 15px;
-  right: 15px;
-  font-size: 24px;
-  padding: 10px 15px;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 48px;
+  padding: 0;
   border: none;
-  border-radius: 8px;
-  background-color: #444;
+  border-radius: 0 10px 10px 0;
+  background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%);
   color: white;
   cursor: pointer;
   z-index: 1100;
+  box-shadow: 2px 0 8px rgba(0, 82, 161, 0.3);
+  transition: all 0.2s ease;
 }
 
-/* Close button inside sidebar */
-.sidebar__close-btn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: none;
+.sidebar__open-btn:active {
+  transform: translateY(-50%) scale(0.95);
+  box-shadow: 1px 0 4px rgba(0, 82, 161, 0.3);
+}
+
+/* Close arrow - left-pointing tab at right edge of sidebar */
+.sidebar__close-arrow {
+  position: fixed;
+  top: 50%;
+  left: 280px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 48px;
+  padding: 0;
   border: none;
-  font-size: 24px;
+  border-radius: 0 10px 10px 0;
+  background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%);
+  color: white;
   cursor: pointer;
-  color: #666;
-  padding: 5px;
-  line-height: 1;
+  z-index: 1100;
+  box-shadow: 2px 0 8px rgba(0, 82, 161, 0.3);
+  transition: all 0.2s ease;
 }
 
-.sidebar__close-btn:hover {
-  color: #333;
+.sidebar__close-arrow:active {
+  transform: translateY(-50%) scale(0.95);
+  box-shadow: 1px 0 4px rgba(0, 82, 161, 0.3);
 }
 
 /* ===========================================
@@ -386,7 +407,7 @@
     height: 100vh;
   }
 
-  .sidebar__close-btn {
+  .sidebar__close-arrow {
     display: none;
   }
 }
@@ -451,4 +472,44 @@
 /* Parent theme */
 .sidebar--parent .sidebar__avatar {
   border-color: #ffd700;
+}
+
+/* ===========================================
+   SIDEBAR PAGE LAYOUT - Shared wrapper classes
+   Use these on pages that pair Sidebar + content
+   =========================================== */
+
+/* Outer flex wrapper: sidebar + content side by side */
+.sidebar-page {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+/* Main content area next to sidebar */
+.sidebar-page__content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background-color: #f8f9fa;
+}
+
+/* Inner content with padding */
+.sidebar-page__body {
+  flex: 1;
+  padding: var(--main-content-padding, 32px);
+}
+
+@media (max-width: 768px) {
+  .sidebar-page__body {
+    padding: 16px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar-page__body {
+    padding: 12px 8px;
+  }
 }

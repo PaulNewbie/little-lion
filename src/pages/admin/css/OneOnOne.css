@@ -206,6 +206,10 @@
 
 /* Responsive Header */
 @media (max-width: 768px) {
+  .ooo-main {
+    padding: 16px 12px;
+  }
+
   .ooo-header {
     padding: 1.5rem;
     margin: 0 0 var(--header-spacing-bottom-mobile, 16px) 0;
@@ -566,6 +570,10 @@
 }
 
 @media (max-width: 600px) {
+  .ooo-main {
+    padding: 12px 8px;
+  }
+
   .ooo-services-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }

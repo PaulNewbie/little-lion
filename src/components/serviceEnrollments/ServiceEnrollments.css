@@ -973,7 +973,15 @@
 }
 
 .se-modal-form__staff-icon {
-  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%);
+  border-radius: 50%;
+  color: #ffffff;
+  flex-shrink: 0;
 }
 
 .se-modal-form__staff-name {
@@ -1192,5 +1200,441 @@
 
   .se-modal-form__btn {
     width: 100%;
+  }
+}
+
+/* ============================================================
+   CHANGE STAFF MODAL (csm-) STYLES
+   ============================================================ */
+.csm-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* --- Avatar --- */
+.csm-avatar {
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.csm-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.csm-avatar__initials {
+  font-weight: 700;
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.csm-avatar--therapist {
+  background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%);
+}
+
+.csm-avatar--teacher {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.csm-avatar--empty {
+  background: #e2e8f0;
+  border: 2px dashed #94a3b8;
+}
+
+.csm-avatar--empty .csm-avatar__initials {
+  color: #94a3b8;
+  font-size: 18px;
+}
+
+/* --- Service Badge --- */
+.csm-service-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  color: #1e40af;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.csm-service-badge svg {
+  flex-shrink: 0;
+  stroke: #0052A1;
+}
+
+.csm-service-badge__type {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  background: #0052A1;
+  color: #ffffff;
+  border-radius: 12px;
+}
+
+/* --- Transfer Visual --- */
+.csm-transfer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.csm-transfer__card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 16px 10px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  min-width: 0;
+}
+
+.csm-transfer__card--current {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+.csm-transfer__card--new {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  border-style: dashed;
+}
+
+.csm-transfer__card--selected {
+  border-color: #0052A1;
+  border-style: solid;
+  background: #eff6ff;
+  box-shadow: 0 2px 8px rgba(0, 82, 161, 0.12);
+}
+
+.csm-transfer__label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #64748b;
+}
+
+.csm-transfer__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  word-break: break-word;
+}
+
+.csm-transfer__name--placeholder {
+  color: #94a3b8;
+  font-style: italic;
+  font-weight: 400;
+}
+
+.csm-transfer__role {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.csm-transfer__arrow {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  border-radius: 50%;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
+}
+
+.csm-transfer__arrow svg {
+  stroke: #ffffff;
+}
+
+/* --- Staff Selection List --- */
+.csm-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.csm-section__label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.csm-staff-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.csm-staff-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.csm-staff-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.csm-staff-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.csm-staff-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.csm-staff-option:hover {
+  border-color: #93c5fd;
+  background: #f0f9ff;
+}
+
+.csm-staff-option--selected {
+  border-color: #0052A1;
+  background: #eff6ff;
+  box-shadow: 0 0 0 1px #0052A1;
+}
+
+.csm-staff-option__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.csm-staff-option__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.csm-staff-option__spec {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.csm-staff-option__check {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.csm-staff-option--selected .csm-staff-option__check {
+  background: #0052A1;
+  color: #ffffff;
+}
+
+.csm-staff-option__check svg {
+  stroke: #ffffff;
+}
+
+.csm-staff-list__loading {
+  padding: 20px;
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.csm-staff-list__empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  color: #92400e;
+  font-size: 13px;
+}
+
+.csm-staff-list__empty svg {
+  flex-shrink: 0;
+  stroke: #d97706;
+}
+
+/* --- Form Fields --- */
+.csm-select,
+.csm-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #1e293b;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.csm-select:focus,
+.csm-input:focus {
+  outline: none;
+  border-color: #0052A1;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(0, 82, 161, 0.1);
+}
+
+.csm-select:disabled,
+.csm-input:disabled {
+  background: #f1f5f9;
+  cursor: not-allowed;
+  color: #94a3b8;
+}
+
+/* --- Error --- */
+.csm-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.csm-error svg {
+  flex-shrink: 0;
+}
+
+/* --- Actions --- */
+.csm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.csm-btn {
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.csm-btn--cancel {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.csm-btn--cancel:hover {
+  background: #e2e8f0;
+}
+
+.csm-btn--primary {
+  background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 82, 161, 0.25);
+}
+
+.csm-btn--primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 82, 161, 0.35);
+}
+
+.csm-btn--primary:disabled {
+  background: #cbd5e1;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* --- Responsive --- */
+@media (max-width: 640px) {
+  .csm-transfer {
+    padding: 16px 10px;
+    gap: 8px;
+  }
+
+  .csm-transfer__card {
+    padding: 12px 6px;
+    gap: 6px;
+  }
+
+  .csm-transfer__name {
+    font-size: 12px;
+  }
+
+  .csm-transfer__arrow {
+    width: 32px;
+    height: 32px;
+  }
+
+  .csm-transfer__arrow svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .csm-staff-list {
+    max-height: 160px;
+  }
+
+  .csm-staff-option {
+    padding: 8px 10px;
+    gap: 10px;
+  }
+
+  .csm-staff-option__name {
+    font-size: 13px;
+  }
+
+  .csm-actions {
+    flex-direction: column;
+  }
+
+  .csm-btn {
+    width: 100%;
+    text-align: center;
   }
 }

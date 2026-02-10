@@ -161,13 +161,13 @@ const TherapistDashboard = () => {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="sidebar-page">
       <Sidebar {...getTherapistConfig()} forceActive="/therapist/dashboard" />
       {loading ? (
         <Loading role="therapist" message="Loading students" variant="content" />
       ) : (
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', backgroundColor: '#f8f9fa' }}>
-        <div style={{ padding: '20px', flex: 1 }}>
+      <div className="sidebar-page__content">
+        <div className="sidebar-page__body">
           <div className="therapist-dashboard__content">
 
         {/* Header Banner */}

@@ -48,7 +48,7 @@
    PAGE TITLE - h1 element in the content area
 ============================================================ */
 /* Target the main h1 that comes after the sidebar */
-div[style*="flex"] > div[style*="padding"] > h1 {
+.sidebar-page__content.sidebar-page__body > h1 {
   font-size: 1.85rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -60,7 +60,7 @@ div[style*="flex"] > div[style*="padding"] > h1 {
 /* ============================================================
    ERROR BANNER - Red error message
 ============================================================ */
-div[style*="flex"] > div[style*="padding"] > div[style*="color: red"] {
+.sidebar-page__content.sidebar-page__body > div[style*="color: red"] {
   background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
   border: 1px solid #fecaca;
   border-left: 4px solid #ef4444;
@@ -74,22 +74,22 @@ div[style*="flex"] > div[style*="padding"] > div[style*="color: red"] {
 /* ============================================================
    FORM CARD - The creation form container
 ============================================================ */
-div[style*="flex"] > div[style*="padding"] > div[style*="border"][style*="padding: 25px"] {
+.sidebar-page__content.sidebar-page__body > div[style*="border"][style*="padding: 25px"] {
   border: 1px solid #e2e8f0 !important;
   border-radius: 16px !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important;
   transition: box-shadow 0.2s ease;
 }
 
-div[style*="flex"] > div[style*="padding"] > div[style*="border"][style*="padding: 25px"]:hover {
+.sidebar-page__content.sidebar-page__body > div[style*="border"][style*="padding: 25px"]:hover {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08) !important;
 }
 
 /* ============================================================
    SECTION TITLES - h3 elements
 ============================================================ */
-div[style*="flex"] > div[style*="padding"] > div[style*="border"] > h3,
-div[style*="flex"] > div[style*="padding"] > h3 {
+.sidebar-page__content.sidebar-page__body > div[style*="border"] > h3,
+.sidebar-page__content.sidebar-page__body > h3 {
   font-size: 1rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -102,7 +102,7 @@ div[style*="flex"] > div[style*="padding"] > h3 {
 /* ============================================================
    FORM LABELS - Enhance existing labels
 ============================================================ */
-div[style*="flex"] > div[style*="padding"] form label {
+.sidebar-page__content.sidebar-page__body form label {
   font-size: 0.8125rem;
   color: #475569 !important;
   letter-spacing: 0.3px;
@@ -111,7 +111,7 @@ div[style*="flex"] > div[style*="padding"] form label {
 /* ============================================================
    FORM INPUTS - Enhance existing inputs
 ============================================================ */
-div[style*="flex"] > div[style*="padding"] form input {
+.sidebar-page__content.sidebar-page__body form input {
   font-size: 0.9375rem;
   color: #1e293b;
   background-color: #f8fafc;
@@ -120,21 +120,21 @@ div[style*="flex"] > div[style*="padding"] form input {
   box-sizing: border-box;
 }
 
-div[style*="flex"] > div[style*="padding"] form input:focus {
+.sidebar-page__content.sidebar-page__body form input:focus {
   outline: none;
   border-color: #0052A1 !important;
   background-color: #ffffff !important;
   box-shadow: 0 0 0 3px rgba(0, 82, 161, 0.12);
 }
 
-div[style*="flex"] > div[style*="padding"] form input::placeholder {
+.sidebar-page__content.sidebar-page__body form input::placeholder {
   color: #94a3b8;
 }
 
 /* ============================================================
    SUBMIT BUTTON - Yellow/Gold create button (Little Lions theme)
 ============================================================ */
-div[style*="flex"] > div[style*="padding"] form button[type="submit"],
+.sidebar-page__content.sidebar-page__body form button[type="submit"],
 .admin-create-btn {
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
   font-size: 0.9375rem;
@@ -145,14 +145,14 @@ div[style*="flex"] > div[style*="padding"] form button[type="submit"],
   box-shadow: 0 2px 8px rgba(251, 191, 36, 0.25);
 }
 
-div[style*="flex"] > div[style*="padding"] form button[type="submit"]:hover,
+.sidebar-page__content.sidebar-page__body form button[type="submit"]:hover,
 .admin-create-btn:hover {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(251, 191, 36, 0.4);
 }
 
-div[style*="flex"] > div[style*="padding"] form button[type="submit"]:active,
+.sidebar-page__content.sidebar-page__body form button[type="submit"]:active,
 .admin-create-btn:active {
   transform: translateY(0);
   box-shadow: 0 2px 6px rgba(251, 191, 36, 0.3);
@@ -161,9 +161,9 @@ div[style*="flex"] > div[style*="padding"] form button[type="submit"]:active,
 /* ============================================================
    PASSWORD HINT - The div with default password info
 ============================================================ */
-div[style*="flex"] > div[style*="padding"] form > div[style*="font-size: 13px"],
-div[style*="flex"] > div[style*="padding"] form > div[style*="fontSize"],
-div[style*="flex"] > div[style*="padding"] form div[style*="display: flex"] > div[style*="font-size: 13px"] {
+.sidebar-page__content.sidebar-page__body form > div[style*="font-size: 13px"],
+.sidebar-page__content.sidebar-page__body form > div[style*="fontSize"],
+.sidebar-page__content.sidebar-page__body form div[style*="display: flex"] > div[style*="font-size: 13px"] {
   background: #eff6ff;
   padding: 10px 14px;
   border-radius: 6px;
@@ -171,8 +171,8 @@ div[style*="flex"] > div[style*="padding"] form div[style*="display: flex"] > di
   color: #64748b !important;
 }
 
-div[style*="flex"] > div[style*="padding"] form > div strong,
-div[style*="flex"] > div[style*="padding"] form div[style*="display: flex"] strong {
+.sidebar-page__content.sidebar-page__body form > div strong,
+.sidebar-page__content.sidebar-page__body form div[style*="display: flex"] strong {
   color: #0052A1 !important;
   font-weight: 600;
 }
@@ -180,7 +180,7 @@ div[style*="flex"] > div[style*="padding"] form div[style*="display: flex"] stro
 /* ============================================================
    TABLE CONTAINER
 ============================================================ */
-div[style*="flex"] > div[style*="padding"] > div[style*="overflow"] {
+.sidebar-page__content.sidebar-page__body > div[style*="overflow"] {
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
@@ -188,18 +188,18 @@ div[style*="flex"] > div[style*="padding"] > div[style*="overflow"] {
 /* ============================================================
    TABLE STYLES
 ============================================================ */
-div[style*="flex"] > div[style*="padding"] table {
+.sidebar-page__content.sidebar-page__body table {
   border-radius: 12px !important;
 }
 
 /* ============================================================
    TABLE HEADER - Little Lions Blue
 ============================================================ */
-div[style*="flex"] > div[style*="padding"] thead {
+.sidebar-page__content.sidebar-page__body thead {
   background: linear-gradient(135deg, #0052A1 0%, #003d7a 100%) !important;
 }
 
-div[style*="flex"] > div[style*="padding"] thead th {
+.sidebar-page__content.sidebar-page__body thead th {
   padding: 16px 20px !important;
   font-size: 0.8125rem;
   font-weight: 700;
@@ -210,18 +210,18 @@ div[style*="flex"] > div[style*="padding"] thead th {
 /* ============================================================
    TABLE BODY ROWS
 ============================================================ */
-div[style*="flex"] > div[style*="padding"] tbody tr {
+.sidebar-page__content.sidebar-page__body tbody tr {
   transition: background-color 0.15s ease;
 }
 
-div[style*="flex"] > div[style*="padding"] tbody tr:hover {
+.sidebar-page__content.sidebar-page__body tbody tr:hover {
   background-color: #eff6ff;
 }
 
 /* ============================================================
    TABLE CELLS
 ============================================================ */
-div[style*="flex"] > div[style*="padding"] tbody td {
+.sidebar-page__content.sidebar-page__body tbody td {
   padding: 16px 20px !important;
   font-size: 0.9375rem;
   color: #334155;
@@ -229,19 +229,19 @@ div[style*="flex"] > div[style*="padding"] tbody td {
 }
 
 /* First column (Name) - make it bold with brand color */
-div[style*="flex"] > div[style*="padding"] tbody td:first-child {
+.sidebar-page__content.sidebar-page__body tbody td:first-child {
   font-weight: 600;
   color: #0052A1;
 }
 
 /* Email column styling */
-div[style*="flex"] > div[style*="padding"] tbody td:nth-child(2) {
+.sidebar-page__content.sidebar-page__body tbody td:nth-child(2) {
   color: #64748b;
   font-size: 0.875rem;
 }
 
 /* Phone column styling */
-div[style*="flex"] > div[style*="padding"] tbody td:nth-child(3) {
+.sidebar-page__content.sidebar-page__body tbody td:nth-child(3) {
   color: #64748b;
   font-size: 0.875rem;
 }
@@ -249,7 +249,7 @@ div[style*="flex"] > div[style*="padding"] tbody td:nth-child(3) {
 /* ============================================================
    DELETE BUTTON
 ============================================================ */
-div[style*="flex"] > div[style*="padding"] tbody button {
+.sidebar-page__content.sidebar-page__body tbody button {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
   padding: 8px 16px !important;
   border-radius: 6px !important;
@@ -258,20 +258,20 @@ div[style*="flex"] > div[style*="padding"] tbody button {
   transition: all 0.2s ease;
 }
 
-div[style*="flex"] > div[style*="padding"] tbody button:hover {
+.sidebar-page__content.sidebar-page__body tbody button:hover {
   background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
 }
 
-div[style*="flex"] > div[style*="padding"] tbody button:active {
+.sidebar-page__content.sidebar-page__body tbody button:active {
   transform: translateY(0);
 }
 
 /* ============================================================
    EMPTY STATE
 ============================================================ */
-div[style*="flex"] > div[style*="padding"] tbody td[colspan="4"] {
+.sidebar-page__content.sidebar-page__body tbody td[colspan="4"] {
   padding: 48px 24px !important;
   color: #64748b !important;
   background: #f8fafc;
@@ -282,31 +282,31 @@ div[style*="flex"] > div[style*="padding"] tbody td[colspan="4"] {
    RESPONSIVE STYLES
 ============================================================ */
 @media (max-width: 768px) {
-  div[style*="flex"] > div[style*="padding"] > h1 {
+  .sidebar-page__content.sidebar-page__body > h1 {
     font-size: 1.5rem;
     margin-bottom: 20px;
   }
 
-  div[style*="flex"] > div[style*="padding"] > div[style*="border"][style*="padding: 25px"] {
+  .sidebar-page__content.sidebar-page__body > div[style*="border"][style*="padding: 25px"] {
     padding: 20px !important;
   }
 
-  div[style*="flex"] > div[style*="padding"] thead th {
+  .sidebar-page__content.sidebar-page__body thead th {
     padding: 12px 14px !important;
   }
 
-  div[style*="flex"] > div[style*="padding"] tbody td {
+  .sidebar-page__content.sidebar-page__body tbody td {
     padding: 12px 14px !important;
     font-size: 0.875rem;
   }
 }
 
 @media (max-width: 480px) {
-  div[style*="flex"] > div[style*="padding"] {
+  .sidebar-page__content.sidebar-page__body {
     padding: 12px !important;
   }
 
-  div[style*="flex"] > div[style*="padding"] > div[style*="border"][style*="padding: 25px"] {
+  .sidebar-page__content.sidebar-page__body > div[style*="border"][style*="padding: 25px"] {
     padding: 16px !important;
     border-radius: 12px !important;
   }

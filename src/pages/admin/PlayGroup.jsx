@@ -19,6 +19,7 @@ import { useToast } from '../../context/ToastContext';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import Loading from '../../components/common/Loading';
+import BackButton from '../../components/common/BackButton';
 import './css/PlayGroup.css';
 import './studentProfile/StudentProfile.css';
 import '../../components/common/Header.css';
@@ -319,12 +320,8 @@ const PlayGroup = () => {
         {currentView === 'service-dashboard' && selectedService && (
           <div className="pg-dashboard-view">
             <div className="ll-header">
-              <span className="back-arrow" onClick={goBackToServices}>
-                <svg width="20" height="20" viewBox="0 0 32 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path fillRule="evenodd" clipRule="evenodd" d="M11.6255 22.8691C9.89159 24.4549 9.89159 27.1866 11.6255 28.7724L30.3211 45.8712C31.7604 47.1876 31.7604 49.455 30.3211 50.7714C29.0525 51.9316 27.1081 51.9316 25.8395 50.7714L1.01868 28.0705C0.366419 27.4738 0 26.6645 0 25.8208C0 24.977 0.366419 24.1678 1.01868 23.571L25.8395 0.87018C27.1081 -0.290054 29.0525 -0.290057 30.3211 0.870177C31.7604 2.1865 31.7604 4.45398 30.3211 5.7703L11.6255 22.8691Z" fill="#ffffff"/>
-                </svg>
-              </span>
-              <div className="ll-header-content" style={{ marginLeft: '50px' }}>
+              <div className="ll-header-content">
+                <BackButton onClick={goBackToServices} />
                 <div className="header-title">
                   <h1>{selectedService.name}</h1>
                   {selectedService.description && (

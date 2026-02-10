@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../context/ToastContext';
 import inquiryService from '../../services/inquiryService';
+import BackButton from '../../components/common/BackButton';
 
 const StaffInquiries = () => {
   const { currentUser } = useAuth();
@@ -89,7 +90,7 @@ const StaffInquiries = () => {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <button onClick={() => navigate(-1)} style={styles.backBtn}>← Back to Dashboard</button>
+        <BackButton />
         <h1 style={{ margin: 0, color: '#2c3e50' }}>My Inbox 📬</h1>
       </div>
 
@@ -173,7 +174,6 @@ const styles = {
   // ... existing styles ...
   container: { padding: '20px', maxWidth: '800px', margin: '0 auto' },
   header: { display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '30px' },
-  backBtn: { background: 'none', border: '1px solid #ccc', borderRadius: '4px', padding: '5px 10px', cursor: 'pointer' },
   empty: { textAlign: 'center', padding: '40px', color: '#888', backgroundColor: '#f9f9f9', borderRadius: '8px' },
   list: { display: 'flex', flexDirection: 'column', gap: '20px' },
   card: (status) => ({

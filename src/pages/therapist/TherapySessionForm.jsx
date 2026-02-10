@@ -8,6 +8,7 @@ import Sidebar from '../../components/sidebar/Sidebar';
 import { getTherapistConfig } from '../../components/sidebar/sidebarConfigs';
 import QuickSelectTags from '../../components/common/form-elements/QuickSelectTags';
 import VoiceInput from '../../components/common/form-elements/VoiceInput';
+import BackButton from '../../components/common/BackButton';
 import './css/TherapySessionForm.css';
 
 // --- DATA: SMART LISTS & CHIPS ---
@@ -391,22 +392,17 @@ const TherapySessionForm = () => {
   if (!child || !service) return <div style={{padding:'2rem'}}>No session details provided.</div>;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="sidebar-page">
       <Sidebar {...getTherapistConfig()} />
       {loading ? (
         <Loading role="therapist" message="Loading session" variant="content" />
       ) : (
-      <div style={{ flex: 1, backgroundColor: '#f8f9fa' }}>
+      <div className="sidebar-page__content">
         <div className="tsf-page">
 
           {/* Page Header */}
           <div className="tsf-header">
-            <button onClick={() => navigate(-1)} className="tsf-back-btn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M19 12H5M12 19l-7-7 7-7"/>
-              </svg>
-              Back
-            </button>
+            <BackButton />
             <div className="tsf-header-main">
               <div className="tsf-header-text">
                 <h1 className="tsf-title">
