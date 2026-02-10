@@ -20,20 +20,40 @@ import "../../components/common/Header.css";
 import "../../components/common/ServiceModal.css";
 
 /* ==============================
-   HELPER: DESCRIPTION WITH SEE MORE
+   HELPER: SERVICE DESCRIPTION
 ============================== */
-const ServiceDescription = ({ description, maxLength = 38 }) => {
-  const [expanded, setExpanded] = useState(false);
+const ServiceDescription = ({ description, maxLength = 120, serviceName }) => {
+  const [showModal, setShowModal] = React.useState(false);
+  const text = description || "No description provided.";
+  const isLong = text.length > maxLength;
 
-  if (!description || description.length <= maxLength) return <p>{description || "No description provided."}</p>;
+  if (!isLong) return <p>{text}</p>;
 
   return (
-    <p>
-      {expanded ? description : `${description.slice(0, maxLength)}... `}
-      <span className="ooo-see-more" onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}>
-        {expanded ? "See less" : "See more"}
-      </span>
-    </p>
+    <>
+      <p>
+        {text.slice(0, maxLength).trimEnd() + '...'}
+        <span
+          className="ooo-see-more"
+          onClick={(e) => { e.stopPropagation(); setShowModal(true); }}
+        >
+          {' See more'}
+        </span>
+      </p>
+      {showModal && (
+        <div className="desc-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="desc-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="desc-modal-header">
+              <h3>{serviceName || 'Description'}</h3>
+              <button className="desc-modal-close" onClick={() => setShowModal(false)}>&times;</button>
+            </div>
+            <div className="desc-modal-body">
+              <p>{text}</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -268,6 +288,7 @@ const OneOnOne = () => {
                           <ServiceDescription
                             description={selectedService.description}
                             maxLength={120}
+                            serviceName={selectedService.name}
                           />
                         </p>
                       )}

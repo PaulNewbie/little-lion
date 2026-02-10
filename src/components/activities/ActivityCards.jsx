@@ -1,7 +1,8 @@
 // src/components/activities/ActivityCards.jsx
 // Shared activity card components for parent views
 
-import React from 'react';
+import React, { useState } from 'react';
+import ImageLightbox from '../common/ImageLightbox';
 
 /**
  * Get emoji for mood/reaction
@@ -176,6 +177,7 @@ export const TherapyCard = ({ activity }) => {
  * GroupCard - Displays group activity information with photos
  */
 export const GroupCard = ({ activity }) => {
+  const [lightboxIndex, setLightboxIndex] = useState(null);
   const dateStr = new Date(activity.date).toLocaleDateString('en-US', {
     weekday: 'short', month: 'short', day: 'numeric'
   });
@@ -209,12 +211,20 @@ export const GroupCard = ({ activity }) => {
                 src={url}
                 alt="Activity"
                 style={cardStyles.mainPhoto}
-                onClick={() => window.open(url, '_blank')}
+                onClick={() => setLightboxIndex(idx)}
               />
             ))}
           </div>
         )}
       </div>
+
+      {lightboxIndex !== null && (
+        <ImageLightbox
+          images={activity.photoUrls}
+          currentIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
     </div>
   );
 };

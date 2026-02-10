@@ -4,7 +4,8 @@ import "react-calendar/dist/Calendar.css";
 import "../StudentProfile.css";
 import { AuthContext } from "../../../../context/AuthContext";
 import { useToast } from "../../../../context/ToastContext";
-import activityService from "./activityService"; 
+import activityService from "./activityService";
+import ImageLightbox from "../../../../components/common/ImageLightbox"; 
 
 // ==========================================
 // 1. Recursive Comment Item (Thread Node)
@@ -500,6 +501,7 @@ const handleSendComment = async (text, parentId = null) => {
 const ActivityCalendar = ({ activities, teachers, selectedServiceName, onRefresh }) => {
   const [date, setDate] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lightbox, setLightbox] = useState({ images: null, index: null });
 
   useEffect(() => {
     setDate(new Date());
@@ -689,7 +691,7 @@ const ActivityCalendar = ({ activities, teachers, selectedServiceName, onRefresh
                   {rec.photoUrls?.length > 0 && (
                     <div style={{ marginTop: '10px' }}>
                       {rec.photoUrls.map((url, imgIdx) => (
-                         <img key={imgIdx} className="activity-image-preview" src={url} alt="activity" onClick={() => window.open(url, "_blank")} />
+                         <img key={imgIdx} className="activity-image-preview" src={url} alt="activity" onClick={() => setLightbox({ images: rec.photoUrls, index: imgIdx })} />
                       ))}
                     </div>
                   )}
@@ -710,6 +712,14 @@ const ActivityCalendar = ({ activities, teachers, selectedServiceName, onRefresh
       <div className="calendar-section">
         <Calendar onChange={setDate} value={date} tileContent={tileContent} className="custom-calendar" />
       </div>
+
+      {lightbox.images && (
+        <ImageLightbox
+          images={lightbox.images}
+          currentIndex={lightbox.index}
+          onClose={() => setLightbox({ images: null, index: null })}
+        />
+      )}
     </div>
   );
 };

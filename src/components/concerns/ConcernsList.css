@@ -218,6 +218,49 @@
   .pc-compose-btn {
     display: none;
   }
+
+  /* Stack filter dropdowns vertically on mobile */
+  .pc-header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .pc-column-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .pc-filter-dropdown {
+    max-width: 100%;
+    width: 100%;
+    padding: 10px 32px 10px 12px;
+    font-size: 0.9rem;
+    border-radius: 10px;
+  }
+
+  .pc-parent-filter {
+    border-width: 1.5px;
+  }
+
+  .pc-active-filters {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+
+  .pc-filter-chip {
+    font-size: 0.75rem;
+    padding: 3px 6px 3px 3px;
+  }
+
+  .pc-chip-avatar {
+    width: 18px;
+    height: 18px;
+    font-size: 0.65rem;
+  }
 }
 
 @media (min-width: 768px) {

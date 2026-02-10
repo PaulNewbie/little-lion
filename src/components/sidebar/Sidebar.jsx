@@ -14,8 +14,8 @@ import "./Sidebar.css";
 const ChevronIcon = ({ isOpen }) => (
   <svg 
     className={`sidebar__chevron ${isOpen ? 'sidebar__chevron--open' : ''}`}
-    width="18" 
-    height="18" 
+    width="20"
+    height="20" 
     viewBox="0 0 24 24" 
     fill="none" 
     stroke="currentColor" 

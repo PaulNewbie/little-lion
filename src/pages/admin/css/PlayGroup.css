@@ -8,36 +8,17 @@
 ============================================================ */
 .pg-container {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
   background: linear-gradient(135deg, #f0f4f8 0%, #e8eef3 100%);
-  overflow: hidden;
   font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
 .pg-main {
   flex: 1;
-  height: 100vh;
-  overflow-y: auto;
-  overflow-x: hidden;
+  min-width: 0;
   position: relative;
   box-sizing: border-box;
   padding: var(--main-content-padding, 32px);
-  scrollbar-width: thin;
-  scrollbar-color: #0052a1 rgba(0, 0, 0, 0.05);
-}
-
-.pg-main::-webkit-scrollbar {
-  width: 8px;
-}
-
-.pg-main::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: 10px;
-}
-
-.pg-main::-webkit-scrollbar-thumb {
-  background: #0052a1;
-  border-radius: 10px;
 }
 
 .pg-page {
@@ -48,7 +29,6 @@
 
 .pg-content {
   flex: 1;
-  overflow-y: auto;
 }
 
 .pg-loading {
@@ -862,6 +842,24 @@
   border-radius: 10px;
 }
 
+.pg-calendar-wrapper .react-calendar__navigation__arrow {
+  font-size: 42px;
+  min-width: 64px;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f7ff !important;
+  border-radius: 12px;
+  color: #0052A1;
+  font-weight: 700;
+}
+
+.pg-calendar-wrapper .react-calendar__navigation__arrow:active {
+  background: #dbeafe !important;
+  transform: scale(0.95);
+}
+
 .pg-calendar-wrapper .react-calendar__navigation button:enabled:hover {
   background: #e8f4f8 !important;
 }
@@ -895,8 +893,9 @@
 }
 
 .pg-calendar-wrapper .react-calendar__tile--now {
-  background: #fffef5 !important;
-  border: 2px solid #FFCB10;
+  background: #DBEAFE !important;
+  border: 2px solid #60A5FA;
+  color: #1E40AF !important;
   font-weight: 700;
 }
 
@@ -911,20 +910,10 @@
 }
 
 .has-activity-dot {
-  position: relative;
-}
-
-.has-activity-dot::after {
-  content: '';
-  position: absolute;
-  bottom: 6px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 7px;
-  height: 7px;
-  background: linear-gradient(135deg, #FFCB10 0%, #FFB800 100%);
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(255, 203, 16, 0.4);
+  background: #FFF3C4 !important;
+  border: 1.5px solid #FFCB10 !important;
+  color: #92600a !important;
+  font-weight: 700 !important;
 }
 
 .pg-calendar-legend {
@@ -941,28 +930,38 @@
 }
 
 .dot-legend {
-  width: 10px;
-  height: 10px;
-  background: linear-gradient(135deg, #FFCB10 0%, #FFB800 100%);
-  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  background: #FFF3C4;
+  border: 1.5px solid #FFCB10;
+  border-radius: 4px;
   display: inline-block;
-  box-shadow: 0 2px 4px rgba(255, 203, 16, 0.4);
 }
 
 /* ============================================================
    SERVICE DESCRIPTION "SEE MORE" LINK
 ============================================================ */
 .pg-see-more {
-  color: #0073e6;
+  display: inline-block;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
   cursor: pointer;
-  font-weight: 600;
-  margin-left: 6px;
-  transition: color 0.2s ease;
+  font-weight: 700;
+  font-size: 11px;
+  margin-left: 8px;
+  padding: 3px 12px;
+  border-radius: 20px;
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  vertical-align: middle;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
 }
 
 .pg-see-more:hover {
-  color: #0052A1;
-  text-decoration: underline;
+  background: rgba(255, 255, 255, 0.35);
+  border-color: #fff;
 }
 
 /* ============================================================
@@ -1018,22 +1017,23 @@
     padding: 20px;
   }
 
-  /* Mobile FAB: Show Icon Only */
+  /* Mobile FAB: Pill button with text */
   .pg-fab {
-    width: 56px;
-    height: 56px;
-    padding: 0;
-    justify-content: center;
-    border-radius: 50%;
-    bottom: 20px;
-    right: 20px;
+    padding: 12px 20px;
+    gap: 8px;
+    border-radius: 50px;
+    bottom: 70px;
+    right: 16px;
+    font-size: 13px;
   }
 
   .pg-fab-text {
-    display: none;
+    display: inline;
+    letter-spacing: 0.5px;
   }
 
   .pg-fab-icon {
+    font-size: 20px;
     margin: 0;
   }
 }

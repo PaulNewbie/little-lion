@@ -359,10 +359,27 @@
 
 /* See more / see less link */
 .ooo-see-more {
-  color: #0052A1;
-  font-weight: 600;
+  display: inline-block;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
   cursor: pointer;
-  margin-left: 3px;
+  font-weight: 700;
+  font-size: 11px;
+  margin-left: 8px;
+  padding: 3px 12px;
+  border-radius: 20px;
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  vertical-align: middle;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+}
+
+.ooo-see-more:hover {
+  background: rgba(255, 255, 255, 0.35);
+  border-color: #fff;
+  opacity: 0.9;
 }
 
 /* Header Edit Button */
@@ -547,20 +564,21 @@
 /* Responsive FAB */
 @media (max-width: 900px) {
   .ooo-fab {
-    width: 56px;
-    height: 56px;
-    padding: 0;
-    justify-content: center;
-    border-radius: 50%;
-    bottom: 24px;
-    right: 24px;
+    padding: 12px 20px;
+    gap: 8px;
+    border-radius: 50px;
+    bottom: 70px;
+    right: 16px;
+    font-size: 13px;
   }
 
   .ooo-fab-text {
-    display: none;
+    display: inline;
+    letter-spacing: 0.5px;
   }
 
   .ooo-fab-icon {
+    font-size: 20px;
     margin: 0;
   }
 

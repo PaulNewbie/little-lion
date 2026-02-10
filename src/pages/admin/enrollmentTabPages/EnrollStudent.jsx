@@ -253,27 +253,26 @@ export default function EnrollStudent() {
 
   // Calculate profile completion for a child
   const calculateProfileCompletion = (child) => {
-    const steps = [
-      { check: () => child.firstName && child.lastName && child.gender && child.dateOfBirth },
-      { check: () => child.reasonForReferral },
-      { check: () => child.purposeOfAssessment?.length > 0 },
-      { check: () => child.backgroundHistory?.familyBackground },
-      { check: () => child.backgroundHistory?.dailyLifeActivities || child.backgroundHistory?.medicalHistory },
-      { check: () => child.backgroundHistory?.schoolHistory },
-      { check: () => child.backgroundHistory?.clinicalDiagnosis },
-      { check: () => child.backgroundHistory?.strengthsAndInterests },
-      { check: () => child.behaviorDuringAssessment },
-      { check: () => child.assessmentTools?.some(t => t.tool) },
-      { check: () => child.assessmentTools?.some(t => t.result) },
-      { check: () => child.assessmentSummary },
-      { check: () => child.serviceEnrollments?.length > 0 },
-    ];
+    const totalSteps = child.assessmentTotalSteps || 13;
 
-    const completedSteps = steps.filter(step => step.check()).length;
+    // Use the saved assessment step (written during form save)
+    if (child.assessmentStep) {
+      const completed = child.assessmentStep - 1; // steps before current are done
+      return {
+        completed,
+        total: totalSteps,
+        percentage: Math.round((completed / totalSteps) * 100)
+      };
+    }
+
+    // Fallback: check fields available on the child document
+    const hasBasicInfo = child.firstName && child.lastName && child.gender && child.dateOfBirth;
+    const hasServices = child.serviceEnrollments?.length > 0;
+    const completed = (hasBasicInfo ? 1 : 0) + (hasServices ? 1 : 0);
     return {
-      completed: completedSteps,
-      total: steps.length,
-      percentage: Math.round((completedSteps / steps.length) * 100)
+      completed,
+      total: totalSteps,
+      percentage: Math.round((completed / totalSteps) * 100)
     };
   };
 
@@ -290,6 +289,7 @@ export default function EnrollStudent() {
   const handleCloseEnrollForm = () => {
     setShowEnrollForm(false);
     setEditingStudent(null);
+    setSelectedParent(null);
   };
 
   // Filter parents by search term (using visibleGuardians for staff role filtering)
@@ -818,21 +818,23 @@ export default function EnrollStudent() {
                   </div>
                 )}
 
-                {/* Enroll Child Button - Always visible at bottom of modal */}
-                <div className="csm-footer">
-                  <button
-                    className="csm-enroll-btn"
-                    onClick={() => {
-                      setShowChildrenModal(false);
-                      setShowEnrollForm(true);
-                    }}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 5v14M5 12h14"/>
-                    </svg>
-                    Enroll a Child
-                  </button>
-                </div>
+                {/* Enroll Child Button - Only show when children exist (empty state has its own button) */}
+                {!isLoadingChildren && visibleStudents.length > 0 && !isStaffRole && (
+                  <div className="csm-footer">
+                    <button
+                      className="csm-enroll-btn"
+                      onClick={() => {
+                        setShowChildrenModal(false);
+                        setShowEnrollForm(true);
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 5v14M5 12h14"/>
+                      </svg>
+                      Enroll a Child
+                    </button>
+                  </div>
+                )}
               </div>
 
             </div>

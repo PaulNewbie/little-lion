@@ -491,6 +491,8 @@ export default function EnrollStudentFormModal({
         skippedSteps: studentInput.skippedSteps || [],
         noServicesRequired: studentInput.noServicesRequired || false,
         status: "ASSESSING",
+        assessmentStep: formStep,
+        assessmentTotalSteps: TOTAL_STEPS,
         assessmentId,
         childId,
       };
@@ -745,6 +747,8 @@ export default function EnrollStudentFormModal({
         skippedSteps: studentInput.skippedSteps || [],
         noServicesRequired: studentInput.noServicesRequired || false,
         status: isFinalized ? "ENROLLED" : "ASSESSING",
+        assessmentStep: formStep,
+        assessmentTotalSteps: TOTAL_STEPS,
         assessmentId, // Link to the assessment document
         childId, // Ensure childId is consistent
       };

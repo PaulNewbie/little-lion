@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../context/ToastContext';
 import childService from '../../services/childService';
 import Sidebar from '../../components/sidebar/Sidebar';
+import ImageLightbox from '../../components/common/ImageLightbox';
 import { getParentConfig } from '../../components/sidebar/sidebarConfigs';
 import GeneralFooter from '../../components/footer/generalfooter';
 import summaryService from '../../services/summaryService';
@@ -59,14 +60,22 @@ const styles = {
     color: '#64748b',
   },
   select: {
-    padding: '10px 14px',
+    padding: '10px 32px 10px 14px',
     border: '2px solid #e2e8f0',
-    borderRadius: '8px',
-    fontSize: '14px',
+    borderRadius: '10px',
+    fontSize: '16px',
     backgroundColor: 'white',
     minWidth: '140px',
+    minHeight: '44px',
     cursor: 'pointer',
     transition: 'border-color 0.2s ease',
+    WebkitAppearance: 'none',
+    MozAppearance: 'none',
+    appearance: 'none',
+    backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\")",
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 10px center',
+    backgroundSize: '16px',
   },
   generateBtn: {
     padding: '10px 20px',
@@ -479,9 +488,13 @@ const MoodCard = ({ moodData }) => {
 };
 
 const PhotoGallery = ({ photos }) => {
+  const [lightboxIndex, setLightboxIndex] = useState(null);
+
   if (!photos || photos.length === 0) {
     return null;
   }
+
+  const photoUrls = photos.map(p => p.url);
 
   const formatPhotoDate = (dateStr) => {
     if (!dateStr) return '';
@@ -501,7 +514,7 @@ const PhotoGallery = ({ photos }) => {
           <div
             key={`${photo.activityId}-${photo.index}-${index}`}
             style={styles.photoItem}
-            onClick={() => window.open(photo.url, '_blank')}
+            onClick={() => setLightboxIndex(index)}
           >
             <img
               src={photo.url}
@@ -516,6 +529,14 @@ const PhotoGallery = ({ photos }) => {
           </div>
         ))}
       </div>
+
+      {lightboxIndex !== null && (
+        <ImageLightbox
+          images={photoUrls}
+          currentIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
     </div>
   );
 };

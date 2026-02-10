@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import GeneralFooter from "../../components/footer/generalfooter";
+import ImageLightbox from "../../components/common/ImageLightbox";
 
 // 1. Import React Query
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -25,27 +26,39 @@ import './studentProfile/StudentProfile.css';
 import '../../components/common/Header.css';
 import '../../components/common/ServiceModal.css';
 
-// ===== HELPER: SERVICE DESCRIPTION WITH SEE MORE =====
-const ServiceDescription = ({ description, maxLength = 70 }) => {
-  const [expanded, setExpanded] = useState(false);
+// ===== HELPER: SERVICE DESCRIPTION =====
+const ServiceDescription = ({ description, maxLength = 120, serviceName }) => {
+  const [showModal, setShowModal] = React.useState(false);
+  const text = description || "No description provided.";
+  const isLong = text.length > maxLength;
 
-  if (description.length <= maxLength) {
-    return <p>{description}</p>;
-  }
+  if (!isLong) return <p>{text}</p>;
 
   return (
-    <p>
-      {expanded ? description : `${description.slice(0, maxLength)}... `}
-      <span
-        className="pg-see-more"
-        onClick={(e) => {
-          e.stopPropagation(); // prevent card click
-          setExpanded(!expanded);
-        }}
-      >
-        {expanded ? "See less" : "See more"}
-      </span>
-    </p>
+    <>
+      <p>
+        {text.slice(0, maxLength).trimEnd() + '...'}
+        <span
+          className="pg-see-more"
+          onClick={(e) => { e.stopPropagation(); setShowModal(true); }}
+        >
+          {' See more'}
+        </span>
+      </p>
+      {showModal && (
+        <div className="desc-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="desc-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="desc-modal-header">
+              <h3>{serviceName || 'Description'}</h3>
+              <button className="desc-modal-close" onClick={() => setShowModal(false)}>&times;</button>
+            </div>
+            <div className="desc-modal-body">
+              <p>{text}</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -76,6 +89,7 @@ const PlayGroup = () => {
   const [editServiceImage, setEditServiceImage] = useState(null);
   const [editing, setEditing] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [lightbox, setLightbox] = useState({ images: null, index: null });
 
   // --- 1. Fetch Play Group Services ---
   const { data: services = [], isLoading: loadingServices } = useQuery({
@@ -329,6 +343,7 @@ const PlayGroup = () => {
                       <ServiceDescription
                         description={selectedService.description}
                         maxLength={120}
+                        serviceName={selectedService.name}
                       />
                     </p>
                   )}
@@ -392,7 +407,7 @@ const PlayGroup = () => {
                             {activity.photoUrls && activity.photoUrls.length > 0 ? (
                               <div className="pg-photo-grid">
                                 {activity.photoUrls.map((url, i) => (
-                                  <div key={i} className="pg-photo-card" onClick={() => window.open(url, '_blank')}>
+                                  <div key={i} className="pg-photo-card" onClick={() => setLightbox({ images: activity.photoUrls, index: i })}>
                                     <img src={url} alt="Activity" />
                                   </div>
                                 ))}
@@ -748,6 +763,14 @@ const PlayGroup = () => {
         <GeneralFooter pageLabel="PlayGroup" />
         </div>
       </div>
+      )}
+
+      {lightbox.images && (
+        <ImageLightbox
+          images={lightbox.images}
+          currentIndex={lightbox.index}
+          onClose={() => setLightbox({ images: null, index: null })}
+        />
       )}
     </div>
   );

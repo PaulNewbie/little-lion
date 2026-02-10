@@ -1273,6 +1273,24 @@
   padding: 4px 8px !important;
 }
 
+.react-calendar__navigation__arrow {
+  font-size: 42px !important;
+  min-width: 64px !important;
+  min-height: 64px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #f0f7ff !important;
+  border-radius: 12px !important;
+  color: #6b7280 !important;
+  font-weight: 700 !important;
+}
+
+.react-calendar__navigation__arrow:active {
+  background: #dbeafe !important;
+  transform: scale(0.95);
+}
+
 .react-calendar__navigation button:hover {
   background: rgba(0, 0, 0, 0.05) !important;
   border-radius: 6px !important;

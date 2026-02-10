@@ -297,6 +297,24 @@
   padding: 8px;
 }
 
+.play-group__calendar .react-calendar__navigation__arrow {
+  font-size: 42px;
+  min-width: 64px;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f7ff;
+  border-radius: 12px;
+  color: #0052A1;
+  font-weight: 700;
+}
+
+.play-group__calendar .react-calendar__navigation__arrow:active {
+  background: #dbeafe;
+  transform: scale(0.95);
+}
+
 .play-group__calendar .react-calendar__navigation button:hover {
   background: #f0f9ff !important;
 }
