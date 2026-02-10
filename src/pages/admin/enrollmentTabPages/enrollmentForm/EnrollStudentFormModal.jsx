@@ -138,6 +138,9 @@ export default function EnrollStudentFormModal({
 }) {
   const [formStep, setFormStep] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
+  const [headerHidden, setHeaderHidden] = useState(false);
+  const lastScrollTop = useRef(0);
+  const scrollRef = useRef(null);
   const [studentInput, setStudentInput] = useState(INITIAL_STUDENT_STATE);
   const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
 
@@ -537,6 +540,42 @@ export default function EnrollStudentFormModal({
     }
   }, [show, performAutoSave]);
 
+  // Reset header visibility when step changes
+  useEffect(() => {
+    setHeaderHidden(false);
+    lastScrollTop.current = 0;
+  }, [formStep]);
+
+  // Hide header on scroll down, show on scroll up
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const DELTA = 15; // minimum scroll distance to trigger hide/show
+
+    const handleScroll = () => {
+      const st = el.scrollTop;
+      const diff = st - lastScrollTop.current;
+
+      // Ignore tiny movements (prevents jitter at bottom bounce)
+      if (Math.abs(diff) < DELTA) return;
+
+      // Near bottom - don't hide (prevents bounce glitch)
+      const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 30;
+      if (nearBottom) return;
+
+      if (diff > 0 && st > 80) {
+        setHeaderHidden(true);
+      } else if (diff < 0) {
+        setHeaderHidden(false);
+      }
+      lastScrollTop.current = st;
+    };
+
+    el.addEventListener('scroll', handleScroll, { passive: true });
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, [show]);
+
   useEffect(() => {
     if (show) {
       // Build the initial data object (merge defaults with editingStudent when present)
@@ -874,7 +913,7 @@ export default function EnrollStudentFormModal({
   return (
     <div className="modalOverlay">
       <div className="multi-step-modal">
-        <div className="modal-header-sticky">
+        <div className={`modal-header-sticky${headerHidden ? ' header-hidden' : ''}`}>
           <div className="modal-header-flex">
             <div className="header-left">
               <h2>
@@ -914,7 +953,7 @@ export default function EnrollStudentFormModal({
           />
         </div>
 
-        <div className="enroll-form-scroll">
+        <div className="enroll-form-scroll" ref={scrollRef}>
           {/* NEW: Error Summary Banner */}
           {showErrors && Object.keys(validationErrors).length > 0 && (
             <div className="validation-error-banner">
