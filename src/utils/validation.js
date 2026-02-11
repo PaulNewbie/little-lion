@@ -174,10 +174,10 @@ export const validateProfile = (data, role) => {
   
   // Role-specific validation
   if (role === 'therapist' || role === 'teacher') {
-    // Therapist: Check licenses array (required)
+    // Therapist: Check licenses array (optional - not all staff have licenses)
     if (rules.requiresLicenseArray) {
       if (!data.licenses || data.licenses.length === 0) {
-        errors.licenses = 'At least one license is required';
+        warnings.licenses = 'Adding at least one license is recommended';
       } else {
         // Validate each license entry
         data.licenses.forEach((license, index) => {
