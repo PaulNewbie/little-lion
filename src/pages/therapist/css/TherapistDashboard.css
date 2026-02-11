@@ -301,10 +301,28 @@
 
 .therapist-dashboard__empty p,
 .therapist-dashboard__empty-state-title {
-  font-size: 1.25rem;
-  font-weight: 600;
   color: #1e293b;
   margin: 0;
+}
+
+.therapist-dashboard__retry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: white;
+  background-color: #0052A1;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 12px;
+}
+
+.therapist-dashboard__retry-btn:hover {
+  background-color: #003d7a;
 }
 
 /* ===========================================

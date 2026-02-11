@@ -287,7 +287,27 @@
 
 .teacher-dashboard__empty-state-text {
   color: #64748b;
-  margin: 0;
+  margin: 0 0 1rem 0;
+}
+
+.teacher-dashboard__retry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: white;
+  background-color: #0052A1;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 8px;
+}
+
+.teacher-dashboard__retry-btn:hover {
+  background-color: #003d7a;
 }
 
 /* Class Selection View */

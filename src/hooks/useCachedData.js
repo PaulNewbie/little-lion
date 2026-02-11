@@ -10,6 +10,9 @@ import offeringsService from '../services/offeringsService';
 import activityService from '../services/activityService';
 import { QUERY_KEYS, QUERY_OPTIONS } from '../config/queryClient';
 
+// Stable empty array to avoid creating new references on every render
+const EMPTY_ARRAY = [];
+
 // =============================================================================
 // CACHE CONFIGURATION - Data won't refetch for these durations
 // =============================================================================
@@ -523,7 +526,7 @@ export function useTherapistDashboardData() {
   const { currentUser } = useAuth();
   const studentsQuery = useChildrenByStaff(currentUser?.uid);
   return {
-    students: studentsQuery.data || [],
+    students: studentsQuery.data || EMPTY_ARRAY,
     isLoading: studentsQuery.isLoading,
     error: studentsQuery.error,
     refetch: studentsQuery.refetch,
@@ -534,7 +537,7 @@ export function useTeacherDashboardData() {
   const { currentUser } = useAuth();
   const studentsQuery = useChildrenByStaff(currentUser?.uid);
   return {
-    students: studentsQuery.data || [],
+    students: studentsQuery.data || EMPTY_ARRAY,
     isLoading: studentsQuery.isLoading,
     error: studentsQuery.error,
     refetch: studentsQuery.refetch,
@@ -545,7 +548,7 @@ export function useParentDashboardData() {
   const { currentUser } = useAuth();
   const childrenQuery = useChildrenByParent(currentUser?.uid);
   return {
-    children: childrenQuery.data || [],
+    children: childrenQuery.data || EMPTY_ARRAY,
     isLoading: childrenQuery.isLoading,
     error: childrenQuery.error,
     refetch: childrenQuery.refetch,

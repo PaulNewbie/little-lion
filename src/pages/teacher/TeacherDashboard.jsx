@@ -11,7 +11,7 @@ import Sidebar from '../../components/sidebar/Sidebar';
 import { getTeacherConfig } from '../../components/sidebar/sidebarConfigs';
 import QuickSelectTags from '../../components/common/form-elements/QuickSelectTags';
 import VoiceInput from '../../components/common/form-elements/VoiceInput';
-import { Mail, Phone, Camera, FileEdit, X, ClipboardList, Users, ChevronRight, Search } from 'lucide-react';
+import { Mail, Phone, Camera, FileEdit, X, ClipboardList, Users, ChevronRight, Search, WifiOff, RefreshCw } from 'lucide-react';
 import BackButton from '../../components/common/BackButton';
 import { useTeacherDashboardData } from '../../hooks/useCachedData';
 import logo from '../../images/logo.webp';
@@ -37,7 +37,6 @@ const TeacherDashboard = () => {
   const toast = useToast();
 
   // Data State
-  const [myClasses, setMyClasses] = useState([]);
   const [error, setError] = useState('');
 
   // UI State
@@ -66,7 +65,20 @@ const TeacherDashboard = () => {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   // Fetch Data
-  const { students, isLoading: loading, error: queryError } = useTeacherDashboardData();
+  const { students, isLoading: loading, error: queryError, refetch } = useTeacherDashboardData();
+
+  // Track online status
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  useEffect(() => {
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    return () => {
+      window.removeEventListener('online', goOnline);
+      window.removeEventListener('offline', goOffline);
+    };
+  }, []);
 
   // Fetch class services for images
   const { data: classServices = [] } = useQuery({
@@ -86,51 +98,51 @@ const TeacherDashboard = () => {
     return map;
   }, [classServices]);
 
-  // Process Data
-  useEffect(() => {
-    if (students && currentUser) {
-      const groupedClasses = {};
+  // Process Data — useMemo avoids setState re-render loops
+  const myClasses = useMemo(() => {
+    if (!students || students.length === 0 || !currentUser) return [];
 
-      students.forEach(student => {
-        let myServices = [];
+    const groupedClasses = {};
 
-        // NEW MODEL: Read from serviceEnrollments (primary)
-        if (student.serviceEnrollments && student.serviceEnrollments.length > 0) {
-          myServices = student.serviceEnrollments.filter(enrollment =>
-            enrollment.status === 'active' &&
-            enrollment.currentStaff?.staffId === currentUser.uid
-          );
+    students.forEach(student => {
+      let myServices = [];
+
+      // NEW MODEL: Read from serviceEnrollments (primary)
+      if (student.serviceEnrollments && student.serviceEnrollments.length > 0) {
+        myServices = student.serviceEnrollments.filter(enrollment =>
+          enrollment.status === 'active' &&
+          enrollment.currentStaff?.staffId === currentUser.uid
+        );
+      }
+
+      // LEGACY FALLBACK: Also check old arrays if new model found nothing
+      if (myServices.length === 0) {
+        const legacyServices = [
+          ...(student.groupClassServices || []),
+          ...(student.oneOnOneServices || [])
+        ];
+        const legacyMatches = legacyServices.filter(svc => svc.staffId === currentUser.uid);
+        if (legacyMatches.length > 0) myServices = legacyMatches;
+      }
+
+      myServices.forEach(svc => {
+        const className = svc.serviceName || 'Unassigned Group';
+
+        if (!groupedClasses[className]) {
+          groupedClasses[className] = {
+            name: className,
+            serviceId: svc.serviceId,
+            students: []
+          };
         }
 
-        // LEGACY FALLBACK: Also check old arrays if new model found nothing
-        if (myServices.length === 0) {
-          const legacyServices = [
-            ...(student.groupClassServices || []),
-            ...(student.oneOnOneServices || [])
-          ];
-          const legacyMatches = legacyServices.filter(svc => svc.staffId === currentUser.uid);
-          if (legacyMatches.length > 0) myServices = legacyMatches;
+        if (!groupedClasses[className].students.find(s => s.id === student.id)) {
+          groupedClasses[className].students.push(student);
         }
-
-        myServices.forEach(svc => {
-          const className = svc.serviceName || 'Unassigned Group';
-
-          if (!groupedClasses[className]) {
-            groupedClasses[className] = {
-              name: className,
-              serviceId: svc.serviceId,
-              students: []
-            };
-          }
-
-          if (!groupedClasses[className].students.find(s => s.id === student.id)) {
-            groupedClasses[className].students.push(student);
-          }
-        });
       });
+    });
 
-      setMyClasses(Object.values(groupedClasses));
-    }
+    return Object.values(groupedClasses);
   }, [students, currentUser]);
 
   // Restore selected class from sessionStorage when myClasses is loaded
@@ -144,7 +156,7 @@ const TeacherDashboard = () => {
         }
       }
     }
-  }, [myClasses]);
+  }, [myClasses, selectedClass]);
 
   // Profile Completion Check - show welcome for new users with empty profile
   useEffect(() => {
@@ -413,7 +425,22 @@ const TeacherDashboard = () => {
               <>
                 {filteredClasses.length === 0 ? (
                   <div className="teacher-dashboard__empty-state">
-                    <h3 className="teacher-dashboard__empty-state-title">No classes found</h3>
+                    {!isOnline || queryError ? (
+                      <>
+                        <WifiOff size={40} strokeWidth={1.5} style={{ color: '#94a3b8', marginBottom: '12px' }} />
+                        <h3 className="teacher-dashboard__empty-state-title">Unable to load classes</h3>
+                        <p className="teacher-dashboard__empty-state-text">
+                          It looks like you have a weak signal or no internet connection. Please check your connection and try again.
+                        </p>
+                        <button className="teacher-dashboard__retry-btn" onClick={() => refetch()}>
+                          <RefreshCw size={16} /> Retry
+                        </button>
+                      </>
+                    ) : (
+                      <h3 className="teacher-dashboard__empty-state-title">
+                        {searchTerm ? 'No classes match your search' : 'No classes found'}
+                      </h3>
+                    )}
                   </div>
                 ) : (
                   <div className="teacher-dashboard__classes-grid">

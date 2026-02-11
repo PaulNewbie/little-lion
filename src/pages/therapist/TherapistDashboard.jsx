@@ -5,7 +5,7 @@ import { useToast } from '../../context/ToastContext';
 import Loading from '../../components/common/Loading';
 import Sidebar from '../../components/sidebar/Sidebar';
 import { getTherapistConfig } from '../../components/sidebar/sidebarConfigs';
-import { Mail, Phone, X, Play, MessageCircle, Hand, Activity, Brain, TrendingUp, BookOpen, Briefcase, User, ClipboardList } from 'lucide-react';
+import { Mail, Phone, X, Play, MessageCircle, Hand, Activity, Brain, TrendingUp, BookOpen, Briefcase, User, ClipboardList, WifiOff, RefreshCw } from 'lucide-react';
 import { useTherapistDashboardData } from '../../hooks/useCachedData';
 import logo from '../../images/logo.webp';
 import './css/TherapistDashboard.css';
@@ -27,8 +27,21 @@ const TherapistDashboard = () => {
   const [selectedStudentForModal, setSelectedStudentForModal] = useState(null);
   const [availableServices, setAvailableServices] = useState([]);
 
-  const { students, isLoading: loading, error: queryError } = useTherapistDashboardData();
+  const { students, isLoading: loading, error: queryError, refetch } = useTherapistDashboardData();
   const [error, setError] = useState('');
+
+  // Track online status
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  useEffect(() => {
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    return () => {
+      window.removeEventListener('online', goOnline);
+      window.removeEventListener('offline', goOffline);
+    };
+  }, []);
 
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   // Set error from query if needed
@@ -252,11 +265,24 @@ const TherapistDashboard = () => {
         {/* Student Cards */}
         {filteredStudents.length === 0 ? (
           <div className="therapist-dashboard__empty">
-            <p>
-              {searchTerm
-                ? 'No students found matching your search.'
-                : 'No students assigned to you yet.'}
-            </p>
+            {!isOnline || queryError ? (
+              <>
+                <WifiOff size={40} strokeWidth={1.5} style={{ color: '#94a3b8', marginBottom: '12px' }} />
+                <p style={{ fontWeight: 600, marginBottom: '4px' }}>Unable to load students</p>
+                <p>
+                  It looks like you have a weak signal or no internet connection. Please check your connection and try again.
+                </p>
+                <button className="therapist-dashboard__retry-btn" onClick={() => refetch()}>
+                  <RefreshCw size={16} /> Retry
+                </button>
+              </>
+            ) : (
+              <p>
+                {searchTerm
+                  ? 'No students found matching your search.'
+                  : 'No students assigned to you yet.'}
+              </p>
+            )}
           </div>
         ) : (
           <>

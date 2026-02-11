@@ -212,11 +212,9 @@ class ChildService {
       const snapshot = await getDocs(q);
       trackRead(COLLECTION_NAME, snapshot.docs.length);
 
-      // FIX: If optimized query returns nothing, try fallback (in case data is legacy)
+      // If optimized query returns nothing, try fallback (legacy data or status mismatch)
       if (snapshot.empty) {
-        console.log('Optimized query found 0 students. Checking fallback for legacy data...');
         const fallbackResults = await this.getChildrenByStaffIdFallback(staffId);
-        // Only return fallback if it actually found something
         if (fallbackResults.length > 0) {
             return fallbackResults;
         }
@@ -244,14 +242,19 @@ class ChildService {
    */
   async getChildrenByStaffIdFallback(staffId) {
     try {
-      const q = query(
-        collection(db, COLLECTION_NAME),
-        where('status', '==', 'ENROLLED')
+      // Try with ENROLLED status filter first
+      let snapshot = await getDocs(
+        query(collection(db, COLLECTION_NAME), where('status', '==', 'ENROLLED'))
       );
-
-      const snapshot = await getDocs(q);
       trackRead(COLLECTION_NAME, snapshot.docs.length);
-      
+
+      // If no ENROLLED children, try without status filter (handles status mismatches)
+      if (snapshot.empty) {
+        snapshot = await getDocs(collection(db, COLLECTION_NAME));
+        trackRead(COLLECTION_NAME, snapshot.docs.length);
+        if (snapshot.empty) return [];
+      }
+
       return snapshot.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
         .filter(child => {
@@ -808,9 +811,9 @@ class ChildService {
 
       serviceEnrollments.push(newEnrollment);
 
-      // Recompute staff IDs
+      // Recompute staff IDs (pass child for legacy array fallback)
       const { assignedStaffIds, allHistoricalStaffIds } =
-        this.computeStaffIdsFromEnrollments(serviceEnrollments);
+        this.computeStaffIdsFromEnrollments(serviceEnrollments, child);
 
       const docRef = doc(db, COLLECTION_NAME, childId);
       await updateDoc(docRef, {
@@ -893,9 +896,9 @@ class ChildService {
 
       serviceEnrollments[enrollmentIndex] = enrollment;
 
-      // Recompute staff IDs
+      // Recompute staff IDs (pass child for legacy array fallback)
       const { assignedStaffIds, allHistoricalStaffIds } =
-        this.computeStaffIdsFromEnrollments(serviceEnrollments);
+        this.computeStaffIdsFromEnrollments(serviceEnrollments, child);
 
       const docRef = doc(db, COLLECTION_NAME, childId);
       await updateDoc(docRef, {
@@ -974,9 +977,9 @@ class ChildService {
 
       serviceEnrollments[enrollmentIndex] = enrollment;
 
-      // Recompute staff IDs (active staff will exclude this service's staff)
+      // Recompute staff IDs (pass child for legacy array fallback)
       const { assignedStaffIds, allHistoricalStaffIds } =
-        this.computeStaffIdsFromEnrollments(serviceEnrollments);
+        this.computeStaffIdsFromEnrollments(serviceEnrollments, child);
 
       const docRef = doc(db, COLLECTION_NAME, childId);
       await updateDoc(docRef, {
@@ -1042,9 +1045,9 @@ class ChildService {
 
       serviceEnrollments[enrollmentIndex] = enrollment;
 
-      // Recompute staff IDs
+      // Recompute staff IDs (pass child for legacy array fallback)
       const { assignedStaffIds, allHistoricalStaffIds } =
-        this.computeStaffIdsFromEnrollments(serviceEnrollments);
+        this.computeStaffIdsFromEnrollments(serviceEnrollments, child);
 
       const docRef = doc(db, COLLECTION_NAME, childId);
       await updateDoc(docRef, {
@@ -1191,10 +1194,12 @@ class ChildService {
   // ==========================================================================
 
   /**
-   * Compute assigned staff IDs from service enrollments
+   * Compute assigned staff IDs from service enrollments AND legacy arrays
    * Returns both active staff IDs and all historical staff IDs
+   * @param {Array} serviceEnrollments - New model enrollments
+   * @param {Object} [childData] - Full child document (for legacy array fallback)
    */
-  computeStaffIdsFromEnrollments(serviceEnrollments) {
+  computeStaffIdsFromEnrollments(serviceEnrollments, childData) {
     const activeStaffIds = new Set();
     const allStaffIds = new Set();
 
@@ -1216,6 +1221,25 @@ class ChildService {
       for (const history of enrollment.staffHistory || []) {
         if (history.staffId) {
           allStaffIds.add(history.staffId);
+        }
+      }
+    }
+
+    // Also check legacy arrays so deactivate/reactivate doesn't drop legacy staff
+    if (childData) {
+      const legacyArrays = [
+        childData.oneOnOneServices,
+        childData.groupClassServices,
+        childData.enrolledServices
+      ];
+      for (const services of legacyArrays) {
+        if (Array.isArray(services)) {
+          for (const service of services) {
+            if (service.staffId) {
+              activeStaffIds.add(service.staffId);
+              allStaffIds.add(service.staffId);
+            }
+          }
         }
       }
     }
