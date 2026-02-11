@@ -340,28 +340,45 @@ export async function migrateAddParentSummaries() {
 }
 
 /**
- * One-time migration to add assignedStaffIds to all children
+ * Migration to backfill assignedStaffIds on all children.
+ * Extracts staff IDs from BOTH:
+ *  - New model: serviceEnrollments[].currentStaff.staffId (active only)
+ *  - Legacy arrays: oneOnOneServices, groupClassServices, enrolledServices
+ *
+ * Options:
+ *  - forceRecompute: if true, recomputes even if assignedStaffIds already exists
  */
-export async function migrateAddAssignedStaffIds() {
-  console.log('Starting assignedStaffIds migration...');
-  
+export async function migrateAddAssignedStaffIds({ forceRecompute = false } = {}) {
+  console.log('Starting assignedStaffIds migration...', { forceRecompute });
+
   try {
     const childrenSnapshot = await getDocs(collection(db, 'children'));
-    
+
     const batch = writeBatch(db);
     let count = 0;
-    
+    let skipped = 0;
+
     childrenSnapshot.docs.forEach(childDoc => {
       const childData = childDoc.data();
-      
-      // Skip if already has assignedStaffIds
-      if (childData.assignedStaffIds && childData.assignedStaffIds.length > 0) {
+
+      // Skip if already has assignedStaffIds (unless forceRecompute)
+      if (!forceRecompute && childData.assignedStaffIds && childData.assignedStaffIds.length > 0) {
+        skipped++;
         return;
       }
-      
-      // Extract staff IDs from services
+
       const staffIds = new Set();
-      
+
+      // NEW MODEL: serviceEnrollments (active enrollments only)
+      if (Array.isArray(childData.serviceEnrollments)) {
+        childData.serviceEnrollments.forEach(enrollment => {
+          if (enrollment.status === 'active' && enrollment.currentStaff?.staffId) {
+            staffIds.add(enrollment.currentStaff.staffId);
+          }
+        });
+      }
+
+      // LEGACY: oneOnOneServices, groupClassServices, enrolledServices
       [
         childData.oneOnOneServices,
         childData.groupClassServices,
@@ -375,19 +392,23 @@ export async function migrateAddAssignedStaffIds() {
           });
         }
       });
-      
+
       if (staffIds.size > 0) {
         batch.update(childDoc.ref, {
           assignedStaffIds: Array.from(staffIds)
         });
         count++;
+      } else {
+        console.warn(`Child ${childDoc.id} (${childData.firstName} ${childData.lastName}) has no staff IDs in any model`);
       }
     });
-    
-    await batch.commit();
-    console.log(`Migration complete: Added assignedStaffIds to ${count} children`);
-    
-    return { success: true, count };
+
+    if (count > 0) {
+      await batch.commit();
+    }
+    console.log(`Migration complete: Updated ${count} children, skipped ${skipped}`);
+
+    return { success: true, count, skipped, total: childrenSnapshot.size };
   } catch (error) {
     console.error('Migration failed:', error);
     return { success: false, error: error.message };
