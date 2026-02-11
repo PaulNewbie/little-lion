@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../context/ToastContext';
 import Loading from '../../components/common/Loading';
 import BackButton from '../../components/common/BackButton';
 import Sidebar from '../../components/sidebar/Sidebar';
@@ -23,6 +24,7 @@ const TABS = [
 const TeacherProfile = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('personal');
 
@@ -57,6 +59,17 @@ const TeacherProfile = () => {
 
   const handleSave = async (e) => {
     e.preventDefault();
+
+    // Check for unsaved new entries
+    const hasNewLicense = newLicense.licenseType || newLicense.licenseNumber;
+    const hasNewEducation = newEducation.institution || newEducation.degreeType || newEducation.fieldOfStudy;
+    const hasNewCertification = newCertification.name || newCertification.issuingOrg;
+
+    if (hasNewLicense || hasNewEducation || hasNewCertification) {
+      toast.warning('You have unsaved entries in the add form. Please click the + Add button first, or clear the fields.');
+      return;
+    }
+
     await handleSaveProfile(e);
     setIsEditing(false);
   };
@@ -458,23 +471,31 @@ const TeacherProfile = () => {
           {/* Licenses Display */}
           {formData.licenses?.length > 0 ? (
             <div className="tp-credentials-grid">
-              {formData.licenses.map((license, idx) => {
-                const status = license.licenseExpirationDate ? getExpirationStatus(license.licenseExpirationDate) : null;
-                return (
-                  <div key={license.id || idx} className="tp-credential-card">
-                    <div className="tp-credential-header">
-                      <strong>{license.licenseType}</strong>
-                      {status && <span className={`tp-status tp-status--${status === 'Active' ? 'active' : status === 'Expiring Soon' ? 'warning' : 'expired'}`}>{status}</span>}
+              {formData.licenses
+                .filter(license => {
+                  // Show all licenses without expiration dates
+                  if (!license.licenseExpirationDate) return true;
+                  // Hide expired licenses in view mode
+                  const status = getExpirationStatus(license.licenseExpirationDate);
+                  return status !== 'Expired';
+                })
+                .map((license, idx) => {
+                  const status = license.licenseExpirationDate ? getExpirationStatus(license.licenseExpirationDate) : null;
+                  return (
+                    <div key={license.id || idx} className="tp-credential-card">
+                      <div className="tp-credential-header">
+                        <strong>{license.licenseType}</strong>
+                        {status && <span className={`tp-status tp-status--${status === 'Active' ? 'active' : status === 'Expiring Soon' ? 'warning' : 'expired'}`}>{status}</span>}
+                      </div>
+                      <div className="tp-credential-details">
+                        <p>License #: {license.licenseNumber}</p>
+                        {license.licenseState && <p>Region: {license.licenseState}</p>}
+                        {license.licenseIssueDate && <p className="tp-meta">Issued: {license.licenseIssueDate}</p>}
+                        {license.licenseExpirationDate && <p className="tp-meta">Expires: {license.licenseExpirationDate}</p>}
+                      </div>
                     </div>
-                    <div className="tp-credential-details">
-                      <p>License #: {license.licenseNumber}</p>
-                      {license.licenseState && <p>Region: {license.licenseState}</p>}
-                      {license.licenseIssueDate && <p className="tp-meta">Issued: {license.licenseIssueDate}</p>}
-                      {license.licenseExpirationDate && <p className="tp-meta">Expires: {license.licenseExpirationDate}</p>}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           ) : (
             <p className="tp-empty-message">No licenses added yet. Click Edit to add your license information.</p>
@@ -660,21 +681,29 @@ const TeacherProfile = () => {
             <h4 className="tp-info-section-title">Certifications</h4>
             {formData.certifications?.length > 0 ? (
               <div className="tp-education-grid">
-                {formData.certifications.map((cert, idx) => (
-                  <div key={idx} className="tp-education-card">
-                    {cert.certificateURL && (
-                      <a href={cert.certificateURL} target="_blank" rel="noopener noreferrer" className="tp-edu-image">
-                        <img src={cert.certificateURL} alt="Certificate" />
-                      </a>
-                    )}
-                    <div className="tp-edu-content">
-                      <strong>{cert.name}</strong>
-                      <span>{cert.issuingOrg}</span>
-                      <span className="tp-meta">Issued: {cert.issueDate}</span>
-                      {cert.expirationDate && <span className="tp-meta">Expires: {cert.expirationDate}</span>}
+                {formData.certifications
+                  .filter(cert => {
+                    // Show all certifications without expiration dates
+                    if (!cert.expirationDate) return true;
+                    // Hide expired certifications in view mode
+                    const status = getExpirationStatus(cert.expirationDate);
+                    return status !== 'Expired';
+                  })
+                  .map((cert, idx) => (
+                    <div key={idx} className="tp-education-card">
+                      {cert.certificateURL && (
+                        <a href={cert.certificateURL} target="_blank" rel="noopener noreferrer" className="tp-edu-image">
+                          <img src={cert.certificateURL} alt="Certificate" />
+                        </a>
+                      )}
+                      <div className="tp-edu-content">
+                        <strong>{cert.name}</strong>
+                        <span>{cert.issuingOrg}</span>
+                        <span className="tp-meta">Issued: {cert.issueDate}</span>
+                        {cert.expirationDate && <span className="tp-meta">Expires: {cert.expirationDate}</span>}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             ) : (
               <p className="tp-empty-message tp-empty-message--small">No certifications added yet.</p>
@@ -860,35 +889,43 @@ const TeacherProfile = () => {
                   </div>
 
                   {/* Licenses Summary Card */}
-                  {formData.licenses?.length > 0 && (
-                    <div className="tp-licenses-card">
-                      <div className="tp-licenses-card-header">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                        </svg>
-                        <span>Teaching Licenses</span>
+                  {(() => {
+                    const activeLicenses = formData.licenses?.filter(license => {
+                      if (!license.licenseExpirationDate) return true;
+                      const status = getExpirationStatus(license.licenseExpirationDate);
+                      return status !== 'Expired';
+                    }) || [];
+
+                    return activeLicenses.length > 0 && (
+                      <div className="tp-licenses-card">
+                        <div className="tp-licenses-card-header">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                          </svg>
+                          <span>Teaching Licenses</span>
+                        </div>
+                        <div className="tp-licenses-card-body">
+                          {activeLicenses.slice(0, 3).map((license, idx) => {
+                            const status = license.licenseExpirationDate ? getExpirationStatus(license.licenseExpirationDate) : null;
+                            return (
+                              <div key={idx} className="tp-license-summary-item">
+                                <span className="tp-license-type">{license.licenseType}</span>
+                                <span className="tp-license-number">#{license.licenseNumber}</span>
+                                {status && (
+                                  <span className={`tp-license-status tp-license-status--${status === 'Active' ? 'active' : status === 'Expiring Soon' ? 'warning' : 'expired'}`}>
+                                    {status}
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                          {activeLicenses.length > 3 && (
+                            <div className="tp-more-licenses">+{activeLicenses.length - 3} more</div>
+                          )}
+                        </div>
                       </div>
-                      <div className="tp-licenses-card-body">
-                        {formData.licenses.slice(0, 3).map((license, idx) => {
-                          const status = license.licenseExpirationDate ? getExpirationStatus(license.licenseExpirationDate) : null;
-                          return (
-                            <div key={idx} className="tp-license-summary-item">
-                              <span className="tp-license-type">{license.licenseType}</span>
-                              <span className="tp-license-number">#{license.licenseNumber}</span>
-                              {status && (
-                                <span className={`tp-license-status tp-license-status--${status === 'Active' ? 'active' : status === 'Expiring Soon' ? 'warning' : 'expired'}`}>
-                                  {status}
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })}
-                        {formData.licenses.length > 3 && (
-                          <div className="tp-more-licenses">+{formData.licenses.length - 3} more</div>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
               </div>
             </section>
