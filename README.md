@@ -39,7 +39,7 @@ Little Lions Monitoring System is a role-based web application designed specific
 ## Key Features
 
 ### Administration
-- Student enrollment with multi-step assessment forms (9 steps)
+- Student enrollment with multi-step assessment forms (13 steps)
 - Staff management (teachers, therapists, admins)
 - User access and permission management
 - Account activation via user-friendly codes (WORD-1234 format)
@@ -119,6 +119,9 @@ Little Lions Monitoring System is a role-based web application designed specific
 - **JSX** - React component syntax
 - **CSS** - Styling (component-scoped CSS files)
 - **HTML** - Entry point template
+
+### HOSTING
+- **CLOUDFLARE** - FREE with Unlimited Bandwidth
 
 ---
 
@@ -243,9 +246,9 @@ little-lion/
 │   │   │   ├── UserAccessManagement.jsx # User permissions
 │   │   │   ├── enrollmentTabPages/
 │   │   │   │   ├── EnrollStudent.jsx  # Student list for enrollment
-│   │   │   │   └── enrollmentForm/    # 9-step enrollment wizard
+│   │   │   │   └── enrollmentForm/    # 13-step enrollment wizard
 │   │   │   │       ├── EnrollStudentFormModal.jsx
-│   │   │   │       └── components/    # Step1 through Step9 forms
+│   │   │   │       └── components/    # Step1 through Step13 forms
 │   │   │   ├── studentProfile/
 │   │   │   │   ├── StudentProfile.jsx # Student detail view
 │   │   │   │   └── components/        # Profile sub-components
@@ -414,7 +417,7 @@ VITE_SENTRY_DSN=your_sentry_dsn
 - No other providers are required
 
 ### 2. Firestore Database
-- Create a Firestore database in **production mode**
+- Create a Firestore database
 - Deploy security rules from `firestore.rules`
 - Deploy composite indexes from `firestore.indexes.json`
 
@@ -610,7 +613,6 @@ Comprehensive security rules are defined in `firestore.rules`:
 - **Parent-child verification:** `parentHasChild()` function with fallback from `childrenIds` array to `children/{childId}.parentId` for legacy data
 - **FERPA compliance:** Therapy sessions are restricted to staff and authorized parents only
 - **Activity access control:** `canParentReadActivity()` verifies parent-child relationship before returning activity data
-- **Activation code security:** Codes use single-document lookup (no listing), expire in 7 days, deletion restricted to code owner + admins
 
 ### Client-Side Security
 - Temporary Firebase apps created for account creation (prevents admin logout)
