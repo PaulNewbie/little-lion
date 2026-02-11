@@ -473,6 +473,7 @@ export default function EnrollStudentFormModal({
       );
 
       // 4. Prepare Child Data
+      const currentCompletedSteps = calculateCompletedSteps(studentInput, skippedSteps);
       const childDataToSave = {
         firstName: studentInput.firstName,
         middleName: studentInput.middleName,
@@ -495,6 +496,7 @@ export default function EnrollStudentFormModal({
         noServicesRequired: studentInput.noServicesRequired || false,
         status: "ASSESSING",
         assessmentStep: formStep,
+        assessmentCompletedSteps: currentCompletedSteps.length,
         assessmentTotalSteps: TOTAL_STEPS,
         assessmentId,
         childId,
@@ -764,6 +766,7 @@ export default function EnrollStudentFormModal({
       }));
 
       // 5. Prepare Child Data (Steps 1 and 9)
+      const currentCompletedSteps = calculateCompletedSteps(studentInput, skippedSteps);
       const childDataToSave = {
         firstName: studentInput.firstName,
         middleName: studentInput.middleName,
@@ -787,6 +790,7 @@ export default function EnrollStudentFormModal({
         noServicesRequired: studentInput.noServicesRequired || false,
         status: isFinalized ? "ENROLLED" : "ASSESSING",
         assessmentStep: formStep,
+        assessmentCompletedSteps: currentCompletedSteps.length,
         assessmentTotalSteps: TOTAL_STEPS,
         assessmentId, // Link to the assessment document
         childId, // Ensure childId is consistent

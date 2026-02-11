@@ -181,6 +181,7 @@ export default function ActivationModal({
   const [adminCodeExpiry, setAdminCodeExpiry] = useState(null);
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [showEmailConfirm, setShowEmailConfirm] = useState(false);
 
   // Reset state when modal opens
   useEffect(() => {
@@ -189,6 +190,7 @@ export default function ActivationModal({
       setAdminCode('');
       setAdminCodeExpiry(null);
       setEmailSent(false);
+      setShowEmailConfirm(false);
     }
   }, [isOpen]);
 
@@ -288,15 +290,47 @@ export default function ActivationModal({
               </button>
             </div>
 
-            <div style={styles.buttonRow}>
-              <button
-                style={styles.buttonPrimary}
-                onClick={handleSendEmail}
-                disabled={loading || emailSent}
-              >
-                {emailSent ? 'Email Sent' : loading ? 'Sending...' : 'Send Email'}
-              </button>
-            </div>
+            {!showEmailConfirm ? (
+              <div style={styles.buttonRow}>
+                <button
+                  style={styles.buttonPrimary}
+                  onClick={() => setShowEmailConfirm(true)}
+                  disabled={loading || emailSent}
+                >
+                  {emailSent ? 'Email Sent' : 'Send Email'}
+                </button>
+              </div>
+            ) : (
+              <div style={{
+                backgroundColor: '#fef3c7',
+                border: '1px solid #fcd34d',
+                padding: '14px',
+                borderRadius: '8px',
+                marginBottom: '12px'
+              }}>
+                <p style={{ fontSize: '13px', color: '#92400e', fontWeight: '600', margin: '0 0 6px 0' }}>
+                  Already scanned the QR code?
+                </p>
+                <p style={{ fontSize: '12px', color: '#a16207', margin: '0 0 12px 0', lineHeight: '1.5' }}>
+                  If the parent already scanned the QR code and set up their password, no need to send the email — it would be redundant.
+                </p>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    style={{ ...styles.button, flex: 1, fontSize: '13px', padding: '8px' }}
+                    onClick={() => setShowEmailConfirm(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    style={{ ...styles.buttonPrimary, flex: 1, fontSize: '13px', padding: '8px' }}
+                    onClick={() => { setShowEmailConfirm(false); handleSendEmail(); }}
+                    disabled={loading}
+                  >
+                    {loading ? 'Sending...' : 'Send Anyway'}
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div style={styles.divider} />
 

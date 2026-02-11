@@ -255,9 +255,18 @@ export default function EnrollStudent() {
   const calculateProfileCompletion = (child) => {
     const totalSteps = child.assessmentTotalSteps || 13;
 
-    // Use the saved assessment step (written during form save)
+    // Use the actual completed steps count saved during form save
+    if (child.assessmentCompletedSteps != null) {
+      return {
+        completed: child.assessmentCompletedSteps,
+        total: totalSteps,
+        percentage: Math.round((child.assessmentCompletedSteps / totalSteps) * 100)
+      };
+    }
+
+    // Fallback for legacy data: use assessmentStep - 1 as rough estimate
     if (child.assessmentStep) {
-      const completed = child.assessmentStep - 1; // steps before current are done
+      const completed = child.assessmentStep - 1;
       return {
         completed,
         total: totalSteps,
@@ -265,7 +274,7 @@ export default function EnrollStudent() {
       };
     }
 
-    // Fallback: check fields available on the child document
+    // Final fallback: check fields available on the child document
     const hasBasicInfo = child.firstName && child.lastName && child.gender && child.dateOfBirth;
     const hasServices = child.serviceEnrollments?.length > 0;
     const completed = (hasBasicInfo ? 1 : 0) + (hasServices ? 1 : 0);
