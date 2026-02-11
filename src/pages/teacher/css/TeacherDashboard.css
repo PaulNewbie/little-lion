@@ -239,28 +239,6 @@
   background-color: #f59e0b;
 }
 
-/* Credentials Banner Variant */
-.teacher-dashboard__profile-banner--credentials {
-  background-color: #dbeafe;
-  border-color: #60a5fa;
-  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1);
-}
-
-.teacher-dashboard__profile-banner--credentials .teacher-dashboard__profile-banner-title {
-  color: #1e40af;
-}
-
-.teacher-dashboard__profile-banner--credentials .teacher-dashboard__profile-banner-text {
-  color: #1d4ed8;
-}
-
-.teacher-dashboard__profile-banner--credentials .teacher-dashboard__profile-banner-button {
-  background-color: #3b82f6;
-}
-
-.teacher-dashboard__profile-banner--credentials .teacher-dashboard__profile-banner-button:hover {
-  background-color: #2563eb;
-}
 
 /* Old Back Button - REMOVED, now using header back arrow */
 
@@ -1088,231 +1066,39 @@
   color: #f59e0b;
 }
 
-/* ===========================================
-   QUICK ACTIONS SECTION
-   =========================================== */
-.teacher-dashboard__quick-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
-  margin-bottom: 2rem;
-  width: 100%;
-}
-
-.teacher-dashboard__quick-action {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1.25rem;
-  border-radius: 0.875rem;
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: none;
-  width: 100%;
-}
-
-.teacher-dashboard__quick-action:hover {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(251, 191, 36, 0.4);
-  border-color: #f59e0b;
-}
-
-.teacher-dashboard__quick-action:hover h3,
-.teacher-dashboard__quick-action:hover .teacher-dashboard__quick-action-content h3 {
-  color: #ffffff;
-}
-
-.teacher-dashboard__quick-action:hover p,
-.teacher-dashboard__quick-action:hover .teacher-dashboard__quick-action-content p {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.teacher-dashboard__quick-action:hover .teacher-dashboard__quick-action-icon {
-  background: rgba(255, 255, 255, 0.25);
-  color: #ffffff;
-}
-
-.teacher-dashboard__quick-action--primary {
-  background: linear-gradient(135deg, #fef9c3 0%, #fefce8 100%);
-  border: 2px solid #fef3c7;
-  box-shadow: 0 4px 16px rgba(202, 138, 4, 0.15);
-  padding: 1.125rem 1.5rem;
-  width: 100%;
-}
-
-.teacher-dashboard__quick-action--primary:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(251, 191, 36, 0.45);
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  border-color: #f59e0b;
-}
-
-.teacher-dashboard__quick-action--primary:hover .teacher-dashboard__quick-action-icon {
-  background: rgba(255, 255, 255, 0.3);
-  color: #ffffff;
-}
-
-.teacher-dashboard__quick-action--primary:hover .teacher-dashboard__quick-action-content h3 {
-  color: #ffffff;
-}
-
-.teacher-dashboard__quick-action--primary:hover .teacher-dashboard__quick-action-content p {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.teacher-dashboard__quick-action--primary .teacher-dashboard__quick-action-icon {
-  width: 44px;
-  height: 44px;
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ca8a04;
-  flex-shrink: 0;
-}
-
-.teacher-dashboard__quick-action--primary .teacher-dashboard__quick-action-content h3 {
-  font-size: 1.0625rem;
-  font-weight: 800;
-  color: #ca8a04;
-  margin: 0 0 0.125rem 0;
-}
-
-.teacher-dashboard__quick-action--primary .teacher-dashboard__quick-action-content p {
-  font-size: 0.8125rem;
-  color: #d97706;
-  margin: 0;
-  font-weight: 500;
-}
-
-.teacher-dashboard__quick-action--secondary {
-  background: white;
-  border: 2px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.teacher-dashboard__quick-action--secondary:hover {
-  border-color: #f59e0b;
-  transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(251, 191, 36, 0.4);
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-}
-
-.teacher-dashboard__quick-action--secondary:hover .teacher-dashboard__quick-action-icon {
-  background: rgba(255, 255, 255, 0.3);
-  color: #ffffff;
-}
-
-.teacher-dashboard__quick-action--secondary:hover .teacher-dashboard__quick-action-content h3 {
-  color: #ffffff;
-}
-
-.teacher-dashboard__quick-action--secondary:hover .teacher-dashboard__quick-action-content p {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.teacher-dashboard__quick-action--secondary .teacher-dashboard__quick-action-icon {
-  width: 44px;
-  height: 44px;
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #f59e0b;
-  flex-shrink: 0;
-}
-
-.teacher-dashboard__quick-action--secondary .teacher-dashboard__quick-action-content h3 {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 0.125rem 0;
-}
-
-.teacher-dashboard__quick-action--secondary .teacher-dashboard__quick-action-content p {
-  font-size: 0.8125rem;
-  color: #64748b;
-  margin: 0;
-}
-
-/* Quick Actions focus states for accessibility */
-.teacher-dashboard__quick-action:focus {
-  outline: 3px solid #fbbf24;
-  outline-offset: 2px;
-}
-
-/* Quick Actions responsive */
-@media (max-width: 640px) {
-  .teacher-dashboard__quick-actions {
-    margin-bottom: 1.5rem;
-  }
-
-  .teacher-dashboard__quick-action--primary {
-    padding: 1rem 1.25rem;
-  }
-}
-
-@media (max-width: 768px) {
-  /* Hide Quick Actions on mobile - use FAB instead */
-  .teacher-dashboard__quick-actions {
-    display: none;
-  }
-}
 
 /* ===========================================
-   FLOATING ACTION BUTTON (FAB) - Mobile Only
+   FLOATING ACTION BUTTON (FAB) - Always Visible
    =========================================== */
 .teacher-dashboard__fab {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  border: none;
-  box-shadow: 0 6px 20px rgba(251, 191, 36, 0.45);
-  cursor: pointer;
-  display: none; /* Hidden by default on desktop */
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  z-index: 40;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  bottom: 32px;
+  right: 32px;
+  background: #fbbf24;
   color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 16px 24px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+  z-index: 40;
+  transition: transform 0.2s;
 }
 
 .teacher-dashboard__fab:hover {
-  transform: scale(1.1);
-  box-shadow: 0 10px 28px rgba(251, 191, 36, 0.55);
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(251, 191, 36, 0.55);
 }
 
 .teacher-dashboard__fab:active {
   transform: scale(0.95);
 }
 
-.teacher-dashboard__fab span {
-  font-size: 0.5625rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  margin-top: 2px;
-}
-
 .teacher-dashboard__fab:focus {
-  outline: 3px solid white;
+  outline: 3px solid #fbbf24;
   outline-offset: 2px;
-}
-
-/* Show FAB only on mobile */
-@media (max-width: 768px) {
-  .teacher-dashboard__fab {
-    display: flex;
-  }
 }
 
 /* ===========================================
@@ -1449,8 +1235,6 @@
 
 /* Accessibility - reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .teacher-dashboard__quick-action--primary:hover,
-  .teacher-dashboard__quick-action--secondary:hover,
   .teacher-dashboard__fab:hover {
     transform: none;
   }

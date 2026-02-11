@@ -11,7 +11,7 @@ import Sidebar from '../../components/sidebar/Sidebar';
 import { getTeacherConfig } from '../../components/sidebar/sidebarConfigs';
 import QuickSelectTags from '../../components/common/form-elements/QuickSelectTags';
 import VoiceInput from '../../components/common/form-elements/VoiceInput';
-import { Mail, Phone, Camera, FileEdit, X, ClipboardList, Users, ChevronRight, Search, WifiOff, RefreshCw } from 'lucide-react';
+import { Mail, Phone, FileEdit, X, ClipboardList, Users, ChevronRight, Search, WifiOff, RefreshCw } from 'lucide-react';
 import BackButton from '../../components/common/BackButton';
 import { useTeacherDashboardData } from '../../hooks/useCachedData';
 import logo from '../../images/logo.webp';
@@ -441,63 +441,39 @@ const TeacherDashboard = () => {
               </div>
             )}
 
-            {/* Profile Completion Banner */}
-            {(!currentUser?.profilePhoto || !currentUser?.phone || !currentUser?.gender) && (
-              <div className="teacher-dashboard__profile-banner">
-                <div>
-                  <h3 className="teacher-dashboard__profile-banner-title">
-                    <ClipboardList size={20} />
-                    Complete Your Profile
-                  </h3>
-                  <p className="teacher-dashboard__profile-banner-text">
-                    Please add your profile photo and contact information to help parents and staff identify you.
-                  </p>
-                </div>
-                <button
-                  onClick={() => navigate('/teacher/profile')}
-                  className="teacher-dashboard__profile-banner-button"
-                >
-                  Complete Now
-                </button>
-              </div>
-            )}
+            {/* Profile Completion Banner - shows until profile is saved + education added */}
+            {/* Credentials & Certificates is optional (not every staff has a license) */}
+            {(() => {
+              const isPersonalComplete = currentUser?.profileCompleted;
+              const isEducationComplete = (currentUser?.educationHistory?.length > 0) || (currentUser?.certifications?.length > 0);
 
-            {/* Credentials Completion Banner - shows when profile is done but credentials aren't */}
-            {currentUser?.profilePhoto && currentUser?.phone && currentUser?.gender && (!currentUser?.licenseType && !currentUser?.teachingLicense && !currentUser?.prcIdNumber) && (
-              <div className="teacher-dashboard__profile-banner teacher-dashboard__profile-banner--credentials">
-                <div>
-                  <h3 className="teacher-dashboard__profile-banner-title">
-                    <ClipboardList size={20} />
-                    Add Your Teaching Credentials
-                  </h3>
-                  <p className="teacher-dashboard__profile-banner-text">
-                    Your teaching license and credentials are not yet completed. Please update your credentials to keep your profile up to date.
-                  </p>
-                </div>
-                <button
-                  onClick={() => navigate('/teacher/profile')}
-                  className="teacher-dashboard__profile-banner-button"
-                >
-                  Add Credentials
-                </button>
-              </div>
-            )}
+              if (isPersonalComplete && isEducationComplete) return null;
 
-            {/* Quick Actions Section - Always visible on desktop */}
-            <div className="teacher-dashboard__quick-actions">
-              <button
-                onClick={handleQuickPostActivity}
-                className="teacher-dashboard__quick-action teacher-dashboard__quick-action--primary"
-              >
-                <div className="teacher-dashboard__quick-action-icon">
-                  <Camera size={32} strokeWidth={2} />
+              const missing = [];
+              if (!isPersonalComplete) missing.push('personal info');
+              if (!isEducationComplete) missing.push('education & certifications');
+
+              return (
+                <div className="teacher-dashboard__profile-banner">
+                  <div>
+                    <h3 className="teacher-dashboard__profile-banner-title">
+                      <ClipboardList size={20} />
+                      Complete Your Profile
+                    </h3>
+                    <p className="teacher-dashboard__profile-banner-text">
+                      Please complete your {missing.join(' and ')} to keep your profile up to date.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => navigate('/teacher/profile')}
+                    className="teacher-dashboard__profile-banner-button"
+                  >
+                    Complete Now
+                  </button>
                 </div>
-                <div className="teacher-dashboard__quick-action-content">
-                  <h3>Post Group Activity</h3>
-                  <p>Share photos & updates with parents</p>
-                </div>
-              </button>
-            </div>
+              );
+            })()}
+
 
             {/* View 1: Class Selection */}
             {!selectedClass && (
@@ -803,14 +779,13 @@ const TeacherDashboard = () => {
             </div>
           )}
 
-          {/* Mobile FAB - Floating Action Button */}
+          {/* Floating Action Button - Always visible */}
           <button
             className="teacher-dashboard__fab"
             onClick={handleQuickPostActivity}
             aria-label="Post Group Activity"
           >
-            <Camera size={24} strokeWidth={2.5} />
-            <span>POST</span>
+            + POST ACTIVITY
           </button>
         </div>
 

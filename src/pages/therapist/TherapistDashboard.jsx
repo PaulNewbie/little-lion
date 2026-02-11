@@ -220,47 +220,38 @@ const TherapistDashboard = () => {
           </div>
         )}
 
-        {/* Profile Completion Banner */}
-        {(!currentUser?.profilePhoto || !currentUser?.phone || !currentUser?.gender) && (
-          <div className="therapist-dashboard__profile-banner">
-            <div>
-              <h3 className="therapist-dashboard__profile-banner-title">
-                <ClipboardList size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
-                Complete Your Profile
-              </h3>
-              <p className="therapist-dashboard__profile-banner-text">
-                Please add your profile photo and contact information to help parents and staff identify you.
-              </p>
-            </div>
-            <button
-              className="therapist-dashboard__profile-banner-button"
-              onClick={() => navigate('/therapist/profile')}
-            >
-              Complete Profile
-            </button>
-          </div>
-        )}
+        {/* Profile Completion Banner - shows until profile is saved + education added */}
+        {/* Credentials & Certificates is optional (not every staff has a license) */}
+        {(() => {
+          const isPersonalComplete = currentUser?.profileCompleted;
+          const isEducationComplete = (currentUser?.educationHistory?.length > 0) || (currentUser?.certifications?.length > 0);
 
-        {/* Credentials Completion Banner - shows when profile is done but credentials aren't */}
-        {currentUser?.profilePhoto && currentUser?.phone && currentUser?.gender && (!currentUser?.licenses || currentUser?.licenses?.length === 0) && (
-          <div className="therapist-dashboard__profile-banner therapist-dashboard__profile-banner--credentials">
-            <div>
-              <h3 className="therapist-dashboard__profile-banner-title">
-                <ClipboardList size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
-                Add Your Professional Credentials
-              </h3>
-              <p className="therapist-dashboard__profile-banner-text">
-                You haven't added any professional licenses yet. Please add at least one license to keep your profile complete.
-              </p>
+          if (isPersonalComplete && isEducationComplete) return null;
+
+          const missing = [];
+          if (!isPersonalComplete) missing.push('personal info');
+          if (!isEducationComplete) missing.push('education & certifications');
+
+          return (
+            <div className="therapist-dashboard__profile-banner">
+              <div>
+                <h3 className="therapist-dashboard__profile-banner-title">
+                  <ClipboardList size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+                  Complete Your Profile
+                </h3>
+                <p className="therapist-dashboard__profile-banner-text">
+                  Please complete your {missing.join(' and ')} to keep your profile up to date.
+                </p>
+              </div>
+              <button
+                className="therapist-dashboard__profile-banner-button"
+                onClick={() => navigate('/therapist/profile')}
+              >
+                Complete Now
+              </button>
             </div>
-            <button
-              className="therapist-dashboard__profile-banner-button"
-              onClick={() => navigate('/therapist/profile')}
-            >
-              Add Credentials
-            </button>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Student Cards */}
         {filteredStudents.length === 0 ? (
