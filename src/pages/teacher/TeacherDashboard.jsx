@@ -16,6 +16,7 @@ import BackButton from '../../components/common/BackButton';
 import { useTeacherDashboardData } from '../../hooks/useCachedData';
 import logo from '../../images/logo.webp';
 import './css/TeacherDashboard.css';
+import '../therapist/css/TherapySessionForm.css';
 import WelcomeModal from '../../components/common/WelcomeModal';
 
 // Storage key for last selected class
@@ -48,6 +49,7 @@ const TeacherDashboard = () => {
   const [showObsModal, setShowObsModal] = useState(false);
   const [obsStudent, setObsStudent] = useState(null);
   const [submittingObs, setSubmittingObs] = useState(false);
+  const [modalStep, setModalStep] = useState(0);
 
   // Class Picker Modal State (for quick action when no class selected)
   const [showClassPicker, setShowClassPicker] = useState(false);
@@ -257,11 +259,88 @@ const TeacherDashboard = () => {
     handlePostGroupActivity(cls);
   };
 
+  // Observation wizard steps
+  const observationSteps = [
+    { id: 'topic', title: 'Activity / Topic', description: 'What activity is being observed?' },
+    { id: 'mood', title: 'Mood', description: 'How was the student feeling?' },
+    { id: 'strengths', title: 'Strengths', description: 'Observed positive behaviors' },
+    { id: 'home', title: 'Home Note', description: 'Message for parents' }
+  ];
+
   const openObservationModal = (student) => {
     setObsStudent(student);
     setTopic(''); setMoods([]); setSelectedStrengths([]); setStrengthNote('');
     setSelectedNeeds([]); setNeedNote(''); setHomeNote(''); setConcernNote('');
+    setModalStep(0);
     setShowObsModal(true);
+  };
+
+  const renderObsStepContent = () => {
+    switch (modalStep) {
+      case 0: // Topic
+        return (
+          <>
+            <div className="teacher-dashboard__chips">
+              {CLASS_TOPICS.map(t => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTopic(t)}
+                  className={`teacher-dashboard__chip ${topic === t ? 'teacher-dashboard__chip--selected' : ''}`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+            <input
+              className="tsf-input"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              placeholder="Or type custom topic..."
+            />
+          </>
+        );
+      case 1: // Mood
+        return (
+          <QuickSelectTags label="How was the student feeling?" options={MOODS} selected={moods} onChange={setMoods} color="purple" />
+        );
+      case 2: // Strengths
+        return (
+          <>
+            <QuickSelectTags label="Observed strengths" options={COMMON_STRENGTHS} selected={selectedStrengths} onChange={setSelectedStrengths} color="green" />
+            <div className="tsf-section-divider">
+              <div className="tsf-card-header">
+                <span className="tsf-mini-label">Additional details</span>
+              </div>
+              <textarea
+                rows="3"
+                className="tsf-textarea"
+                value={strengthNote}
+                onChange={(e) => setStrengthNote(e.target.value)}
+                placeholder="Additional details about strengths..."
+              />
+            </div>
+          </>
+        );
+      case 3: // Home Note
+        return (
+          <>
+            <div className="tsf-card-header">
+              <span className="tsf-mini-label">Voice input available</span>
+              <VoiceInput onTranscript={(text) => appendText(homeNote, text, setHomeNote)} />
+            </div>
+            <textarea
+              rows="4"
+              className="tsf-textarea"
+              value={homeNote}
+              onChange={(e) => setHomeNote(e.target.value)}
+              placeholder="Message for parents..."
+            />
+          </>
+        );
+      default:
+        return null;
+    }
   };
 
   const handleObsSubmit = async (e) => {
@@ -555,78 +634,132 @@ const TeacherDashboard = () => {
             )}
           </div>
 
-          {/* Observation Modal */}
+          {/* Observation Modal - Multi-Step Wizard */}
           {showObsModal && obsStudent && (
-            <div className="teacher-dashboard__modal-overlay">
-              <div className="teacher-dashboard__modal">
-                <div className="teacher-dashboard__modal-header">
-                  <h3 className="teacher-dashboard__modal-title">Observation: {obsStudent.firstName}</h3>
-                  <button onClick={() => setShowObsModal(false)} className="teacher-dashboard__modal-close">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <div className="tsf-modal-overlay" onClick={() => setShowObsModal(false)}>
+              <div className="tsf-modal-container" onClick={(e) => e.stopPropagation()}>
+                {/* Modal Header */}
+                <div className="tsf-modal-header">
+                  <div className="tsf-modal-header-content">
+                    <h2 className="tsf-modal-title">Observation Report</h2>
+                    <p className="tsf-modal-subtitle">
+                      {obsStudent.firstName} {obsStudent.lastName} {selectedClass ? `\u2022 ${selectedClass.name}` : ''}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="tsf-modal-close"
+                    onClick={() => setShowObsModal(false)}
+                    aria-label="Close modal"
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <line x1="18" y1="6" x2="6" y2="18"/>
                       <line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>
                   </button>
                 </div>
 
-                <form onSubmit={handleObsSubmit} className="teacher-dashboard__modal-form">
-                  <div className="teacher-dashboard__form-group">
-                    <label className="teacher-dashboard__label">Activity / Topic</label>
-                    <div className="teacher-dashboard__chips">
-                      {CLASS_TOPICS.map(t => (
+                {/* Step Indicator */}
+                <div className="tsf-modal-steps">
+                  {observationSteps.map((step, index) => (
+                    <button
+                      key={step.id}
+                      type="button"
+                      className={`tsf-modal-step ${index === modalStep ? 'tsf-modal-step--active' : ''} ${index < modalStep ? 'tsf-modal-step--completed' : ''}`}
+                      onClick={() => setModalStep(index)}
+                    >
+                      <span className="tsf-modal-step-number">
+                        {index < modalStep ? (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        ) : (
+                          index + 1
+                        )}
+                      </span>
+                      <span className="tsf-modal-step-title">{step.title}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Modal Body */}
+                <form onSubmit={handleObsSubmit}>
+                  <div className="tsf-modal-body">
+                    <div className="tsf-modal-step-header">
+                      <h3>{observationSteps[modalStep].title}</h3>
+                      <p>{observationSteps[modalStep].description}</p>
+                    </div>
+                    <div className="tsf-modal-step-content">
+                      {renderObsStepContent()}
+                    </div>
+                  </div>
+
+                  {/* Modal Footer */}
+                  <div className="tsf-modal-footer">
+                    <div className="tsf-modal-footer-left">
+                      {modalStep > 0 && (
                         <button
-                          key={t}
                           type="button"
-                          onClick={() => setTopic(t)}
-                          className={`teacher-dashboard__chip ${topic === t ? 'teacher-dashboard__chip--selected' : ''}`}
+                          className="tsf-btn tsf-btn--secondary"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setModalStep(modalStep - 1);
+                          }}
                         >
-                          {t}
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                          </svg>
+                          Previous
                         </button>
-                      ))}
+                      )}
                     </div>
-                    <input
-                      required
-                      className="teacher-dashboard__input"
-                      value={topic}
-                      onChange={(e) => setTopic(e.target.value)}
-                      placeholder="Or type custom topic..."
-                    />
-                  </div>
 
-                  <QuickSelectTags label="Mood" options={MOODS} selected={moods} onChange={setMoods} color="purple" />
-
-                  <div className="teacher-dashboard__form-group">
-                    <QuickSelectTags label="Strengths" options={COMMON_STRENGTHS} selected={selectedStrengths} onChange={setSelectedStrengths} color="green" />
-                    <textarea
-                      rows="2"
-                      className="teacher-dashboard__textarea"
-                      value={strengthNote}
-                      onChange={(e) => setStrengthNote(e.target.value)}
-                      placeholder="Additional details..."
-                    />
-                  </div>
-
-                  <div className="teacher-dashboard__form-group">
-                    <div className="teacher-dashboard__label-row">
-                      <label className="teacher-dashboard__label">Home Note</label>
-                      <VoiceInput onTranscript={(text) => appendText(homeNote, text, setHomeNote)} />
+                    <div className="tsf-modal-footer-center">
+                      <span className="tsf-modal-step-counter">
+                        Step {modalStep + 1} of {observationSteps.length}
+                      </span>
                     </div>
-                    <textarea
-                      rows="2"
-                      className="teacher-dashboard__textarea"
-                      value={homeNote}
-                      onChange={(e) => setHomeNote(e.target.value)}
-                      placeholder="Message for parents..."
-                    />
-                  </div>
 
-                  <div className="teacher-dashboard__modal-actions">
-                    <button type="button" onClick={() => setShowObsModal(false)} className="teacher-dashboard__modal-cancel">
-                      Cancel
-                    </button>
-                    <button type="submit" disabled={submittingObs} className="teacher-dashboard__modal-save">
-                      {submittingObs ? 'Saving...' : 'Save Report'}
-                    </button>
+                    <div className="tsf-modal-footer-right">
+                      {modalStep < observationSteps.length - 1 ? (
+                        <button
+                          type="button"
+                          className="tsf-btn tsf-btn--primary"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setModalStep(modalStep + 1);
+                          }}
+                        >
+                          Next
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                          </svg>
+                        </button>
+                      ) : (
+                        <button
+                          type="submit"
+                          className="tsf-btn tsf-btn--save"
+                          disabled={submittingObs}
+                        >
+                          {submittingObs ? (
+                            <>
+                              <span className="tsf-btn-spinner"></span>
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                              </svg>
+                              Save Report
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </form>
               </div>
