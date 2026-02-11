@@ -16,7 +16,7 @@ import './css/TeacherProfile.css';
 
 const TABS = [
   { id: 'personal', label: 'Personal Info', icon: 'user' },
-  { id: 'credentials', label: 'Teaching Credentials', icon: 'badge' },
+  { id: 'credentials', label: 'Credentials & Certificates', icon: 'badge' },
   { id: 'education', label: 'Education & Certifications', icon: 'graduation' }
 ];
 
@@ -34,6 +34,7 @@ const TeacherProfile = () => {
     formData,
     newEducation,
     newCertification,
+    newLicense,
     handleInputChange,
     handleNestedChange,
 
@@ -46,11 +47,13 @@ const TeacherProfile = () => {
     handleNewCertificationChange,
     handleAddCertification,
     handleRemoveCertification,
+    handleNewLicenseChange,
+    handleAddLicense,
+    handleRemoveLicense,
     handleSaveProfile
   } = useProfileForm(currentUser, 'teacher', navigate);
 
   const fullName = `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim();
-  const licenseStatus = formData.licenseExpirationDate ? getExpirationStatus(formData.licenseExpirationDate) : null;
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -66,11 +69,11 @@ const TeacherProfile = () => {
     setIsEditing(false);
   };
 
-  // Check if profile has required fields completed
-  const isProfileComplete = formData.profilePhoto && formData.firstName && formData.lastName && formData.phone;
+  // Check if profile has required fields completed (photo is in header, not in tab)
+  const isProfileComplete = formData.firstName && formData.lastName && formData.phone;
 
-  // Check if credentials are filled in
-  const isCredentialsComplete = formData.licenseType || formData.teachingLicense || formData.prcIdNumber;
+  // Credentials are optional - not all staff have licenses yet
+  const isCredentialsComplete = true;
 
   // Check if education section has entries
   const isEducationComplete = (formData.educationHistory?.length > 0) || (formData.certifications?.length > 0);
@@ -328,76 +331,86 @@ const TeacherProfile = () => {
     </div>
   );
 
-  // Teaching Credentials Section Content
+  // Credentials Section Content (multi-license)
   const renderCredentials = () => (
     <div className="tp-tab-content">
       {isEditing ? (
         <form onSubmit={handleSave} className="tp-form">
-          {/* Teaching License Section */}
-          <div className="tp-form-section">
-            <h4 className="tp-form-section-title">Teaching License</h4>
-            <div className="tp-add-section">
-              <h4 className="tp-add-title">License Information</h4>
-              <div className="tp-form-grid">
-                <div className="tp-field">
-                  <label className="tp-label">License Type</label>
-                  <select className="tp-input" value={formData.licenseType || ''} onChange={(e) => handleInputChange('licenseType', e.target.value)}>
-                    <option value="">Select type</option>
-                    <option value="LPT">Licensed Professional Teacher (LPT)</option>
-                    <option value="SPED Teacher">SPED Teacher</option>
-                    <option value="Early Childhood Educator">Early Childhood Educator</option>
-                    <option value="Paraprofessional">Paraprofessional</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                <div className="tp-field">
-                  <label className="tp-label">PRC ID Number</label>
-                  <input
-                    type="text"
-                    className="tp-input"
-                    value={formData.prcIdNumber || ''}
-                    onChange={(e) => handleInputChange('prcIdNumber', e.target.value)}
-                    placeholder="e.g., 0123456"
-                  />
-                </div>
-              </div>
-              <div className="tp-form-grid tp-form-grid--3">
-                <div className="tp-field">
-                  <label className="tp-label">License Number</label>
-                  <input
-                    type="text"
-                    className="tp-input"
-                    value={formData.teachingLicense || ''}
-                    onChange={(e) => handleInputChange('teachingLicense', e.target.value)}
-                    placeholder="License number"
-                  />
-                </div>
-                <div className="tp-field">
-                  <label className="tp-label">Issue Date</label>
-                  <input
-                    type="date"
-                    className="tp-input"
-                    value={formData.licenseIssueDate || ''}
-                    onChange={(e) => handleInputChange('licenseIssueDate', e.target.value)}
-                  />
-                </div>
-                <div className="tp-field">
-                  <label className="tp-label">Expiration Date</label>
-                  <input
-                    type="date"
-                    className="tp-input"
-                    value={formData.licenseExpirationDate || ''}
-                    onChange={(e) => handleInputChange('licenseExpirationDate', e.target.value)}
-                  />
-                </div>
+          {/* Existing Licenses */}
+          {formData.licenses?.length > 0 && (
+            <div className="tp-form-section">
+              <h4 className="tp-form-section-title">Your Licenses</h4>
+              <div className="tp-licenses-list">
+                {formData.licenses.map((license, index) => {
+                  const status = license.licenseExpirationDate ? getExpirationStatus(license.licenseExpirationDate) : null;
+                  return (
+                    <div key={license.id || index} className="tp-license-item">
+                      <div className="tp-license-info">
+                        <strong>{license.licenseType}</strong>
+                        <span>#{license.licenseNumber}</span>
+                        {license.licenseState && <span>{license.licenseState}</span>}
+                        {status && <span className={`tp-status tp-status--${status === 'Active' ? 'active' : status === 'Expiring Soon' ? 'warning' : 'expired'}`}>{status}</span>}
+                      </div>
+                      <button type="button" className="tp-btn-remove" onClick={() => handleRemoveLicense(index)}>Remove</button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
+          )}
+
+          {/* Add New License */}
+          <div className="tp-add-section">
+            <h4 className="tp-add-title">{formData.licenses?.length > 0 ? 'Add Another License' : 'Add License'}</h4>
+            <div className="tp-form-grid">
+              <div className="tp-field">
+                <label className="tp-label">License Type</label>
+                <select className="tp-input" value={newLicense.licenseType} onChange={(e) => handleNewLicenseChange('licenseType', e.target.value)}>
+                  <option value="">Select type</option>
+                  <option value="LPT">Licensed Professional Teacher (LPT)</option>
+                  <option value="SPED Teacher">SPED Teacher</option>
+                  <option value="Early Childhood Educator">Early Childhood Educator</option>
+                  <option value="Paraprofessional">Paraprofessional</option>
+                  <option value="RBT">RBT</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div className="tp-field">
+                <label className="tp-label">License Number</label>
+                <input type="text" className="tp-input" value={newLicense.licenseNumber} onChange={(e) => handleNewLicenseChange('licenseNumber', e.target.value)} placeholder="e.g., TL-123456" />
+              </div>
+            </div>
+            <div className="tp-form-grid tp-form-grid--3">
+              <div className="tp-field">
+                <label className="tp-label">State/Region</label>
+                <input type="text" className="tp-input" value={newLicense.licenseState} onChange={(e) => handleNewLicenseChange('licenseState', e.target.value)} placeholder="e.g., Philippines" />
+              </div>
+              <div className="tp-field">
+                <label className="tp-label">Issue Date</label>
+                <input type="date" className="tp-input" value={newLicense.licenseIssueDate} onChange={(e) => handleNewLicenseChange('licenseIssueDate', e.target.value)} />
+              </div>
+              <div className="tp-field">
+                <label className="tp-label">Expiration Date</label>
+                <input type="date" className="tp-input" value={newLicense.licenseExpirationDate} onChange={(e) => handleNewLicenseChange('licenseExpirationDate', e.target.value)} />
+              </div>
+            </div>
+            <button type="button" className="tp-btn tp-btn--outline" onClick={handleAddLicense}>+ Add License</button>
           </div>
 
-          {/* Experience & Status Section */}
+          {/* PRC ID & Experience Section */}
           <div className="tp-form-section">
             <h4 className="tp-form-section-title">Experience & Status</h4>
             <div className="tp-form-grid">
+              <div className="tp-field">
+                <label className="tp-label">PRC ID Number</label>
+                <input
+                  type="text"
+                  className="tp-input"
+                  value={formData.prcIdNumber || ''}
+                  onChange={(e) => handleInputChange('prcIdNumber', e.target.value)}
+                  placeholder="e.g., 0123456"
+                />
+              </div>
               <div className="tp-field">
                 <label className="tp-label">Years of Experience</label>
                 <input
@@ -408,6 +421,8 @@ const TeacherProfile = () => {
                   min="0"
                 />
               </div>
+            </div>
+            <div className="tp-form-grid">
               <div className="tp-field">
                 <label className="tp-label">Certification Level</label>
                 <select className="tp-input" value={formData.certificationLevel || ''} onChange={(e) => handleInputChange('certificationLevel', e.target.value)}>
@@ -416,6 +431,16 @@ const TeacherProfile = () => {
                   <option value="Intermediate">Intermediate</option>
                   <option value="Advanced">Advanced</option>
                   <option value="Master Teacher">Master Teacher</option>
+                </select>
+              </div>
+              <div className="tp-field">
+                <label className="tp-label">Employment Status</label>
+                <select className="tp-input" value={formData.employmentStatus || ''} onChange={(e) => handleInputChange('employmentStatus', e.target.value)}>
+                  <option value="">Select status</option>
+                  <option value="Full-time">Full-time</option>
+                  <option value="Part-time">Part-time</option>
+                  <option value="Contract">Contract</option>
+                  <option value="Substitute">Substitute</option>
                 </select>
               </div>
             </div>
@@ -430,35 +455,42 @@ const TeacherProfile = () => {
         </form>
       ) : (
         <div className="tp-view-content">
-          {/* Teaching License Display */}
-          {(formData.licenseType || formData.teachingLicense || formData.prcIdNumber) ? (
+          {/* Licenses Display */}
+          {formData.licenses?.length > 0 ? (
             <div className="tp-credentials-grid">
-              <div className="tp-credential-card">
-                <div className="tp-credential-header">
-                  <strong>{formData.licenseType || 'Teaching License'}</strong>
-                  {licenseStatus && (
-                    <span className={`tp-status tp-status--${licenseStatus === 'Active' ? 'active' : licenseStatus === 'Expiring Soon' ? 'warning' : 'expired'}`}>
-                      {licenseStatus}
-                    </span>
-                  )}
-                </div>
-                <div className="tp-credential-details">
-                  {formData.teachingLicense && <p>License #: {formData.teachingLicense}</p>}
-                  {formData.prcIdNumber && <p>PRC ID: {formData.prcIdNumber}</p>}
-                  {formData.licenseIssueDate && <p className="tp-meta">Issued: {formData.licenseIssueDate}</p>}
-                  {formData.licenseExpirationDate && <p className="tp-meta">Expires: {formData.licenseExpirationDate}</p>}
-                </div>
-              </div>
+              {formData.licenses.map((license, idx) => {
+                const status = license.licenseExpirationDate ? getExpirationStatus(license.licenseExpirationDate) : null;
+                return (
+                  <div key={license.id || idx} className="tp-credential-card">
+                    <div className="tp-credential-header">
+                      <strong>{license.licenseType}</strong>
+                      {status && <span className={`tp-status tp-status--${status === 'Active' ? 'active' : status === 'Expiring Soon' ? 'warning' : 'expired'}`}>{status}</span>}
+                    </div>
+                    <div className="tp-credential-details">
+                      <p>License #: {license.licenseNumber}</p>
+                      {license.licenseState && <p>Region: {license.licenseState}</p>}
+                      {license.licenseIssueDate && <p className="tp-meta">Issued: {license.licenseIssueDate}</p>}
+                      {license.licenseExpirationDate && <p className="tp-meta">Expires: {license.licenseExpirationDate}</p>}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
-            <p className="tp-empty-message">No teaching license added yet. Click Edit to add your license information.</p>
+            <p className="tp-empty-message">No licenses added yet. Click Edit to add your license information.</p>
           )}
 
-          {/* Experience Display */}
-          {(formData.yearsExperience > 0 || formData.certificationLevel) && (
+          {/* PRC ID & Experience Display */}
+          {(formData.prcIdNumber || formData.yearsExperience > 0 || formData.certificationLevel) && (
             <div className="tp-info-section tp-info-section--bordered">
-              <h4 className="tp-info-section-title">Experience</h4>
+              <h4 className="tp-info-section-title">Experience & Details</h4>
               <div className="tp-info-grid">
+                {formData.prcIdNumber && (
+                  <div className="tp-info-item">
+                    <span className="tp-info-label">PRC ID</span>
+                    <span className="tp-info-value">{formData.prcIdNumber}</span>
+                  </div>
+                )}
                 {formData.yearsExperience > 0 && (
                   <div className="tp-info-item">
                     <span className="tp-info-label">Years of Experience</span>
@@ -735,6 +767,17 @@ const TeacherProfile = () => {
                     </label>
                   </div>
 
+                  {/* Photo reminder */}
+                  {!formData.profilePhoto && (
+                    <div className="tp-photo-reminder">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                        <circle cx="12" cy="13" r="4"/>
+                      </svg>
+                      <span>Add a profile photo so parents and staff can identify you</span>
+                    </div>
+                  )}
+
                   {/* Quick Info Items below photo */}
                   <div className="tp-photo-section-info">
                     {formData.yearsExperience > 0 && (
@@ -760,7 +803,9 @@ const TeacherProfile = () => {
                   <div className="tp-profile-name-row">
                     <h1 className="tp-profile-therapist-name">{fullName || 'Your Name'}</h1>
                     <span className="tp-profile-role-badge">
-                      {formData.licenseType || 'Teacher'}
+                      {formData.licenses?.length > 0
+                        ? formData.licenses.map(l => l.licenseType).join(' / ')
+                        : 'Teacher'}
                     </span>
                   </div>
 
@@ -814,49 +859,33 @@ const TeacherProfile = () => {
                     </div>
                   </div>
 
-                  {/* Credentials Status Indicator */}
-                  {!isCredentialsComplete && (
-                    <div className="tp-credential-status tp-credential-status--incomplete">
-                      <div className="tp-credential-status-icon">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="10"/>
-                          <line x1="12" y1="8" x2="12" y2="12"/>
-                          <line x1="12" y1="16" x2="12.01" y2="16"/>
-                        </svg>
-                      </div>
-                      <div className="tp-credential-status-content">
-                        <span className="tp-credential-status-label">Teaching Credentials Incomplete</span>
-                        <span className="tp-credential-status-text">Please add your teaching license and PRC ID to complete your profile.</span>
-                      </div>
-                      <button
-                        type="button"
-                        className="tp-credential-status-btn"
-                        onClick={() => setActiveTab('credentials')}
-                      >
-                        Add Credentials
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Teaching License Summary Card */}
-                  {(formData.licenseType || formData.teachingLicense) && (
+                  {/* Licenses Summary Card */}
+                  {formData.licenses?.length > 0 && (
                     <div className="tp-licenses-card">
                       <div className="tp-licenses-card-header">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
                         </svg>
-                        <span>Teaching License</span>
+                        <span>Teaching Licenses</span>
                       </div>
                       <div className="tp-licenses-card-body">
-                        <div className="tp-license-summary-item">
-                          <span className="tp-license-type">{formData.licenseType || 'License'}</span>
-                          {formData.teachingLicense && <span className="tp-license-number">#{formData.teachingLicense}</span>}
-                          {licenseStatus && (
-                            <span className={`tp-license-status tp-license-status--${licenseStatus === 'Active' ? 'active' : licenseStatus === 'Expiring Soon' ? 'warning' : 'expired'}`}>
-                              {licenseStatus}
-                            </span>
-                          )}
-                        </div>
+                        {formData.licenses.slice(0, 3).map((license, idx) => {
+                          const status = license.licenseExpirationDate ? getExpirationStatus(license.licenseExpirationDate) : null;
+                          return (
+                            <div key={idx} className="tp-license-summary-item">
+                              <span className="tp-license-type">{license.licenseType}</span>
+                              <span className="tp-license-number">#{license.licenseNumber}</span>
+                              {status && (
+                                <span className={`tp-license-status tp-license-status--${status === 'Active' ? 'active' : status === 'Expiring Soon' ? 'warning' : 'expired'}`}>
+                                  {status}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                        {formData.licenses.length > 3 && (
+                          <div className="tp-more-licenses">+{formData.licenses.length - 3} more</div>
+                        )}
                       </div>
                     </div>
                   )}
