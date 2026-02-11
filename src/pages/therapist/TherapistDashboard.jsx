@@ -91,23 +91,29 @@ const TherapistDashboard = () => {
   }, [searchTerm]);
 
   const getMyServices = (student) => {
+    let myServices = [];
+
     // NEW MODEL: Read from serviceEnrollments (primary)
     if (student.serviceEnrollments && student.serviceEnrollments.length > 0) {
-      return student.serviceEnrollments.filter(enrollment =>
+      myServices = student.serviceEnrollments.filter(enrollment =>
         enrollment.status === 'active' &&
         enrollment.currentStaff?.staffId === currentUser.uid
       );
     }
 
-    // LEGACY FALLBACK: Read from old arrays (for unmigrated data)
-    const legacyServices = [
-      ...(student.oneOnOneServices || []),
-      ...(student.groupClassServices || [])
-    ];
+    // LEGACY FALLBACK: Also check old arrays if new model found nothing
+    if (myServices.length === 0) {
+      const legacyServices = [
+        ...(student.oneOnOneServices || []),
+        ...(student.groupClassServices || [])
+      ];
+      const legacyMatches = legacyServices.filter(s =>
+        s.staffId === currentUser.uid || s.therapistId === currentUser.uid
+      );
+      if (legacyMatches.length > 0) myServices = legacyMatches;
+    }
 
-    return legacyServices.filter(s =>
-      s.staffId === currentUser.uid || s.therapistId === currentUser.uid
-    );
+    return myServices;
   };
 
   // UPDATED: Always show modal for service selection

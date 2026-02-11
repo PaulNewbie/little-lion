@@ -255,10 +255,17 @@ class ChildService {
       return snapshot.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
         .filter(child => {
+          // Check new model: serviceEnrollments
+          const hasNewModelMatch = (child.serviceEnrollments || []).some(
+            enrollment => enrollment.status === 'active' && enrollment.currentStaff?.staffId === staffId
+          );
+          if (hasNewModelMatch) return true;
+
+          // Check legacy arrays
           const oneOnOne = child.oneOnOneServices || [];
           const groupClass = child.groupClassServices || [];
           const enrolledServices = child.enrolledServices || [];
-          
+
           return [...oneOnOne, ...groupClass, ...enrolledServices].some(
             service => service.staffId === staffId
           );
@@ -400,7 +407,7 @@ class ChildService {
       if (childData.serviceEnrollments && childData.serviceEnrollments.length > 0) {
         const now = new Date().toISOString();
         processedEnrollments = childData.serviceEnrollments
-          .filter(e => e.serviceId && e.staffId) // Only save complete enrollments
+          .filter(e => e.serviceId && (e.staffId || e.currentStaff?.staffId)) // Accept both flat and structured enrollments
           .map(enrollment => {
             // If enrollment already has currentStaff structure, keep it
             if (enrollment.currentStaff) {

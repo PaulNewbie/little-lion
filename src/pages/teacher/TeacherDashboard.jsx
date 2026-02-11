@@ -100,13 +100,16 @@ const TeacherDashboard = () => {
             enrollment.status === 'active' &&
             enrollment.currentStaff?.staffId === currentUser.uid
           );
-        } else {
-          // LEGACY FALLBACK: Read from old arrays (for unmigrated data)
+        }
+
+        // LEGACY FALLBACK: Also check old arrays if new model found nothing
+        if (myServices.length === 0) {
           const legacyServices = [
             ...(student.groupClassServices || []),
             ...(student.oneOnOneServices || [])
           ];
-          myServices = legacyServices.filter(svc => svc.staffId === currentUser.uid);
+          const legacyMatches = legacyServices.filter(svc => svc.staffId === currentUser.uid);
+          if (legacyMatches.length > 0) myServices = legacyMatches;
         }
 
         myServices.forEach(svc => {
