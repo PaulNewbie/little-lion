@@ -29,13 +29,6 @@ if (import.meta.env.DEV) {
   enableReadCounter();
 }
 
-// Expose migration tools on window for admin console use
-// Usage: window.__migrations.backfillStaffIds() or window.__migrations.backfillStaffIds({ forceRecompute: true })
-import { migrateAddAssignedStaffIds } from './utils/denormalization';
-window.__migrations = {
-  backfillStaffIds: migrateAddAssignedStaffIds,
-};
-
 function App() {
   return (
     <ErrorBoundary>

@@ -3,6 +3,7 @@ import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../../config/firebase';
 import { useAuth } from '../../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { migrateAddAssignedStaffIds } from '../../../utils/denormalization';
 
 /**
  * Admin utility to delete old students without serviceEnrollments
@@ -16,6 +17,11 @@ const CleanupOldStudents = () => {
   const [scanned, setScanned] = useState(false);
   const [deleted, setDeleted] = useState(false);
   const [log, setLog] = useState([]);
+
+  // Migration state
+  const [migrationRunning, setMigrationRunning] = useState(false);
+  const [migrationResult, setMigrationResult] = useState(null);
+  const [migrationLog, setMigrationLog] = useState([]);
 
   // Only allow super_admin
   if (currentUser?.role !== 'super_admin') {
@@ -197,6 +203,54 @@ const CleanupOldStudents = () => {
         {deleted && (
           <div style={styles.success}>
             Cleanup complete! All old students have been deleted.
+          </div>
+        )}
+
+        {/* ── Staff IDs Migration ── */}
+        <hr style={{ margin: '32px 0', border: 'none', borderTop: '1px solid #dee2e6' }} />
+        <h2 style={{ ...styles.title, fontSize: '20px' }}>Backfill assignedStaffIds</h2>
+        <p style={styles.description}>
+          Recomputes <code>assignedStaffIds</code> on every child document from both
+          serviceEnrollments (new) and legacy arrays. This fixes teacher/therapist dashboards
+          showing "No classes found".
+        </p>
+
+        <div style={styles.actions}>
+          <button
+            style={styles.btn}
+            onClick={async () => {
+              setMigrationRunning(true);
+              setMigrationResult(null);
+              setMigrationLog(prev => [...prev, `[${new Date().toLocaleTimeString()}] Starting migration (forceRecompute)...`]);
+              try {
+                const result = await migrateAddAssignedStaffIds({ forceRecompute: true });
+                setMigrationResult(result);
+                setMigrationLog(prev => [
+                  ...prev,
+                  `[${new Date().toLocaleTimeString()}] Done — ${result.count} updated, ${result.skipped} skipped, ${result.total} total`,
+                ]);
+              } catch (err) {
+                setMigrationLog(prev => [...prev, `[${new Date().toLocaleTimeString()}] Error: ${err.message}`]);
+              } finally {
+                setMigrationRunning(false);
+              }
+            }}
+            disabled={migrationRunning}
+          >
+            {migrationRunning ? 'Running...' : 'Run Migration'}
+          </button>
+        </div>
+
+        {migrationLog.length > 0 && (
+          <div style={styles.logContainer}>
+            <h3>Migration Log</h3>
+            <pre style={styles.log}>{migrationLog.join('\n')}</pre>
+          </div>
+        )}
+
+        {migrationResult?.success && (
+          <div style={styles.success}>
+            Migration complete! Updated {migrationResult.count} of {migrationResult.total} children.
           </div>
         )}
       </div>
