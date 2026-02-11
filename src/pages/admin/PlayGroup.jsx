@@ -21,6 +21,7 @@ import Sidebar from '../../components/sidebar/Sidebar';
 import { getAdminConfig } from '../../components/sidebar/sidebarConfigs';
 import Loading from '../../components/common/Loading';
 import BackButton from '../../components/common/BackButton';
+import { Puzzle } from 'lucide-react';
 import './css/PlayGroup.css';
 import './studentProfile/StudentProfile.css';
 import '../../components/common/Header.css';
@@ -308,7 +309,9 @@ const PlayGroup = () => {
                           <img src={service.imageUrl} alt={service.name} className="pg-card-image" />
                         </div>
                       ) : (
-                        <div className="pg-card-icon">🎨</div>
+                        <div className="pg-card-icon">
+                          <Puzzle size={40} strokeWidth={1.5} />
+                        </div>
                       )}
                       <h3>{service.name}</h3>
                       {editMode && <span className="pg-edit-indicator">✎</span>}

@@ -309,16 +309,15 @@
 
 /* Fallback Icon Area */
 .ooo-card-icon {
-  font-size: 40px;
   margin-bottom: 15px;
   width: 100%;
   height: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f0f8ff;
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
   border-radius: 8px;
-  color: #4ECDC4;
+  color: #0284c7;
 }
 
 .ooo-service-card h3 {

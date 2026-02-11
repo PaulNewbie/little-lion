@@ -14,6 +14,7 @@ import cloudinaryService from "../../services/cloudinaryService"; // Added for i
 import useManageTherapists from "../../hooks/useManageTherapists";
 import { db } from "../../config/firebase";
 import { collection, addDoc } from "firebase/firestore";
+import { HeartHandshake } from 'lucide-react';
 import "./css/OneOnOne.css";
 import "./studentProfile/StudentProfile.css";
 import "../../components/common/Header.css";
@@ -253,7 +254,9 @@ const OneOnOne = () => {
                             <img src={service.imageUrl} alt={service.name} className="ooo-card-image" />
                           </div>
                         ) : (
-                          <div className="ooo-card-icon">🎨</div>
+                          <div className="ooo-card-icon">
+                            <HeartHandshake size={40} strokeWidth={1.5} />
+                          </div>
                         )}
                         <h3>{service.name}</h3>
                         {editMode && <span className="ooo-edit-indicator">✎</span>}
