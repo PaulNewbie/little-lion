@@ -2,122 +2,9 @@
 // Collapsible activity list for Daily Digest
 
 import React, { useState } from 'react';
+import { ClipboardList, Stethoscope, Palette } from 'lucide-react';
 import { TherapyCard, GroupCard, getEmojiForMood } from '../../../components/activities/ActivityCards';
-
-const styles = {
-  container: {
-    backgroundColor: 'white',
-    borderRadius: '12px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    overflow: 'hidden',
-  },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '16px 20px',
-    borderBottom: '1px solid #f1f5f9',
-    backgroundColor: '#fafafa',
-  },
-  headerTitle: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    fontSize: '16px',
-    fontWeight: '600',
-    color: '#374151',
-  },
-  toggleBtn: {
-    padding: '6px 12px',
-    fontSize: '13px',
-    color: '#0052A1',
-    backgroundColor: '#eff6ff',
-    border: '1px solid #dbeafe',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontWeight: '500',
-    transition: 'all 0.2s ease',
-  },
-  list: {
-    padding: '12px',
-  },
-  activityRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '12px 16px',
-    marginBottom: '8px',
-    backgroundColor: '#f8fafc',
-    borderRadius: '10px',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    border: '1px solid transparent',
-  },
-  activityRowExpanded: {
-    backgroundColor: '#eff6ff',
-    borderColor: '#dbeafe',
-  },
-  typeIcon: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '10px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '20px',
-    flexShrink: 0,
-  },
-  therapyIcon: {
-    backgroundColor: '#dbeafe',
-  },
-  groupIcon: {
-    backgroundColor: '#dcfce7',
-  },
-  activityInfo: {
-    flex: 1,
-    minWidth: 0,
-  },
-  activityTitle: {
-    fontSize: '14px',
-    fontWeight: '600',
-    color: '#1e293b',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  activityMeta: {
-    fontSize: '12px',
-    color: '#64748b',
-    marginTop: '2px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  moodBadge: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '4px',
-    fontSize: '11px',
-    backgroundColor: '#fef3c7',
-    color: '#92400e',
-    padding: '2px 6px',
-    borderRadius: '4px',
-  },
-  expandIcon: {
-    color: '#94a3b8',
-    transition: 'transform 0.2s ease',
-    flexShrink: 0,
-  },
-  expandIconRotated: {
-    transform: 'rotate(180deg)',
-  },
-  expandedContent: {
-    padding: '0 12px 16px 12px',
-  },
-  cardWrapper: {
-    marginTop: '8px',
-  },
-};
+import '../css/DigestComponents.css';
 
 // Chevron icon
 const ChevronDown = ({ rotated }) => (
@@ -128,10 +15,7 @@ const ChevronDown = ({ rotated }) => (
     fill="none"
     stroke="currentColor"
     strokeWidth="2"
-    style={{
-      ...styles.expandIcon,
-      ...(rotated ? styles.expandIconRotated : {}),
-    }}
+    className={`digest-expand-icon${rotated ? ' digest-expand-icon--rotated' : ''}`}
   >
     <polyline points="6 9 12 15 18 9"></polyline>
   </svg>
@@ -172,37 +56,24 @@ const ActivityRow = ({ activity, isExpanded, onToggle }) => {
   return (
     <div>
       <div
-        style={{
-          ...styles.activityRow,
-          ...(isExpanded ? styles.activityRowExpanded : {}),
-        }}
+        className={`digest-activity-row${isExpanded ? ' digest-activity-row--expanded' : ''}`}
         onClick={onToggle}
-        onMouseEnter={(e) => {
-          if (!isExpanded) {
-            e.currentTarget.style.backgroundColor = '#f1f5f9';
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!isExpanded) {
-            e.currentTarget.style.backgroundColor = '#f8fafc';
-          }
-        }}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(); } }}
       >
         {/* Type Icon */}
-        <div style={{
-          ...styles.typeIcon,
-          ...(isTherapy ? styles.therapyIcon : styles.groupIcon),
-        }}>
-          {isTherapy ? '🩺' : '🎨'}
+        <div className={`digest-type-icon ${isTherapy ? 'digest-type-icon--therapy' : 'digest-type-icon--group'}`}>
+          {isTherapy ? <Stethoscope size={20} color="#1e40af" /> : <Palette size={20} color="#166534" />}
         </div>
 
         {/* Activity Info */}
-        <div style={styles.activityInfo}>
-          <div style={styles.activityTitle}>{summary}</div>
-          <div style={styles.activityMeta}>
+        <div className="digest-activity-info">
+          <div className="digest-activity-title">{summary}</div>
+          <div className="digest-activity-meta">
             {time && <span>{time}</span>}
             {mood && (
-              <span style={styles.moodBadge}>
+              <span className="digest-mood-badge">
                 {getEmojiForMood(mood)} {mood}
               </span>
             )}
@@ -215,8 +86,8 @@ const ActivityRow = ({ activity, isExpanded, onToggle }) => {
 
       {/* Expanded Content */}
       {isExpanded && (
-        <div style={styles.expandedContent}>
-          <div style={styles.cardWrapper}>
+        <div className="digest-expanded-content">
+          <div className="digest-card-wrapper">
             {isTherapy ? (
               <TherapyCard activity={activity} />
             ) : (
@@ -264,29 +135,23 @@ const DigestActivityList = ({ activities }) => {
   };
 
   return (
-    <div style={styles.container}>
+    <div className="digest-activity-list">
       {/* Header */}
-      <div style={styles.header}>
-        <div style={styles.headerTitle}>
-          <span>📋</span>
+      <div className="digest-activity-list-header">
+        <div className="digest-activity-list-title">
+          <ClipboardList size={18} />
           Activities ({activities.length})
         </div>
         <button
-          style={styles.toggleBtn}
+          className="digest-toggle-btn"
           onClick={toggleAll}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#dbeafe';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#eff6ff';
-          }}
         >
           {allExpanded ? 'Collapse All' : 'Expand All'}
         </button>
       </div>
 
       {/* Activity List */}
-      <div style={styles.list}>
+      <div className="digest-activity-items">
         {activities.map(activity => (
           <ActivityRow
             key={activity.id}

@@ -2,143 +2,8 @@
 // Horizontal scrollable photo strip for Daily Digest
 
 import React, { useState } from 'react';
-
-const styles = {
-  container: {
-    backgroundColor: 'white',
-    borderRadius: '12px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    padding: '16px 20px',
-    marginBottom: '20px',
-  },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    marginBottom: '12px',
-    fontSize: '16px',
-    fontWeight: '600',
-    color: '#374151',
-  },
-  scrollContainer: {
-    display: 'flex',
-    gap: '12px',
-    overflowX: 'auto',
-    paddingBottom: '8px',
-    scrollbarWidth: 'thin',
-    scrollbarColor: '#cbd5e1 transparent',
-  },
-  photoWrapper: {
-    position: 'relative',
-    flexShrink: 0,
-  },
-  photo: {
-    width: '120px',
-    height: '120px',
-    objectFit: 'cover',
-    borderRadius: '10px',
-    cursor: 'pointer',
-    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-    border: '2px solid #e2e8f0',
-  },
-  photoHover: {
-    transform: 'scale(1.05)',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-    borderColor: '#0052A1',
-  },
-  moreBadge: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    color: 'white',
-    padding: '8px 12px',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '600',
-    pointerEvents: 'none',
-  },
-  moreOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    borderRadius: '10px',
-    cursor: 'pointer',
-  },
-  // Lightbox styles
-  lightbox: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1000,
-    padding: '20px',
-  },
-  lightboxClose: {
-    position: 'absolute',
-    top: '20px',
-    right: '20px',
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    border: 'none',
-    color: 'white',
-    fontSize: '24px',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  lightboxImage: {
-    maxWidth: '90%',
-    maxHeight: '90%',
-    objectFit: 'contain',
-    borderRadius: '8px',
-  },
-  lightboxNav: {
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    width: '50px',
-    height: '50px',
-    borderRadius: '50%',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    border: 'none',
-    color: 'white',
-    fontSize: '24px',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  lightboxPrev: {
-    left: '20px',
-  },
-  lightboxNext: {
-    right: '20px',
-  },
-  lightboxCounter: {
-    position: 'absolute',
-    bottom: '20px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    color: 'white',
-    fontSize: '14px',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: '6px 12px',
-    borderRadius: '20px',
-  },
-};
+import { Camera } from 'lucide-react';
+import '../css/DigestComponents.css';
 
 const MAX_VISIBLE_PHOTOS = 6;
 
@@ -148,7 +13,6 @@ const MAX_VISIBLE_PHOTOS = 6;
  */
 const DigestPhotoStrip = ({ photos }) => {
   const [lightboxIndex, setLightboxIndex] = useState(null);
-  const [hoveredIndex, setHoveredIndex] = useState(null);
 
   if (!photos || photos.length === 0) {
     return null;
@@ -193,36 +57,33 @@ const DigestPhotoStrip = ({ photos }) => {
 
   return (
     <>
-      <div style={styles.container}>
-        <div style={styles.header}>
-          <span>📸</span> Photos ({photos.length})
+      <div className="digest-photo-strip">
+        <div className="digest-photo-header">
+          <Camera size={18} /> Photos ({photos.length})
         </div>
 
-        <div style={styles.scrollContainer}>
+        <div className="digest-photo-scroll">
           {visiblePhotos.map((photo, index) => {
             const isLast = index === visiblePhotos.length - 1 && showMoreBadge;
 
             return (
-              <div key={`${photo.activityId}-${photo.index}-${index}`} style={styles.photoWrapper}>
+              <div key={`${photo.activityId}-${photo.index}-${index}`} className="digest-photo-wrapper">
                 <img
                   src={photo.url}
                   alt={photo.title || `Photo ${index + 1}`}
-                  style={{
-                    ...styles.photo,
-                    ...(hoveredIndex === index ? styles.photoHover : {}),
-                  }}
+                  className="digest-photo"
                   onClick={() => openLightbox(index)}
-                  onMouseEnter={() => setHoveredIndex(index)}
-                  onMouseLeave={() => setHoveredIndex(null)}
                   loading="lazy"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter') openLightbox(index); }}
                 />
                 {isLast && (
                   <>
                     <div
-                      style={styles.moreOverlay}
+                      className="digest-photo-more-overlay"
                       onClick={() => openLightbox(index)}
                     />
-                    <div style={styles.moreBadge}>+{remainingCount} more</div>
+                    <div className="digest-photo-more-badge">+{remainingCount} more</div>
                   </>
                 )}
               </div>
@@ -233,10 +94,10 @@ const DigestPhotoStrip = ({ photos }) => {
 
       {/* Lightbox */}
       {lightboxIndex !== null && (
-        <div style={styles.lightbox} onClick={closeLightbox}>
+        <div className="digest-lightbox" onClick={closeLightbox}>
           {/* Close Button */}
           <button
-            style={styles.lightboxClose}
+            className="digest-lightbox-close"
             onClick={closeLightbox}
             aria-label="Close"
           >
@@ -246,7 +107,7 @@ const DigestPhotoStrip = ({ photos }) => {
           {/* Previous Button */}
           {photos.length > 1 && (
             <button
-              style={{ ...styles.lightboxNav, ...styles.lightboxPrev }}
+              className="digest-lightbox-nav digest-lightbox-prev"
               onClick={goToPrev}
               aria-label="Previous"
             >
@@ -258,14 +119,14 @@ const DigestPhotoStrip = ({ photos }) => {
           <img
             src={photos[lightboxIndex].url}
             alt={photos[lightboxIndex].title || `Photo ${lightboxIndex + 1}`}
-            style={styles.lightboxImage}
+            className="digest-lightbox-image"
             onClick={(e) => e.stopPropagation()}
           />
 
           {/* Next Button */}
           {photos.length > 1 && (
             <button
-              style={{ ...styles.lightboxNav, ...styles.lightboxNext }}
+              className="digest-lightbox-nav digest-lightbox-next"
               onClick={goToNext}
               aria-label="Next"
             >
@@ -274,7 +135,7 @@ const DigestPhotoStrip = ({ photos }) => {
           )}
 
           {/* Counter */}
-          <div style={styles.lightboxCounter}>
+          <div className="digest-lightbox-counter">
             {lightboxIndex + 1} / {photos.length}
           </div>
         </div>

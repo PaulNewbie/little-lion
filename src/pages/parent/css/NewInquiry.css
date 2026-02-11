@@ -1,0 +1,352 @@
+/* ============================================================
+   NEW INQUIRY - Parent inquiry form with sidebar
+   Mobile-first responsive design
+============================================================ */
+
+.inquiry-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.inquiry-main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow: auto;
+}
+
+.inquiry-container {
+  flex: 1;
+  padding: 20px;
+  max-width: 700px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.inquiry-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 1rem;
+}
+
+.inquiry-spinner {
+  color: #0052A1;
+}
+
+.inquiry-spin-icon {
+  animation: inquiry-spin 1s linear infinite;
+}
+
+@keyframes inquiry-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.inquiry-label-icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.inquiry-header {
+  margin-bottom: 2rem;
+}
+
+.inquiry-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.5rem 0;
+}
+
+.inquiry-subtitle {
+  color: #64748b;
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* Form */
+.inquiry-form {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid #e2e8f0;
+  transition: box-shadow 0.2s ease;
+}
+
+.inquiry-form:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.inquiry-form-group {
+  margin-bottom: 1.5rem;
+}
+
+.inquiry-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.5rem;
+}
+
+.inquiry-label-icon {
+  font-size: 1.125rem;
+}
+
+.inquiry-select {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  background-color: white;
+  color: #1e293b;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+.inquiry-select:hover {
+  border-color: #0052A1;
+}
+
+.inquiry-select:focus {
+  border-color: #0052A1;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 82, 161, 0.1);
+}
+
+.inquiry-select:focus-visible {
+  outline: 2px solid #0052A1;
+  outline-offset: 2px;
+}
+
+.inquiry-input {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  box-sizing: border-box;
+  min-height: 44px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.inquiry-input:hover {
+  border-color: #0052A1;
+}
+
+.inquiry-input:focus {
+  border-color: #0052A1;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 82, 161, 0.1);
+}
+
+.inquiry-input:focus-visible {
+  outline: 2px solid #0052A1;
+  outline-offset: 2px;
+}
+
+.inquiry-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  font-family: inherit;
+  resize: vertical;
+  box-sizing: border-box;
+  min-height: 44px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.inquiry-textarea:hover {
+  border-color: #0052A1;
+}
+
+.inquiry-textarea:focus {
+  border-color: #0052A1;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 82, 161, 0.1);
+}
+
+.inquiry-textarea:focus-visible {
+  outline: 2px solid #0052A1;
+  outline-offset: 2px;
+}
+
+.inquiry-help-text {
+  font-size: 0.8125rem;
+  color: #ef4444;
+  margin: 0.5rem 0 0 0;
+  font-style: italic;
+}
+
+.inquiry-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.inquiry-cancel-btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #64748b;
+  background-color: white;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 44px;
+}
+
+.inquiry-cancel-btn:hover {
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.inquiry-cancel-btn:focus-visible {
+  outline: 2px solid #0052A1;
+  outline-offset: 2px;
+}
+
+.inquiry-submit-btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  background-color: #0052A1;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  min-height: 44px;
+}
+
+.inquiry-submit-btn:hover:not(:disabled) {
+  background-color: #003d7a;
+}
+
+.inquiry-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.inquiry-submit-btn:focus-visible {
+  outline: 2px solid #FFCB10;
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   RESPONSIVE - Tablet
+============================================================ */
+@media (max-width: 768px) {
+  .inquiry-container {
+    padding: 16px;
+  }
+
+  .inquiry-title {
+    font-size: 1.5rem;
+  }
+
+  .inquiry-form {
+    padding: 1.5rem;
+  }
+
+  .inquiry-header {
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE - Mobile
+============================================================ */
+@media (max-width: 480px) {
+  .inquiry-container {
+    padding: 12px;
+  }
+
+  .inquiry-title {
+    font-size: 1.25rem;
+  }
+
+  .inquiry-subtitle {
+    font-size: 0.875rem;
+  }
+
+  .inquiry-form {
+    padding: 1rem;
+    border-radius: 10px;
+  }
+
+  .inquiry-form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .inquiry-actions {
+    flex-direction: column-reverse;
+    gap: 0.75rem;
+  }
+
+  .inquiry-cancel-btn,
+  .inquiry-submit-btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+/* ============================================================
+   ACCESSIBILITY
+============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .inquiry-form,
+  .inquiry-select,
+  .inquiry-input,
+  .inquiry-textarea,
+  .inquiry-cancel-btn,
+  .inquiry-submit-btn {
+    transition: none;
+  }
+
+  .inquiry-spin-icon {
+    animation: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .inquiry-form {
+    border: 2px solid #000;
+  }
+
+  .inquiry-select,
+  .inquiry-input,
+  .inquiry-textarea {
+    border-width: 2px;
+    border-color: #000;
+  }
+
+  .inquiry-cancel-btn {
+    border-width: 2px;
+    border-color: #000;
+  }
+
+  .inquiry-submit-btn {
+    border: 2px solid #000;
+  }
+}

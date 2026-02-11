@@ -2,58 +2,8 @@
 // Empty state component for Daily Digest when no activities exist
 
 import React from 'react';
-
-const styles = {
-  container: {
-    backgroundColor: 'white',
-    borderRadius: '12px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    padding: '60px 20px',
-    textAlign: 'center',
-  },
-  icon: {
-    fontSize: '64px',
-    marginBottom: '16px',
-    opacity: 0.8,
-  },
-  title: {
-    fontSize: '18px',
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: '8px',
-  },
-  subtitle: {
-    fontSize: '14px',
-    color: '#64748b',
-    marginBottom: '24px',
-    maxWidth: '300px',
-    margin: '0 auto 24px',
-    lineHeight: '1.5',
-  },
-  jumpButton: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '10px 20px',
-    backgroundColor: '#0052A1',
-    color: 'white',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s ease',
-  },
-  jumpButtonDisabled: {
-    backgroundColor: '#94a3b8',
-    cursor: 'not-allowed',
-  },
-  loadingText: {
-    fontSize: '13px',
-    color: '#94a3b8',
-    marginTop: '12px',
-  },
-};
+import { Inbox, CornerDownLeft } from 'lucide-react';
+import '../css/DigestComponents.css';
 
 /**
  * Format date for display
@@ -90,34 +40,30 @@ const DigestEmptyState = ({
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.icon}>📭</div>
-      <div style={styles.title}>No Activities Recorded</div>
-      <div style={styles.subtitle}>
+    <div className="digest-empty-state">
+      <div className="digest-empty-icon">
+        <Inbox size={56} color="#94a3b8" />
+      </div>
+      <div className="digest-empty-title">No Activities Recorded</div>
+      <div className="digest-empty-subtitle">
         There are no activities logged for <strong>{dateStr}</strong>. Try navigating to a different date.
       </div>
 
       {isLoadingLastDate ? (
-        <div style={styles.loadingText}>Looking for recent activities...</div>
+        <div className="digest-loading-text">Looking for recent activities...</div>
       ) : hasLastActivity ? (
         <button
-          style={styles.jumpButton}
+          className="digest-jump-button"
           onClick={handleJump}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#003d7a';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#0052A1';
-          }}
         >
-          <span>↩</span>
+          <CornerDownLeft size={16} />
           Jump to Last Activity
-          <span style={{ fontSize: '12px', opacity: 0.8 }}>
+          <span className="digest-jump-date">
             ({lastActivityDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
           </span>
         </button>
       ) : (
-        <div style={styles.loadingText}>
+        <div className="digest-loading-text">
           No recent activities found for this child.
         </div>
       )}

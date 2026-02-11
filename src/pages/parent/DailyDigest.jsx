@@ -17,94 +17,7 @@ import DigestActivityList from './components/DigestActivityList';
 import DigestPhotoStrip from './components/DigestPhotoStrip';
 import DigestEmptyState from './components/DigestEmptyState';
 
-const styles = {
-  layout: {
-    display: 'flex',
-    minHeight: '100vh',
-  },
-  mainWrapper: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: '100vh',
-    overflow: 'auto',
-  },
-  main: {
-    flex: 1,
-    padding: '24px',
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    marginBottom: '24px',
-  },
-  title: {
-    fontSize: '24px',
-    fontWeight: '600',
-    marginBottom: '4px',
-    color: '#1a1a1a',
-  },
-  subtitle: {
-    color: '#666',
-    fontSize: '14px',
-  },
-  loading: {
-    textAlign: 'center',
-    padding: '60px 20px',
-    color: '#64748b',
-  },
-  loadingSpinner: {
-    display: 'inline-block',
-    width: '24px',
-    height: '24px',
-    border: '3px solid #e2e8f0',
-    borderTopColor: '#0052A1',
-    borderRadius: '50%',
-    animation: 'spin 0.8s linear infinite',
-    marginBottom: '12px',
-  },
-  error: {
-    backgroundColor: '#fef2f2',
-    border: '1px solid #fecaca',
-    borderRadius: '12px',
-    padding: '20px',
-    textAlign: 'center',
-    color: '#991b1b',
-  },
-  childName: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '12px 16px',
-    backgroundColor: 'white',
-    borderRadius: '10px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    marginBottom: '16px',
-  },
-  childAvatar: {
-    width: '36px',
-    height: '36px',
-    borderRadius: '50%',
-    backgroundColor: '#0052A1',
-    color: 'white',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontWeight: '600',
-    fontSize: '14px',
-  },
-  childNameText: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: '#1e293b',
-  },
-};
-
-// Keyframe animation for spinner
-const spinnerKeyframes = `
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-`;
+import './css/DailyDigest.css';
 
 // Storage key for persisting selected child
 const SELECTED_CHILD_KEY = 'dailyDigest_selectedChild';
@@ -215,16 +128,15 @@ export default function DailyDigest() {
   const showContent = !showLoading && !showError && digest?.activities?.length > 0;
 
   return (
-    <div style={styles.layout}>
-      <style>{spinnerKeyframes}</style>
+    <div className="digest-layout">
       <Sidebar {...getParentConfig()} forceActive="/parent/digest" />
 
-      <div style={styles.mainWrapper}>
-        <main style={styles.main}>
+      <div className="digest-main-wrapper">
+        <main className="digest-main">
           {/* Header */}
-          <div style={styles.header}>
-            <h1 style={styles.title}>Daily Digest</h1>
-            <p style={styles.subtitle}>
+          <div className="digest-header">
+            <h1 className="digest-title">Daily Digest</h1>
+            <p className="digest-subtitle">
               Quick snapshot of your child's activities for the day
             </p>
           </div>
@@ -239,19 +151,18 @@ export default function DailyDigest() {
 
           {/* Selected Child Name (single child or after selection) */}
           {selectedChildInfo && children.length === 1 && (
-            <div style={styles.childName}>
-              <div style={styles.childAvatar}>
+            <div className="digest-child-name">
+              <div className="digest-child-avatar">
                 {selectedChildInfo.photoUrl ? (
                   <img
                     src={selectedChildInfo.photoUrl}
                     alt={selectedChildInfo.firstName}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
                   />
                 ) : (
                   selectedChildInfo.firstName?.charAt(0)?.toUpperCase() || '?'
                 )}
               </div>
-              <span style={styles.childNameText}>
+              <span className="digest-child-name-text">
                 {selectedChildInfo.firstName} {selectedChildInfo.lastName}
               </span>
             </div>
@@ -267,15 +178,15 @@ export default function DailyDigest() {
 
           {/* Loading State */}
           {showLoading && (
-            <div style={styles.loading}>
-              <div style={styles.loadingSpinner}></div>
+            <div className="digest-loading">
+              <div className="digest-loading-spinner"></div>
               <p>Loading activities...</p>
             </div>
           )}
 
           {/* Error State */}
           {showError && (
-            <div style={styles.error}>
+            <div className="digest-error">
               <p>Failed to load activities. Please try again.</p>
             </div>
           )}

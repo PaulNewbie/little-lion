@@ -2,6 +2,11 @@
 // Monthly Summary Dashboard for Parents
 
 import React, { useState, useEffect, useRef } from 'react';
+import {
+  Smile, AlertCircle, MinusCircle, Camera, BarChart3,
+  ClipboardList, BookOpen, Stethoscope, Users, TrendingUp,
+  Star, FileText, Lightbulb
+} from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../context/ToastContext';
 import childService from '../../services/childService';
@@ -12,361 +17,18 @@ import GeneralFooter from '../../components/footer/generalfooter';
 import summaryService from '../../services/summaryService';
 import ChildSelector from '../../components/common/ChildSelector';
 
-const styles = {
-  layout: {
-    display: 'flex',
-    minHeight: '100vh'
-  },
-  mainWrapper: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: '100vh',
-    overflow: 'auto'
-  },
-  main: {
-    flex: 1,
-    padding: '24px',
-    backgroundColor: '#f5f5f5'
-  },
-  header: {
-    marginBottom: '24px'
-  },
-  title: {
-    fontSize: '24px',
-    fontWeight: '600',
-    marginBottom: '4px',
-    color: '#1a1a1a'
-  },
-  subtitle: {
-    color: '#666',
-    fontSize: '14px'
-  },
-  controls: {
-    display: 'flex',
-    gap: '16px',
-    marginBottom: '24px',
-    flexWrap: 'wrap',
-    alignItems: 'flex-end'
-  },
-  controlGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-  },
-  controlLabel: {
-    fontSize: '13px',
-    fontWeight: '600',
-    color: '#64748b',
-  },
-  select: {
-    padding: '10px 32px 10px 14px',
-    border: '2px solid #e2e8f0',
-    borderRadius: '10px',
-    fontSize: '16px',
-    backgroundColor: 'white',
-    minWidth: '140px',
-    minHeight: '44px',
-    cursor: 'pointer',
-    transition: 'border-color 0.2s ease',
-    WebkitAppearance: 'none',
-    MozAppearance: 'none',
-    appearance: 'none',
-    backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\")",
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'right 10px center',
-    backgroundSize: '16px',
-  },
-  generateBtn: {
-    padding: '10px 20px',
-    backgroundColor: '#10b981',
-    color: 'white',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '500',
-    cursor: 'pointer'
-  },
-  card: {
-    backgroundColor: 'white',
-    borderRadius: '12px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    padding: '20px',
-    marginBottom: '20px'
-  },
-  cardTitle: {
-    fontSize: '16px',
-    fontWeight: '600',
-    marginBottom: '16px',
-    color: '#374151',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px'
-  },
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-    gap: '16px',
-    marginBottom: '24px'
-  },
-  statCard: {
-    backgroundColor: '#f8fafc',
-    borderRadius: '12px',
-    padding: '20px',
-    textAlign: 'center',
-    border: '1px solid #e2e8f0'
-  },
-  statIcon: {
-    fontSize: '28px',
-    marginBottom: '8px'
-  },
-  statValue: {
-    fontSize: '32px',
-    fontWeight: '700',
-    color: '#1a1a1a',
-    marginBottom: '4px'
-  },
-  statLabel: {
-    fontSize: '13px',
-    color: '#64748b',
-    fontWeight: '500'
-  },
-  progressBar: {
-    width: '100%',
-    height: '8px',
-    backgroundColor: '#e2e8f0',
-    borderRadius: '4px',
-    overflow: 'hidden',
-    marginTop: '8px'
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: '4px',
-    transition: 'width 0.5s ease'
-  },
-  breakdownGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-    gap: '12px'
-  },
-  breakdownItem: {
-    backgroundColor: '#f1f5f9',
-    padding: '16px',
-    borderRadius: '8px',
-    textAlign: 'center'
-  },
-  breakdownValue: {
-    fontSize: '24px',
-    fontWeight: '600',
-    color: '#0052A1'
-  },
-  breakdownLabel: {
-    fontSize: '12px',
-    color: '#64748b',
-    marginTop: '4px'
-  },
-  noteCard: {
-    backgroundColor: '#f8fafc',
-    borderRadius: '8px',
-    padding: '14px',
-    marginBottom: '12px',
-    borderLeft: '4px solid #10b981'
-  },
-  noteHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    marginBottom: '8px',
-    fontSize: '12px',
-    color: '#64748b'
-  },
-  noteText: {
-    fontSize: '14px',
-    color: '#374151',
-    lineHeight: '1.5'
-  },
-  recommendationCard: {
-    backgroundColor: '#fffbeb',
-    borderRadius: '8px',
-    padding: '14px',
-    marginBottom: '12px',
-    display: 'flex',
-    gap: '12px',
-    alignItems: 'flex-start'
-  },
-  recommendationPositive: {
-    backgroundColor: '#ecfdf5'
-  },
-  recommendationIcon: {
-    fontSize: '24px',
-    flexShrink: 0
-  },
-  recommendationContent: {
-    flex: 1
-  },
-  recommendationTitle: {
-    fontSize: '14px',
-    fontWeight: '600',
-    marginBottom: '4px',
-    color: '#374151'
-  },
-  recommendationText: {
-    fontSize: '13px',
-    color: '#6b7280',
-    lineHeight: '1.4'
-  },
-  highlightBadge: {
-    display: 'inline-block',
-    padding: '4px 10px',
-    backgroundColor: '#dbeafe',
-    color: '#1e40af',
-    borderRadius: '12px',
-    fontSize: '12px',
-    fontWeight: '500',
-    margin: '4px'
-  },
-  emptyState: {
-    textAlign: 'center',
-    padding: '60px 20px',
-    color: '#64748b'
-  },
-  emptyIcon: {
-    fontSize: '48px',
-    marginBottom: '12px'
-  },
-  loading: {
-    textAlign: 'center',
-    padding: '60px 20px',
-    color: '#64748b'
-  },
-  moodGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
-    gap: '12px',
-    marginBottom: '16px'
-  },
-  moodItem: {
-    backgroundColor: '#f8fafc',
-    borderRadius: '12px',
-    padding: '16px',
-    textAlign: 'center',
-    border: '1px solid #e2e8f0',
-    transition: 'transform 0.2s ease'
-  },
-  moodEmoji: {
-    fontSize: '32px',
-    marginBottom: '8px'
-  },
-  moodCount: {
-    fontSize: '20px',
-    fontWeight: '700',
-    color: '#1a1a1a'
-  },
-  moodLabel: {
-    fontSize: '12px',
-    color: '#64748b',
-    marginTop: '4px'
-  },
-  moodPercentage: {
-    fontSize: '11px',
-    color: '#94a3b8',
-    marginTop: '2px'
-  },
-  moodTrendBadge: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '6px',
-    padding: '8px 16px',
-    borderRadius: '20px',
-    fontSize: '14px',
-    fontWeight: '500',
-    marginBottom: '16px'
-  },
-  moodTrendPositive: {
-    backgroundColor: '#dcfce7',
-    color: '#166534'
-  },
-  moodTrendNeutral: {
-    backgroundColor: '#f3f4f6',
-    color: '#374151'
-  },
-  moodTrendAttention: {
-    backgroundColor: '#fef3c7',
-    color: '#92400e'
-  },
-  // Photo Gallery Styles
-  photoGallery: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-    gap: '12px'
-  },
-  photoItem: {
-    position: 'relative',
-    borderRadius: '8px',
-    overflow: 'hidden',
-    aspectRatio: '1',
-    cursor: 'pointer',
-    border: '1px solid #e2e8f0'
-  },
-  photoImage: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-    transition: 'transform 0.2s ease'
-  },
-  photoOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
-    padding: '8px',
-    color: 'white'
-  },
-  photoDate: {
-    fontSize: '11px',
-    opacity: 0.9
-  },
-  photoTitle: {
-    fontSize: '12px',
-    fontWeight: '500',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis'
-  },
-  // Print/Export Styles
-  printBtn: {
-    padding: '10px 20px',
-    backgroundColor: '#0052A1',
-    color: 'white',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px'
-  },
-  exportBtnGroup: {
-    display: 'flex',
-    gap: '8px',
-    marginLeft: 'auto'
-  },
-  noPrint: {
-    // Elements with this class hidden when printing
-  }
-};
+import './css/MonthlySummary.css';
 
 const StatCard = ({ icon, value, label, color = '#10b981', showProgress, progressValue }) => (
-  <div style={styles.statCard}>
-    <div style={styles.statIcon}>{icon}</div>
-    <div style={{ ...styles.statValue, color }}>{value}</div>
-    <div style={styles.statLabel}>{label}</div>
+  <div className="monthly-stat-card">
+    <div className="monthly-stat-icon">{icon}</div>
+    <div className="monthly-stat-value" style={{ color }}>{value}</div>
+    <div className="monthly-stat-label">{label}</div>
     {showProgress && (
-      <div style={styles.progressBar}>
+      <div className="monthly-progress-bar">
         <div
+          className="monthly-progress-fill"
           style={{
-            ...styles.progressFill,
             width: `${progressValue}%`,
             backgroundColor: color
           }}
@@ -384,36 +46,39 @@ const formatDate = (dateStr) => {
   });
 };
 
-const getMoodTrendStyle = (trend) => {
+const getMoodTrendClass = (trend) => {
   switch (trend) {
-    case 'positive':
-      return { ...styles.moodTrendBadge, ...styles.moodTrendPositive };
-    case 'needs_attention':
-      return { ...styles.moodTrendBadge, ...styles.moodTrendAttention };
-    default:
-      return { ...styles.moodTrendBadge, ...styles.moodTrendNeutral };
+    case 'positive': return 'monthly-mood-trend--positive';
+    case 'needs_attention': return 'monthly-mood-trend--attention';
+    default: return 'monthly-mood-trend--neutral';
   }
 };
 
 const getMoodTrendLabel = (trend) => {
   switch (trend) {
     case 'positive':
-      return { icon: '😊', text: 'Positive Overall' };
+      return { icon: <Smile size={16} />, text: 'Positive Overall' };
     case 'needs_attention':
-      return { icon: '💭', text: 'Needs Attention' };
+      return { icon: <AlertCircle size={16} />, text: 'Needs Attention' };
     default:
-      return { icon: '😐', text: 'Balanced' };
+      return { icon: <MinusCircle size={16} />, text: 'Balanced' };
   }
+};
+
+const getMoodItemClass = (category) => {
+  if (category === 'positive') return 'monthly-mood-item--positive';
+  if (category === 'concern') return 'monthly-mood-item--concern';
+  return '';
 };
 
 const MoodCard = ({ moodData }) => {
   if (!moodData || moodData.totalReactions === 0) {
     return (
-      <div style={styles.card}>
-        <div style={styles.cardTitle}>
-          <span>😊</span> Student Reactions
+      <div className="monthly-card">
+        <div className="monthly-card-title">
+          <Smile size={18} /> Student Reactions
         </div>
-        <div style={{ textAlign: 'center', padding: '20px', color: '#94a3b8' }}>
+        <div className="monthly-no-mood-data">
           No mood data recorded this month
         </div>
       </div>
@@ -423,64 +88,52 @@ const MoodCard = ({ moodData }) => {
   const trendInfo = getMoodTrendLabel(moodData.overallTrend);
 
   return (
-    <div style={styles.card}>
-      <div style={styles.cardTitle}>
-        <span>😊</span> Student Reactions
+    <div className="monthly-card">
+      <div className="monthly-card-title">
+        <Smile size={18} /> Student Reactions
       </div>
 
       {/* Overall Trend Badge */}
       <div style={{ textAlign: 'center' }}>
-        <span style={getMoodTrendStyle(moodData.overallTrend)}>
+        <span className={`monthly-mood-trend-badge ${getMoodTrendClass(moodData.overallTrend)}`}>
           {trendInfo.icon} {trendInfo.text}
         </span>
       </div>
 
       {/* Mood Distribution Grid */}
-      <div style={styles.moodGrid}>
+      <div className="monthly-mood-grid">
         {moodData.moodStats.map((mood) => (
           <div
             key={mood.mood}
-            style={{
-              ...styles.moodItem,
-              borderColor: mood.category === 'positive' ? '#10b981' :
-                          mood.category === 'concern' ? '#f59e0b' : '#e2e8f0'
-            }}
+            className={`monthly-mood-item ${getMoodItemClass(mood.category)}`}
           >
-            <div style={styles.moodEmoji}>{mood.emoji}</div>
-            <div style={styles.moodCount}>{mood.count}</div>
-            <div style={styles.moodLabel}>{mood.mood}</div>
-            <div style={styles.moodPercentage}>{mood.percentage}%</div>
+            <div className="monthly-mood-emoji">{mood.emoji}</div>
+            <div className="monthly-mood-count">{mood.count}</div>
+            <div className="monthly-mood-label">{mood.mood}</div>
+            <div className="monthly-mood-percentage">{mood.percentage}%</div>
           </div>
         ))}
       </div>
 
       {/* Summary Stats */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        gap: '24px',
-        padding: '12px',
-        backgroundColor: '#f8fafc',
-        borderRadius: '8px',
-        marginTop: '8px'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '18px', fontWeight: '600', color: '#10b981' }}>
+      <div className="monthly-mood-summary">
+        <div className="monthly-mood-summary-item">
+          <div className="monthly-mood-summary-value monthly-mood-summary-value--positive">
             {moodData.positiveCount}
           </div>
-          <div style={{ fontSize: '11px', color: '#64748b' }}>Positive</div>
+          <div className="monthly-mood-summary-label">Positive</div>
         </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '18px', fontWeight: '600', color: '#f59e0b' }}>
+        <div className="monthly-mood-summary-item">
+          <div className="monthly-mood-summary-value monthly-mood-summary-value--concern">
             {moodData.concernCount}
           </div>
-          <div style={{ fontSize: '11px', color: '#64748b' }}>Concern</div>
+          <div className="monthly-mood-summary-label">Concern</div>
         </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '18px', fontWeight: '600', color: '#6b7280' }}>
+        <div className="monthly-mood-summary-item">
+          <div className="monthly-mood-summary-value monthly-mood-summary-value--total">
             {moodData.totalReactions}
           </div>
-          <div style={{ fontSize: '11px', color: '#64748b' }}>Total</div>
+          <div className="monthly-mood-summary-label">Total</div>
         </div>
       </div>
     </div>
@@ -505,26 +158,29 @@ const PhotoGallery = ({ photos }) => {
   };
 
   return (
-    <div style={styles.card} className="photo-gallery-card">
-      <div style={styles.cardTitle}>
-        <span>📸</span> Activity Photos ({photos.length})
+    <div className="monthly-card">
+      <div className="monthly-card-title">
+        <Camera size={18} /> Activity Photos ({photos.length})
       </div>
-      <div style={styles.photoGallery}>
+      <div className="monthly-photo-gallery">
         {photos.map((photo, index) => (
           <div
             key={`${photo.activityId}-${photo.index}-${index}`}
-            style={styles.photoItem}
+            className="monthly-photo-item"
             onClick={() => setLightboxIndex(index)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter') setLightboxIndex(index); }}
           >
             <img
               src={photo.url}
               alt={photo.title}
-              style={styles.photoImage}
+              className="monthly-photo-image"
               loading="lazy"
             />
-            <div style={styles.photoOverlay}>
-              <div style={styles.photoDate}>{formatPhotoDate(photo.date)}</div>
-              <div style={styles.photoTitle}>{photo.title}</div>
+            <div className="monthly-photo-overlay">
+              <div className="monthly-photo-date">{formatPhotoDate(photo.date)}</div>
+              <div className="monthly-photo-title">{photo.title}</div>
             </div>
           </div>
         ))}
@@ -781,8 +437,6 @@ export default function MonthlySummary() {
           selectedMonth,
           selectedYear
         );
-        // Optionally save for caching
-        // await summaryService.saveSummary(summaryData);
       }
 
       setSummary(summaryData);
@@ -811,14 +465,14 @@ export default function MonthlySummary() {
   };
 
   return (
-    <div style={styles.layout}>
+    <div className="monthly-layout">
       <Sidebar {...getParentConfig()} forceActive="/parent/summary" />
 
-      <div style={styles.mainWrapper}>
-        <main style={styles.main}>
-        <div style={styles.header}>
-          <h1 style={styles.title}>Monthly Summary Report</h1>
-          <p style={styles.subtitle}>
+      <div className="monthly-main-wrapper">
+        <main className="monthly-main">
+        <div className="monthly-header">
+          <h1 className="monthly-title">Monthly Summary Report</h1>
+          <p className="monthly-subtitle">
             View your child's progress and activity summary
           </p>
         </div>
@@ -832,11 +486,11 @@ export default function MonthlySummary() {
         />
 
         {/* Controls */}
-        <div style={styles.controls}>
-          <div style={styles.controlGroup}>
-            <label style={styles.controlLabel}>Month</label>
+        <div className="monthly-controls">
+          <div className="monthly-control-group">
+            <label className="monthly-control-label">Month</label>
             <select
-              style={styles.select}
+              className="monthly-select"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
             >
@@ -848,10 +502,10 @@ export default function MonthlySummary() {
             </select>
           </div>
 
-          <div style={styles.controlGroup}>
-            <label style={styles.controlLabel}>Year</label>
+          <div className="monthly-control-group">
+            <label className="monthly-control-label">Year</label>
             <select
-              style={styles.select}
+              className="monthly-select"
               value={selectedYear}
               onChange={(e) => setSelectedYear(parseInt(e.target.value))}
             >
@@ -864,10 +518,7 @@ export default function MonthlySummary() {
           </div>
 
           <button
-            style={{
-              ...styles.generateBtn,
-              opacity: loading || !selectedChild ? 0.6 : 1
-            }}
+            className="monthly-generate-btn"
             onClick={handleGenerateSummary}
             disabled={loading || !selectedChild}
           >
@@ -877,7 +528,7 @@ export default function MonthlySummary() {
           {/* Print/Export Button - only show when summary exists */}
           {summary && (
             <button
-              style={styles.printBtn}
+              className="monthly-print-btn"
               onClick={handlePrint}
             >
               <PrintIcon />
@@ -888,17 +539,21 @@ export default function MonthlySummary() {
 
         {/* Loading State */}
         {loading && (
-          <div style={styles.loading}>
-            <div style={{ fontSize: '48px', marginBottom: '12px' }}>📊</div>
+          <div className="monthly-loading">
+            <div className="monthly-loading-icon">
+              <BarChart3 size={48} color="#64748b" />
+            </div>
             <p>Generating summary report...</p>
           </div>
         )}
 
         {/* Empty State */}
         {!loading && !summary && (
-          <div style={styles.card}>
-            <div style={styles.emptyState}>
-              <div style={styles.emptyIcon}>📋</div>
+          <div className="monthly-card">
+            <div className="monthly-empty-state">
+              <div className="monthly-empty-icon">
+                <ClipboardList size={48} color="#64748b" />
+              </div>
               <p>Select a child and time period, then click "Generate Report"</p>
             </div>
           </div>
@@ -908,42 +563,42 @@ export default function MonthlySummary() {
         {!loading && summary && (
           <div ref={printRef}>
             {/* Period Header */}
-            <div style={{ ...styles.card, backgroundColor: '#0052A1', color: 'white' }} className="report-header">
+            <div className="monthly-card monthly-report-header">
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '4px' }}>
+                <div className="monthly-report-label">
                   Summary Report for
                 </div>
-                <div style={{ fontSize: '24px', fontWeight: '700' }}>
+                <div className="monthly-report-child-name">
                   {summary.childName}
                 </div>
-                <div style={{ fontSize: '16px', marginTop: '4px' }}>
+                <div className="monthly-report-period">
                   {summary.period.monthName} {summary.period.year}
                 </div>
               </div>
             </div>
 
             {/* Stats Grid */}
-            <div style={styles.statsGrid}>
+            <div className="monthly-stats-grid">
               <StatCard
-                icon="📚"
+                icon={<BookOpen size={28} color="#0052A1" />}
                 value={summary.stats.totalActivities}
                 label="Total Activities"
                 color="#0052A1"
               />
               <StatCard
-                icon="🩺"
+                icon={<Stethoscope size={28} color="#10b981" />}
                 value={summary.stats.totalTherapySessions}
                 label="Therapy Sessions"
                 color="#10b981"
               />
               <StatCard
-                icon="👥"
+                icon={<Users size={28} color="#8b5cf6" />}
                 value={summary.stats.totalGroupActivities}
                 label="Group Activities"
                 color="#8b5cf6"
               />
               <StatCard
-                icon="📈"
+                icon={<TrendingUp size={28} color={getProgressColor(summary.stats.attendanceRate)} />}
                 value={`${summary.stats.attendanceRate}%`}
                 label="Engagement Rate"
                 color={getProgressColor(summary.stats.attendanceRate)}
@@ -954,15 +609,15 @@ export default function MonthlySummary() {
 
             {/* Activity Breakdown */}
             {Object.keys(summary.therapyByService).length > 0 && (
-              <div style={styles.card}>
-                <div style={styles.cardTitle}>
-                  <span>📊</span> Therapy Breakdown by Service
+              <div className="monthly-card">
+                <div className="monthly-card-title">
+                  <BarChart3 size={18} /> Therapy Breakdown by Service
                 </div>
-                <div style={styles.breakdownGrid}>
+                <div className="monthly-breakdown-grid">
                   {Object.entries(summary.therapyByService).map(([service, count]) => (
-                    <div key={service} style={styles.breakdownItem}>
-                      <div style={styles.breakdownValue}>{count}</div>
-                      <div style={styles.breakdownLabel}>{service}</div>
+                    <div key={service} className="monthly-breakdown-item">
+                      <div className="monthly-breakdown-value">{count}</div>
+                      <div className="monthly-breakdown-label">{service}</div>
                     </div>
                   ))}
                 </div>
@@ -977,13 +632,13 @@ export default function MonthlySummary() {
 
             {/* Highlights */}
             {summary.highlights.length > 0 && (
-              <div style={styles.card}>
-                <div style={styles.cardTitle}>
-                  <span>⭐</span> Highlights
+              <div className="monthly-card">
+                <div className="monthly-card-title">
+                  <Star size={18} /> Highlights
                 </div>
                 <div>
                   {summary.highlights.map((highlight, index) => (
-                    <span key={index} style={styles.highlightBadge}>
+                    <span key={index} className="monthly-highlight-badge">
                       {highlight.text || `${highlight.keyword} in ${highlight.serviceName}`}
                     </span>
                   ))}
@@ -993,17 +648,17 @@ export default function MonthlySummary() {
 
             {/* Progress Notes */}
             {summary.progressNotes.length > 0 && (
-              <div style={styles.card}>
-                <div style={styles.cardTitle}>
-                  <span>📝</span> Recent Progress Notes
+              <div className="monthly-card">
+                <div className="monthly-card-title">
+                  <FileText size={18} /> Recent Progress Notes
                 </div>
                 {summary.progressNotes.map((note, index) => (
-                  <div key={index} style={styles.noteCard}>
-                    <div style={styles.noteHeader}>
+                  <div key={index} className="monthly-note-card">
+                    <div className="monthly-note-header">
                       <span>{note.serviceName} • {note.therapistName}</span>
                       <span>{formatDate(note.date)}</span>
                     </div>
-                    <div style={styles.noteText}>
+                    <div className="monthly-note-text">
                       {note.note.length > 200
                         ? `${note.note.substring(0, 200)}...`
                         : note.note}
@@ -1015,22 +670,19 @@ export default function MonthlySummary() {
 
             {/* Recommendations */}
             {summary.recommendations.length > 0 && (
-              <div style={styles.card}>
-                <div style={styles.cardTitle}>
-                  <span>💡</span> Recommendations
+              <div className="monthly-card">
+                <div className="monthly-card-title">
+                  <Lightbulb size={18} /> Recommendations
                 </div>
                 {summary.recommendations.map((rec, index) => (
                   <div
                     key={index}
-                    style={{
-                      ...styles.recommendationCard,
-                      ...(rec.priority === 'positive' ? styles.recommendationPositive : {})
-                    }}
+                    className={`monthly-recommendation${rec.priority === 'positive' ? ' monthly-recommendation--positive' : ''}`}
                   >
-                    <div style={styles.recommendationIcon}>{rec.icon}</div>
-                    <div style={styles.recommendationContent}>
-                      <div style={styles.recommendationTitle}>{rec.title}</div>
-                      <div style={styles.recommendationText}>{rec.text}</div>
+                    <div className="monthly-recommendation-icon">{rec.icon}</div>
+                    <div className="monthly-recommendation-content">
+                      <div className="monthly-recommendation-title">{rec.title}</div>
+                      <div className="monthly-recommendation-text">{rec.text}</div>
                     </div>
                   </div>
                 ))}
@@ -1038,7 +690,7 @@ export default function MonthlySummary() {
             )}
 
             {/* Generated timestamp */}
-            <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: '12px', marginTop: '20px' }}>
+            <div className="monthly-generated-at">
               Report generated on {new Date(summary.generatedAt).toLocaleString()}
             </div>
           </div>

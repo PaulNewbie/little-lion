@@ -1,0 +1,834 @@
+/* ============================================================
+   MONTHLY SUMMARY - Parent monthly report page
+   Mobile-first responsive design with print support
+============================================================ */
+
+.monthly-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.monthly-main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow: auto;
+}
+
+.monthly-main {
+  flex: 1;
+  padding: 24px;
+  background-color: #f5f5f5;
+}
+
+.monthly-header {
+  margin-bottom: 24px;
+}
+
+.monthly-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #1a1a1a;
+}
+
+.monthly-subtitle {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Controls */
+.monthly-controls {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.monthly-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.monthly-control-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.monthly-select {
+  padding: 10px 32px 10px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 16px;
+  background-color: white;
+  min-width: 140px;
+  min-height: 44px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+}
+
+.monthly-select:hover {
+  border-color: #0052A1;
+}
+
+.monthly-select:focus {
+  border-color: #0052A1;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 82, 161, 0.1);
+}
+
+.monthly-select:focus-visible {
+  outline: 2px solid #0052A1;
+  outline-offset: 2px;
+}
+
+.monthly-generate-btn {
+  padding: 10px 20px;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  min-height: 44px;
+  transition: background-color 0.2s ease;
+}
+
+.monthly-generate-btn:hover:not(:disabled) {
+  background-color: #059669;
+}
+
+.monthly-generate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.monthly-generate-btn:focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+.monthly-print-btn {
+  padding: 10px 20px;
+  background-color: #0052A1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  transition: background-color 0.2s ease;
+}
+
+.monthly-print-btn:hover {
+  background-color: #003d7a;
+}
+
+.monthly-print-btn:focus-visible {
+  outline: 2px solid #0052A1;
+  outline-offset: 2px;
+}
+
+/* Cards */
+.monthly-card {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 20px;
+  margin-bottom: 20px;
+  transition: box-shadow 0.2s ease;
+}
+
+.monthly-card:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.monthly-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Report Header Card */
+.monthly-report-header {
+  background-color: #0052A1;
+  color: white;
+  text-align: center;
+}
+
+.monthly-report-label {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 4px;
+}
+
+.monthly-report-child-name {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.monthly-report-period {
+  font-size: 16px;
+  margin-top: 4px;
+}
+
+/* Stats Grid */
+.monthly-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.monthly-stat-card {
+  background-color: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.monthly-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.monthly-stat-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.monthly-stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.monthly-stat-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.monthly-progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.monthly-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+/* Breakdown Grid */
+.monthly-breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.monthly-breakdown-item {
+  background-color: #f1f5f9;
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.monthly-breakdown-item:hover {
+  transform: translateY(-2px);
+}
+
+.monthly-breakdown-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #0052A1;
+}
+
+.monthly-breakdown-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+/* Notes */
+.monthly-note-card {
+  background-color: #f8fafc;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 12px;
+  border-left: 4px solid #10b981;
+}
+
+.monthly-note-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.monthly-note-text {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.5;
+}
+
+/* Recommendations */
+.monthly-recommendation {
+  background-color: #fffbeb;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  transition: transform 0.2s ease;
+}
+
+.monthly-recommendation:hover {
+  transform: translateY(-1px);
+}
+
+.monthly-recommendation--positive {
+  background-color: #ecfdf5;
+}
+
+.monthly-recommendation-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.monthly-recommendation-content {
+  flex: 1;
+}
+
+.monthly-recommendation-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #374151;
+}
+
+.monthly-recommendation-text {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* Highlight Badges */
+.monthly-highlight-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background-color: #dbeafe;
+  color: #1e40af;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 4px;
+}
+
+/* Mood Section */
+.monthly-mood-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.monthly-mood-item {
+  background-color: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s ease;
+}
+
+.monthly-mood-item:hover {
+  transform: translateY(-2px);
+}
+
+.monthly-mood-item--positive {
+  border-color: #10b981;
+}
+
+.monthly-mood-item--concern {
+  border-color: #f59e0b;
+}
+
+.monthly-mood-emoji {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.monthly-mood-count {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.monthly-mood-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.monthly-mood-percentage {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.monthly-mood-trend-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.monthly-mood-trend--positive {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.monthly-mood-trend--neutral {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.monthly-mood-trend--attention {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.monthly-mood-summary {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  padding: 12px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.monthly-mood-summary-item {
+  text-align: center;
+}
+
+.monthly-mood-summary-value {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.monthly-mood-summary-value--positive {
+  color: #10b981;
+}
+
+.monthly-mood-summary-value--concern {
+  color: #f59e0b;
+}
+
+.monthly-mood-summary-value--total {
+  color: #6b7280;
+}
+
+.monthly-mood-summary-label {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.monthly-no-mood-data {
+  text-align: center;
+  padding: 20px;
+  color: #94a3b8;
+}
+
+/* Photo Gallery */
+.monthly-photo-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.monthly-photo-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  aspect-ratio: 1;
+  cursor: pointer;
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.monthly-photo-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.monthly-photo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+.monthly-photo-item:hover .monthly-photo-image {
+  transform: scale(1.05);
+}
+
+.monthly-photo-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.7));
+  padding: 8px;
+  color: white;
+}
+
+.monthly-photo-date {
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+.monthly-photo-title {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Empty & Loading States */
+.monthly-empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #64748b;
+}
+
+.monthly-empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.monthly-loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: #64748b;
+}
+
+.monthly-loading-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.monthly-generated-at {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 12px;
+  margin-top: 20px;
+}
+
+/* ============================================================
+   RESPONSIVE - Tablet
+============================================================ */
+@media (max-width: 768px) {
+  .monthly-main {
+    padding: 16px;
+  }
+
+  .monthly-title {
+    font-size: 20px;
+  }
+
+  .monthly-header {
+    margin-bottom: 16px;
+  }
+
+  .monthly-controls {
+    gap: 12px;
+  }
+
+  .monthly-stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+  }
+
+  .monthly-stat-value {
+    font-size: 28px;
+  }
+
+  .monthly-stat-card {
+    padding: 16px;
+  }
+
+  .monthly-mood-grid {
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 10px;
+  }
+
+  .monthly-mood-item {
+    padding: 12px;
+  }
+
+  .monthly-mood-emoji {
+    font-size: 28px;
+  }
+
+  .monthly-photo-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+
+  .monthly-card {
+    padding: 16px;
+  }
+
+  .monthly-report-child-name {
+    font-size: 20px;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE - Mobile
+============================================================ */
+@media (max-width: 480px) {
+  .monthly-main {
+    padding: 12px;
+  }
+
+  .monthly-title {
+    font-size: 18px;
+  }
+
+  .monthly-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .monthly-control-group {
+    width: 100%;
+  }
+
+  .monthly-select {
+    width: 100%;
+  }
+
+  .monthly-generate-btn,
+  .monthly-print-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .monthly-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .monthly-stat-value {
+    font-size: 24px;
+  }
+
+  .monthly-stat-icon {
+    font-size: 24px;
+  }
+
+  .monthly-stat-card {
+    padding: 12px;
+  }
+
+  .monthly-stat-label {
+    font-size: 11px;
+  }
+
+  .monthly-mood-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .monthly-mood-emoji {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+
+  .monthly-mood-count {
+    font-size: 16px;
+  }
+
+  .monthly-mood-item {
+    padding: 10px 8px;
+  }
+
+  .monthly-mood-summary {
+    gap: 16px;
+    padding: 10px;
+  }
+
+  .monthly-photo-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+  }
+
+  .monthly-card {
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+
+  .monthly-breakdown-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .monthly-breakdown-item {
+    padding: 12px;
+  }
+
+  .monthly-breakdown-value {
+    font-size: 20px;
+  }
+
+  .monthly-note-card {
+    padding: 12px;
+  }
+
+  .monthly-recommendation {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .monthly-empty-state {
+    padding: 40px 16px;
+  }
+
+  .monthly-loading {
+    padding: 40px 16px;
+  }
+
+  .monthly-report-child-name {
+    font-size: 18px;
+  }
+
+  .monthly-report-period {
+    font-size: 14px;
+  }
+}
+
+/* ============================================================
+   ACCESSIBILITY
+============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .monthly-stat-card,
+  .monthly-mood-item,
+  .monthly-photo-item,
+  .monthly-photo-image,
+  .monthly-breakdown-item,
+  .monthly-recommendation,
+  .monthly-card,
+  .monthly-progress-fill,
+  .monthly-generate-btn,
+  .monthly-print-btn,
+  .monthly-select {
+    transition: none;
+  }
+
+  .monthly-stat-card:hover,
+  .monthly-mood-item:hover,
+  .monthly-photo-item:hover,
+  .monthly-breakdown-item:hover,
+  .monthly-recommendation:hover {
+    transform: none;
+  }
+
+  .monthly-photo-item:hover .monthly-photo-image {
+    transform: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .monthly-card {
+    border: 2px solid #000;
+  }
+
+  .monthly-stat-card {
+    border-width: 2px;
+    border-color: #000;
+  }
+
+  .monthly-mood-item {
+    border-width: 2px;
+  }
+
+  .monthly-select {
+    border-width: 3px;
+    border-color: #000;
+  }
+
+  .monthly-generate-btn,
+  .monthly-print-btn {
+    border: 2px solid #000;
+  }
+}
+
+/* ============================================================
+   PRINT STYLES
+============================================================ */
+@media print {
+  .monthly-layout {
+    display: block;
+  }
+
+  .monthly-main {
+    padding: 0;
+    background-color: white;
+  }
+
+  .monthly-card {
+    box-shadow: none;
+    border: 1px solid #e5e7eb;
+    break-inside: avoid;
+  }
+
+  .monthly-controls {
+    display: none;
+  }
+
+  .monthly-stat-card {
+    break-inside: avoid;
+  }
+
+  .monthly-photo-item {
+    break-inside: avoid;
+  }
+}

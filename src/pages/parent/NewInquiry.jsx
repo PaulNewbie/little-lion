@@ -2,9 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../context/ToastContext';
+import { Loader, Baby, UserCheck, Pin, MessageSquare } from 'lucide-react';
 import childService from '../../services/childService';
 import inquiryService from '../../services/inquiryService';
 import BackButton from '../../components/common/BackButton';
+import Sidebar from '../../components/sidebar/Sidebar';
+import { getParentConfig } from '../../components/sidebar/sidebarConfigs';
+import GeneralFooter from '../../components/footer/generalfooter';
+
+import './css/NewInquiry.css';
 
 const NewInquiry = () => {
   const { currentUser } = useAuth();
@@ -13,7 +19,7 @@ const NewInquiry = () => {
 
   const [children, setChildren] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Form State
   const [selectedChildId, setSelectedChildId] = useState('');
   const [staffOptions, setStaffOptions] = useState([]);
@@ -28,10 +34,10 @@ const NewInquiry = () => {
       if (currentUser?.uid) {
         try {
           const data = await childService.getChildrenByParentId(currentUser.uid);
-          console.log('📚 Fetched Children:', data); // Debug log
+          console.log('Fetched Children:', data);
           setChildren(data);
         } catch (error) {
-          console.error('❌ Error fetching children:', error);
+          console.error('Error fetching children:', error);
         } finally {
           setLoading(false);
         }
@@ -44,27 +50,21 @@ const NewInquiry = () => {
   useEffect(() => {
     if (selectedChildId) {
       const child = children.find(c => c.id === selectedChildId);
-      
+
       if (!child) {
-        console.warn('⚠️ Child not found');
+        console.warn('Child not found');
         return;
       }
 
-      console.log('👶 Selected Child:', child);
-      console.log('📋 Enrolled Services:', child.enrolledServices);
-
       const options = [];
 
-      // ✅ FIX: Use the unified 'enrolledServices' array
       if (child.enrolledServices && Array.isArray(child.enrolledServices)) {
         child.enrolledServices.forEach(service => {
-          // Extract staff info (handles both therapist and teacher fields)
           const staffId = service.staffId || service.therapistId || service.teacherId;
           const staffName = service.staffName || service.therapistName || service.teacherName;
           const staffRole = service.staffRole || (service.type === 'Therapy' ? 'therapist' : 'teacher');
 
           if (staffId && staffName) {
-            // Avoid duplicates
             const exists = options.some(opt => opt.id === staffId);
             if (!exists) {
               options.push({
@@ -77,9 +77,8 @@ const NewInquiry = () => {
         });
       }
 
-      console.log('👨‍⚕️ Staff Options Generated:', options);
       setStaffOptions(options);
-      setSelectedStaffId(''); // Reset staff selection when child changes
+      setSelectedStaffId('');
     } else {
       setStaffOptions([]);
       setSelectedStaffId('');
@@ -89,12 +88,12 @@ const NewInquiry = () => {
   // 3. Submit Handler
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!selectedChildId || !selectedStaffId || !message) {
       toast.warning('Please fill in all required fields.');
       return;
     }
-    
+
     setSending(true);
     try {
       const child = children.find(c => c.id === selectedChildId);
@@ -114,9 +113,9 @@ const NewInquiry = () => {
 
       await inquiryService.createInquiry(inquiryData);
       toast.success('Inquiry sent successfully!');
-      navigate('/parent/inquiries');
+      navigate('/parent/concerns');
     } catch (error) {
-      console.error('❌ Error sending inquiry:', error);
+      console.error('Error sending inquiry:', error);
       toast.error('Failed to send inquiry. Please try again.');
     } finally {
       setSending(false);
@@ -125,269 +124,136 @@ const NewInquiry = () => {
 
   if (loading) {
     return (
-      <div style={styles.loadingContainer}>
-        <div style={styles.spinner}>⏳</div>
+      <div className="inquiry-loading-container">
+        <div className="inquiry-spinner"><Loader size={32} className="inquiry-spin-icon" /></div>
         <p>Loading your children...</p>
       </div>
     );
   }
 
   return (
-    <div style={styles.container}>
-      {/* Header */}
-      <div style={styles.header}>
-        <BackButton to="/parent/inquiries" />
-        <h1 style={styles.title}>✉️ New Inquiry</h1>
-        <p style={styles.subtitle}>Send a message to your child's teacher or therapist</p>
+    <div className="inquiry-layout">
+      <Sidebar {...getParentConfig()} forceActive="/parent/concerns" />
+
+      <div className="inquiry-main-wrapper">
+        <div className="inquiry-container">
+          {/* Header */}
+          <div className="inquiry-header">
+            <BackButton to="/parent/concerns" />
+            <h1 className="inquiry-title">New Inquiry</h1>
+            <p className="inquiry-subtitle">Send a message to your child's teacher or therapist</p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="inquiry-form">
+
+            {/* Child Selection */}
+            <div className="inquiry-form-group">
+              <label className="inquiry-label">
+                <span className="inquiry-label-icon"><Baby size={18} color="#0052A1" /></span>
+                About Child *
+              </label>
+              <select
+                value={selectedChildId}
+                onChange={(e) => setSelectedChildId(e.target.value)}
+                className="inquiry-select"
+                required
+              >
+                <option value="">-- Select Your Child --</option>
+                {children.map(child => (
+                  <option key={child.id} value={child.id}>
+                    {child.firstName} {child.lastName}
+                  </option>
+                ))}
+              </select>
+              {children.length === 0 && (
+                <p className="inquiry-help-text">No children found in your account.</p>
+              )}
+            </div>
+
+            {/* Staff Selection */}
+            <div className="inquiry-form-group">
+              <label className="inquiry-label">
+                <span className="inquiry-label-icon"><UserCheck size={18} color="#0052A1" /></span>
+                Send To (Teacher/Therapist) *
+              </label>
+              <select
+                value={selectedStaffId}
+                onChange={(e) => setSelectedStaffId(e.target.value)}
+                className="inquiry-select"
+                required
+                disabled={!selectedChildId}
+              >
+                <option value="">
+                  {selectedChildId ? '-- Select Recipient --' : '-- Select a child first --'}
+                </option>
+                {staffOptions.map((staff) => (
+                  <option key={staff.id} value={staff.id}>
+                    {staff.name}
+                  </option>
+                ))}
+              </select>
+              {selectedChildId && staffOptions.length === 0 && (
+                <p className="inquiry-help-text">No staff assigned to this child yet.</p>
+              )}
+            </div>
+
+            {/* Subject */}
+            <div className="inquiry-form-group">
+              <label className="inquiry-label">
+                <span className="inquiry-label-icon"><Pin size={18} color="#0052A1" /></span>
+                Subject (Optional)
+              </label>
+              <input
+                type="text"
+                value={subject}
+                onChange={e => setSubject(e.target.value)}
+                placeholder="e.g., Question about homework"
+                className="inquiry-input"
+              />
+            </div>
+
+            {/* Message */}
+            <div className="inquiry-form-group">
+              <label className="inquiry-label">
+                <span className="inquiry-label-icon"><MessageSquare size={18} color="#0052A1" /></span>
+                Your Message *
+              </label>
+              <textarea
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                placeholder="Type your question or concern here..."
+                className="inquiry-textarea"
+                required
+                rows="6"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="inquiry-actions">
+              <button
+                type="button"
+                onClick={() => navigate('/parent/concerns')}
+                className="inquiry-cancel-btn"
+                disabled={sending}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={sending}
+                className="inquiry-submit-btn"
+              >
+                {sending ? 'Sending...' : 'Send Inquiry'}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <GeneralFooter pageLabel="New Inquiry" />
       </div>
-
-      {/* Form */}
-      <form onSubmit={handleSubmit} style={styles.form}>
-        
-        {/* Child Selection */}
-        <div style={styles.formGroup}>
-          <label style={styles.label}>
-            <span style={styles.labelIcon}>👶</span>
-            About Child *
-          </label>
-          <select 
-            value={selectedChildId} 
-            onChange={(e) => setSelectedChildId(e.target.value)}
-            style={styles.select}
-            required
-          >
-            <option value="">-- Select Your Child --</option>
-            {children.map(child => (
-              <option key={child.id} value={child.id}>
-                {child.firstName} {child.lastName}
-              </option>
-            ))}
-          </select>
-          {children.length === 0 && (
-            <p style={styles.helpText}>No children found in your account.</p>
-          )}
-        </div>
-
-        {/* Staff Selection */}
-        <div style={styles.formGroup}>
-          <label style={styles.label}>
-            <span style={styles.labelIcon}>👨‍⚕️</span>
-            Send To (Teacher/Therapist) *
-          </label>
-          <select 
-            value={selectedStaffId} 
-            onChange={(e) => setSelectedStaffId(e.target.value)}
-            style={styles.select}
-            required
-            disabled={!selectedChildId}
-          >
-            <option value="">
-              {selectedChildId ? '-- Select Recipient --' : '-- Select a child first --'}
-            </option>
-            {staffOptions.map((staff) => (
-              <option key={staff.id} value={staff.id}>
-                {staff.name}
-              </option>
-            ))}
-          </select>
-          {selectedChildId && staffOptions.length === 0 && (
-            <p style={styles.helpText}>⚠️ No staff assigned to this child yet.</p>
-          )}
-        </div>
-
-        {/* Subject */}
-        <div style={styles.formGroup}>
-          <label style={styles.label}>
-            <span style={styles.labelIcon}>📌</span>
-            Subject (Optional)
-          </label>
-          <input 
-            type="text"
-            value={subject} 
-            onChange={e => setSubject(e.target.value)} 
-            placeholder="e.g., Question about homework"
-            style={styles.input}
-          />
-        </div>
-
-        {/* Message */}
-        <div style={styles.formGroup}>
-          <label style={styles.label}>
-            <span style={styles.labelIcon}>💬</span>
-            Your Message *
-          </label>
-          <textarea 
-            value={message} 
-            onChange={e => setMessage(e.target.value)} 
-            placeholder="Type your question or concern here..."
-            style={styles.textarea}
-            required
-            rows="6"
-          />
-        </div>
-
-        {/* Actions */}
-        <div style={styles.actions}>
-          <button 
-            type="button" 
-            onClick={() => navigate('/parent/inquiries')} 
-            style={styles.cancelBtn}
-            disabled={sending}
-          >
-            Cancel
-          </button>
-          <button 
-            type="submit" 
-            disabled={sending} 
-            style={styles.submitBtn}
-          >
-            {sending ? 'Sending...' : '📤 Send Inquiry'}
-          </button>
-        </div>
-      </form>
     </div>
   );
-};
-
-// Simplified Styles
-const styles = {
-  container: {
-    padding: '20px',
-    maxWidth: '700px',
-    margin: '0 auto',
-    fontFamily: 'system-ui, -apple-system, sans-serif',
-    minHeight: '100vh',
-    backgroundColor: '#f8fafc'
-  },
-  
-  loadingContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '100vh',
-    gap: '1rem'
-  },
-  
-  spinner: {
-    fontSize: '3rem',
-    animation: 'spin 2s linear infinite'
-  },
-  
-  header: {
-    marginBottom: '2rem'
-  },
-  
-  title: {
-    fontSize: '1.875rem',
-    fontWeight: '700',
-    color: '#0f172a',
-    margin: '0 0 0.5rem 0'
-  },
-  
-  subtitle: {
-    color: '#64748b',
-    margin: 0,
-    fontSize: '1rem'
-  },
-  
-  form: {
-    backgroundColor: 'white',
-    padding: '2rem',
-    borderRadius: '1rem',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    border: '1px solid #e2e8f0'
-  },
-  
-  formGroup: {
-    marginBottom: '1.5rem'
-  },
-  
-  label: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    fontSize: '0.875rem',
-    fontWeight: '600',
-    color: '#334155',
-    marginBottom: '0.5rem'
-  },
-  
-  labelIcon: {
-    fontSize: '1.125rem'
-  },
-  
-  select: {
-    width: '100%',
-    padding: '0.75rem',
-    fontSize: '1rem',
-    border: '1.5px solid #cbd5e1',
-    borderRadius: '0.5rem',
-    backgroundColor: 'white',
-    color: '#1e293b',
-    cursor: 'pointer',
-    transition: 'all 0.2s'
-  },
-  
-  input: {
-    width: '100%',
-    padding: '0.75rem',
-    fontSize: '1rem',
-    border: '1.5px solid #cbd5e1',
-    borderRadius: '0.5rem',
-    boxSizing: 'border-box'
-  },
-  
-  textarea: {
-    width: '100%',
-    padding: '0.75rem',
-    fontSize: '1rem',
-    border: '1.5px solid #cbd5e1',
-    borderRadius: '0.5rem',
-    fontFamily: 'inherit',
-    resize: 'vertical',
-    boxSizing: 'border-box'
-  },
-  
-  helpText: {
-    fontSize: '0.8125rem',
-    color: '#ef4444',
-    margin: '0.5rem 0 0 0',
-    fontStyle: 'italic'
-  },
-  
-  actions: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    gap: '1rem',
-    marginTop: '2rem',
-    paddingTop: '1.5rem',
-    borderTop: '1px solid #e2e8f0'
-  },
-  
-  cancelBtn: {
-    padding: '0.75rem 1.5rem',
-    fontSize: '1rem',
-    fontWeight: '600',
-    color: '#64748b',
-    backgroundColor: 'white',
-    border: '1.5px solid #cbd5e1',
-    borderRadius: '0.5rem',
-    cursor: 'pointer',
-    transition: 'all 0.2s'
-  },
-  
-  submitBtn: {
-    padding: '0.75rem 1.5rem',
-    fontSize: '1rem',
-    fontWeight: '600',
-    color: 'white',
-    backgroundColor: '#2563eb',
-    border: 'none',
-    borderRadius: '0.5rem',
-    cursor: 'pointer',
-    transition: 'all 0.2s'
-  }
 };
 
 export default NewInquiry;
