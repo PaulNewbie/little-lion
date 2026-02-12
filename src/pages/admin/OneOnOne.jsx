@@ -14,7 +14,7 @@ import cloudinaryService from "../../services/cloudinaryService"; // Added for i
 import useManageTherapists from "../../hooks/useManageTherapists";
 import { db } from "../../config/firebase";
 import { collection, addDoc } from "firebase/firestore";
-import { HeartHandshake } from 'lucide-react';
+import { HeartHandshake, FileText, X } from 'lucide-react';
 import "./css/OneOnOne.css";
 import "./studentProfile/StudentProfile.css";
 import "../../components/common/Header.css";
@@ -44,12 +44,24 @@ const ServiceDescription = ({ description, maxLength = 120, serviceName }) => {
       {showModal && (
         <div className="desc-modal-overlay" onClick={() => setShowModal(false)}>
           <div className="desc-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="desc-modal-accent" />
             <div className="desc-modal-header">
-              <h3>{serviceName || 'Description'}</h3>
-              <button className="desc-modal-close" onClick={() => setShowModal(false)}>&times;</button>
+              <div className="desc-modal-icon">
+                <FileText size={20} />
+              </div>
+              <div className="desc-modal-title-group">
+                <span className="desc-modal-label">Service Description</span>
+                <h3>{serviceName || 'Description'}</h3>
+              </div>
+              <button className="desc-modal-close" onClick={() => setShowModal(false)}>
+                <X size={18} />
+              </button>
             </div>
             <div className="desc-modal-body">
               <p>{text}</p>
+            </div>
+            <div className="desc-modal-footer">
+              <button className="desc-modal-done" onClick={() => setShowModal(false)}>Done</button>
             </div>
           </div>
         </div>
